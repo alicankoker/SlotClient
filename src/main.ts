@@ -8,6 +8,7 @@ import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState } from '
 import { Background } from './engine/Background';
 import { AssetLoader } from './engine/utils/AssetLoader';
 import { AssetsConfig } from './config/AssetsConfig';
+import { GameConfig } from './config/GameConfig';
 import { Loader } from './engine/utils/Loader';
 
 export class DoodleV8Main {
@@ -191,6 +192,8 @@ export class DoodleV8Main {
         const loader = Loader.getInstance();
         loader.init();
         loader.mount(this.app);
+        // set custom loader timings (milliseconds)
+        loader.setTimings(GameConfig.LOADER_DEFAULT_TIMINGS);
         await loader.progress; // Wait for the loader to complete
     }
 
