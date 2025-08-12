@@ -1,27 +1,39 @@
-export interface AssetConfig {
-    alias: string;
-    src: string;
-}
-
-export interface SpritesheetConfig extends AssetConfig {
-    data?: string; // Path to JSON file for spritesheet
-}
+import { BundleFile } from "../engine/types/IAssetLoader";
 
 export class AssetsConfig {
-    public static readonly SPRITESHEETS: SpritesheetConfig[] = [
-        {
-            alias: 'symbols',
-            src: '/assets/symbols/symbols.png',
-            data: '/assets/symbols/symbols.json'
-        }
-    ];
+    public static readonly SPRITESHEETS: BundleFile = {
+        bundles: [
+            {
+                name: 'symbols',
+                weight: 0.5,
+                assets: [
+                    {
+                        alias: 'symbols',
+                        src: '/assets/symbols/symbols.json'
+                    }
+                ]
+            }
+        ]
+    };
 
-    public static readonly IMAGES: AssetConfig[] = [
-        {
-            alias: 'background',
-            src: '/assets/symbol.png' // Keep as fallback
-        }
-    ];
+    public static readonly IMAGES: BundleFile = {
+        bundles: [
+            {
+                name: 'environment',
+                weight: 0.5,
+                assets: [
+                    {
+                        alias: 'multipacked-0',
+                        src: '/assets/multipacked_transparent-0.json'
+                    },
+                    {
+                        alias: 'multipacked-1',
+                        src: '/assets/multipacked_transparent-1.json'
+                    }
+                ]
+            }
+        ]
+    };
 
     public static readonly SYMBOL_NAMES = {
         SYMBOL_1_STATIC: 'symbol_1_static.png',
@@ -50,15 +62,22 @@ export class AssetsConfig {
         9: 'symbol_10_static.png'
     };
 
-    public static getAllAssets(): (AssetConfig | SpritesheetConfig)[] {
-        return [...this.SPRITESHEETS, ...this.IMAGES];
+    public static getAllAssets(): BundleFile {
+        const allAssets: BundleFile = {
+            bundles: [
+                ...this.SPRITESHEETS.bundles,
+                ...this.IMAGES.bundles
+            ]
+        };
+
+        return allAssets;
     }
 
-    public static getSpritesheetAssets(): SpritesheetConfig[] {
+    public static getSpritesheetAssets(): BundleFile {
         return this.SPRITESHEETS;
     }
 
-    public static getImageAssets(): AssetConfig[] {
+    public static getImageAssets(): BundleFile {
         return this.IMAGES;
     }
 

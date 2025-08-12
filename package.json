@@ -12,7 +12,9 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "pixi.js": "^8.0.0"
+    "pixi.js": "^8.0.0",
+    "gsap": "^3.13.0",
+    "howler": "^2.2.4"
   },
   "devDependencies": {
     "@types/node": "^17.0.0",
