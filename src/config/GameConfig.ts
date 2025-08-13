@@ -21,6 +21,13 @@ export interface UIConfig {
     };
 }
 
+export interface LoaderDurations {
+    minDisplayTime: number;
+    transitionTo100: number;
+    holdAfter100: number;
+    fadeOut: number;
+}
+
 export class GameConfig {
     // Reference resolution - all sizes are designed for this resolution
     public static readonly REFERENCE_RESOLUTION: ResolutionConfig = {
@@ -75,19 +82,26 @@ export class GameConfig {
         visibleRows: 3,                // Number of visible rows (inside mask)
         rowsAboveMask: 1,              // Number of rows above visible area
         rowsBelowMask: 1,              // Number of rows below visible area
-        totalRows: function() { 
-            return this.visibleRows + this.rowsAboveMask + this.rowsBelowMask; 
+        totalRows: function () {
+            return this.visibleRows + this.rowsAboveMask + this.rowsBelowMask;
         }
+    };
+
+    public static readonly LOADER_DEFAULT_TIMINGS: LoaderDurations = {
+        minDisplayTime: 600,
+        transitionTo100: 500,
+        holdAfter100: 150,
+        fadeOut: 50
     };
 
     // Calculate scale factors based on current resolution
     public static getScaleFactors(currentWidth: number, currentHeight: number) {
         const scaleX = currentWidth / this.REFERENCE_RESOLUTION.width;
         const scaleY = currentHeight / this.REFERENCE_RESOLUTION.height;
-        
+
         // Use uniform scaling (smaller of the two scales to maintain aspect ratio and prevent distortion)
         const uniformScale = Math.min(scaleX, scaleY);
-        
+
         return {
             scaleX,
             scaleY,
@@ -98,7 +112,7 @@ export class GameConfig {
     // Get scaled symbol size for current resolution
     public static getScaledSymbolSize(currentWidth: number, currentHeight: number): SymbolConfig {
         const { uniformScale } = this.getScaleFactors(currentWidth, currentHeight);
-        
+
         return {
             width: Math.round(this.REFERENCE_SYMBOL.width * uniformScale),
             height: Math.round(this.REFERENCE_SYMBOL.height * uniformScale),
@@ -108,7 +122,7 @@ export class GameConfig {
 
     public static getReferenceSymbolScale(currentWidth: number, currentHeight: number): number[] {
         const { uniformScale } = this.getScaleFactors(currentWidth, currentHeight);
-        const scaleX = this.REFERENCE_SYMBOL.width / this.REFERENCE_SYMBOL_TEXTURE_SIZE.width * uniformScale;  
+        const scaleX = this.REFERENCE_SYMBOL.width / this.REFERENCE_SYMBOL_TEXTURE_SIZE.width * uniformScale;
         const scaleY = this.REFERENCE_SYMBOL.height / this.REFERENCE_SYMBOL_TEXTURE_SIZE.height * uniformScale;
         return [scaleX, scaleY];
     }
@@ -116,7 +130,7 @@ export class GameConfig {
     // Get scaled UI config for current resolution
     public static getScaledUI(currentWidth: number, currentHeight: number): UIConfig {
         const { uniformScale } = this.getScaleFactors(currentWidth, currentHeight);
-        
+
         return {
             fontSize: {
                 title: Math.round(this.REFERENCE_UI.fontSize.title * uniformScale),
@@ -133,7 +147,7 @@ export class GameConfig {
     // Get resolution category for debugging/optimization
     public static getResolutionCategory(width: number, height: number): string {
         const pixels = width * height;
-        
+
         if (pixels >= 3840 * 2160) return '4K+';
         if (pixels >= 2560 * 1440) return '1440p';
         if (pixels >= 1920 * 1080) return '1080p';
