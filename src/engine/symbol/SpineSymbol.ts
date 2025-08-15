@@ -75,17 +75,6 @@ export class SpineSymbol extends Spine {
         }
     }
 
-    // Static method to get texture for a symbol ID
-    public static getSkeletonForSymbol(symbolId: number): SkeletonData {
-        const { atlasData, skeletonData } = AssetsConfig.getSpineSymbolAssetName();
-
-        const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
-        const json = new SkeletonJson(attachmentLoader);
-        const skeleton = json.readSkeletonData(skeletonData);
-
-        return skeleton;
-    }
-
     // Instance methods
     public getSymbolId(): number {
         return this._symbolId;
@@ -101,13 +90,10 @@ export class SpineSymbol extends Spine {
         return this.config.useContainerPositioning || false;
     }
 
-    public setSymbolId(symbolId: number): void {
+    public setSymbol(symbolId: number): void {
         this._symbolId = symbolId;
-        this.setTexture(SpineSymbol.getSkeletonForSymbol(symbolId));
-    }
-
-    public setTexture(symbolAssetName: SkeletonData): void {
-        //TODO
+        const prefix = AssetsConfig.SYMBOL_ASSET_DATA[symbolId]?.prefix || 'Symbol1';
+        this.state.setAnimation(this.state.tracks.length - 1, `${prefix}_Landing`, false);
     }
 
     public updatePosition(position: { x: number, y: number }): void {

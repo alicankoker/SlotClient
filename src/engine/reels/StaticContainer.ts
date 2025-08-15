@@ -205,7 +205,7 @@ export class StaticContainer extends Container {
         
         visibleSymbols.forEach((symbol, index) => {
             const symbolIndex = symbolIndexes[index];
-            symbol.setSymbolId(symbolIndex);
+            symbol.setSymbol(symbolIndex);
         });
     }
 
@@ -219,7 +219,7 @@ export class StaticContainer extends Container {
         }
 
         reelSymbols?.forEach((symbol, index) => {
-            symbol.setSymbolId(symbolIds[index]);
+            symbol.setSymbol(symbolIds[index]);
         });
     }
 
@@ -233,7 +233,7 @@ export class StaticContainer extends Container {
             return false;
         }
 
-        reelSymbols[index].setSymbolId(symbolId);
+        reelSymbols[index].setSymbol(symbolId);
         return true;
     }
 
