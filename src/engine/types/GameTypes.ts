@@ -15,10 +15,10 @@ export const GridUtils = {
         column: Math.floor(index / 3),
         row: index % 3
     }),
-    
+
     // Convert column/row to array index
     positionToIndex: (column: number, row: number): number => column * 3 + row,
-    
+
     // Validate index is within grid bounds
     isValidIndex: (index: number): boolean => index >= 0 && index < 15
 };
@@ -88,4 +88,9 @@ export interface GameState {
     isProcessing: boolean;      // Whether a spin/cascade is in progress
     balance: number;
     lastBet: number;
-} 
+}
+
+export interface SpineData {
+    atlasData: any;
+    skeletonData: any;
+}

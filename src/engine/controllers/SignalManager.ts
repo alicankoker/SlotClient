@@ -1,3 +1,5 @@
+import { debug } from "../utils/debug";
+
 export type SignalCallback<T = any> = (data?: T) => void;
 
 export interface SignalSubscription {
@@ -77,7 +79,7 @@ export class SignalManager {
                 try {
                     callback(data);
                 } catch (error) {
-                    console.error(`Error in signal listener for '${signalName}':`, error);
+                    debug.error(`Error in signal listener for '${signalName}':`, error);
                 }
             });
         }

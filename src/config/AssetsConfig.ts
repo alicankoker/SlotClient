@@ -1,11 +1,13 @@
+import { Assets } from "pixi.js";
+import { SpineData } from "../engine/types/GameTypes";
 import { BundleFile } from "../engine/types/IAssetLoader";
+import { debug } from "../engine/utils/debug";
 
 export class AssetsConfig {
     public static readonly SPRITESHEETS: BundleFile = {
         bundles: [
             {
                 name: 'symbols',
-                weight: 0.5,
                 assets: [
                     {
                         alias: 'symbols',
@@ -20,53 +22,82 @@ export class AssetsConfig {
         bundles: [
             {
                 name: 'environment',
-                weight: 0.5,
                 assets: [
                     {
                         alias: 'multipacked-0',
-                        src: '/assets/multipacked_transparent-0.json'
+                        src: '/assets/environment/multipacked_transparent-0.json'
                     },
                     {
                         alias: 'multipacked-1',
-                        src: '/assets/multipacked_transparent-1.json'
+                        src: '/assets/environment/multipacked_transparent-1.json'
                     }
                 ]
             }
         ]
     };
 
-    public static readonly SYMBOL_NAMES = {
-        SYMBOL_1_STATIC: 'symbol_1_static.png',
-        SYMBOL_2_STATIC: 'symbol_2_static.png',
-        SYMBOL_3_STATIC: 'symbol_3_static.png',
-        SYMBOL_4_STATIC: 'symbol_4_static.png',
-        SYMBOL_5_STATIC: 'symbol_5_static.png',
-        SYMBOL_6_STATIC: 'symbol_6_static.png',
-        SYMBOL_7_STATIC: 'symbol_7_static.png',
-        SYMBOL_8_STATIC: 'symbol_8_static.png',
-        SYMBOL_9_STATIC: 'symbol_9_static.png',
-        SYMBOL_10_STATIC: 'symbol_10_static.png'
-    } as const;
+    public static readonly SPINE_SYMBOLS: BundleFile = {
+        bundles: [
+            {
+                name: 'icon',
+                assets: [
+                    {
+                        alias: ['iconAtlas'],
+                        src: [
+                            '/assets/symbols/icon.atlas',
+                        ]
+                    },
+                    {
+                        alias: ['iconData'],
+                        src: [
+                            '/assets/symbols/icon.json'
+                        ]
+                    }
+                ]
+            },
+        ]
+    }
 
-    // Symbol index to asset name mapping
-    public static readonly SYMBOL_INDEX_TO_ASSET: { [key: number]: string } = {
-        0: 'symbol_1_static.png',
-        1: 'symbol_2_static.png',
-        2: 'symbol_3_static.png',
-        3: 'symbol_4_static.png',
-        4: 'symbol_5_static.png',
-        5: 'symbol_6_static.png',
-        6: 'symbol_7_static.png',
-        7: 'symbol_8_static.png',
-        8: 'symbol_9_static.png',
-        9: 'symbol_10_static.png'
+    public static readonly FONTS: BundleFile = {
+        bundles: [
+            {
+                name: 'fonts',
+                assets: [
+                    {
+                        alias: 'Nunito Black',
+                        src: '/assets/fonts/Nunito-Black.ttf'
+                    }
+                ]
+            }
+        ]
     };
+
+    // abi bunların 3'ünü de tek bir constdan çekebilirdim ama ne olur ne olmaz diye 3'e ayırdım,
+    // isimleri değişebilir hala değişiklikler yapılıyor assetlerde
+    public static readonly SYMBOL_ASSET_DATA: { [key: number]: { idle: string, blurred: string, prefix: string } } = {
+        0: { idle: 'Symbol1', blurred: 'Symbol1_Blurred', prefix: 'Symbol1' },
+        1: { idle: 'Symbol2', blurred: 'Symbol2_Blurred', prefix: 'Symbol2' },
+        2: { idle: 'Symbol3', blurred: 'Symbol3_Blurred', prefix: 'Symbol3' },
+        3: { idle: 'Symbol4', blurred: 'Symbol4_Blurred', prefix: 'Symbol4' },
+        4: { idle: 'Symbol5', blurred: 'Symbol5_Blurred', prefix: 'Symbol5' },
+        5: { idle: 'Symbol6', blurred: 'Symbol6_Blurred', prefix: 'Symbol6' },
+        6: { idle: 'Symbol7', blurred: 'Symbol7_Blurred', prefix: 'Symbol7' },
+        7: { idle: 'Symbol8', blurred: 'Symbol8_Blurred', prefix: 'Symbol8' },
+        8: { idle: 'Symbol9', blurred: 'Symbol9_Blurred', prefix: 'Symbol9' },
+        9: { idle: 'Symbol10', blurred: 'Symbol10_Blurred', prefix: 'Symbol10' },
+        10: { idle: 'Symbol11', blurred: 'Symbol11_Blurred', prefix: 'Symbol11' }
+    };
+
+    // spine symbol indexes to asset name mapping
+    public static readonly SPINE_SYMBOL_ASSET = { atlas: 'iconAtlas', skeleton: 'iconData' } as const;
 
     public static getAllAssets(): BundleFile {
         const allAssets: BundleFile = {
             bundles: [
                 ...this.SPRITESHEETS.bundles,
-                ...this.IMAGES.bundles
+                ...this.IMAGES.bundles,
+                ...this.SPINE_SYMBOLS.bundles,
+                ...this.FONTS.bundles
             ]
         };
 
@@ -82,17 +113,38 @@ export class AssetsConfig {
     }
 
     public static getSymbolAssetName(symbolIndex: number): string {
-        const assetName = this.SYMBOL_INDEX_TO_ASSET[symbolIndex];
+        const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
         if (!assetName) {
-            console.warn(`No asset found for symbol index ${symbolIndex}, using default`);
-            return 'symbol_1_static.png';
+            debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
+            return 'Symbol1';
         }
-        return assetName;
+        return assetName.idle;
+    }
+
+    public static getBlurredSymbolAssetName(symbolIndex: number): string {
+        const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
+        if (!assetName) {
+            debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
+            return 'Symbol1_Blurred';
+        }
+        return assetName.blurred;
+    }
+
+    public static getSpineSymbolAssetName(): SpineData {
+        const { atlas, skeleton } = this.SPINE_SYMBOL_ASSET;
+        const atlasData = Assets.get(atlas);
+        const skeletonData = Assets.get(skeleton);
+
+        if (!atlasData || !skeletonData) {
+            throw new Error(`Missing spine asset data for symbols`);
+        }
+
+        return { atlasData, skeletonData };
     }
 
     public static getSymbolIndexFromAssetName(assetName: string): number {
-        for (const [index, name] of Object.entries(this.SYMBOL_INDEX_TO_ASSET)) {
-            if (name === assetName) {
+        for (const [index, name] of Object.entries(this.SYMBOL_ASSET_DATA)) {
+            if (name.idle === assetName) {
                 return parseInt(index);
             }
         }

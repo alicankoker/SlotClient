@@ -1,4 +1,5 @@
-import { Application, Assets, Sprite, Texture } from 'pixi.js';
+import '@esotericsoftware/spine-pixi-v8';
+import { Application, Assets, FillGradient, Sprite, Text, TextStyle, Texture } from 'pixi.js';
 import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
@@ -10,6 +11,8 @@ import { AssetLoader } from './engine/utils/AssetLoader';
 import { AssetsConfig } from './config/AssetsConfig';
 import { GameConfig } from './config/GameConfig';
 import { Loader } from './engine/utils/Loader';
+import { AtlasAttachmentLoader, SkeletonData, SkeletonJson, Spine, SpineFromOptions, SpineOptions } from '@esotericsoftware/spine-pixi-v8';
+import { debug } from './engine/utils/debug';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -21,7 +24,7 @@ export class DoodleV8Main {
 
     public async init(): Promise<void> {
         try {
-            console.log('🎰 DoodleV8 initializing...');
+            debug.log('🎰 DoodleV8 initializing...');
 
             // Initialize AssetLoader singleton instance
             this.assetLoader = AssetLoader.getInstance();
@@ -33,7 +36,7 @@ export class DoodleV8Main {
             try {
                 initData = await this.slotGameController.generateInitialGrid();
             } catch (error) {
-                console.error('❌ Failed to generate initial grid:', error);
+                debug.error('❌ Failed to generate initial grid:', error);
                 throw error;
             }
 
@@ -67,7 +70,7 @@ export class DoodleV8Main {
                 switch (event.key.toLowerCase()) {
                     case 's':
                     case ' ':
-                        console.log('🎲 Manual spin triggered');
+                        debug.log('🎲 Manual spin triggered');
                         if (this.spinController) {
                             this.spinController.executeSpin({
                                 betAmount: 10,
@@ -76,23 +79,23 @@ export class DoodleV8Main {
                         }
                         break;
                     case 'a':
-                        console.log('🔄 Auto-play triggered');
+                        debug.log('🔄 Auto-play triggered');
                         // Auto-play would need to be implemented differently now
                         break;
                     case 'x':
-                        console.log('⏹️ Stop auto-play');
+                        debug.log('⏹️ Stop auto-play');
                         // Stop functionality would need to be implemented
                         break;
                     case '1':
-                        console.log('⚡ Fast mode enabled');
+                        debug.log('⚡ Fast mode enabled');
                         // Fast mode would be handled differently
                         break;
                     case '2':
-                        console.log('🚀 Instant mode enabled');
+                        debug.log('🚀 Instant mode enabled');
                         // Instant mode would be handled differently
                         break;
                     case '3':
-                        console.log('🐌 Slow mode enabled');
+                        debug.log('🐌 Slow mode enabled');
                         // Slow mode would be handled differently
                         break;
                 }
@@ -101,14 +104,14 @@ export class DoodleV8Main {
             // Step 7: Start the main game loop
             this.startGameLoop();
 
-            console.log('✅ DoodleV8 initialization complete!');
-            console.log('🎯 Press SPACE or S to spin');
-            console.log('🔄 Press A for auto-play');
-            console.log('⏹️ Press X to stop auto-play');
-            console.log('⚡ Press 1 for fast mode, 2 for instant, 3 for slow');
+            debug.log('✅ DoodleV8 initialization complete!');
+            debug.log('🎯 Press SPACE or S to spin');
+            debug.log('🔄 Press A for auto-play');
+            debug.log('⏹️ Press X to stop auto-play');
+            debug.log('⚡ Press 1 for fast mode, 2 for instant, 3 for slow');
 
         } catch (error) {
-            console.error('❌ Failed to initialize DoodleV8:', error);
+            debug.error('❌ Failed to initialize DoodleV8:', error);
             throw error;
         }
     }
@@ -122,7 +125,7 @@ export class DoodleV8Main {
                 this.reelsController?.update(ticker.deltaTime);
             });
 
-            console.log('🎰 Game loop started');
+            debug.log('🎰 Game loop started');
         }
     }
 
@@ -143,7 +146,7 @@ export class DoodleV8Main {
         // Add global reference for debugging
         (globalThis as any).__PIXI_APP__ = this.app;
 
-        console.log('PIXI Application initialized');
+        debug.log('PIXI Application initialized');
     }
 
     private initializeResponsiveSystem(): void {
@@ -172,19 +175,19 @@ export class DoodleV8Main {
         if (!this.spinController) return;
 
         this.spinController.setOnSpinStartCallback(() => {
-            console.log('🎲 Spin started!');
+            debug.log('🎲 Spin started!');
         });
 
         this.spinController.setOnSpinCompleteCallback((result: SpinResponseData) => {
-            console.log('✅ Spin completed!', result);
+            debug.log('✅ Spin completed!', result);
         });
 
         this.spinController.setOnCascadeStepCallback((step: CascadeStepData) => {
-            console.log('💥 Cascade step:', step.step);
+            debug.log('💥 Cascade step:', step.step);
         });
 
         this.spinController.setOnErrorCallback((error: string) => {
-            console.error('❌ Spin error:', error);
+            debug.error('❌ Spin error:', error);
         });
     }
 
@@ -201,9 +204,8 @@ export class DoodleV8Main {
         await this.assetLoader.loadBundles(AssetsConfig.getAllAssets());
     }
 
-    private createScene(): void {
+    private async createScene(): Promise<void> {
         if (!this.responsiveManager || !this.reelsController) return;
-
 
         const background = new Background(
             Texture.from("bg_background_landscape.png"),
@@ -214,34 +216,92 @@ export class DoodleV8Main {
         // Get the reels container from the controller
         const reelsContainer = this.reelsController.getReelsContainer();
 
-        console.log('=== SCENE CREATION DEBUG ===');
-        console.log('ReelsContainer created:', !!reelsContainer);
-        console.log('ReelsContainer position:', reelsContainer.x, reelsContainer.y);
-        console.log('ReelsContainer size:', reelsContainer.width, reelsContainer.height);
-        console.log('ReelsContainer visible:', reelsContainer.visible);
-        console.log('ReelsContainer children count:', reelsContainer.children.length);
+        debug.log('=== SCENE CREATION DEBUG ===');
+        debug.log('ReelsContainer created:', !!reelsContainer);
+        debug.log('ReelsContainer position:', reelsContainer.x, reelsContainer.y);
+        debug.log('ReelsContainer size:', reelsContainer.width, reelsContainer.height);
+        debug.log('ReelsContainer visible:', reelsContainer.visible);
+        debug.log('ReelsContainer children count:', reelsContainer.children.length);
 
         // Position the reels container at the center of the screen for debugging
         reelsContainer.x = this.app.screen.width / 2;
         reelsContainer.y = this.app.screen.height / 2;
-        console.log('ReelsContainer repositioned to center:', reelsContainer.x, reelsContainer.y);
+        debug.log('ReelsContainer repositioned to center:', reelsContainer.x, reelsContainer.y);
 
         // Add the reels container to the stage
         this.app.stage.addChild(reelsContainer);
 
-        console.log('App stage children count:', this.app.stage.children.length);
-        console.log('App screen size:', this.app.screen.width, 'x', this.app.screen.height);
+        debug.log('App stage children count:', this.app.stage.children.length);
+        debug.log('App screen size:', this.app.screen.width, 'x', this.app.screen.height);
 
-        console.log('Game initialized. Loading initial reels...');
+        debug.log('Game initialized. Loading initial reels...');
         const defaultPlayer = this.slotGameController?.getDefaultPlayer();
-        console.log('Current balance:', defaultPlayer?.balance);
-        console.log('Player state:', defaultPlayer);
+        debug.log('Current balance:', defaultPlayer?.balance);
+        debug.log('Player state:', defaultPlayer);
 
         // Set initial mode to static
         this.reelsController.setMode(ISpinState.IDLE);
 
-        console.log('Scene created successfully');
-        console.log('=== END SCENE CREATION DEBUG ===');
+        debug.log('Scene created successfully');
+        debug.log('=== END SCENE CREATION DEBUG ===');
+
+        // const skeleton = await Assets.get('c1Data');
+        // const atlas = await Assets.get('c1Atlas');
+
+        // const attachmentLoader = new AtlasAttachmentLoader(atlas);
+        // const json = new SkeletonJson(attachmentLoader);
+        // const skeletonData = json.readSkeletonData(skeleton);
+
+        // const spine = new Spine(skeletonData);
+
+        // spine.skeleton.setSlotsToSetupPose();
+
+        // spine.state.data.defaultMix = 0.5;
+
+        // spine.state.setAnimation(0, 'C1_hold', false);
+        // spine.state.addAnimation(0, 'C1_intro', true, 0.1);
+        // // spine.state.addAnimation(0, 'C1_exp', true, 0.2);
+        // spine.position.set(600, 300);
+        // this.app.stage.addChild(spine);
+
+        // let fillGradientStops: FillGradient = new FillGradient({
+        //     colorStops: [
+        //         {
+        //             offset: 0,
+        //             color: 0xffffff
+        //         },
+        //         {
+        //             offset: 0.7,
+        //             color: 0xffffff
+        //         },
+        //         {
+        //             offset: 1,
+        //             color: 0xa2bdfb
+        //         }
+        //     ]
+        // });
+
+        // let textStyle: TextStyle = new TextStyle({
+        //     dropShadow: {
+        //         angle: 1.5,
+        //         color: 0x142c54,
+        //         distance: 4.5
+        //     },
+        //     fill: fillGradientStops,
+        //     fontFamily: "Nunito Black",
+        //     fontSize: 75,
+        //     fontWeight: "bolder",
+        //     stroke: {
+        //         color: 0x142c54,
+        //         width: 6
+        //     },
+        // });
+
+        // let text = new Text({ text: 'Hello Spine!', style: textStyle });
+        // text.position.set(600, 130);
+        // text.anchor.set(0.5, 0.5);
+
+        // this.app.stage.addChild(text);
     }
 }
 

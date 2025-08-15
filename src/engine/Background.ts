@@ -2,6 +2,7 @@ import { Sprite, Texture, Application } from "pixi.js";
 import { ResponsiveManager } from './controllers/ResponsiveSystem';
 import { signals, SCREEN_SIGNALS, SignalSubscription } from './controllers/SignalManager';
 import { GameConfig } from "../config/GameConfig";
+import { debug } from "./utils/debug";
 
 export class Background extends Sprite {
     private app: Application;
@@ -43,8 +44,8 @@ export class Background extends Sprite {
         this.x = this.app.screen.width / 2;
         this.y = this.app.screen.height / 2;
         
-        console.log(`Background: Resized to ${this.width}x${this.height} at (${this.x}, ${this.y})`);
-        console.log(`Screen size: ${this.app.screen.width}x${this.app.screen.height}`);
+        debug.log(`Background: Resized to ${this.width}x${this.height} at (${this.x}, ${this.y})`);
+        debug.log(`Screen size: ${this.app.screen.width}x${this.app.screen.height}`);
     }
 
     public destroy(): void {
