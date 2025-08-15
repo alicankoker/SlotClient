@@ -2,13 +2,14 @@ import { Application } from "pixi.js";
 import { ResponsiveManager } from "../../controllers/ResponsiveSystem";
 import { SpinContainer, SpinContainerConfig } from "../SpinContainer";
 import { CascadeStepData, DropData, GridUtils, InitialGridData, SymbolData } from "../../types/GameTypes";
+import { debug } from "../../utils/debug";
 
 export class CascadeSpinContainer extends SpinContainer {
     constructor(app: Application, responsiveManager: ResponsiveManager, config: SpinContainerConfig) {
         super(app, responsiveManager, config);
     }
 
-    protected clearSymbols(): void {
+    public clearSymbols(): void {
         // Clear all symbols from the grid 
         for (let col = 0; col < this.columns; col++) {
             for (let row = 0; row < this.totalRows; row++) {
@@ -27,7 +28,7 @@ export class CascadeSpinContainer extends SpinContainer {
 
     // Cascading functionality
     public displayInitialGrid(gridData: InitialGridData): void {
-        console.log(`SpinContainer ${this.config.reelIndex}: Displaying initial grid`);
+        debug.log(`SpinContainer ${this.config.reelIndex}: Displaying initial grid`);
         this.clearSymbols();
         this.updateGridFromData(gridData);
         //this.updateScale();
@@ -35,7 +36,7 @@ export class CascadeSpinContainer extends SpinContainer {
     }
 
     public processCascadeStep(stepData: CascadeStepData): void {
-        console.log(`SpinContainer ${this.config.reelIndex}: Processing cascade step`);
+        debug.log(`SpinContainer ${this.config.reelIndex}: Processing cascade step`);
         
         this.removeSymbolsFromIndices(stepData.indicesToRemove);
         this.applyDropsFromData(stepData.symbolsToDrop);

@@ -32,7 +32,7 @@ export class GameRulesConfig {
     public static readonly GRID: GridConfig = {
         reelCount: 5,               // 5x3 grid
         rowCount: 3,                // 3 visible rows per reel
-        totalSymbols: 10,           // Symbol IDs 0-9
+        totalSymbols: 11,           // Symbol IDs 0-10
         bufferRows: {
             above: 2,               // 2 buffer rows above for smooth scrolling
             below: 2                // 2 buffer rows below for smooth scrolling

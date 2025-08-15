@@ -15,5 +15,6 @@ export default defineConfig({
     alias: {
       '@': '/src'
     }
-  }
+  },
+  assetsInclude: ['**/*.skel', '**/*.atlas', '**/*.ttf']
 }); 

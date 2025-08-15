@@ -1,5 +1,5 @@
 {
-  "name": "SlotClient",
+  "name": "slotclient",
   "version": "1.0.0",
   "description": "PIXI.js v8 TypeScript Project",
   "main": "dist/index.js",
@@ -12,9 +12,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "pixi.js": "^8.0.0",
+    "@esotericsoftware/spine-pixi-v8": "~4.2.0",
     "gsap": "^3.13.0",
-    "howler": "^2.2.4"
+    "howler": "^2.2.4",
+    "pixi.js": "^8.4.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.0",

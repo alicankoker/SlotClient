@@ -11,11 +11,12 @@ import {
     DropData,
     GridUtils
 } from '../engine/types/GameTypes';
+import { debug } from '../engine/utils/debug';
 
 export class GameServer {
     private static instance: GameServer;
     private spinCounter: number = 0;
-    private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
+    private readonly totalSymbols: number = 11; // Number of available symbols (0-10)
 
     private constructor() {
         // No longer need symbolNames array
@@ -34,7 +35,7 @@ export class GameServer {
 
     public async processSpin(request: SpinRequestData): Promise<SpinResponseData> {
         try {
-            console.log('GameServer: Processing spin request', request);
+            debug.log('GameServer: Processing spin request', request);
             
             // Simulate server processing delay
             await new Promise(resolve => setTimeout(resolve, 100));
@@ -42,14 +43,14 @@ export class GameServer {
             const spinId = `spin_${++this.spinCounter}_${Date.now()}`;
             const result = this.generateSpinResult(spinId, request);
             
-            console.log('GameServer: Spin result generated', result);
+            debug.log('GameServer: Spin result generated', result);
             
             return {
                 success: true,
                 result
             };
         } catch (error) {
-            console.error('GameServer: Error processing spin', error);
+            debug.error('GameServer: Error processing spin', error);
             return {
                 success: false,
                 error: 'Failed to process spin'
@@ -85,7 +86,7 @@ export class GameServer {
             const symbolsToDrop = this.calculateDrops(currentGrid, indicesToRemove);
             const { newSymbols, newSymbolIndices } = this.generateNewSymbols(currentGrid, indicesToRemove);
             
-            console.log(`Cascade step ${stepNumber}: Removing ${indicesToRemove.length} symbols, dropping ${symbolsToDrop.length} symbols, adding ${newSymbols.length} new symbols`);
+            debug.log(`Cascade step ${stepNumber}: Removing ${indicesToRemove.length} symbols, dropping ${symbolsToDrop.length} symbols, adding ${newSymbols.length} new symbols`);
             
             // Apply the cascade to current grid first
             const updatedGrid = this.applyCascade(currentGrid, {
@@ -101,7 +102,7 @@ export class GameServer {
                 gridAfter: { symbols: [] } // Temporary, will be updated below
             });
             
-            console.log(`Grid after cascade step ${stepNumber} has ${updatedGrid.symbols.length} symbols`);
+            debug.log(`Grid after cascade step ${stepNumber} has ${updatedGrid.symbols.length} symbols`);
             
             // Create cascade step data with the grid state after this step
             const cascadeStep: CascadeStepData = {
@@ -125,7 +126,7 @@ export class GameServer {
             
             // Prevent infinite loops (safety)
             if (stepNumber > 10) {
-                console.warn('GameServer: Maximum cascade steps reached, breaking');
+                debug.warn('GameServer: Maximum cascade steps reached, breaking');
                 break;
             }
         }
@@ -151,8 +152,8 @@ export class GameServer {
             });
         }
         
-        console.log(`Generated initial grid with ${symbols.length} symbols (expected: ${GameConfig.GRID_LAYOUT.columns * GameConfig.GRID_LAYOUT.visibleRows})`);
-        console.log('Symbol IDs:', symbols.map(s => s.symbolId));
+        debug.log(`Generated initial grid with ${symbols.length} symbols (expected: ${GameConfig.GRID_LAYOUT.columns * GameConfig.GRID_LAYOUT.visibleRows})`);
+        debug.log('Symbol IDs:', symbols.map(s => s.symbolId));
         return { symbols };
     }
 
@@ -291,7 +292,7 @@ export class GameServer {
             }
         }
         
-        console.log(`Generated ${newSymbols.length} new symbols for ${indicesToRemove.length} removed symbols`);
+        debug.log(`Generated ${newSymbols.length} new symbols for ${indicesToRemove.length} removed symbols`);
         return { newSymbols, newSymbolIndices };
     }
 
@@ -326,7 +327,7 @@ export class GameServer {
                 finalSymbols.push(symbols[i]);
             } else {
                 // This should not happen if cascade logic is correct, but add safety
-                console.error(`Missing symbol at index ${i} after cascade - adding random symbol`);
+                debug.error(`Missing symbol at index ${i} after cascade - adding random symbol`);
                 finalSymbols.push({
                     symbolId: this.getRandomSymbol()
                 });
@@ -335,7 +336,7 @@ export class GameServer {
         
         // Verify we have exactly 15 symbols
         if (finalSymbols.length !== 15) {
-            console.error(`Grid after cascade has ${finalSymbols.length} symbols, expected 15`);
+            debug.error(`Grid after cascade has ${finalSymbols.length} symbols, expected 15`);
         }
         
         return { symbols: finalSymbols };
@@ -352,7 +353,7 @@ export class GameServer {
     }
 
     private getRandomSymbol(): number {
-        // Generate a random symbol ID from 0 to 9
+        // Generate a random symbol ID from 0 to 10
         return Math.floor(Math.random() * this.totalSymbols);
     }
 

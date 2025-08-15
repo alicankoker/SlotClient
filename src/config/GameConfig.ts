@@ -39,7 +39,7 @@ export class GameConfig {
     public static readonly REFERENCE_SYMBOL: SymbolConfig = {
         width: 145,
         height: 145,
-        scale: 1.0
+        scale: 2.0
     };
 
     public static readonly REFERENCE_SYMBOL_TEXTURE_SIZE = {
@@ -50,7 +50,7 @@ export class GameConfig {
     // Reference spacing at base resolution
     public static readonly REFERENCE_SPACING = {
         horizontal: 2,  // 10 pixels horizontal spacing at reference resolution
-        vertical: 10      // 5 pixels vertical spacing at reference resolution
+        vertical: 0      // 5 pixels vertical spacing at reference resolution
     };
 
     // Reference UI sizes at base resolution

@@ -8,6 +8,7 @@ import {
     CascadeStepData, 
     ISpinState
 } from '../types/GameTypes';
+import { debug } from '../utils/debug';
 
 export interface SpinControllerConfig {
     reelsController: ReelsController;
@@ -41,7 +42,7 @@ export class SpinController {
     public async executeSpin(request: SpinRequestData): Promise<SpinResponseData> {
         if (this.currentState !== 'idle') {
             const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
-            console.warn(error);
+            debug.warn(error);
             this.handleError(error);
             return { success: false, error };
         }
@@ -96,7 +97,7 @@ export class SpinController {
 
     // Process initial grid display
     /*private async processInitialGrid(gridData: InitialGridData): Promise<void> {
-        console.log('SpinController: Processing initial grid');
+        debug.log('SpinController: Processing initial grid');
         
         // Set reels to cascading mode and display initial grid
         this.reelsController.setMode('cascading');
@@ -107,7 +108,7 @@ export class SpinController {
 
     // Process cascade sequence
     /*private async processCascadeSequence(): Promise<void> {
-        console.log(`SpinController: Processing ${this.currentCascadeSteps.length} cascade steps`);
+        debug.log(`SpinController: Processing ${this.currentCascadeSteps.length} cascade steps`);
         
         for (let i = 0; i < this.currentCascadeSteps.length; i++) {
             this.currentStepIndex = i;
@@ -129,11 +130,11 @@ export class SpinController {
     // Apply final grid with spinning animation
     private async applyFinalGrid(): Promise<void> {
         if (!this.finalGridData || !this.finalGridData.symbols) {
-            console.warn('SpinController: No final grid data to apply');
+            debug.warn('SpinController: No final grid data to apply');
             return;
         }
 
-        console.log('SpinController: Applying final grid with spinning animation');
+        debug.log('SpinController: Applying final grid with spinning animation');
         
         // Convert finalGrid symbols to the format expected by ReelsController.startSpin()
        // const finalSymbols = this.convertGridToReelFormat(this.finalGridData.symbols);
@@ -163,12 +164,12 @@ export class SpinController {
             }
         }
         
-        console.log('SpinController: Converted final grid to reel format:', finalSymbols);
+        debug.log('SpinController: Converted final grid to reel format:', finalSymbols);
         return finalSymbols;
     }
 
     // Process individual cascade step
-    /*    console.log(`SpinController: Processing cascade step ${stepData.step}`);
+    /*    debug.log(`SpinController: Processing cascade step ${stepData.step}`);
         
         await this.reelsController.processCascadeStep(stepData);
     }*/
@@ -215,7 +216,7 @@ export class SpinController {
             return;
         }
         
-        console.log('SpinController: Force stopping spin');
+        debug.log('SpinController: Force stopping spin');
         
         this.reelsController.forceStopAllReels();
         this.setState(ISpinState.IDLE);
@@ -226,7 +227,7 @@ export class SpinController {
     private setState(newState: ISpinState): void {
         if (this.currentState === newState) return;
         
-        console.log(`SpinController: State ${this.currentState} -> ${newState}`);
+        debug.log(`SpinController: State ${this.currentState} -> ${newState}`);
         this.currentState = newState;
     }
 
@@ -248,7 +249,7 @@ export class SpinController {
 
     // Error handling
     private handleError(error: string): void {
-        console.error(`SpinController Error: ${error}`);
+        debug.error(`SpinController Error: ${error}`);
         this.setState(ISpinState.ERROR);
         
         if (this.onErrorCallback) {

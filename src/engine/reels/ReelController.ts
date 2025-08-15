@@ -1,8 +1,8 @@
 import { SpinContainer } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
-import { 
-    InitialGridData, 
+import {
+    InitialGridData,
     CascadeStepData,
     GridUtils,
     ISpinState
@@ -11,6 +11,7 @@ import { GridSymbol } from '../symbol/GridSymbol';
 import { Sprite } from 'pixi.js';
 import { Utils } from '../Utils';
 import { SpinConfig } from '../../config/SpinConfig';
+import { debug } from '../utils/debug';
 
 export enum IReelMode {
     STATIC = 'static',
@@ -32,18 +33,18 @@ export class ReelController {
     private currentMode: IReelMode = IReelMode.STATIC;
     private currentSymbols: number[] = [];
     private isSpinning: boolean = false;
-    
+
     // View containers - simplified to use unified SpinContainer
     private staticContainer?: StaticContainer;
     private spinContainer?: SpinContainer;
     protected bottomSymbolYPos: number = 0;
     protected topSymbolYPos: number = 0;
     protected currentSpeed: number = SpinConfig.SPIN_SPEED;
-    
+
     // Animation state
     private spinDuration: number = 2000;
     private onSpinCompleteCallback?: () => void;
-    
+
     constructor(reelIndex: number, initData: InitialGridData) {
         this.reelIndex = reelIndex;
         this.initializeSymbols(initData);
@@ -61,49 +62,45 @@ export class ReelController {
     }
 
     // View management - simplified to use unified SpinContainer
-    public setViews(
-        staticContainer: StaticContainer,
-        spinContainer: SpinContainer
-    ): void {
+    public setViews(staticContainer: StaticContainer, spinContainer: SpinContainer): void {
         this.staticContainer = staticContainer;
         this.spinContainer = spinContainer;
-        
-        console.log(`ReelController ${this.reelIndex}: Views set. Current symbols:`, this.currentSymbols);
-        
+
+        debug.log(`ReelController ${this.reelIndex}: Views set. Current symbols:`, this.currentSymbols);
+
         this.updateViewVisibility();
         this.syncSymbolsToViews();
-        
-        console.log(`ReelController ${this.reelIndex}: Views synced. StaticContainer symbol count:`, 
-                    this.staticContainer.getSymbolCount(this.reelIndex));
+
+        debug.log(`ReelController ${this.reelIndex}: Views synced. StaticContainer symbol count:`, this.staticContainer.getSymbolCount(this.reelIndex));
     }
 
     private updateViewVisibility(): void {
         // Don't control StaticContainer visibility per reel - it's shared by all reels
         // StaticContainer visibility should be managed at ReelsController level
-        
+
         if (this.staticContainer) {
             // Clear static symbols when switching away from static mode to prevent overlap
             if (this.currentMode !== 'static') {
                 this.staticContainer.clearSymbols(this.reelIndex);
             }
         }
-        
+
         if (this.spinContainer) {
             this.spinContainer.setMode(this.currentMode);
-            this.spinContainer.visible = this.currentMode !== IReelMode.STATIC;
+            this.spinContainer.visible = this.currentMode !== IReelMode.STOPPED;
         }
     }
 
     private syncSymbolsToViews(): void {
         if (this.spinContainer && !this.isSpinning) {
-            console.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
+            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
             this.spinContainer.setSymbols(this.currentSymbols, this.reelIndex);
         }
-        
-        if (this.staticContainer && this.currentMode === 'static') {
-            console.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
+
+        if (this.staticContainer && this.currentMode === IReelMode.STOPPED) {
+            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
             this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
-            console.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
+            debug.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
         }
     }
 
@@ -115,8 +112,8 @@ export class ReelController {
     // Mode management
     public setMode(mode: IReelMode): void {
         if (this.currentMode === mode) return;
-        
-        console.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
+
+        debug.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
         this.currentMode = mode;
         this.updateViewVisibility();
         this.syncSymbolsToViews();
@@ -141,12 +138,12 @@ export class ReelController {
             const symbol = this.spinContainer.getSymbolAt(position);
             return symbol instanceof GridSymbol ? symbol : null;
         }
-        
+
         if (this.staticContainer && this.currentMode === 'static') {
             const symbol = this.staticContainer.getSymbolAt(position);
             return symbol instanceof GridSymbol ? symbol : null;
         }
-        
+
         return null;
     }
 
@@ -161,7 +158,7 @@ export class ReelController {
         if (position < 0 || position >= this.currentSymbols.length) {
             return false;
         }
-        
+
         this.currentSymbols[position] = symbolId;
         this.syncSymbolsToViews();
         return true;
@@ -173,14 +170,14 @@ export class ReelController {
 
         this.bottomSymbolYPos = this.spinContainer.getBottomSymbolYPos();
         this.topSymbolYPos = this.spinContainer.getTopSymbolYPos();
-        
+
         this.isSpinning = true;
         this.spinDuration = duration || this.spinDuration;
         this.onSpinCompleteCallback = onComplete;
-        
+
         this.setMode(IReelMode.SPINNING);
         this.currentSpeed = SpinConfig.SPIN_SPEED;
-        
+
         return this.spinContainer.startSpin(targetSymbols, () => {
             this.onSpinComplete(targetSymbols);
         });
@@ -191,17 +188,17 @@ export class ReelController {
     }
 
     public stopSpin(): void {
-        this.isSpinning = false; 
+        this.isSpinning = false;
         this.setMode(IReelMode.STOPPED);
     }
 
     private onSpinComplete(finalSymbols: number[]): void {
         this.isSpinning = false;
-        
+
         // Switch to static mode BEFORE setting symbols so StaticContainer gets updated
         this.setMode(IReelMode.STATIC);
         //this.setSymbols(finalSymbols);
-        
+
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();
         }
@@ -209,7 +206,7 @@ export class ReelController {
 
     public forceStop(): void {
         if (!this.isSpinning) return;
-        
+
         this.isSpinning = false;
         this.setMode(IReelMode.STATIC);
         this.syncSymbolsToViews();
@@ -222,10 +219,10 @@ export class ReelController {
             // Monitor spin container state for any needed updates
             this.updateSpinProgress(deltaTime);
         }
-        
+
         // Update container states if needed
         this.updateContainerStates(deltaTime);
-        
+
         // Handle any time-based state transitions
         this.updateStateMachine(deltaTime);
     }
@@ -236,26 +233,26 @@ export class ReelController {
         // - Handle spin timing adjustments
         // - Coordinate with other systems during spin
         // - Update spin-related UI elements
-        
+
         if (this.spinContainer && this.isSpinning) {
             // Future: Add any spin progress tracking here
             // e.g., spin speed adjustments, progress callbacks, etc.
 
-            if(this.currentMode === IReelMode.SLOWING && this.currentSpeed > SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
+            if (this.currentMode === IReelMode.SLOWING && this.currentSpeed > SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
                 this.currentSpeed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT;
             }
 
-            if(this.currentMode === IReelMode.SPEEDING) {
+            if (this.currentMode === IReelMode.SPEEDING) {
                 this.currentSpeed -= SpinConfig.REEL_SPEED_UP_COEFFICIENT;
             }
             this.spinContainer?.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[]) => {
-                console.log(this.currentSpeed);
+                debug.log(`${this.currentSpeed}`);
                 reelSymbols.forEach((symbol: GridSymbol | Sprite | null) => {
                     if (symbol) {
                         symbol.position.y += this.currentSpeed;
                     }
-                    if (symbol!.position.y > this.bottomSymbolYPos) {  
-                        symbol!.position.y = this.topSymbolYPos;
+                    if (symbol && symbol.position.y > this.bottomSymbolYPos) {
+                        symbol.position.y = this.topSymbolYPos;
                     }
                 });
             });
@@ -269,7 +266,7 @@ export class ReelController {
         // - Position adjustments
         // - Scale animations
         // - Other visual effects
-        
+
         // Currently containers handle their own animations,
         // but this provides a hook for coordinated updates
     }
@@ -280,7 +277,7 @@ export class ReelController {
         // - Mode transition timing
         // - Delayed state changes
         // - Conditional state updates based on external factors
-        
+
         switch (this.currentMode) {
             case 'spinning':
                 // Handle spinning state updates

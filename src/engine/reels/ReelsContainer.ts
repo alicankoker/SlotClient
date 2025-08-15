@@ -13,6 +13,8 @@ import {
 import { GridSymbol } from '../symbol/GridSymbol';
 import { IReelMode } from './ReelController';
 import { Background } from '../Background';
+import { debug } from '../utils/debug';
+
 export class ReelsContainer extends Container {
     private app: Application;
     private responsiveManager: ResponsiveManager;
@@ -137,11 +139,11 @@ export class ReelsContainer extends Container {
         // Apply the mask to this container so all child containers are masked
         if (this.spinContainer) {
             this.spinContainer.mask = this.reelAreaMask;
-            console.log('ReelsContainer: Reel area mask created and applied');
+            debug.log('ReelsContainer: Reel area mask created and applied');
         }
         if(this.staticContainer) {
             this.staticContainer.mask = this.reelAreaMask;
-            console.log('ReelsContainer: Reel area mask created and applied');
+            debug.log('ReelsContainer: Reel area mask created and applied');
         }
     }
 
@@ -153,21 +155,21 @@ export class ReelsContainer extends Container {
         
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
-        const totalWidth = (this.numberOfReels) * horizontalSpacing * this.app.screen.width + scaledSymbol.width * 1.2;
+        const totalWidth = (this.numberOfReels) * horizontalSpacing * this.app.screen.width + scaledSymbol.width * 0.5;
         // Height: cover visible rows with proper spacing
-        const totalHeight = this.symbolsPerReel * verticalSpacing * this.app.screen.height * 1;
+        const totalHeight = this.symbolsPerReel * verticalSpacing * this.app.screen.height * 1.01;
         
         // Center the mask
         const maskX = -totalWidth / 2;//* (this.numberOfReels - 3.5 ) * 0.91;
-        const maskY = -totalHeight / 2;
+        const maskY = (-totalHeight / 2) + 10;
         
         // Clear and redraw the mask
         this.reelAreaMask.clear();
         this.reelAreaMask.rect(maskX, maskY, totalWidth, totalHeight);
         this.reelAreaMask.fill(0xffffff); // White fill for the mask
         
-        console.log(`ReelsContainer: Mask updated - ${totalWidth.toFixed(0)}x${totalHeight.toFixed(0)} at (${maskX.toFixed(0)}, ${maskY.toFixed(0)})`);
-        console.log(`ReelsContainer: Scaled symbol: ${scaledSymbol.width}x${scaledSymbol.height}, H-spacing: ${(horizontalSpacing * this.app.screen.width).toFixed(0)}px, V-spacing: ${(verticalSpacing * this.app.screen.height).toFixed(0)}px`);
+        debug.log(`ReelsContainer: Mask updated - ${totalWidth.toFixed(0)}x${totalHeight.toFixed(0)} at (${maskX.toFixed(0)}, ${maskY.toFixed(0)})`);
+        debug.log(`ReelsContainer: Scaled symbol: ${scaledSymbol.width}x${scaledSymbol.height}, H-spacing: ${(horizontalSpacing * this.app.screen.width).toFixed(0)}px, V-spacing: ${(verticalSpacing * this.app.screen.height).toFixed(0)}px`);
     }
 
     private calculatePositions(): void {
@@ -243,13 +245,12 @@ export class ReelsContainer extends Container {
         if (this.spinContainer) {
             this.spinContainer.setMode(mode);
             this.spinContainer.visible = mode !== 'static'; 
-            console.log('ReelsContainer: Spin container visible set to:', this.spinContainer.visible);
-        
+            debug.log('ReelsContainer: Spin container visible set to:', this.spinContainer.visible);
         }
 
         if (this.staticContainer) {
             this.staticContainer.visible = mode === 'static';
-            console.log('ReelsContainer: Static container visible set to:', this.staticContainer.visible);
+            debug.log('ReelsContainer: Static container visible set to:', this.staticContainer.visible);
         }
     }
 
