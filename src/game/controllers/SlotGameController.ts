@@ -3,6 +3,7 @@ import { PlayerController } from '../../nexus/player/PlayerController';
 import { GameServer } from '../../server/GameServer';
 import { SpinResultData, CascadeStepData, InitialGridData } from '../../engine/types/GameTypes';
 import { INexusPlayerData, NexusSpinRequest, SpinTransaction } from '../../nexus/NexusInterfaces';
+import { debug } from '../../engine/utils/debug';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -56,7 +57,7 @@ export class SlotGameController {
     // Main spin method that coordinates Nexus and Game Logic
     public async startSpin(request: SlotSpinRequest): Promise<SlotSpinResponse> {
         try {
-            console.log('SlotGameController: Starting spin', request);
+            debug.log('SlotGameController: Starting spin', request);
 
             // 1. Validate request with game rules
             if (!this.isValidBetAmount(request.betAmount)) {
@@ -110,7 +111,7 @@ export class SlotGameController {
                 this.onPlayerStateChangeCallback(updatedPlayerState);
             }
 
-            console.log('SlotGameController: Spin completed successfully');
+            debug.log('SlotGameController: Spin completed successfully');
             
             return {
                 success: true,
@@ -120,7 +121,7 @@ export class SlotGameController {
             };
 
         } catch (error) {
-            console.error('SlotGameController: Error during spin:', error);
+            debug.error('SlotGameController: Error during spin:', error);
             return {
                 success: false,
                 error: 'Unexpected error during spin processing'
@@ -161,7 +162,7 @@ export class SlotGameController {
     // Game logic methods
     private async processGameSpin(request: { betAmount: number, gameMode?: string }): Promise<{ success: boolean, error?: string, result?: SpinResultData }> {
         try {
-            console.log('SlotGameController: Processing game spin', request);
+            debug.log('SlotGameController: Processing game spin', request);
             
             const response = await this.gameServer.processSpin(request);
             
@@ -173,8 +174,8 @@ export class SlotGameController {
 
                 // Process each cascade step
                 for (const step of response.result.cascadeSteps) {
-                    console.log(`SlotGameController: Processing cascade step ${step.step}`);
-                    console.log(`SlotGameController: Grid after step ${step.step}:`, step.gridAfter);
+                    debug.log(`SlotGameController: Processing cascade step ${step.step}`);
+                    debug.log(`SlotGameController: Grid after step ${step.step}:`, step.gridAfter);
                     
                     // Notify about cascade step
                     if (this.onCascadeStepCallback) {
@@ -185,14 +186,14 @@ export class SlotGameController {
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
 
-                console.log('SlotGameController: Game sequence complete. Total win:', response.result.totalWin);
+                debug.log('SlotGameController: Game sequence complete. Total win:', response.result.totalWin);
                 return response;
             } else {
-                console.error('SlotGameController: Game spin failed:', response.error);
+                debug.error('SlotGameController: Game spin failed:', response.error);
                 return response;
             }
         } catch (error) {
-            console.error('SlotGameController: Error during game spin:', error);
+            debug.error('SlotGameController: Error during game spin:', error);
             return {
                 success: false,
                 error: 'Failed to process game spin'

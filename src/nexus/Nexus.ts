@@ -1,3 +1,4 @@
+import { debug } from '../engine/utils/debug';
 import { SpinTransaction, NexusSpinRequest } from './NexusInterfaces';
 import { PlayerController } from './player/PlayerController';
 
@@ -28,12 +29,12 @@ export class Nexus {
     public createSpinTransaction(request: NexusSpinRequest): SpinTransaction | null {
         const player = this.playerController.getPlayer(request.playerId);
         if (!player) {
-            console.error('Nexus: Player not found:', request.playerId);
+            debug.error('Nexus: Player not found:', request.playerId);
             return null;
         }
 
         if (!this.playerController.canPlayerAffordBet(request.playerId, request.betAmount)) {
-            console.warn('Nexus: Insufficient balance for bet:', request);
+            debug.warn('Nexus: Insufficient balance for bet:', request);
             return null;
         }
 
@@ -49,12 +50,12 @@ export class Nexus {
 
         // Deduct bet amount from balance using PlayerController
         if (!this.playerController.deductPlayerBet(request.playerId, request.betAmount)) {
-            console.error('Nexus: Failed to deduct bet amount');
+            debug.error('Nexus: Failed to deduct bet amount');
             return null;
         }
         
         this.transactions.set(transaction.transactionId, transaction);
-        console.log('Nexus: Created spin transaction:', transaction);
+        debug.log('Nexus: Created spin transaction:', transaction);
         
         return transaction;
     }
@@ -62,18 +63,18 @@ export class Nexus {
     public completeSpinTransaction(transactionId: string, winAmount: number): boolean {
         const transaction = this.transactions.get(transactionId);
         if (!transaction) {
-            console.error('Nexus: Transaction not found:', transactionId);
+            debug.error('Nexus: Transaction not found:', transactionId);
             return false;
         }
 
         if (transaction.status !== 'pending') {
-            console.error('Nexus: Transaction already completed:', transactionId);
+            debug.error('Nexus: Transaction already completed:', transactionId);
             return false;
         }
 
         const player = this.playerController.getPlayer(transaction.playerId);
         if (!player) {
-            console.error('Nexus: Player not found for transaction:', transaction.playerId);
+            debug.error('Nexus: Player not found for transaction:', transaction.playerId);
             return false;
         }
 
@@ -86,25 +87,25 @@ export class Nexus {
             this.playerController.addPlayerWinnings(transaction.playerId, winAmount);
         }
 
-        console.log('Nexus: Completed spin transaction:', transaction);
+        debug.log('Nexus: Completed spin transaction:', transaction);
         return true;
     }
 
     public failSpinTransaction(transactionId: string): boolean {
         const transaction = this.transactions.get(transactionId);
         if (!transaction) {
-            console.error('Nexus: Transaction not found:', transactionId);
+            debug.error('Nexus: Transaction not found:', transactionId);
             return false;
         }
 
         if (transaction.status !== 'pending') {
-            console.error('Nexus: Transaction already processed:', transactionId);
+            debug.error('Nexus: Transaction already processed:', transactionId);
             return false;
         }
 
         const player = this.playerController.getPlayer(transaction.playerId);
         if (!player) {
-            console.error('Nexus: Player not found for transaction:', transaction.playerId);
+            debug.error('Nexus: Player not found for transaction:', transaction.playerId);
             return false;
         }
 
@@ -112,7 +113,7 @@ export class Nexus {
         this.playerController.addPlayerWinnings(transaction.playerId, transaction.betAmount);
 
         transaction.status = 'failed';
-        console.log('Nexus: Failed spin transaction (refunded):', transaction);
+        debug.log('Nexus: Failed spin transaction (refunded):', transaction);
         return true;
     }
 
@@ -145,6 +146,6 @@ export class Nexus {
     // Future API integration points
     public async syncWithAPI(): Promise<void> {
         // TODO: Implement API synchronization
-        console.log('Nexus: API sync not implemented yet');
+        debug.log('Nexus: API sync not implemented yet');
     }
 } 

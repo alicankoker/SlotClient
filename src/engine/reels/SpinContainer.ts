@@ -7,9 +7,9 @@ import { GridSymbol } from '../symbol/GridSymbol';
 import { Symbol } from '../symbol/Symbol';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { signals, SCREEN_SIGNALS, SignalSubscription } from '../controllers/SignalManager';
-import { 
-    SymbolData, 
-    InitialGridData, 
+import {
+    SymbolData,
+    InitialGridData,
     CascadeStepData,
     DropData,
     GridUtils,
@@ -17,6 +17,7 @@ import {
 } from '../types/GameTypes';
 import { IReelMode } from './ReelController';
 import { Utils } from '../Utils';
+import { debug } from '../utils/debug';
 
 export interface SpinContainerConfig {
     reelIndex: number; // TODO: Remove when refactoring to single container
@@ -35,21 +36,21 @@ export class SpinContainer extends Container {
     protected responsiveManager: ResponsiveManager;
     protected config: SpinContainerConfig;
     protected resizeSubscription?: SignalSubscription;
-    
+
     // Mode and state
     protected currentMode: IReelMode = IReelMode.STATIC;
     protected isSpinning: boolean = false;
-    
+
     // Grid layout properties
     protected readonly columns: number; // Number of reels
     protected readonly rowsAboveMask: number;
     protected readonly rowsBelowMask: number;
     protected readonly totalRows: number;
-    
+
     // Symbol storage - unified approach
     public symbols: (GridSymbol | Sprite | null)[][] = [];
     public animationSymbols: Sprite[] = []; // For spinning animations
-    
+
     // Animation state
     protected spinStartTime: number = 0;
     protected targetSymbols: number[] = [];
@@ -57,17 +58,17 @@ export class SpinContainer extends Container {
 
     constructor(app: Application, responsiveManager: ResponsiveManager, config: SpinContainerConfig) {
         super();
-        
+
         this.app = app;
         this.responsiveManager = responsiveManager;
         this.config = config;
-        
+
         // Initialize grid layout properties
         this.columns = config.numberOfReels || 1; // Default to 1 if not provided
         this.rowsAboveMask = config.rowsAboveMask || GameConfig.GRID_LAYOUT.rowsAboveMask;
         this.rowsBelowMask = config.rowsBelowMask || GameConfig.GRID_LAYOUT.rowsBelowMask;
         this.totalRows = config.symbolsVisible + this.rowsAboveMask + this.rowsBelowMask;
-        
+
         this.setupContainer();
         this.initializeGrid();
         this.setupResizeHandler();
@@ -76,7 +77,7 @@ export class SpinContainer extends Container {
     // Container setup
     protected setupContainer(): void {
         // Don't create individual masks - let the parent handle masking for the whole reel area
-        console.log(`SpinContainer ${this.config.reelIndex}: Container setup complete`);
+        debug.log(`SpinContainer ${this.config.reelIndex}: Container setup complete`);
     }
 
     // createMask method removed - no individual container masks
@@ -86,7 +87,7 @@ export class SpinContainer extends Container {
         for (let col = 0; col < this.columns; col++) {
             this.symbols[col] = [];
             for (let row = 0; row < (this.config.symbolsVisible + this.rowsBelowMask + this.rowsAboveMask); row++) {
-                const symbol = this.createGridSymbol({symbolId: 0}, col, row);
+                const symbol = this.createGridSymbol({ symbolId: 0 }, col, row);
                 this.symbols[col][row] = symbol;
             }
         }
@@ -99,7 +100,7 @@ export class SpinContainer extends Container {
     protected delay(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-    
+
     protected setupResizeHandler(): void {
         this.resizeSubscription = signals.on(SCREEN_SIGNALS.SCREEN_RESIZE, () => {
             //this.onResize();
@@ -113,22 +114,22 @@ export class SpinContainer extends Container {
 
     protected updateScale(): void {
         const symbolScale = GameConfig.getReferenceSymbolScale(this.app.screen.width, this.app.screen.height);
-        
+
         // Update scales for all symbols
         for (let col = 0; col < this.columns; col++) {
             for (let row = 0; row < this.symbols[col].length; row++) {
                 const symbol = this.symbols[col][row];
                 if (symbol) {
-                    symbol.scale.set(symbolScale[0], symbolScale[1]);
+                    symbol.scale.set(symbolScale[0] * GameConfig.REFERENCE_SYMBOL.scale, symbolScale[1] * GameConfig.REFERENCE_SYMBOL.scale);
                 }
             }
         }
-        
+
         // Update animation symbols if spinning
         this.animationSymbols.forEach(symbol => {
             symbol.scale.set(symbolScale[0], symbolScale[1]);
         });
-    } 
+    }
 
     protected updateSymbolPositions(): void {
         // Update positions for grid symbols
@@ -144,7 +145,7 @@ export class SpinContainer extends Container {
                 }
             }
         }
-        
+
         // Update positions for animation symbols (spinning symbols) during resize
         /*if (this.isSpinning && this.animationSymbols.length > 0) {
             
@@ -153,7 +154,7 @@ export class SpinContainer extends Container {
             this.clearAnimationSymbols();
             this.createSpinningSymbols();
             
-            console.log(`SpinContainer ${this.config.reelIndex}: Recreated animation symbols for resize`);
+            debug.log(`SpinContainer ${this.config.reelIndex}: Recreated animation symbols for resize`);
         }*/
     }
 
@@ -167,12 +168,12 @@ export class SpinContainer extends Container {
         const middle = this.app.screen.width / 2;
         const adjusted = (_column - 2) * (symbolWidth + spacingX);
         const reelX = adjusted; // Center of symbol 
-        return reelX ; // Center in container
+        return reelX; // Center in container
     }
 
     protected calculateSymbolY(row: number): number {
         const verticalSpacing = SymbolUtils.calculateVerticalSpacing(this.app.screen.width, this.app.screen.height);
-        const symbolY = (row - SymbolConfig.getGridCenterRow(this.config.symbolsVisible) - (this.config.rowsAboveMask || 0)) * verticalSpacing;
+        const symbolY = (row - SymbolConfig.getGridCenterRow(this.config.symbolsVisible) - (this.config.rowsAboveMask || 0)) * verticalSpacing;
         return symbolY * this.app.screen.height;
     }
 
@@ -185,19 +186,19 @@ export class SpinContainer extends Container {
         // Calculate vertical spacing between symbol centers
         const referenceSymbolHeight = GameConfig.REFERENCE_SYMBOL.height;
         const referenceSpacingY = GameConfig.REFERENCE_SPACING.vertical; // Should be 0 for touching symbols
-        
+
         const scaledSymbol = GameConfig.getScaledSymbolSize(this.app.screen.width, this.app.screen.height);
         const actualCenterToCenterY = (referenceSymbolHeight + referenceSpacingY) * scaledSymbol.scale;
-        
+
         return actualCenterToCenterY / this.app.screen.height;
     }
 
     // Mode management
     public setMode(mode: IReelMode): void {
         if (this.currentMode === mode) return;
-        
+
         this.currentMode = mode;
-        console.log(`SpinContainer ${this.config.reelIndex}: Switched to ${mode} mode`);
+        debug.log(`SpinContainer ${this.config.reelIndex}: Switched to ${mode} mode`);
     }
 
     public getMode(): IReelMode {
@@ -208,9 +209,9 @@ export class SpinContainer extends Container {
     public setSymbols(symbols: number[], reelIndex?: number): void {
         // If reelIndex not provided, fall back to config.reelIndex for backward compatibility
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        
+
         //this.clearSymbolsForReel(targetReelIndex);
-        
+
         if (this.currentMode === 'cascading') {
             this.setGridSymbols(symbols, targetReelIndex);
         } else {
@@ -239,24 +240,24 @@ export class SpinContainer extends Container {
 
     protected setGridSymbols(symbols: number[], reelIndex: number): void {
         // Create symbols with buffer for smooth scrolling (like StaticContainer)
-        const totalSymbols = this.config.symbolsVisible + (this.config.rowsAboveMask || 0) + (this.config.rowsBelowMask || 0)   ; // 1 above + visible + 1 below
+        const totalSymbols = this.config.symbolsVisible + (this.config.rowsAboveMask || 0) + (this.config.rowsBelowMask || 0); // 1 above + visible + 1 below
         const symbolsToCreate = Math.max(totalSymbols, symbols.length);
-        
+
         // Calculate the middle symbol index
         const middleSymbolIndex = Math.floor(totalSymbols / 2);
-        
+
         for (let i = 0; i < symbolsToCreate; i++) {
             // Calculate vertical position using proper spacing (like StaticContainer)
             const verticalSpacing = this.getVerticalSpacing();
             const symbolY = (i - middleSymbolIndex) * verticalSpacing;
-            
+
             // Get symbol ID 
             const symbolId = i < symbols.length ? symbols[i] : 0;
             const symbolData: SymbolData = { symbolId };
             const index = reelIndex * this.config.symbolsVisible + i;
-            
+
             const gridSymbol = this.createGridSymbol(symbolData, reelIndex, index);
-            
+
             if (gridSymbol) {
                 const gridIndex = this.calculateGridIndex(i);
                 this.symbols[reelIndex][gridIndex] = gridSymbol;
@@ -269,29 +270,29 @@ export class SpinContainer extends Container {
         // Create symbols with buffer for smooth scrolling (like StaticContainer)
         const totalSymbols = this.config.symbolsVisible + (this.config.rowsAboveMask || 0) + (this.config.rowsBelowMask || 0); // 1 above + visible + 1 below
         const symbolsToCreate = Math.max(totalSymbols, symbols.length);
-        
+
         // Calculate the middle symbol index
         const middleSymbolIndex = Math.floor(totalSymbols / 2);
-        
+
         // Calculate actual pixel positions
         const scaledSymbol = GameConfig.getScaledSymbolSize(this.app.screen.width, this.app.screen.height);
         const symbolWidth = scaledSymbol.width;
         const symbolHeight = scaledSymbol.height;
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal * scaledSymbol.scale;
         const spacingY = GameConfig.REFERENCE_SPACING.vertical * scaledSymbol.scale;
-        
+
         // Calculate horizontal position for this reel (actual pixels)
         const totalWidth = 5 * symbolWidth + 4 * spacingX; // 5 reels, 4 gaps
         const startX = (this.app.screen.width - totalWidth) / 2;
         const reelX = startX + reelIndex * (symbolWidth + spacingX) + symbolWidth / 2; // Center of symbol
-        
+
         for (let i = 0; i < symbolsToCreate; i++) {
             // Calculate vertical position (actual pixels)
-            const symbolY = this.app.screen.height / 2 + (i - middleSymbolIndex - (this.config.rowsAboveMask || 0)) * (symbolHeight + spacingY);
-            
+            const symbolY = this.app.screen.height / 2 + (i - middleSymbolIndex - (this.config.rowsAboveMask || 0)) * (symbolHeight + spacingY);
+
             // Get symbol ID
             const symbolId = i < symbols.length ? symbols[i] : 0;
-            
+
             // Create symbol with container positioning to avoid conflicts with ReelsContainer offset
             const symbol = new Symbol(this.responsiveManager, {
                 symbolId: symbolId,
@@ -301,40 +302,40 @@ export class SpinContainer extends Container {
                 },
                 useContainerPositioning: true // Use container coordinates
             });
-            
+
             // Add to container and grid
             this.addChild(symbol);
             const gridIndex = this.calculateGridIndex(i);
             this.symbols[reelIndex][gridIndex] = symbol;
         }
-        
-        console.log(`SpinContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} using pixel coordinates`);
+
+        debug.log(`SpinContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} using pixel coordinates`);
     }
 
     // Symbol creation
     protected createGridSymbol(symbolData: SymbolData, column: number, row: number): GridSymbol | null {
         //const { column, row } = GridUtils.indexToPosition(index);
-        
+
         /*if (column !== this.config.reelIndex) {
             return null;
         }*/
-        
+
         const symbolX = this.calculateSymbolX();
         const symbolY = this.calculateSymbolY(row);
-        
+
         const { uniformScale } = GameConfig.getScaleFactors(this.app.screen.width, this.app.screen.height);
         const spriteToReferenceScale = SymbolConfig.getSpriteToReferenceScale();
         const finalScale = spriteToReferenceScale * uniformScale;
-        
+
         const gridSymbol = new GridSymbol(this.responsiveManager, {
             symbolId: symbolData.symbolId,
             position: { x: symbolX, y: symbolY },
-            scale: finalScale,
+            scale: finalScale * GameConfig.REFERENCE_SYMBOL.scale, // Use reference scale
             useContainerPositioning: true,
             gridX: column,
             gridY: row
         });
-        
+
         //this.addChild(gridSymbol);
         return gridSymbol;
     }
@@ -347,8 +348,8 @@ export class SpinContainer extends Container {
         const { uniformScale } = GameConfig.getScaleFactors(this.app.screen.width, this.app.screen.height);
         const spriteToReferenceScale = SymbolConfig.getSpriteToReferenceScale();
         const finalScale = spriteToReferenceScale * uniformScale;
-        
-        sprite.scale.set(finalScale);
+
+        sprite.scale.set(finalScale * GameConfig.REFERENCE_SYMBOL.scale);
         sprite.anchor.set(0.5);
         sprite.x = 0; // Will be set by caller
         sprite.y = y - this.app.screen.height / 2; // Offset for container position
@@ -360,50 +361,50 @@ export class SpinContainer extends Container {
     // Spinning functionality
     public startSpin(targetSymbols: number[], onComplete?: () => void): boolean {
         if (this.isSpinning) return false;
-        
+
         this.isSpinning = true;
         this.spinStartTime = Date.now();
         this.targetSymbols = [...targetSymbols];
         this.onSpinCompleteCallback = onComplete;
-        
+
         // Clear all existing symbols before starting spin animation
         //this.clearAllSymbols();
-        
+
         //this.createSpinningSymbols();
         //this.animateSpin();
-        
+
         return true;
     }
 
     protected createSpinningSymbols(): void {
         this.clearAnimationSymbols();
-        
+
         const totalSymbols = this.config.symbolsVisible + 10; // Extra symbols for smooth animation
         const middleSymbolIndex = Math.floor(totalSymbols / 2);
-        
+
         // Calculate actual pixel positions
         const scaledSymbol = GameConfig.getScaledSymbolSize(this.app.screen.width, this.app.screen.height);
         const symbolWidth = scaledSymbol.width;
         const symbolHeight = scaledSymbol.height;
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal * scaledSymbol.scale;
         const spacingY = GameConfig.REFERENCE_SPACING.vertical * scaledSymbol.scale;
-        
+
         // Create spinning symbols for ALL reels
         for (let reelIndex = 0; reelIndex < this.columns; reelIndex++) {
-            
+
             for (let i = 0; i < totalSymbols; i++) {
                 const randomSymbolId = this.getRandomSymbolId();
-                
+
                 // Calculate vertical position (actual pixels)
                 const symbolY = this.app.screen.height / 2 + (i - middleSymbolIndex) * (symbolHeight + spacingY);
-                
+
                 const symbol = this.createBasicSprite(randomSymbolId, symbolY);
                 symbol.x = this.app.screen.width / 2; // Offset for container position
                 //this.animationSymbols.push(symbol);
             }
         }
-        
-        console.log(`SpinContainer: Created ${this.animationSymbols.length} spinning symbols for ${this.columns} reels with pixel coordinates`);
+
+        debug.log(`SpinContainer: Created ${this.animationSymbols.length} spinning symbols for ${this.columns} reels with pixel coordinates`);
     }
 
     protected animateSpin(): void {
@@ -437,7 +438,7 @@ export class SpinContainer extends Container {
         this.isSpinning = false;
         this.clearAnimationSymbols();
         //this.setSymbols(this.targetSymbols);
-        
+
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();
         }
@@ -447,10 +448,10 @@ export class SpinContainer extends Container {
         indicesToRemove.forEach(index => {
             const { column, row } = GridUtils.indexToPosition(index);
             if (column !== this.config.reelIndex) return;
-            
+
             const gridIndex = row + this.rowsAboveMask;
             const symbol = this.symbols[this.config.reelIndex][gridIndex];
-            
+
             if (symbol) {
                 this.removeChild(symbol);
                 symbol.destroy();
@@ -463,7 +464,7 @@ export class SpinContainer extends Container {
         newSymbolsData.forEach((symbolData, i) => {
             const index = newSymbolIndices[i];
             const newSymbol = this.createGridSymbol(symbolData, i, index); // Y position is 0 for new symbols
-            
+
             if (newSymbol) {
                 const { column, row } = GridUtils.indexToPosition(index);
                 if (column === this.config.reelIndex) {
@@ -477,7 +478,7 @@ export class SpinContainer extends Container {
         return this.symbols[this.config.reelIndex][this.symbols[this.config.reelIndex].length - 1]?.y || 0;
     }
     public getTopSymbolYPos(): number {
-        return this.symbols[this.config.reelIndex][0]?.y || 0;
+        return this.symbols[this.config.reelIndex][1]?.y || 0;
     }
     // Access methods
     public getSymbolAt(position: number): GridSymbol | Sprite | null {
@@ -520,7 +521,7 @@ export class SpinContainer extends Container {
     public clearSymbols(): void {
         this.symbols.forEach(reel => {
             reel.forEach(symbol => {
-                if(symbol === null) return;
+                if (symbol === null) return;
                 this.removeChild(symbol);
                 symbol.destroy();
             });
@@ -550,9 +551,9 @@ export class SpinContainer extends Container {
         if (this.resizeSubscription) {
             this.resizeSubscription.unsubscribe();
         }
-        
+
         this.clearSymbols();
-        
+
         super.destroy();
     }
 } 

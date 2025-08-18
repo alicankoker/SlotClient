@@ -1,8 +1,6 @@
 import { Texture } from "pixi.js";
 
-export type BundleAssets =
-    | Record<string, string | { alias: string; src: string; }>
-    | Array<{ alias: string; src: string; }>;
+export type BundleAssets = Record<string, string | { alias: string | string[]; src: string | string[]; }> | Array<{ alias: string | string[]; src: string | string[]; }>;
 
 export type Bundle = {
     name: string;

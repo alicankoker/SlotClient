@@ -88,7 +88,7 @@ export class AssetLoader implements IAssetLoader {
     public getAsset(key: string): Texture | undefined {
         const asset = Assets.get(key) as Texture | undefined;
         if (!asset) {
-            console.error("AssetLoader", `Asset ${key} not found!`);
+            debug.error("AssetLoader", `Asset ${key} not found!`);
         }
         return asset;
     }

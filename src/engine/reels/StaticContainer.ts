@@ -1,9 +1,10 @@
 import { Container, Application } from 'pixi.js';
 import { ResponsiveManager, createResponsiveConfig } from '../controllers/ResponsiveSystem';
 import { GameConfig } from '../../config/GameConfig';
-import { Symbol } from '../symbol/Symbol';
+import { SpineSymbol } from '../symbol/SpineSymbol';
 // SymbolUtils import removed - using Symbol class for rendering
 import { GridSymbol } from '../symbol/GridSymbol';
+import { debug } from '../utils/debug';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -19,7 +20,7 @@ export class StaticContainer extends Container {
     private responsiveManager: ResponsiveManager;
     private config: StaticContainerConfig;
     private symbolsContainer: Container;
-    private symbols: Map<number, Symbol[]> = new Map(); // Map of reelIndex -> symbols array
+    private symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
     private resizeCallback: () => void;
 
     constructor(app: Application, responsiveManager: ResponsiveManager, config: StaticContainerConfig) {
@@ -45,7 +46,7 @@ export class StaticContainer extends Container {
     private initializeContainer(): void {
         // Don't create individual masks - let the parent handle masking for the whole reel area
         this.positionContainer();
-        console.log(`StaticContainer ${this.config.reelIndex}: Initialized (symbols will be set later)`);
+        debug.log(`StaticContainer ${this.config.reelIndex}: Initialized (symbols will be set later)`);
     }
 
     private positionContainer(): void {
@@ -89,7 +90,7 @@ export class StaticContainer extends Container {
     }
 
     private createSymbolsFromIds(symbolIds: number[], reelIndex: number): void {
-        console.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
+        debug.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
         
         // Initialize symbols array for this reel
         if (!this.symbols.has(reelIndex)) {
@@ -113,7 +114,6 @@ export class StaticContainer extends Container {
         const spacingY = GameConfig.REFERENCE_SPACING.vertical * scaledSymbol.scale;
         
         const reelX = (reelIndex - 2) * (symbolWidth + spacingX) // Center of symbol
-        
         for (let i = 0; i < symbolsToCreate; i++) {
             // Calculate vertical position (actual pixels)
             const symbolY = (i - middleSymbolIndex) * (symbolHeight + spacingY);
@@ -121,10 +121,10 @@ export class StaticContainer extends Container {
             // Get symbol ID (use provided IDs or generate random for testing)
             const symbolId = i < symbolIds.length ? symbolIds[i] : Math.floor(Math.random() * 10);
             
-            console.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            debug.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
             
             // Create symbol with container positioning to avoid conflicts with ReelsContainer offset
-            const symbol = new Symbol(this.responsiveManager, {
+            const symbol = new SpineSymbol(this.responsiveManager, {
                 symbolId: symbolId,
                 position: {
                     x: reelX, // Offset for container position
@@ -138,10 +138,10 @@ export class StaticContainer extends Container {
             this.symbolsContainer.addChild(symbol);
             reelSymbols.push(symbol);
             
-            console.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            debug.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
         }
         
-        console.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} with responsive scaling (scale: ${scaledSymbol.scale.toFixed(3)})`);
+        debug.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} with responsive scaling (scale: ${scaledSymbol.scale.toFixed(3)})`);
     }
 
     private onResize(): void {
@@ -180,16 +180,16 @@ export class StaticContainer extends Container {
                 
                 // Update symbol scale based on new screen size
                 // Symbols in StaticContainer use container positioning, so update scale directly
-                symbol.scale.set(symbolScale[0], symbolScale[1]);
+                symbol.scale.set(symbolScale[0] * GameConfig.REFERENCE_SYMBOL.scale, symbolScale[1] * GameConfig.REFERENCE_SYMBOL.scale);
             });
             
-            console.log(`StaticContainer: Updated ${reelSymbols.length} symbol positions and scales for reel ${reelIndex} during resize with responsive scaling (scale: ${scaledSymbol.scale.toFixed(3)})`);
+            debug.log(`StaticContainer: Updated ${reelSymbols.length} symbol positions and scales for reel ${reelIndex} during resize with responsive scaling (scale: ${scaledSymbol.scale.toFixed(3)})`);
         }
     }
 
     private updateSymbolPositions(): void {
         // Deprecated method - use updateSymbolPositionsAndSizes instead
-        console.warn('StaticContainer: updateSymbolPositions is deprecated, use updateSymbolPositionsAndSizes for proper resize handling');
+        debug.warn('StaticContainer: updateSymbolPositions is deprecated, use updateSymbolPositionsAndSizes for proper resize handling');
         this.updateSymbolPositionsAndSizes();
     }
 
@@ -197,7 +197,7 @@ export class StaticContainer extends Container {
     public setSymbolsByIndex(symbolIndexes: number[], reelIndex?: number): void {
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
         if (symbolIndexes.length !== this.config.symbolsVisible) {
-            console.warn(`StaticContainer: Expected ${this.config.symbolsVisible} symbols, got ${symbolIndexes.length} for reel ${targetReelIndex}`);
+            debug.warn(`StaticContainer: Expected ${this.config.symbolsVisible} symbols, got ${symbolIndexes.length} for reel ${targetReelIndex}`);
             return;
         }
 
@@ -205,7 +205,7 @@ export class StaticContainer extends Container {
         
         visibleSymbols.forEach((symbol, index) => {
             const symbolIndex = symbolIndexes[index];
-            symbol.setSymbolId(symbolIndex);
+            symbol.setSymbol(symbolIndex);
         });
     }
 
@@ -214,12 +214,12 @@ export class StaticContainer extends Container {
         const reelSymbols = this.symbols.get(targetReelIndex);
         
         if (symbolIds.length !== reelSymbols?.length) {
-            console.warn(`StaticContainer: Expected ${reelSymbols?.length} symbols, got ${symbolIds.length} for reel ${targetReelIndex}`);
+            debug.warn(`StaticContainer: Expected ${reelSymbols?.length} symbols, got ${symbolIds.length} for reel ${targetReelIndex}`);
             return;
         }
 
         reelSymbols?.forEach((symbol, index) => {
-            symbol.setSymbolId(symbolIds[index]);
+            symbol.setSymbol(symbolIds[index]);
         });
     }
 
@@ -229,15 +229,15 @@ export class StaticContainer extends Container {
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
         const reelSymbols = this.symbols.get(targetReelIndex);
         if (!reelSymbols || index < 0 || index >= reelSymbols.length) {
-            console.warn(`StaticContainer: Invalid symbol index: ${index} for reel ${targetReelIndex}`);
+            debug.warn(`StaticContainer: Invalid symbol index: ${index} for reel ${targetReelIndex}`);
             return false;
         }
 
-        reelSymbols[index].setSymbolId(symbolId);
+        reelSymbols[index].setSymbol(symbolId);
         return true;
     }
 
-    public getSymbolAt(index: number, reelIndex?: number): Symbol | GridSymbol | null {
+    public getSymbolAt(index: number, reelIndex?: number): SpineSymbol | GridSymbol | null {
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
         const reelSymbols = this.symbols.get(targetReelIndex);
         if (!reelSymbols || index < 0 || index >= reelSymbols.length) {
@@ -262,7 +262,7 @@ export class StaticContainer extends Container {
         return this.symbols.get(targetReelIndex)?.length || 0;
     }
 
-    public getVisibleSymbols(reelIndex?: number): Symbol[] {
+    public getVisibleSymbols(reelIndex?: number): SpineSymbol[] {
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
         const reelSymbols = this.symbols.get(targetReelIndex);
         if (!reelSymbols) return [];
@@ -275,7 +275,7 @@ export class StaticContainer extends Container {
 
     public addSymbol(symbolId: number, position?: number, reelIndex?: number): void {
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const symbol = new Symbol(this.responsiveManager, {
+        const symbol = new SpineSymbol(this.responsiveManager, {
             symbolId: symbolId,
             position: {
                 x: 0,
@@ -307,7 +307,7 @@ export class StaticContainer extends Container {
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
         const reelSymbols = this.symbols.get(targetReelIndex);
         if (!reelSymbols || index < 0 || index >= reelSymbols.length) {
-            console.warn('StaticContainer: Invalid symbol index for removal:', index);
+            debug.warn('StaticContainer: Invalid symbol index for removal:', index);
             return false;
         }
 
@@ -351,7 +351,7 @@ export class StaticContainer extends Container {
                 });
             });
             
-            console.log(`StaticContainer: Repositioned ${reelSymbols.length} symbols for reel ${reelIndex} with pixel coordinates`);
+            debug.log(`StaticContainer: Repositioned ${reelSymbols.length} symbols for reel ${reelIndex} with pixel coordinates`);
         } else {
             // Reposition symbols for ALL reels
             for (const [reelIdx, reelSymbols] of this.symbols.entries()) {
@@ -373,10 +373,10 @@ export class StaticContainer extends Container {
         this.symbols.delete(targetReelIndex); // Clear the specific reel's Map entry
     }
 
-    public getAllSymbols(reelIndex?: number): Symbol[] {
+    public getAllSymbols(reelIndex?: number): SpineSymbol[] {
         // Return symbols from ALL reels
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const allSymbols: Symbol[] = [];
+        const allSymbols: SpineSymbol[] = [];
         const reelSymbols = this.symbols.get(targetReelIndex);
         if (reelSymbols) {
             allSymbols.push(...reelSymbols);

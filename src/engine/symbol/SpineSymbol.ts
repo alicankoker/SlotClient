@@ -1,4 +1,4 @@
-import { Sprite, Assets } from 'pixi.js';
+import { AtlasAttachmentLoader, SkeletonData, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { ResponsiveManager, createResponsiveConfig } from '../controllers/ResponsiveSystem';
 import { AssetsConfig } from '../../config/AssetsConfig';
 import { GameConfig } from '../../config/GameConfig';
@@ -16,26 +16,40 @@ export interface SymbolConfig {
     useContainerPositioning?: boolean; // If true, position relative to container instead of screen
 }
 
-export class Symbol extends Sprite {
+export class SpineSymbol extends Spine {
     private responsiveManager: ResponsiveManager;
     private _symbolId: number;
     private config: SymbolConfig;
 
     constructor(responsiveManager: ResponsiveManager, config: SymbolConfig) {
         debug.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
-        
+
         // Get the texture for this symbol
-        const texture = Symbol.getTextureForSymbol(config.symbolId);
-        super(texture);
-        
-        debug.log(`Symbol: Created sprite with texture:`, !!texture, 'size:', texture?.width, 'x', texture?.height);
+        const { atlasData, skeletonData } = AssetsConfig.getSpineSymbolAssetName();
+        const prefix = AssetsConfig.SYMBOL_ASSET_DATA[config.symbolId]?.prefix || 'Symbol1';
+
+        if (!atlasData || !skeletonData) {
+            throw new Error(`Texture not found for symbol ID: ${config.symbolId}`);
+        }
+
+        const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
+        const json = new SkeletonJson(attachmentLoader);
+        const skeleton = json.readSkeletonData(skeletonData);
+
+        super(skeleton);
+
+        this.skeleton.setSlotsToSetupPose();
+
+        this.state.data.defaultMix = 0.5;
+
+        this.state.setAnimation(0, `${prefix}_Landing`, false);
 
         this.responsiveManager = responsiveManager;
         this._symbolId = config.symbolId;
         this.config = config;
 
         this.initializeSymbol();
-        
+
         debug.log(`Symbol: Initialized symbol at:`, this.x, this.y, 'scale:', this.scale.x, 'visible:', this.visible);
     }
 
@@ -46,7 +60,6 @@ export class Symbol extends Sprite {
 
         if (this.config.useContainerPositioning) {
             // Position directly in container coordinates - NO responsive system
-            this.anchor.set(0.5, 0.5);
             this.x = this.config.position.x;
             this.y = this.config.position.y;
             this.scale.set(finalScale * GameConfig.REFERENCE_SYMBOL.scale);
@@ -60,43 +73,6 @@ export class Symbol extends Sprite {
                 scaleX: finalScale * GameConfig.REFERENCE_SYMBOL.scale
             }));
         }
-    }
-
-    // Static method to get texture for a symbol ID
-    public static getTextureForSymbol(symbolId: number): any {
-        debug.log(`Symbol.getTextureForSymbol: Requesting texture for symbolId ${symbolId}`);
-        
-        const spritesheet = Assets.cache.get('/assets/symbols/symbols.json');
-        
-        if (!spritesheet) {
-            debug.error('Symbol.getTextureForSymbol: Spritesheet not found in cache!');
-            debug.log('Cache lookup failed for: /assets/symbols/symbols.json');
-            throw new Error('Spritesheet not available');
-        }
-
-        debug.log('Symbol.getTextureForSymbol: Spritesheet found, checking textures...');
-        debug.log('Available textures:', Object.keys(spritesheet.textures || {}));
-
-        const symbolAssetName = AssetsConfig.getSymbolAssetName(symbolId);
-        debug.log(`Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName}"`);
-        
-        const texture = spritesheet.textures[symbolAssetName];
-        
-        if (!texture) {
-            debug.error('Texture not found for symbol:', symbolAssetName, 'with ID:', symbolId);
-            debug.log('Available texture names:', Object.keys(spritesheet.textures));
-            // Fallback to first available texture
-            const firstTextureName = Object.keys(spritesheet.textures)[0];
-            if (firstTextureName) {
-                debug.log('Using fallback texture:', firstTextureName);
-                return spritesheet.textures[firstTextureName];
-            } else {
-                throw new Error('No textures available in spritesheet');
-            }
-        }
-
-        debug.log(`Symbol.getTextureForSymbol: Successfully found texture for ${symbolAssetName}`);
-        return texture;
     }
 
     // Instance methods
@@ -114,26 +90,15 @@ export class Symbol extends Sprite {
         return this.config.useContainerPositioning || false;
     }
 
-    public setSymbolId(symbolId: number): void {
+    public setSymbol(symbolId: number): void {
         this._symbolId = symbolId;
-        this.texture = Symbol.getTextureForSymbol(symbolId);
-    }
-
-    public setTexture(symbolAssetName: string): void {
-        const spritesheet = Assets.cache.get('/assets/symbols/symbols.json');
-        if (spritesheet && spritesheet.textures[symbolAssetName]) {
-            this.texture = spritesheet.textures[symbolAssetName];
-            // Update symbolId based on asset name if possible
-            const symbolId = AssetsConfig.getSymbolIndexFromAssetName(symbolAssetName);
-            if (symbolId !== -1) {
-                this._symbolId = symbolId;
-            }
-        }
+        const prefix = AssetsConfig.SYMBOL_ASSET_DATA[symbolId]?.prefix || 'Symbol1';
+        this.state.setAnimation(this.state.tracks.length - 1, `${prefix}_Landing`, false);
     }
 
     public updatePosition(position: { x: number, y: number }): void {
         this.config.position = position;
-        
+
         if (this.config.useContainerPositioning) {
             // Update position directly - simple pixel coordinates
             this.x = position.x;
@@ -165,10 +130,10 @@ export class Symbol extends Sprite {
             const animate = () => {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 // Easing function (ease-out)
                 const easedProgress = 1 - Math.pow(1 - progress, 3);
-                
+
                 const currentPos = {
                     x: startPos.x + (targetPosition.x - startPos.x) * easedProgress,
                     y: startPos.y + (targetPosition.y - startPos.y) * easedProgress
@@ -195,10 +160,10 @@ export class Symbol extends Sprite {
             const animate = () => {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 // Easing function (ease-out)
                 const easedProgress = 1 - Math.pow(1 - progress, 3);
-                
+
                 const currentScale = startScale + (targetScale - startScale) * easedProgress;
                 this.updateScale(currentScale);
 
@@ -219,7 +184,7 @@ export class Symbol extends Sprite {
         if (!this.config.useContainerPositioning) {
             this.responsiveManager.removeResponsiveObject(this);
         }
-        
+
         // Call parent destroy
         super.destroy();
     }
@@ -229,14 +194,14 @@ export class Symbol extends Sprite {
         // Calculate vertical spacing between symbol centers
         const referenceSymbolHeight = GameConfig.REFERENCE_SYMBOL.height;
         const referenceSpacingY = GameConfig.REFERENCE_SPACING.vertical; // Should be 0 for touching symbols
-        
+
         const scaledSymbol = GameConfig.getScaledSymbolSize(screenWidth, screenHeight);
         const actualCenterToCenter = (referenceSymbolHeight + referenceSpacingY) * scaledSymbol.scale;
-        
+
         return actualCenterToCenter / screenHeight;
     }
 
     public static getDefaultScale(): number {
         return SymbolConfigClass.getSpriteToReferenceScale();
     }
-} 
+}
