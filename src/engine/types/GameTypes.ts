@@ -94,3 +94,13 @@ export interface SpineData {
     atlasData: any;
     skeletonData: any;
 }
+
+export interface SpineAssetData {
+    atlas: string;
+    skeleton: string;
+}
+
+export interface OrientationConfig {
+    landscape: string,
+    portrait: string
+}

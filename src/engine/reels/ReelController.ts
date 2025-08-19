@@ -82,12 +82,14 @@ export class ReelController {
             // Clear static symbols when switching away from static mode to prevent overlap
             if (this.currentMode !== 'static') {
                 this.staticContainer.clearSymbols(this.reelIndex);
+            } else {
+                this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
             }
         }
 
         if (this.spinContainer) {
             this.spinContainer.setMode(this.currentMode);
-            this.spinContainer.visible = this.currentMode !== IReelMode.STOPPED;
+            this.spinContainer.visible = this.currentMode !== IReelMode.STATIC;
         }
     }
 
@@ -97,7 +99,7 @@ export class ReelController {
             this.spinContainer.setSymbols(this.currentSymbols, this.reelIndex);
         }
 
-        if (this.staticContainer && this.currentMode === IReelMode.STOPPED) {
+        if (this.staticContainer && this.currentMode === IReelMode.STATIC) {
             debug.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
             this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
             debug.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
@@ -168,8 +170,8 @@ export class ReelController {
     public startSpin(targetSymbols: number[], duration?: number, onComplete?: () => void): boolean {
         if (this.isSpinning || !this.spinContainer) return false;
 
-        this.bottomSymbolYPos = this.spinContainer.getBottomSymbolYPos();
-        this.topSymbolYPos = this.spinContainer.getTopSymbolYPos();
+        this.bottomSymbolYPos = 840;
+        this.topSymbolYPos = 240;
 
         this.isSpinning = true;
         this.spinDuration = duration || this.spinDuration;
@@ -189,7 +191,22 @@ export class ReelController {
 
     public stopSpin(): void {
         this.isSpinning = false;
-        this.setMode(IReelMode.STOPPED);
+
+        this.spinContainer?.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
+            reelSymbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
+                if (symbol) {
+                    const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+
+                    const spacingY = GameConfig.REFERENCE_SPACING.vertical;
+
+                    const symbolY = ((symbolIndex - 2) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2;
+
+                    symbol.position.y = symbolY;
+                }
+            });
+        });
+
+        this.setMode(IReelMode.STATIC);
     }
 
     private onSpinComplete(finalSymbols: number[]): void {
@@ -197,7 +214,9 @@ export class ReelController {
 
         // Switch to static mode BEFORE setting symbols so StaticContainer gets updated
         this.setMode(IReelMode.STATIC);
-        //this.setSymbols(finalSymbols);
+        this.setSymbols(finalSymbols);
+
+        console.log(`ReelController ${this.reelIndex}: Spin complete. Final symbols:`, finalSymbols);
 
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();
@@ -215,7 +234,7 @@ export class ReelController {
     // Update method for game loop
     public update(deltaTime: number = 0): void {
         // Update spin progress and state
-        if (this.isSpinning && this.spinContainer) {
+        if (this.spinContainer && this.isSpinning) {
             // Monitor spin container state for any needed updates
             this.updateSpinProgress(deltaTime);
         }
@@ -245,14 +264,16 @@ export class ReelController {
             if (this.currentMode === IReelMode.SPEEDING) {
                 this.currentSpeed -= SpinConfig.REEL_SPEED_UP_COEFFICIENT;
             }
-            this.spinContainer?.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[]) => {
+
+            this.spinContainer?.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
                 debug.log(`${this.currentSpeed}`);
-                reelSymbols.forEach((symbol: GridSymbol | Sprite | null) => {
+                reelSymbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
                     if (symbol) {
-                        symbol.position.y += this.currentSpeed;
-                    }
-                    if (symbol && symbol.position.y > this.bottomSymbolYPos) {
-                        symbol.position.y = this.topSymbolYPos;
+                        if (symbol.position.y > this.bottomSymbolYPos) {
+                            symbol.position.y = this.topSymbolYPos;
+                        } else {
+                            symbol.position.y += this.currentSpeed;
+                        }
                     }
                 });
             });

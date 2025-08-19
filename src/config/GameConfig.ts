@@ -1,3 +1,5 @@
+import { OrientationConfig } from "../engine/types/GameTypes";
+
 export interface ResolutionConfig {
     width: number;
     height: number;
@@ -35,11 +37,27 @@ export class GameConfig {
         height: 1080
     };
 
+    public static readonly ORIENTATION: OrientationConfig = {
+        landscape: "landscape",
+        portrait: "portrait"
+    };
+
+    public static readonly SAFE_AREA = {
+        landscape: {
+            width: 1100,
+            height: 650
+        },
+        portrait: {
+            width: 850,
+            height: 1920
+        }
+    }
+
     // Reference symbol size at base resolution
     public static readonly REFERENCE_SYMBOL: SymbolConfig = {
-        width: 145,
-        height: 145,
-        scale: 2.0
+        width: 150,
+        height: 150,
+        scale: 0.8
     };
 
     public static readonly REFERENCE_SYMBOL_TEXTURE_SIZE = {
@@ -163,4 +181,4 @@ export class GameConfig {
     public static clampBalance(balance: number): number {
         return Math.max(0, balance);
     }
-} 
+}

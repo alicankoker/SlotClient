@@ -1,5 +1,4 @@
 import { Application } from 'pixi.js';
-import { ResponsiveManager } from '../controllers/ResponsiveSystem';
 import { ReelsContainer } from './ReelsContainer';
 import { ReelController, IReelMode } from './ReelController';
 import { StaticContainer } from './StaticContainer';
@@ -16,7 +15,6 @@ import { debug } from '../utils/debug';
 
 export class ReelsController {
     private app: Application;
-    private responsiveManager: ResponsiveManager;
     private reelsContainer!: ReelsContainer;
     private reelControllers: ReelController[] = [];
 
@@ -29,9 +27,8 @@ export class ReelsController {
     private spinPromises: Promise<void>[] = [];
     protected bottomSymbolYPos: number = 0;
 
-    constructor(initData: InitialGridData, app: Application, responsiveManager: ResponsiveManager) {
+    constructor(initData: InitialGridData, app: Application) {
         this.app = app;
-        this.responsiveManager = responsiveManager;
 
         this.initializeContainers();
         this.initializeControllers(initData);
@@ -39,7 +36,7 @@ export class ReelsController {
     }
 
     private initializeContainers(): void {
-        this.reelsContainer = new ReelsContainer(this.app, this.responsiveManager);
+        this.reelsContainer = new ReelsContainer(this.app);
     }
 
     private initializeControllers(initData: InitialGridData): void {
