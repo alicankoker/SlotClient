@@ -37,16 +37,8 @@ export class AssetsConfig {
                 name: 'background',
                 assets: [
                     {
-                        alias: 'background_landscape_1080',
-                        src: '/assets/Background_Base_Landscape_1080.png'
-                    },
-                    {
                         alias: 'background_landscape_1440',
                         src: '/assets/Background_Base_Landscape_1440.png'
-                    },
-                    {
-                        alias: 'background_portrait_1080',
-                        src: '/assets/Background_Base_Portrait_1080.png'
                     },
                     {
                         alias: 'background_portrait_1440',
@@ -124,7 +116,9 @@ export class AssetsConfig {
         7: { idle: 'Symbol8', blurred: 'Symbol8_Blurred', prefix: 'Symbol8' },
         8: { idle: 'Symbol9', blurred: 'Symbol9_Blurred', prefix: 'Symbol9' },
         9: { idle: 'Symbol10', blurred: 'Symbol10_Blurred', prefix: 'Symbol10' },
-        10: { idle: 'Symbol11', blurred: 'Symbol11_Blurred', prefix: 'Symbol11' }
+        10: { idle: 'Symbol11', blurred: 'Symbol11_Blurred', prefix: 'Symbol11' },
+        11: { idle: 'Symbol12', blurred: 'Symbol12_Blurred', prefix: 'Symbol12' },
+        12: { idle: 'Symbol13', blurred: 'Symbol13_Blurred', prefix: 'Symbol13' }
     };
 
     // spine symbol indexes to asset name mapping

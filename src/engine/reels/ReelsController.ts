@@ -7,11 +7,13 @@ import { GameConfig } from '../../config/GameConfig';
 import {
     InitialGridData,
     CascadeStepData,
-    ISpinState
+    ISpinState,
+    WinConfig
 } from '../types/GameTypes';
 import { Utils } from '../Utils';
 import { SpinConfig } from '../../config/SpinConfig';
 import { debug } from '../utils/debug';
+import { GameRulesConfig } from '../../config/GameRulesConfig';
 
 export class ReelsController {
     private app: Application;
@@ -69,7 +71,7 @@ export class ReelsController {
     }
 
     // Mode management
-    public setMode(mode: ISpinState): void {
+    public async setMode(mode: ISpinState): Promise<void> {
         if (this.currentMode === mode) return;
 
         debug.log(`ReelsController: Switching from ${this.currentMode} to ${mode}`);
@@ -79,9 +81,55 @@ export class ReelsController {
         this.reelsContainer.setMode(Utils.getReelModeBySpinState(mode));
 
         // Update all reel controllers
-        this.reelControllers.forEach(controller => {
-            controller.setModeBySpinState(mode);
-        });
+        await Promise.all(this.reelControllers.map(controller => {
+            return controller.setModeBySpinState(mode);
+        }));
+
+        if (this.currentMode === ISpinState.IDLE && this.checkWinCondition()) {
+            await this.playRandomWinAnimation();
+        }
+    }
+
+    private checkWinCondition(): boolean {
+        // Implement win condition logic
+        return true; // Placeholder
+    }
+
+    private setWinDisplayData(): WinConfig {
+        // Implement win display data logic
+        const multiplier: number = Math.max(1, Math.floor(Math.random() * 5)); // Placeholder for multiplier
+        const amount: number = Math.floor(Math.random() * 100) * multiplier; // Placeholder for win amount with multiplier (if multiplier bigger than 1)
+        const line: number = Math.floor(Math.random() * 20); // Placeholder for line
+        const symbolIds: number[] = Array.from({ length: Math.max(Math.round(Math.random() * GameRulesConfig.GRID.reelCount), 3) }, () => Math.floor(Math.random() * GameRulesConfig.GRID.rowCount)); // Placeholder for symbol IDs
+
+        return {
+            multiplier,
+            amount,
+            line,
+            symbolIds
+        };
+    }
+
+    public async playRandomWinAnimation(): Promise<void> {
+        // Play a random win animation
+        const winData = this.setWinDisplayData();
+        const winData2 = this.setWinDisplayData();
+        const winData3 = this.setWinDisplayData();
+        const staticContainer = this.reelsContainer.getStaticContainer();
+
+        await staticContainer?.setAnimation([winData, winData2, winData3]);
+    }
+
+    public skipWinAnimations(): void {
+        const staticContainer = this.reelsContainer.getStaticContainer();
+
+        staticContainer?.skipWinAnimations();
+    }
+
+    public resetWinAnimations(): void {
+        const staticContainer = this.reelsContainer.getStaticContainer();
+
+        staticContainer?.resetWinAnimations();
     }
 
     public getMode(): ISpinState {

@@ -29,7 +29,7 @@ export class Background extends Sprite {
     }
 
     private onResize(responsiveConfig?: ResponsiveConfig): void {
-        const assetName = responsiveConfig?.isMobile ? (responsiveConfig.orientation === GameConfig.ORIENTATION.landscape ? "background_landscape_1080" : "background_portrait_1080") : "background_landscape_1080";
+        const assetName = responsiveConfig?.isMobile ? (responsiveConfig.orientation === GameConfig.ORIENTATION.landscape ? "background_landscape_1440" : "background_portrait_1440") : "background_landscape_1440";
         this.texture = Texture.from(assetName);
     }
 

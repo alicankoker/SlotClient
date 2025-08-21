@@ -81,9 +81,6 @@ export class ReelsContainer extends Container {
         if (this.spinContainer) {
             this.spinContainer.mask = this.reelAreaMask;
         }
-        if (this.staticContainer) {
-            this.staticContainer.mask = this.reelAreaMask;
-        }
     }
 
     private createSpinContainer(symbolHeight: number): void {

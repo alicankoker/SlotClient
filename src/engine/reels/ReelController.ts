@@ -67,7 +67,6 @@ export class ReelController {
         this.spinContainer = spinContainer;
 
         debug.log(`ReelController ${this.reelIndex}: Views set. Current symbols:`, this.currentSymbols);
-
         this.updateViewVisibility();
         this.syncSymbolsToViews();
 
@@ -77,15 +76,6 @@ export class ReelController {
     private updateViewVisibility(): void {
         // Don't control StaticContainer visibility per reel - it's shared by all reels
         // StaticContainer visibility should be managed at ReelsController level
-
-        if (this.staticContainer) {
-            // Clear static symbols when switching away from static mode to prevent overlap
-            if (this.currentMode !== 'static') {
-                this.staticContainer.clearSymbols(this.reelIndex);
-            } else {
-                this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
-            }
-        }
 
         if (this.spinContainer) {
             this.spinContainer.setMode(this.currentMode);
@@ -106,19 +96,21 @@ export class ReelController {
         }
     }
 
-    public setModeBySpinState(spinState: ISpinState): void {
+    public async setModeBySpinState(spinState: ISpinState): Promise<void> {
         //translate spin state to reel mode by switch-case
-        this.setMode(Utils.getReelModeBySpinState(spinState));
+        await this.setMode(Utils.getReelModeBySpinState(spinState));
     }
 
     // Mode management
-    public setMode(mode: IReelMode): void {
+    public async setMode(mode: IReelMode): Promise<void> {
         if (this.currentMode === mode) return;
-
         debug.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
         this.currentMode = mode;
         this.updateViewVisibility();
-        this.syncSymbolsToViews();
+        // Update symbols in the static container if in STATIC mode
+        if (this.currentMode === IReelMode.STATIC && this.staticContainer) {
+            await this.staticContainer.updateSymbols(this.currentSymbols, this.reelIndex);
+        }
     }
 
     public getMode(): IReelMode {
@@ -160,6 +152,7 @@ export class ReelController {
         if (position < 0 || position >= this.currentSymbols.length) {
             return false;
         }
+        console.log(5);
 
         this.currentSymbols[position] = symbolId;
         this.syncSymbolsToViews();

@@ -16,6 +16,7 @@ import { debug } from './engine/utils/debug';
 
 export class DoodleV8Main {
     private app!: Application;
+    private responsiveManager!: ResponsiveManager;
     private slotGameController?: SlotGameController;
     private spinController?: SpinController;
     private reelsController?: ReelsController;
@@ -59,15 +60,10 @@ export class DoodleV8Main {
             this.createScene();
 
             // Step 6: Start game systems (controllers handle the game loop)
-            // Send initial resize signal after everything is initialized
-            setTimeout(() => {
-                signals.emit(SCREEN_SIGNALS.SCREEN_RESIZE);
-            }, 100); // Small delay to ensure everything is properly set up
 
             // Add keyboard handlers
             window.addEventListener('keydown', (event) => {
                 switch (event.key.toLowerCase()) {
-                    case 's':
                     case ' ':
                         debug.log('🎲 Manual spin triggered');
                         if (this.spinController) {
@@ -80,6 +76,18 @@ export class DoodleV8Main {
                     case 'a':
                         debug.log('🔄 Auto-play triggered');
                         // Auto-play would need to be implemented differently now
+                        break;
+                    case 'w':
+                        debug.log('Show random win animation');
+                        if (this.reelsController && !this.reelsController.getIsSpinning()) {
+                            this.reelsController.playRandomWinAnimation();
+                        }
+                        break;
+                    case 's':
+                        debug.log('Skip win animations');
+                        if (this.reelsController) {
+                            this.reelsController.skipWinAnimations();
+                        }
                         break;
                     case 'x':
                         debug.log('⏹️ Stop auto-play');
@@ -109,6 +117,7 @@ export class DoodleV8Main {
             debug.log('⏹️ Press X to stop auto-play');
             debug.log('⚡ Press 1 for fast mode, 2 for instant, 3 for slow');
 
+            this.responsiveManager.onResize();
         } catch (error) {
             debug.error('❌ Failed to initialize DoodleV8:', error);
             throw error;
@@ -149,7 +158,7 @@ export class DoodleV8Main {
     }
 
     private initializeResponsiveSystem(): void {
-        ResponsiveManager.getInstance(this.app);
+        this.responsiveManager = ResponsiveManager.getInstance(this.app);
     }
 
     private initializeControllers(initData: InitialGridData): void {
@@ -232,43 +241,43 @@ export class DoodleV8Main {
         debug.log('Scene created successfully');
         debug.log('=== END SCENE CREATION DEBUG ===');
 
-        const { atlas, skeleton } = AssetsConfig.BACKGROUND_ANIMATIONS_ASSET;
-        const atlasAsset = Assets.get(atlas);
-        const skeletonAsset = Assets.get(skeleton);
+        // const { atlas, skeleton } = AssetsConfig.BACKGROUND_ANIMATIONS_ASSET;
+        // const atlasAsset = Assets.get(atlas);
+        // const skeletonAsset = Assets.get(skeleton);
 
-        const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
-        const json = new SkeletonJson(attachmentLoader);
-        const skeletonData = json.readSkeletonData(skeletonAsset);
+        // const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
+        // const json = new SkeletonJson(attachmentLoader);
+        // const skeletonData = json.readSkeletonData(skeletonAsset);
 
-        const cloud = new Spine(skeletonData);
+        // const cloud = new Spine(skeletonData);
 
-        cloud.skeleton.setSlotsToSetupPose();
+        // cloud.skeleton.setSlotsToSetupPose();
 
-        cloud.state.data.defaultMix = 0.5;
+        // cloud.state.data.defaultMix = 0.5;
 
-        cloud.state.setAnimation(0, 'Background_Landscape_Cloud', true);
-        cloud.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this.app.stage.addChild(cloud);
+        // cloud.state.setAnimation(0, 'Background_Landscape_Cloud', true);
+        // cloud.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        // this.app.stage.addChild(cloud);
 
-        const rabbit = new Spine(skeletonData);
+        // const rabbit = new Spine(skeletonData);
 
-        rabbit.skeleton.setSlotsToSetupPose();
+        // rabbit.skeleton.setSlotsToSetupPose();
 
-        rabbit.state.data.defaultMix = 0.5;
+        // rabbit.state.data.defaultMix = 0.5;
 
-        rabbit.state.setAnimation(0, 'Background_Landscape_Rabbit', true);
-        rabbit.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this.app.stage.addChild(rabbit);
+        // rabbit.state.setAnimation(0, 'Background_Landscape_Rabbit', true);
+        // rabbit.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        // this.app.stage.addChild(rabbit);
 
-        const glows = new Spine(skeletonData);
+        // const glows = new Spine(skeletonData);
 
-        glows.skeleton.setSlotsToSetupPose();
+        // glows.skeleton.setSlotsToSetupPose();
 
-        glows.state.data.defaultMix = 0.5;
+        // glows.state.data.defaultMix = 0.5;
 
-        glows.state.setAnimation(0, 'Background_Landscape_Glows', true);
-        glows.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this.app.stage.addChild(glows);
+        // glows.state.setAnimation(0, 'Background_Landscape_Glows', true);
+        // glows.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        // this.app.stage.addChild(glows);
 
         // let fillGradientStops: FillGradient = new FillGradient({
         //     colorStops: [
@@ -308,8 +317,6 @@ export class DoodleV8Main {
         // text.anchor.set(0.5, 0.5);
 
         // this.app.stage.addChild(text);
-
-        ResponsiveManager.getInstance(this.app).onResize();
     }
 }
 

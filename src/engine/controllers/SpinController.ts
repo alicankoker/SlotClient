@@ -1,11 +1,11 @@
 // SpinContainer import removed - not directly used in this controller
 import { SpinConfig } from '../../config/SpinConfig';
 import { ReelsController } from '../reels/ReelsController';
-import { 
-    SpinRequestData, 
-    SpinResponseData, 
-    InitialGridData, 
-    CascadeStepData, 
+import {
+    SpinRequestData,
+    SpinResponseData,
+    InitialGridData,
+    CascadeStepData,
     ISpinState
 } from '../types/GameTypes';
 import { debug } from '../utils/debug';
@@ -18,16 +18,16 @@ export interface SpinControllerConfig {
 
 export class SpinController {
     private reelsController: ReelsController;
-    
+
     // State management
     private currentState: ISpinState = ISpinState.IDLE;
     private currentSpinId?: string;
     private currentStepIndex: number = 0;
-    
+
     // Spin data - store finalGrid for proper final symbol positioning
     private currentCascadeSteps: CascadeStepData[] = [];
     private finalGridData?: InitialGridData; // Store final grid from server
-    
+
     // Callbacks
     private onSpinStartCallback?: () => void;
     private onSpinCompleteCallback?: (result: SpinResponseData) => void;
@@ -48,15 +48,20 @@ export class SpinController {
         }
 
         try {
+            const staticContainer = this.reelsController.getStaticContainer();
+            if (staticContainer && (staticContainer.isPlaying || staticContainer.isLooping)) {
+                staticContainer.resetWinAnimations(); // Reset any previous win animations
+            }
+
             this.setState(ISpinState.SPINNING);
-            
+
             if (this.onSpinStartCallback) {
                 this.onSpinStartCallback();
             }
 
             // Simulate server request (replace with actual server call)
             const response = await this.requestSpinFromServer(request);
-            
+
             if (!response.success || !response.result) {
                 this.handleError(response.error || 'Unknown server error');
                 return response;
@@ -65,7 +70,7 @@ export class SpinController {
             this.currentSpinId = response.result.spinId;
             this.currentCascadeSteps = response.result.cascadeSteps;
             this.finalGridData = response.result.finalGrid; // Store final grid
-            
+
             // Display initial grid and start cascading
             //await this.processInitialGrid(response.result.initialGrid);
             this.reelsController.startSpin([response.result.finalGrid.symbols.map((symbol: { symbolId: number; }) => symbol.symbolId)]);
@@ -75,19 +80,19 @@ export class SpinController {
 
             await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
             //await this.processCascadeSequence();
-            
+
             // Apply final grid with spinning animation
             //await this.applyFinalGrid();
-            
+
             this.reelsController.stopSpin();
             this.setState(ISpinState.COMPLETED);
-            
+
             if (this.onSpinCompleteCallback) {
                 this.onSpinCompleteCallback(response);
             }
-            
+
             return response;
-            
+
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             this.handleError(errorMessage);
@@ -135,10 +140,10 @@ export class SpinController {
         }
 
         debug.log('SpinController: Applying final grid with spinning animation');
-        
+
         // Convert finalGrid symbols to the format expected by ReelsController.startSpin()
-       // const finalSymbols = this.convertGridToReelFormat(this.finalGridData.symbols);
-        
+        // const finalSymbols = this.convertGridToReelFormat(this.finalGridData.symbols);
+
         // Apply final symbols with spinning animation
         //await this.reelsController.startSpin(finalSymbols);
     }
@@ -148,22 +153,22 @@ export class SpinController {
         const reelsCount = 5; // GameConfig.GRID_LAYOUT.columns
         const symbolsPerReel = 3; // GameConfig.GRID_LAYOUT.visibleRows
         const finalSymbols: number[][] = [];
-        
+
         // Initialize reel arrays
         for (let reel = 0; reel < reelsCount; reel++) {
             finalSymbols[reel] = [];
         }
-        
+
         // Convert 1D grid to 2D reel format
         for (let i = 0; i < gridSymbols.length; i++) {
             const reelIndex = i % reelsCount;
             const symbolId = gridSymbols[i].symbolId;
-            
+
             if (finalSymbols[reelIndex].length < symbolsPerReel) {
                 finalSymbols[reelIndex].push(symbolId);
             }
         }
-        
+
         debug.log('SpinController: Converted final grid to reel format:', finalSymbols);
         return finalSymbols;
     }
@@ -178,7 +183,7 @@ export class SpinController {
     private async requestSpinFromServer(request: SpinRequestData): Promise<SpinResponseData> {
         // Simulate network delay
         await this.delay(100);
-        
+
         // Mock response - replace with actual server call
         const mockResponse: SpinResponseData = {
             success: true,
@@ -206,7 +211,7 @@ export class SpinController {
                 }
             }
         };
-        
+
         return mockResponse;
     }
 
@@ -215,9 +220,9 @@ export class SpinController {
         if (this.currentState === 'idle' || this.currentState === 'completed') {
             return;
         }
-        
+
         debug.log('SpinController: Force stopping spin');
-        
+
         this.reelsController.forceStopAllReels();
         this.setState(ISpinState.IDLE);
         this.resetSpinData();
@@ -226,7 +231,7 @@ export class SpinController {
     // State management
     private setState(newState: ISpinState): void {
         if (this.currentState === newState) return;
-        
+
         debug.log(`SpinController: State ${this.currentState} -> ${newState}`);
         this.currentState = newState;
     }
@@ -251,11 +256,11 @@ export class SpinController {
     private handleError(error: string): void {
         debug.error(`SpinController Error: ${error}`);
         this.setState(ISpinState.ERROR);
-        
+
         if (this.onErrorCallback) {
             this.onErrorCallback(error);
         }
-        
+
         // Reset to idle after error
         setTimeout(() => {
             this.setState(ISpinState.IDLE);
@@ -304,7 +309,7 @@ export class SpinController {
 
     public getIsCompleted(): boolean {
         return this.currentState === 'completed';
-    } 
+    }
 
     public getIsError(): boolean {
         return this.currentState === 'error';
@@ -313,12 +318,12 @@ export class SpinController {
     // Cleanup
     public destroy(): void {
         this.forceStop();
-        
+
         this.onSpinStartCallback = undefined;
         this.onSpinCompleteCallback = undefined;
         this.onCascadeStepCallback = undefined;
         this.onErrorCallback = undefined;
-        
+
         this.resetSpinData();
     }
 } 

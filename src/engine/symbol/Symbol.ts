@@ -158,18 +158,6 @@ export class Symbol extends Sprite {
         });
     }
 
-    // Utility methods for game logic
-    public static calculateVerticalSpacing(screenWidth: number, screenHeight: number): number {
-        // Calculate vertical spacing between symbol centers
-        const referenceSymbolHeight = GameConfig.REFERENCE_SYMBOL.height;
-        const referenceSpacingY = GameConfig.REFERENCE_SPACING.vertical; // Should be 0 for touching symbols
-        
-        const scaledSymbol = GameConfig.getScaledSymbolSize(screenWidth, screenHeight);
-        const actualCenterToCenter = (referenceSymbolHeight + referenceSpacingY) * scaledSymbol.scale;
-        
-        return actualCenterToCenter / screenHeight;
-    }
-
     public static getDefaultScale(): number {
         return SymbolConfigClass.getSpriteToReferenceScale();
     }

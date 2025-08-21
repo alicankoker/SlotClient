@@ -1,4 +1,4 @@
-import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
+import { AtlasAttachmentLoader, SkeletonData, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { AssetsConfig } from '../../config/AssetsConfig';
 import { debug } from '../utils/debug';
 
@@ -13,6 +13,8 @@ export interface SymbolConfig {
 
 export class SpineSymbol extends Spine {
     private _symbolId: number;
+    private _prefix: string;
+    private _skeletonData: SkeletonData;
     private config: SymbolConfig;
 
     constructor(config: SymbolConfig) {
@@ -20,7 +22,6 @@ export class SpineSymbol extends Spine {
 
         // Get the texture for this symbol
         const { atlasData, skeletonData } = AssetsConfig.getSpineSymbolAssetName();
-        const prefix = AssetsConfig.SYMBOL_ASSET_DATA[config.symbolId]?.prefix || 'Symbol1';
 
         if (!atlasData || !skeletonData) {
             throw new Error(`Texture not found for symbol ID: ${config.symbolId}`);
@@ -32,15 +33,18 @@ export class SpineSymbol extends Spine {
 
         super(skeleton);
 
+        this._skeletonData = skeleton;
+
+        this._prefix = AssetsConfig.SYMBOL_ASSET_DATA[config.symbolId]?.prefix || 'Symbol1';
+
         this.position.set(config.position.x, config.position.y);
         this.scale.set(config.scale || 1);
 
         this.skeleton.setSlotsToSetupPose();
 
-        this.state.data.defaultMix = 0.5;
+        this.state.data.defaultMix = 0.05;
 
-        this.state.setAnimation(0, `${prefix}_Landing`, false);
-        // this.state.addAnimation(0, `${prefix}_Win`, false, 2);
+        this.setIdle();
 
         this._symbolId = config.symbolId;
         this.config = config;
@@ -53,17 +57,100 @@ export class SpineSymbol extends Spine {
         return this._symbolId;
     }
 
-    public setSymbol(symbolId: number): void {
-        this._symbolId = symbolId;
-        const prefix = AssetsConfig.SYMBOL_ASSET_DATA[symbolId]?.prefix || 'Symbol1';
-        this.state.setAnimation(this.state.tracks.length - 1, `${prefix}_Landing`, false);
+    /**
+     * @description Sets the symbol to its idle state.
+     * @returns void
+     */
+    public setIdle(): void {
+        const track = this.state.setAnimation(0, `${this._prefix}_Landing`, false);
+        if (track && track.animation) {
+            track.trackTime = track.animation.duration - 0.01;
+            track.timeScale = 0;
+        }
     }
 
-    public updatePosition(position: { x: number, y: number }): void {
-        this.config.position = position;
+    /**
+     * @description Sets the symbol to its landing state.
+     * @returns void
+     */
+    public setLanding(onComplete?: () => void): Promise<void> {
+        this.state.clearTrack(0);
+        const track = this.state.setAnimation(0, `${this._prefix}_Landing`, false);
+        if (track) track.timeScale = 1;
 
-        // Update position directly - simple pixel coordinates
-        this.x = position.x;
-        this.y = position.y;
+        return new Promise<void>((resolve) => {
+            const listener = {
+                complete: (entry: any) => {
+                    if (entry.animation.name === `${this._prefix}_Landing`) {
+                        // first call the callback if it exists
+                        if (onComplete) onComplete();
+
+                        // then resolve the Promise
+                        resolve();
+
+                        // listener cleanup
+                        this.state.removeListener(listener);
+                    }
+                }
+            };
+            this.state.addListener(listener);
+        });
+    }
+
+    /**
+     * @description Sets the symbol to its win animation state.
+     * @param loop - Whether the animation should loop.
+     * @param onComplete - Callback function to call when the animation completes.
+     * @returns Promise that resolves when the animation completes.
+     */
+    public setWinAnimation(loop: boolean = false, onComplete?: () => void): Promise<void> {
+        const animationName = `${this._prefix}_Win`;
+
+        this.state.clearTrack(0);
+        const track = this.state.setAnimation(0, animationName, loop);
+        if (track) track.timeScale = 1;
+
+        const duration = this._skeletonData.findAnimation(animationName)?.duration ?? 1.0;
+
+        return new Promise<void>((resolve) => {
+            let resolved = false;
+
+            const listener = {
+                complete: (entry: any) => {
+                    if (entry.animation.name === animationName) {
+                        resolved = true;
+
+                        // first call the callback if it exists
+                        if (onComplete) onComplete();
+
+                        // then resolve the Promise
+                        resolve();
+
+                        // listener cleanup
+                        this.state.removeListener(listener);
+                    }
+                }
+            };
+            this.state.addListener(listener);
+
+            setTimeout(() => {
+                if (!resolved) {
+                    debug.warn(`Win animation "${animationName}" timeout after ${duration}s, forcing resolve`);
+                    resolved = true;
+                    resolve();
+                    this.state.removeListener(listener);
+                }
+            }, (duration * 1000) + 50);
+        });
+    }
+
+    /**
+     * @description Sets the symbol to its ID and prefix. After setting the ID and prefix, the symbol is set to its landing state.
+     * @returns void
+     */
+    public async setSymbol(symbolId: number): Promise<void> {
+        this._symbolId = symbolId;
+        this._prefix = AssetsConfig.SYMBOL_ASSET_DATA[symbolId]?.prefix || 'Symbol1';
+        await this.setLanding();
     }
 }
