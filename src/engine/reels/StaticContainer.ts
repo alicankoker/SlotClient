@@ -1,10 +1,10 @@
-import { Container, Application } from 'pixi.js';
-import { ResponsiveManager, createResponsiveConfig } from '../controllers/ResponsiveSystem';
+import { Container, Application, Text, FillGradient, TextStyle } from 'pixi.js';
 import { GameConfig } from '../../config/GameConfig';
 import { SpineSymbol } from '../symbol/SpineSymbol';
-// SymbolUtils import removed - using Symbol class for rendering
 import { GridSymbol } from '../symbol/GridSymbol';
 import { debug } from '../utils/debug';
+import { WinConfig } from '../types/GameTypes';
+import { gsap } from 'gsap';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -12,197 +12,285 @@ export interface StaticContainerConfig {
     symbolsVisible: number;
     x?: number;                  // Relative X position (0-1)
     y?: number;                  // Relative Y position (0-1)
-    // enableMask removed - masking handled at reel area level
 }
 
-export class StaticContainer extends Container {
-    private app: Application;
-    private responsiveManager: ResponsiveManager;
-    private config: StaticContainerConfig;
-    private symbolsContainer: Container;
-    private symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
-    private resizeCallback: () => void;
-
-    constructor(app: Application, responsiveManager: ResponsiveManager, config: StaticContainerConfig) {
-        super();
-        
-        this.app = app;
-        this.responsiveManager = responsiveManager;
-        this.config = config;
-        this.symbolsContainer = new Container();
-        
-        // Create resize callback to update positions on resize
-        this.resizeCallback = () => this.onResize();
-        
-        // Add containers to this static container
-        this.addChild(this.symbolsContainer);
-
-        this.initializeContainer();
-        
-        // Register for resize events
-        this.responsiveManager.addResizeCallback(this.resizeCallback);
-    }
-
-    private initializeContainer(): void {
-        // Don't create individual masks - let the parent handle masking for the whole reel area
-        this.positionContainer();
-        debug.log(`StaticContainer ${this.config.reelIndex}: Initialized (symbols will be set later)`);
-    }
-
-    private positionContainer(): void {
-        // Position the entire container using responsive system if coordinates provided
-        if (this.config.x !== undefined && this.config.y !== undefined) {
-            this.responsiveManager.addResponsiveObject(this, createResponsiveConfig({
-                x: this.config.x,
-                y: this.config.y,
-                anchorX: 0.5,
-                anchorY: 0.5
-            }));
+const fillGradientStops: FillGradient = new FillGradient({
+    colorStops: [
+        {
+            offset: 0,
+            color: 0xffffff
+        },
+        {
+            offset: 0.7,
+            color: 0xffffff
+        },
+        {
+            offset: 1,
+            color: 0xa2bdfb
         }
+    ]
+});
+
+const style: TextStyle = new TextStyle({
+    dropShadow: {
+        angle: 1.5,
+        color: 0x142c54,
+        distance: 4.5
+    },
+    fill: fillGradientStops,
+    fontFamily: "Nunito Black",
+    fontSize: 42,
+    fontWeight: "bolder",
+    stroke: {
+        color: 0x142c54,
+        width: 6,
+        join: 'round'
+    },
+    align: 'center'
+});
+
+export class StaticContainer extends Container {
+    private _app: Application;
+    private _config: StaticContainerConfig;
+    private _symbolsContainer: Container;
+    private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
+    private _winDatas: WinConfig[] = [];
+    private _winText: Text;
+    private _isPlaying: boolean = false;
+    private _isLooping: boolean = false;
+    private _isSkipped: boolean = false;
+
+    private _pendingResolvers: (() => void)[] = [];
+
+    constructor(app: Application, config: StaticContainerConfig) {
+        super();
+
+        this._app = app;
+        this._config = config;
+        this._symbolsContainer = new Container();
+
+        // Add containers to this static container
+        this.addChild(this._symbolsContainer);
+
+        this._winText = new Text({ text: '', style });
+        this._winText.anchor.set(0.5);
+        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 240);
+        this._winText.visible = false;
+        this.addChild(this._winText);
     }
 
-    /*private getVerticalSpacing(): number {
-        // Calculate vertical spacing between symbol centers
-        const referenceSymbolHeight = GameConfig.REFERENCE_SYMBOL.height;
-        const referenceSpacingY = GameConfig.REFERENCE_SPACING.vertical; // Should be 0 for touching symbols
-        
-        const scaledSymbol = GameConfig.getScaledSymbolSize(this.app.screen.width, this.app.screen.height);
-        const actualCenterToCenterY = (referenceSymbolHeight + referenceSpacingY) * scaledSymbol.scale;
-        
-        return actualCenterToCenterY / this.app.screen.height;
-    }*/
-
+    /**
+     * @description Sets the symbols for the specified reel.
+     * @param symbolIds - The array of symbol IDs to set.
+     * @param reelIndex - The index of the reel to set (optional).
+     * @return void
+     */
     public setSymbols(symbolIds: number[], reelIndex?: number): void {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        this.clearSymbolsForReel(targetReelIndex);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
         this.createSymbolsFromIds(symbolIds, targetReelIndex);
     }
 
-    private clearSymbolsForReel(reelIndex: number): void {
-        const reelSymbols = this.symbols.get(reelIndex);
-        if (reelSymbols) {
-            reelSymbols.forEach(symbol => {
-                this.symbolsContainer.removeChild(symbol);
-                symbol.destroy();
-            });
-            this.symbols.delete(reelIndex);
-        }
+    /**
+     * @description Updates the symbols in the static container for the specified reel.
+     * @param symbolIds - The array of symbol IDs to update.
+     * @param reelIndex - The index of the reel to update (optional).
+     * @returns void
+     */
+    public updateSymbols(symbolIds: number[], reelIndex?: number): Promise<void[]> {
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+
+        return Promise.all((this._symbols.get(targetReelIndex) ?? []).map(async (symbol, index) => {
+            if (symbolIds[index] !== undefined) {
+                await symbol.setSymbol(symbolIds[index]);
+            }
+        }));
     }
 
     private createSymbolsFromIds(symbolIds: number[], reelIndex: number): void {
         debug.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
-        
+
         // Initialize symbols array for this reel
-        if (!this.symbols.has(reelIndex)) {
-            this.symbols.set(reelIndex, []);
+        if (!this._symbols.has(reelIndex)) {
+            this._symbols.set(reelIndex, []);
         }
-        const reelSymbols = this.symbols.get(reelIndex)!;
-        
+        const reelSymbols = this._symbols.get(reelIndex)!;
+
         // Create symbols with buffer for smooth scrolling (like original Reel.ts)
-        const totalSymbols = this.config.symbolsVisible + 2; // 1 above + visible + 1 below
+        const totalSymbols = this._config.symbolsVisible;
         const symbolsToCreate = Math.max(totalSymbols, symbolIds.length);
-        
-        // Calculate the middle symbol index (for 3 visible + 2 buffer = 5 total, middle visible is index 2)
+
+        // Calculate the middle symbol index
         const middleSymbolIndex = Math.floor(totalSymbols / 2);
-        
-        // Calculate actual pixel positions using responsive scaling
-        const scaledSymbol = GameConfig.getScaledSymbolSize(this.app.screen.width, this.app.screen.height);
-        const symbolScale = GameConfig.getReferenceSymbolScale(this.app.screen.width, this.app.screen.height);
-        const symbolWidth = scaledSymbol.width;
-        const symbolHeight = scaledSymbol.height;
-        const spacingX = GameConfig.REFERENCE_SPACING.horizontal * scaledSymbol.scale;
-        const spacingY = GameConfig.REFERENCE_SPACING.vertical * scaledSymbol.scale;
-        
-        const reelX = (reelIndex - 2) * (symbolWidth + spacingX) // Center of symbol
+
+        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+
+        const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
+        const spacingY = GameConfig.REFERENCE_SPACING.vertical;
+
+        const reelX = ((reelIndex - 2) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2); // Center of symbol
+
         for (let i = 0; i < symbolsToCreate; i++) {
             // Calculate vertical position (actual pixels)
-            const symbolY = (i - middleSymbolIndex) * (symbolHeight + spacingY);
-            
+            const symbolY = ((i - middleSymbolIndex) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2;
+
             // Get symbol ID (use provided IDs or generate random for testing)
             const symbolId = i < symbolIds.length ? symbolIds[i] : Math.floor(Math.random() * 10);
-            
+
             debug.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
-            
+
             // Create symbol with container positioning to avoid conflicts with ReelsContainer offset
-            const symbol = new SpineSymbol(this.responsiveManager, {
+            const symbol = new SpineSymbol({
                 symbolId: symbolId,
                 position: {
                     x: reelX, // Offset for container position
                     y: symbolY // Offset for container position
                 },
-                scale: symbolScale[0], // Use responsive scale
-                useContainerPositioning: true // Use container coordinates
+                scale: GameConfig.REFERENCE_SYMBOL.scale, // Use responsive scale
             });
-            
+
             // Add to symbols container and array
-            this.symbolsContainer.addChild(symbol);
+            this._symbolsContainer.addChild(symbol);
             reelSymbols.push(symbol);
-            
+
             debug.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
         }
-        
-        debug.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} with responsive scaling (scale: ${scaledSymbol.scale.toFixed(3)})`);
+
+        debug.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
     }
 
-    private onResize(): void {
-        // Update both symbol positions AND sizes for resize
-        this.updateSymbolPositionsAndSizes();
-    }
+    public async setAnimation(winDatas: WinConfig[]): Promise<void> {
+        this.resetWinAnimations();
 
-    private updateSymbolPositionsAndSizes(): void {
-        // Update symbols for ALL reels, not just this.config.reelIndex
-        for (const [reelIndex, reelSymbols] of this.symbols.entries()) {
-            if (!reelSymbols || reelSymbols.length === 0) continue;
-            
-            // Calculate the middle symbol index
-            const middleSymbolIndex = Math.floor(reelSymbols.length / 2);
-            
-            // Use responsive scaling instead of hardcoded values
-            const scaledSymbol = GameConfig.getScaledSymbolSize(this.app.screen.width, this.app.screen.height);
-            const symbolScale = GameConfig.getReferenceSymbolScale(this.app.screen.width, this.app.screen.height);
-            const symbolWidth = scaledSymbol.width;
-            const symbolHeight = scaledSymbol.height;
-            const spacingX = GameConfig.REFERENCE_SPACING.horizontal * scaledSymbol.scale;
-            const spacingY = GameConfig.REFERENCE_SPACING.vertical * scaledSymbol.scale;
-            
-            // Calculate horizontal position for this reel (actual pixels)
-            const reelX = (reelIndex - 2) * (symbolWidth + spacingX); // Center of symbol
-            
-            reelSymbols.forEach((symbol, index) => {
-                // Calculate vertical position (actual pixels)
-                const symbolY = (index - middleSymbolIndex) * (symbolHeight + spacingY);
-                
-                // Update both position AND scale
-                symbol.updatePosition({
-                    x: reelX, // Offset for container position
-                    y: symbolY // Offset for container position
-                });
-                
-                // Update symbol scale based on new screen size
-                // Symbols in StaticContainer use container positioning, so update scale directly
-                symbol.scale.set(symbolScale[0] * GameConfig.REFERENCE_SYMBOL.scale, symbolScale[1] * GameConfig.REFERENCE_SYMBOL.scale);
-            });
-            
-            debug.log(`StaticContainer: Updated ${reelSymbols.length} symbol positions and scales for reel ${reelIndex} during resize with responsive scaling (scale: ${scaledSymbol.scale.toFixed(3)})`);
+        this._winDatas = winDatas;
+
+        this._isPlaying = true;
+        this._isSkipped = false;
+        this._isLooping = false;
+
+        await this.playWinAnimations(winDatas);
+
+        if (GameConfig.WIN_ANIMATION.winLoop) {
+            await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000);
+
+            this._isLooping = true;
+            this._isSkipped = false;
+
+            while (this._isLooping) {
+                await this.playWinAnimations(winDatas);
+
+                await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000);
+            }
         }
     }
 
-    private updateSymbolPositions(): void {
-        // Deprecated method - use updateSymbolPositionsAndSizes instead
-        debug.warn('StaticContainer: updateSymbolPositions is deprecated, use updateSymbolPositionsAndSizes for proper resize handling');
-        this.updateSymbolPositionsAndSizes();
+    private delay(ms: number): Promise<void> {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    public async playWinAnimations(winDatas: WinConfig[]): Promise<void> {
+        // Play win animations based on the provided data
+        for (const winData of winDatas) {
+            debug.log(`StaticContainer: Playing win animation for win data:`, winData);
+            console.log(winData);
+
+            if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+                // Play win text animation
+                gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
+                    x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
+                        this._winText.text = `You won ${winData.amount}€${winData.multiplier > 1 ? ` with X${winData.multiplier} multipliers` : ''}!`;
+                        this._winText.visible = true;
+                    }
+                });
+            }
+
+            // play all symbol animations on this win
+            await Promise.all(
+                winData.symbolIds.map(async (symbolId, index) => {
+                    return new Promise<void>((resolve) => {
+                        this._pendingResolvers.push(resolve);
+
+                        if (this._isSkipped) {
+                            resolve();
+                            return;
+                        }
+
+                        this._symbols.get(index)?.[symbolId]?.setWinAnimation(false, () => {
+                            // set idle right after completion of each symbol animation
+                            // this._symbols.get(index)?.[symbolId]?.setIdle();
+                            resolve();
+                        });
+                    });
+                })
+            ).then(() => {
+                // after all symbols have played their win animations, set them to idle
+                if (!this._isSkipped) {
+                    this._pendingResolvers = [];
+
+                    winData.symbolIds.forEach((symbolId, index) => {
+                        this._symbols.get(index)?.[symbolId]?.setIdle();
+                    });
+                }
+            });
+        }
+
+        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+            gsap.to(this._winText.scale, {
+                x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', onComplete: () => {
+                    this._winText.text = ``;
+                    this._winText.visible = false;
+                }
+            });
+        }
+
+        this._isPlaying = false;
+    }
+
+    public skipWinAnimations(): void {
+        if (!this._isPlaying || this._isLooping) return;
+
+        this._isSkipped = true;
+
+        this._pendingResolvers.forEach(resolve => resolve());
+        this._pendingResolvers = [];
+
+        this._symbols.forEach((reelSymbols) => {
+            reelSymbols.forEach((symbol) => {
+                symbol.setIdle();
+            });
+        });
+    }
+
+    public resetWinAnimations(): void {
+        this._isPlaying = false;
+        this._isLooping = false;
+        this._isSkipped = false;
+        this._winDatas = [];
+
+        this._winText.text = ``;
+        this._winText.scale.set(0);
+        this._winText.visible = false;
+
+        this._pendingResolvers.forEach(resolve => resolve());
+        this._pendingResolvers = [];
+
+        this._symbols.forEach((reelSymbols) => {
+            reelSymbols.forEach((symbol) => {
+                symbol.setIdle();
+            });
+        });
     }
 
     // Public symbol management methods
     public setSymbolsByIndex(symbolIndexes: number[], reelIndex?: number): void {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        if (symbolIndexes.length !== this.config.symbolsVisible) {
-            debug.warn(`StaticContainer: Expected ${this.config.symbolsVisible} symbols, got ${symbolIndexes.length} for reel ${targetReelIndex}`);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        if (symbolIndexes.length !== this._config.symbolsVisible) {
+            debug.warn(`StaticContainer: Expected ${this._config.symbolsVisible} symbols, got ${symbolIndexes.length} for reel ${targetReelIndex}`);
             return;
         }
 
         const visibleSymbols = this.getVisibleSymbols(targetReelIndex);
-        
+
         visibleSymbols.forEach((symbol, index) => {
             const symbolIndex = symbolIndexes[index];
             symbol.setSymbol(symbolIndex);
@@ -210,9 +298,9 @@ export class StaticContainer extends Container {
     }
 
     public setSymbolsFromServerData(symbolIds: number[], reelIndex?: number): void {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const reelSymbols = this.symbols.get(targetReelIndex);
-        
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const reelSymbols = this._symbols.get(targetReelIndex);
+
         if (symbolIds.length !== reelSymbols?.length) {
             debug.warn(`StaticContainer: Expected ${reelSymbols?.length} symbols, got ${symbolIds.length} for reel ${targetReelIndex}`);
             return;
@@ -223,11 +311,9 @@ export class StaticContainer extends Container {
         });
     }
 
-    // generateDefaultSymbolIds method removed - not needed anymore
-
     public updateSymbolAt(index: number, symbolId: number, reelIndex?: number): boolean {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const reelSymbols = this.symbols.get(targetReelIndex);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (!reelSymbols || index < 0 || index >= reelSymbols.length) {
             debug.warn(`StaticContainer: Invalid symbol index: ${index} for reel ${targetReelIndex}`);
             return false;
@@ -238,146 +324,102 @@ export class StaticContainer extends Container {
     }
 
     public getSymbolAt(index: number, reelIndex?: number): SpineSymbol | GridSymbol | null {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const reelSymbols = this.symbols.get(targetReelIndex);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (!reelSymbols || index < 0 || index >= reelSymbols.length) {
             return null;
         }
-        
+
         return reelSymbols[index];
     }
 
     public getSymbolIdAt(index: number, reelIndex?: number): number | null {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const reelSymbols = this.symbols.get(targetReelIndex);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (!reelSymbols || index < 0 || index >= reelSymbols.length) {
             return null;
         }
-        
+
         return reelSymbols[index].symbolId;
     }
 
     public getSymbolCount(reelIndex?: number): number {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        return this.symbols.get(targetReelIndex)?.length || 0;
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        return this._symbols.get(targetReelIndex)?.length || 0;
     }
 
     public getVisibleSymbols(reelIndex?: number): SpineSymbol[] {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const reelSymbols = this.symbols.get(targetReelIndex);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (!reelSymbols) return [];
         // Return only the visible symbols (exclude the buffer symbols)
-        if (reelSymbols.length === this.config.symbolsVisible + 2) {
-            return reelSymbols.slice(1, this.config.symbolsVisible + 1);
+        if (reelSymbols.length === this._config.symbolsVisible + 2) {
+            return reelSymbols.slice(1, this._config.symbolsVisible + 1);
         }
         return reelSymbols;
     }
 
     public addSymbol(symbolId: number, position?: number, reelIndex?: number): void {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const symbol = new SpineSymbol(this.responsiveManager, {
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const symbol = new SpineSymbol({
             symbolId: symbolId,
             position: {
                 x: 0,
                 y: 0 // Will be set by repositionSymbols
-            },
-            useContainerPositioning: false // Use responsive system consistently
+            }
         });
-        
-        const reelSymbols = this.symbols.get(targetReelIndex);
+
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (!reelSymbols) {
-            this.symbols.set(targetReelIndex, [symbol]);
-            this.symbolsContainer.addChild(symbol);
+            this._symbols.set(targetReelIndex, [symbol]);
+            this._symbolsContainer.addChild(symbol);
         } else {
             if (position !== undefined && position >= 0 && position <= reelSymbols.length) {
                 // Insert at specific position
                 reelSymbols.splice(position, 0, symbol);
-                this.symbolsContainer.addChildAt(symbol, position);
-                this.repositionSymbols(targetReelIndex);
+                this._symbolsContainer.addChildAt(symbol, position);
             } else {
                 // Add at the end
                 reelSymbols.push(symbol);
-                this.symbolsContainer.addChild(symbol);
-                this.repositionSymbols(targetReelIndex);
+                this._symbolsContainer.addChild(symbol);
             }
         }
     }
 
     public removeSymbolAt(index: number, reelIndex?: number): boolean {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const reelSymbols = this.symbols.get(targetReelIndex);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (!reelSymbols || index < 0 || index >= reelSymbols.length) {
             debug.warn('StaticContainer: Invalid symbol index for removal:', index);
             return false;
         }
 
         const symbol = reelSymbols[index];
-        this.symbolsContainer.removeChild(symbol);
+        this._symbolsContainer.removeChild(symbol);
         symbol.destroy();
         reelSymbols.splice(index, 1);
-        
-        // Reposition remaining symbols
-        this.repositionSymbols(targetReelIndex);
-        return true;
-    }
 
-    private repositionSymbols(reelIndex?: number): void {
-        if (reelIndex !== undefined) {
-            // Reposition symbols for a specific reel
-            const reelSymbols = this.symbols.get(reelIndex);
-            if (!reelSymbols || reelSymbols.length === 0) return;
-            
-            const middleSymbolIndex = Math.floor(reelSymbols.length / 2);
-            
-            // Calculate actual pixel positions
-            const scaledSymbol = GameConfig.getScaledSymbolSize(this.app.screen.width, this.app.screen.height);
-            const symbolWidth = scaledSymbol.width;
-            const symbolHeight = scaledSymbol.height;
-            const spacingX = GameConfig.REFERENCE_SPACING.horizontal * scaledSymbol.scale;
-            const spacingY = GameConfig.REFERENCE_SPACING.vertical * scaledSymbol.scale;
-            
-            // Calculate horizontal position for this reel (actual pixels)
-            const totalWidth = 5 * symbolWidth + 4 * spacingX; // 5 reels, 4 gaps
-            const startX = (this.app.screen.width - totalWidth) / 2;
-            const reelX = startX + reelIndex * (symbolWidth + spacingX) + symbolWidth / 2; // Center of symbol
-            
-            reelSymbols.forEach((symbol, index) => {
-                // Calculate vertical position (actual pixels)
-                const symbolY = this.app.screen.height / 2 + (index - middleSymbolIndex) * (symbolHeight + spacingY);
-                
-                symbol.updatePosition({
-                    x: reelX - this.app.screen.width / 2, // Offset for container position
-                    y: symbolY - this.app.screen.height / 2 // Offset for container position
-                });
-            });
-            
-            debug.log(`StaticContainer: Repositioned ${reelSymbols.length} symbols for reel ${reelIndex} with pixel coordinates`);
-        } else {
-            // Reposition symbols for ALL reels
-            for (const [reelIdx, reelSymbols] of this.symbols.entries()) {
-                this.repositionSymbols(reelIdx);
-            }
-        }
+        return true;
     }
 
     public clearSymbols(reelIndex?: number): void {
         // Clear symbols for ALL reels
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const reelSymbols = this.symbols.get(targetReelIndex);
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (reelSymbols) {
             reelSymbols.forEach(symbol => {
-                this.symbolsContainer.removeChild(symbol);
+                this._symbolsContainer.removeChild(symbol);
                 symbol.destroy();
             });
         }
-        this.symbols.delete(targetReelIndex); // Clear the specific reel's Map entry
+        this._symbols.delete(targetReelIndex); // Clear the specific reel's Map entry
     }
 
     public getAllSymbols(reelIndex?: number): SpineSymbol[] {
         // Return symbols from ALL reels
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
         const allSymbols: SpineSymbol[] = [];
-        const reelSymbols = this.symbols.get(targetReelIndex);
+        const reelSymbols = this._symbols.get(targetReelIndex);
         if (reelSymbols) {
             allSymbols.push(...reelSymbols);
         }
@@ -385,39 +427,41 @@ export class StaticContainer extends Container {
     }
 
     public clone(reelIndex?: number): StaticContainer {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this.config.reelIndex;
-        const clonedContainer = new StaticContainer(this.app, this.responsiveManager, this.config);
-        
+        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
+        const clonedContainer = new StaticContainer(this._app, this._config);
+
         // Copy current symbol IDs
-        const symbolIds = this.symbols.get(targetReelIndex)?.map(symbol => symbol.symbolId) || [];
+        const symbolIds = this._symbols.get(targetReelIndex)?.map(symbol => symbol.symbolId) || [];
         clonedContainer.setSymbolsFromServerData(symbolIds, targetReelIndex);
-        
+
         return clonedContainer;
     }
 
     // Getters
     public get reelIndex(): number {
-        return this.config.reelIndex;
+        return this._config.reelIndex;
     }
 
     public get symbolsVisible(): number {
-        return this.config.symbolsVisible;
+        return this._config.symbolsVisible;
     }
 
     public get symbolHeight(): number {
-        return this.config.symbolHeight;
+        return this._config.symbolHeight;
+    }
+
+    public get isPlaying(): boolean {
+        return this._isPlaying;
+    }
+
+    public get isLooping(): boolean {
+        return this._isLooping;
     }
 
     public destroy(): void {
-        // Clean up resize callback
-        this.responsiveManager.removeResizeCallback(this.resizeCallback);
-        
         // Clean up symbols (they handle their own responsive cleanup)
         this.clearSymbols();
-        
-        // Clean up responsive objects
-        this.responsiveManager.removeResponsiveObject(this);
-        
+
         // Destroy the container
         super.destroy({ children: true });
     }

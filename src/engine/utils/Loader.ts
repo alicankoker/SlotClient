@@ -2,6 +2,7 @@ import { Application, Container, Graphics, Text } from "pixi.js";
 import { signals, SCREEN_SIGNALS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
+import { GameConfig } from "../../config/GameConfig";
 
 export class Loader extends Container {
     private static _instance: Loader;
@@ -110,8 +111,8 @@ export class Loader extends Container {
         this.zIndex = 9999;
 
         this.position.set(
-            (app.screen.width - this.barWidth) / 2,
-            (app.screen.height - this.barHeight) / 2
+            (GameConfig.REFERENCE_RESOLUTION.width - this.barWidth) / 2,
+            (GameConfig.REFERENCE_RESOLUTION.height - this.barHeight) / 2
         );
 
         // pulse effect

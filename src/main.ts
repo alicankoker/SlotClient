@@ -3,7 +3,7 @@ import { Application, Assets, FillGradient, Sprite, Text, TextStyle, Texture } f
 import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
-import { ResponsiveManager } from './engine/controllers/ResponsiveSystem';
+import { ResponsiveManager } from './engine/utils/ResponsiveManager';
 import { signals, SCREEN_SIGNALS } from './engine/controllers/SignalManager';
 import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState } from './engine/types/GameTypes';
 import { Background } from './engine/Background';
@@ -11,15 +11,15 @@ import { AssetLoader } from './engine/utils/AssetLoader';
 import { AssetsConfig } from './config/AssetsConfig';
 import { GameConfig } from './config/GameConfig';
 import { Loader } from './engine/utils/Loader';
-import { AtlasAttachmentLoader, SkeletonData, SkeletonJson, Spine, SpineFromOptions, SpineOptions } from '@esotericsoftware/spine-pixi-v8';
+import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { debug } from './engine/utils/debug';
 
 export class DoodleV8Main {
     private app!: Application;
+    private responsiveManager!: ResponsiveManager;
     private slotGameController?: SlotGameController;
     private spinController?: SpinController;
     private reelsController?: ReelsController;
-    private responsiveManager?: ResponsiveManager;
     private assetLoader!: AssetLoader;
 
     public async init(): Promise<void> {
@@ -60,15 +60,10 @@ export class DoodleV8Main {
             this.createScene();
 
             // Step 6: Start game systems (controllers handle the game loop)
-            // Send initial resize signal after everything is initialized
-            setTimeout(() => {
-                signals.emit(SCREEN_SIGNALS.SCREEN_RESIZE);
-            }, 100); // Small delay to ensure everything is properly set up
 
             // Add keyboard handlers
             window.addEventListener('keydown', (event) => {
                 switch (event.key.toLowerCase()) {
-                    case 's':
                     case ' ':
                         debug.log('🎲 Manual spin triggered');
                         if (this.spinController) {
@@ -81,6 +76,18 @@ export class DoodleV8Main {
                     case 'a':
                         debug.log('🔄 Auto-play triggered');
                         // Auto-play would need to be implemented differently now
+                        break;
+                    case 'w':
+                        debug.log('Show random win animation');
+                        if (this.reelsController && !this.reelsController.getIsSpinning()) {
+                            this.reelsController.playRandomWinAnimation();
+                        }
+                        break;
+                    case 's':
+                        debug.log('Skip win animations');
+                        if (this.reelsController) {
+                            this.reelsController.skipWinAnimations();
+                        }
                         break;
                     case 'x':
                         debug.log('⏹️ Stop auto-play');
@@ -110,6 +117,7 @@ export class DoodleV8Main {
             debug.log('⏹️ Press X to stop auto-play');
             debug.log('⚡ Press 1 for fast mode, 2 for instant, 3 for slow');
 
+            this.responsiveManager.onResize();
         } catch (error) {
             debug.error('❌ Failed to initialize DoodleV8:', error);
             throw error;
@@ -150,18 +158,15 @@ export class DoodleV8Main {
     }
 
     private initializeResponsiveSystem(): void {
-        // Step 2: Initialize responsive system
-        this.responsiveManager = new ResponsiveManager(this.app);
+        this.responsiveManager = ResponsiveManager.getInstance(this.app);
     }
 
     private initializeControllers(initData: InitialGridData): void {
         // Step 3: Initialize controllers with new architecture
-        if (!this.responsiveManager) return;
-
         // slotGameController already initialized in init() method
 
         // Create ReelsController first
-        this.reelsController = new ReelsController(initData, this.app, this.responsiveManager);
+        this.reelsController = new ReelsController(initData, this.app);
 
         // Create SpinController with ReelsController dependency
         this.spinController = new SpinController({
@@ -205,13 +210,9 @@ export class DoodleV8Main {
     }
 
     private async createScene(): Promise<void> {
-        if (!this.responsiveManager || !this.reelsController) return;
+        if (!this.reelsController) return;
 
-        const background = new Background(
-            Texture.from("bg_background_landscape.png"),
-            this.app,
-            this.responsiveManager
-        );
+        const background = new Background(this.app);
         this.app.stage.addChild(background);
         // Get the reels container from the controller
         const reelsContainer = this.reelsController.getReelsContainer();
@@ -222,11 +223,6 @@ export class DoodleV8Main {
         debug.log('ReelsContainer size:', reelsContainer.width, reelsContainer.height);
         debug.log('ReelsContainer visible:', reelsContainer.visible);
         debug.log('ReelsContainer children count:', reelsContainer.children.length);
-
-        // Position the reels container at the center of the screen for debugging
-        reelsContainer.x = this.app.screen.width / 2;
-        reelsContainer.y = this.app.screen.height / 2;
-        debug.log('ReelsContainer repositioned to center:', reelsContainer.x, reelsContainer.y);
 
         // Add the reels container to the stage
         this.app.stage.addChild(reelsContainer);
@@ -245,24 +241,43 @@ export class DoodleV8Main {
         debug.log('Scene created successfully');
         debug.log('=== END SCENE CREATION DEBUG ===');
 
-        // const skeleton = await Assets.get('c1Data');
-        // const atlas = await Assets.get('c1Atlas');
+        // const { atlas, skeleton } = AssetsConfig.BACKGROUND_ANIMATIONS_ASSET;
+        // const atlasAsset = Assets.get(atlas);
+        // const skeletonAsset = Assets.get(skeleton);
 
-        // const attachmentLoader = new AtlasAttachmentLoader(atlas);
+        // const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
         // const json = new SkeletonJson(attachmentLoader);
-        // const skeletonData = json.readSkeletonData(skeleton);
+        // const skeletonData = json.readSkeletonData(skeletonAsset);
 
-        // const spine = new Spine(skeletonData);
+        // const cloud = new Spine(skeletonData);
 
-        // spine.skeleton.setSlotsToSetupPose();
+        // cloud.skeleton.setSlotsToSetupPose();
 
-        // spine.state.data.defaultMix = 0.5;
+        // cloud.state.data.defaultMix = 0.5;
 
-        // spine.state.setAnimation(0, 'C1_hold', false);
-        // spine.state.addAnimation(0, 'C1_intro', true, 0.1);
-        // // spine.state.addAnimation(0, 'C1_exp', true, 0.2);
-        // spine.position.set(600, 300);
-        // this.app.stage.addChild(spine);
+        // cloud.state.setAnimation(0, 'Background_Landscape_Cloud', true);
+        // cloud.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        // this.app.stage.addChild(cloud);
+
+        // const rabbit = new Spine(skeletonData);
+
+        // rabbit.skeleton.setSlotsToSetupPose();
+
+        // rabbit.state.data.defaultMix = 0.5;
+
+        // rabbit.state.setAnimation(0, 'Background_Landscape_Rabbit', true);
+        // rabbit.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        // this.app.stage.addChild(rabbit);
+
+        // const glows = new Spine(skeletonData);
+
+        // glows.skeleton.setSlotsToSetupPose();
+
+        // glows.state.data.defaultMix = 0.5;
+
+        // glows.state.setAnimation(0, 'Background_Landscape_Glows', true);
+        // glows.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        // this.app.stage.addChild(glows);
 
         // let fillGradientStops: FillGradient = new FillGradient({
         //     colorStops: [

@@ -21,18 +21,12 @@ export interface CascadeConfig {
     removeAnimationSteps: number;   // Number of animation steps for removals
 }
 
-export interface WinConfig {
-    minWinningSymbols: number;      // Minimum symbols needed for a win
-    multiplierThreshold: number;    // Threshold for applying multipliers
-    jackpotThreshold: number;       // Threshold for jackpot wins
-}
-
 export class GameRulesConfig {
     // Grid layout configuration
     public static readonly GRID: GridConfig = {
         reelCount: 5,               // 5x3 grid
         rowCount: 3,                // 3 visible rows per reel
-        totalSymbols: 11,           // Symbol IDs 0-10
+        totalSymbols: 13,           // Symbol IDs 0-12
         bufferRows: {
             above: 2,               // 2 buffer rows above for smooth scrolling
             below: 2                // 2 buffer rows below for smooth scrolling
@@ -52,13 +46,6 @@ export class GameRulesConfig {
         maxCascadeSteps: 10,        // Maximum 10 cascade steps per spin
         dropAnimationSteps: 5,      // 5 steps for drop animations
         removeAnimationSteps: 3     // 3 steps for removal animations
-    };
-
-    // Win calculation configuration
-    public static readonly WIN: WinConfig = {
-        minWinningSymbols: 3,       // Need at least 3 matching symbols
-        multiplierThreshold: 5,     // 5+ symbols for multiplier bonus
-        jackpotThreshold: 1000      // $1000+ for jackpot celebration
     };
 
     // Calculated values

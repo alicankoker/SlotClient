@@ -16,7 +16,7 @@ import { debug } from '../engine/utils/debug';
 export class GameServer {
     private static instance: GameServer;
     private spinCounter: number = 0;
-    private readonly totalSymbols: number = 11; // Number of available symbols (0-10)
+    private readonly totalSymbols: number = 13; // Number of available symbols (0-12)
 
     private constructor() {
         // No longer need symbolNames array

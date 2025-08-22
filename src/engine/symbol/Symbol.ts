@@ -1,5 +1,4 @@
 import { Sprite, Assets } from 'pixi.js';
-import { ResponsiveManager, createResponsiveConfig } from '../controllers/ResponsiveSystem';
 import { AssetsConfig } from '../../config/AssetsConfig';
 import { GameConfig } from '../../config/GameConfig';
 import { SymbolConfig as SymbolConfigClass } from '../../config/SymbolConfig';
@@ -13,53 +12,29 @@ export interface SymbolConfig {
         y: number;              // Relative Y position (0-1)
     };
     scale?: number;             // Optional override scale
-    useContainerPositioning?: boolean; // If true, position relative to container instead of screen
 }
 
 export class Symbol extends Sprite {
-    private responsiveManager: ResponsiveManager;
     private _symbolId: number;
     private config: SymbolConfig;
 
-    constructor(responsiveManager: ResponsiveManager, config: SymbolConfig) {
+    constructor(config: SymbolConfig) {
         debug.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
         
         // Get the texture for this symbol
         const texture = Symbol.getTextureForSymbol(config.symbolId);
         super(texture);
-        
+
+        this.anchor.set(0.5, 0.5);
+        this.scale.set(config.scale || 1);
+        this.position.set(config.position.x, config.position.y);
+
         debug.log(`Symbol: Created sprite with texture:`, !!texture, 'size:', texture?.width, 'x', texture?.height);
 
-        this.responsiveManager = responsiveManager;
         this._symbolId = config.symbolId;
         this.config = config;
-
-        this.initializeSymbol();
         
         debug.log(`Symbol: Initialized symbol at:`, this.x, this.y, 'scale:', this.scale.x, 'visible:', this.visible);
-    }
-
-    private initializeSymbol(): void {
-        // Calculate symbol scaling
-        const spriteToReferenceScale = SymbolConfigClass.getSpriteToReferenceScale();
-        const finalScale = this.config.scale || spriteToReferenceScale;
-
-        if (this.config.useContainerPositioning) {
-            // Position directly in container coordinates - NO responsive system
-            this.anchor.set(0.5, 0.5);
-            this.x = this.config.position.x;
-            this.y = this.config.position.y;
-            this.scale.set(finalScale * GameConfig.REFERENCE_SYMBOL.scale);
-        } else {
-            // Use responsive system for positioning and scaling
-            this.responsiveManager.addResponsiveObject(this, createResponsiveConfig({
-                x: this.config.position.x,
-                y: this.config.position.y,
-                anchorX: 0.5,
-                anchorY: 0.5,
-                scaleX: finalScale * GameConfig.REFERENCE_SYMBOL.scale
-            }));
-        }
     }
 
     // Static method to get texture for a symbol ID
@@ -109,11 +84,6 @@ export class Symbol extends Sprite {
         return this._symbolId;
     }
 
-    // Getter for useContainerPositioning
-    public get useContainerPositioning(): boolean {
-        return this.config.useContainerPositioning || false;
-    }
-
     public setSymbolId(symbolId: number): void {
         this._symbolId = symbolId;
         this.texture = Symbol.getTextureForSymbol(symbolId);
@@ -130,31 +100,6 @@ export class Symbol extends Sprite {
             }
         }
     }
-
-    public updatePosition(position: { x: number, y: number }): void {
-        this.config.position = position;
-        
-        if (this.config.useContainerPositioning) {
-            // Update position directly - simple pixel coordinates
-            this.x = position.x;
-            this.y = position.y;
-        } else {
-            // Use responsive system
-            this.responsiveManager.updateResponsiveConfig(this, {
-                x: position.x,
-                y: position.y
-            });
-        }
-    }
-
-    public updateScale(scale: number): void {
-        this.config.scale = scale;
-        this.responsiveManager.updateResponsiveConfig(this, {
-            scaleX: scale * GameConfig.REFERENCE_SYMBOL.scale
-        });
-    }
-
-
 
     // Animation methods
     public async animateToPosition(targetPosition: { x: number, y: number }, duration: number = AnimationConfig.SYMBOL.positionDuration): Promise<void> {
@@ -174,7 +119,7 @@ export class Symbol extends Sprite {
                     y: startPos.y + (targetPosition.y - startPos.y) * easedProgress
                 };
 
-                this.updatePosition(currentPos);
+                //this.updatePosition(currentPos);
 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
@@ -200,7 +145,7 @@ export class Symbol extends Sprite {
                 const easedProgress = 1 - Math.pow(1 - progress, 3);
                 
                 const currentScale = startScale + (targetScale - startScale) * easedProgress;
-                this.updateScale(currentScale);
+                //this.updateScale(currentScale);
 
                 if (progress < 1) {
                     requestAnimationFrame(animate);
@@ -211,29 +156,6 @@ export class Symbol extends Sprite {
 
             animate();
         });
-    }
-
-    // Cleanup
-    public destroy(): void {
-        // Only remove from responsive system if not using container positioning
-        if (!this.config.useContainerPositioning) {
-            this.responsiveManager.removeResponsiveObject(this);
-        }
-        
-        // Call parent destroy
-        super.destroy();
-    }
-
-    // Utility methods for game logic
-    public static calculateVerticalSpacing(screenWidth: number, screenHeight: number): number {
-        // Calculate vertical spacing between symbol centers
-        const referenceSymbolHeight = GameConfig.REFERENCE_SYMBOL.height;
-        const referenceSpacingY = GameConfig.REFERENCE_SPACING.vertical; // Should be 0 for touching symbols
-        
-        const scaledSymbol = GameConfig.getScaledSymbolSize(screenWidth, screenHeight);
-        const actualCenterToCenter = (referenceSymbolHeight + referenceSpacingY) * scaledSymbol.scale;
-        
-        return actualCenterToCenter / screenHeight;
     }
 
     public static getDefaultScale(): number {

@@ -1,3 +1,5 @@
+import { OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
+
 export interface ResolutionConfig {
     width: number;
     height: number;
@@ -35,16 +37,27 @@ export class GameConfig {
         height: 1080
     };
 
-    // Reference symbol size at base resolution
-    public static readonly REFERENCE_SYMBOL: SymbolConfig = {
-        width: 145,
-        height: 145,
-        scale: 2.0
+    public static readonly ORIENTATION: OrientationConfig = {
+        landscape: "landscape",
+        portrait: "portrait"
     };
 
-    public static readonly REFERENCE_SYMBOL_TEXTURE_SIZE = {
-        width: 450,
-        height: 450,
+    public static readonly SAFE_AREA = {
+        landscape: {
+            width: 1100,
+            height: 650
+        },
+        portrait: {
+            width: 850,
+            height: 1920
+        }
+    }
+
+    // Reference symbol size at base resolution
+    public static readonly REFERENCE_SYMBOL: SymbolConfig = {
+        width: 150,
+        height: 150,
+        scale: 0.8
     };
 
     // Reference spacing at base resolution
@@ -94,55 +107,12 @@ export class GameConfig {
         fadeOut: 50
     };
 
-    // Calculate scale factors based on current resolution
-    public static getScaleFactors(currentWidth: number, currentHeight: number) {
-        const scaleX = currentWidth / this.REFERENCE_RESOLUTION.width;
-        const scaleY = currentHeight / this.REFERENCE_RESOLUTION.height;
-
-        // Use uniform scaling (smaller of the two scales to maintain aspect ratio and prevent distortion)
-        const uniformScale = Math.min(scaleX, scaleY);
-
-        return {
-            scaleX,
-            scaleY,
-            uniformScale
-        };
-    }
-
-    // Get scaled symbol size for current resolution
-    public static getScaledSymbolSize(currentWidth: number, currentHeight: number): SymbolConfig {
-        const { uniformScale } = this.getScaleFactors(currentWidth, currentHeight);
-
-        return {
-            width: Math.round(this.REFERENCE_SYMBOL.width * uniformScale),
-            height: Math.round(this.REFERENCE_SYMBOL.height * uniformScale),
-            scale: uniformScale
-        };
-    }
-
-    public static getReferenceSymbolScale(currentWidth: number, currentHeight: number): number[] {
-        const { uniformScale } = this.getScaleFactors(currentWidth, currentHeight);
-        const scaleX = this.REFERENCE_SYMBOL.width / this.REFERENCE_SYMBOL_TEXTURE_SIZE.width * uniformScale;
-        const scaleY = this.REFERENCE_SYMBOL.height / this.REFERENCE_SYMBOL_TEXTURE_SIZE.height * uniformScale;
-        return [scaleX, scaleY];
-    }
-
-    // Get scaled UI config for current resolution
-    public static getScaledUI(currentWidth: number, currentHeight: number): UIConfig {
-        const { uniformScale } = this.getScaleFactors(currentWidth, currentHeight);
-
-        return {
-            fontSize: {
-                title: Math.round(this.REFERENCE_UI.fontSize.title * uniformScale),
-                normal: Math.round(this.REFERENCE_UI.fontSize.normal * uniformScale),
-                small: Math.round(this.REFERENCE_UI.fontSize.small * uniformScale)
-            },
-            spacing: {
-                padding: Math.round(this.REFERENCE_UI.spacing.padding * uniformScale),
-                margin: Math.round(this.REFERENCE_UI.spacing.margin * uniformScale)
-            }
-        };
-    }
+    public static readonly WIN_ANIMATION: WinAnimationConfig = {
+        winTextVisibility: true,
+        winLoop: true,
+        delayBeforeLoop: 2000,
+        delayBetweenLoops: 1000
+    };
 
     // Get resolution category for debugging/optimization
     public static getResolutionCategory(width: number, height: number): string {
@@ -163,4 +133,4 @@ export class GameConfig {
     public static clampBalance(balance: number): number {
         return Math.max(0, balance);
     }
-} 
+}

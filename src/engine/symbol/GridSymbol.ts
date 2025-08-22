@@ -1,4 +1,3 @@
-import { ResponsiveManager } from '../controllers/ResponsiveSystem';
 import { Symbol, SymbolConfig } from './Symbol';
 
 export interface GridSymbolConfig extends SymbolConfig {
@@ -10,13 +9,12 @@ export class GridSymbol extends Symbol {
     private _gridX: number;
     private _gridY: number;
 
-    constructor(responsiveManager: ResponsiveManager, config: GridSymbolConfig) {
+    constructor(config: GridSymbolConfig) {
         // Pass the base SymbolConfig to the parent Symbol class
-        super(responsiveManager, {
+        super({
             symbolId: config.symbolId,
             position: config.position,
-            scale: config.scale,
-            useContainerPositioning: config.useContainerPositioning
+            scale: config.scale
         });
 
         this._gridX = config.gridX;
@@ -44,7 +42,7 @@ export class GridSymbol extends Symbol {
     public updateGridPosition(gridX: number, gridY: number, visualPosition: { x: number, y: number }): void {
         this._gridX = gridX;
         this._gridY = gridY;
-        this.updatePosition(visualPosition);
+        //this.updatePosition(visualPosition);
     }
 
     // Get grid position as a tuple

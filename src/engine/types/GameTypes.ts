@@ -94,3 +94,27 @@ export interface SpineData {
     atlasData: any;
     skeletonData: any;
 }
+
+export interface SpineAssetData {
+    atlas: string;
+    skeleton: string;
+}
+
+export interface OrientationConfig {
+    landscape: string,
+    portrait: string
+}
+
+export interface WinConfig {
+    multiplier: number;
+    amount: number;
+    line: number;
+    symbolIds: number[];
+}
+
+export interface WinAnimationConfig {
+    winTextVisibility?: boolean;
+    winLoop?: boolean;
+    delayBeforeLoop?: number;
+    delayBetweenLoops?: number;
+}

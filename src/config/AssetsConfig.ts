@@ -1,5 +1,5 @@
 import { Assets } from "pixi.js";
-import { SpineData } from "../engine/types/GameTypes";
+import { SpineAssetData, SpineData } from "../engine/types/GameTypes";
 import { BundleFile } from "../engine/types/IAssetLoader";
 import { debug } from "../engine/utils/debug";
 
@@ -32,6 +32,19 @@ export class AssetsConfig {
                         src: '/assets/environment/multipacked_transparent-1.json'
                     }
                 ]
+            },
+            {
+                name: 'background',
+                assets: [
+                    {
+                        alias: 'background_landscape_1440',
+                        src: '/assets/Background_Base_Landscape_1440.png'
+                    },
+                    {
+                        alias: 'background_portrait_1440',
+                        src: '/assets/Background_Base_Portrait_1440.png'
+                    }
+                ]
             }
         ]
     };
@@ -39,24 +52,42 @@ export class AssetsConfig {
     public static readonly SPINE_SYMBOLS: BundleFile = {
         bundles: [
             {
-                name: 'icon',
+                name: 'icons',
                 assets: [
                     {
-                        alias: ['iconAtlas'],
+                        alias: ['icons_atlas'],
                         src: [
-                            '/assets/symbols/icon.atlas',
+                            '/assets/symbols/icons.atlas',
                         ]
                     },
                     {
-                        alias: ['iconData'],
+                        alias: ['icons_data'],
                         src: [
-                            '/assets/symbols/icon.json'
+                            '/assets/symbols/icons.json'
                         ]
                     }
                 ]
-            },
+            }
         ]
     }
+
+    public static readonly ANIMATIONS: BundleFile = {
+        bundles: [
+            {
+                name: 'background_animations',
+                assets: [
+                    {
+                        alias: 'background_atlas',
+                        src: '/assets/animations/background.atlas'
+                    },
+                    {
+                        alias: 'background_data',
+                        src: '/assets/animations/background.json'
+                    }
+                ]
+            }
+        ]
+    };
 
     public static readonly FONTS: BundleFile = {
         bundles: [
@@ -85,11 +116,15 @@ export class AssetsConfig {
         7: { idle: 'Symbol8', blurred: 'Symbol8_Blurred', prefix: 'Symbol8' },
         8: { idle: 'Symbol9', blurred: 'Symbol9_Blurred', prefix: 'Symbol9' },
         9: { idle: 'Symbol10', blurred: 'Symbol10_Blurred', prefix: 'Symbol10' },
-        10: { idle: 'Symbol11', blurred: 'Symbol11_Blurred', prefix: 'Symbol11' }
+        10: { idle: 'Symbol11', blurred: 'Symbol11_Blurred', prefix: 'Symbol11' },
+        11: { idle: 'Symbol12', blurred: 'Symbol12_Blurred', prefix: 'Symbol12' },
+        12: { idle: 'Symbol13', blurred: 'Symbol13_Blurred', prefix: 'Symbol13' }
     };
 
     // spine symbol indexes to asset name mapping
-    public static readonly SPINE_SYMBOL_ASSET = { atlas: 'iconAtlas', skeleton: 'iconData' } as const;
+    public static readonly SPINE_SYMBOL_ASSET: SpineAssetData = { atlas: 'icons_atlas', skeleton: 'icons_data' } as const;
+
+    public static readonly BACKGROUND_ANIMATIONS_ASSET: SpineAssetData = { atlas: 'background_atlas', skeleton: 'background_data' } as const;
 
     public static getAllAssets(): BundleFile {
         const allAssets: BundleFile = {
@@ -97,6 +132,7 @@ export class AssetsConfig {
                 ...this.SPRITESHEETS.bundles,
                 ...this.IMAGES.bundles,
                 ...this.SPINE_SYMBOLS.bundles,
+                ...this.ANIMATIONS.bundles,
                 ...this.FONTS.bundles
             ]
         };
@@ -131,7 +167,7 @@ export class AssetsConfig {
     }
 
     public static getSpineSymbolAssetName(): SpineData {
-        const { atlas, skeleton } = this.SPINE_SYMBOL_ASSET;
+        const { atlas, skeleton }: SpineAssetData = this.SPINE_SYMBOL_ASSET;
         const atlasData = Assets.get(atlas);
         const skeletonData = Assets.get(skeleton);
 
