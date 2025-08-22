@@ -1,12 +1,11 @@
 import { Application } from "pixi.js";
-import { ResponsiveManager } from "../../controllers/ResponsiveSystem";
 import { SpinContainer, SpinContainerConfig } from "../SpinContainer";
 import { CascadeStepData, DropData, GridUtils, InitialGridData, SymbolData } from "../../types/GameTypes";
 import { debug } from "../../utils/debug";
 
 export class CascadeSpinContainer extends SpinContainer {
-    constructor(app: Application, responsiveManager: ResponsiveManager, config: SpinContainerConfig) {
-        super(app, responsiveManager, config);
+    constructor(app: Application, config: SpinContainerConfig) {
+        super(app, config);
     }
 
     public clearSymbols(): void {
@@ -50,7 +49,7 @@ export class CascadeSpinContainer extends SpinContainer {
             if (column !== this.config.reelIndex) return;
             
             const gridIndex = row + this.rowsAboveMask;
-            const newSymbol = this.createGridSymbol(symbolData, index); // Y position is 0 for initial grid
+            const newSymbol = this.createGridSymbol(symbolData, column, row); // Y position is 0 for initial grid
             if (newSymbol) {
                 this.symbols[this.config.reelIndex][gridIndex] = newSymbol;
             }

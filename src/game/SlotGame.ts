@@ -1,17 +1,14 @@
 import { Application, Sprite, Text, TextStyle, Graphics } from 'pixi.js';
-import { ResponsiveManager, ResponsivePresets, createResponsiveConfig } from '../engine/controllers/ResponsiveSystem';
 
 export class SlotGame {
     private app: Application;
-    private responsiveManager: ResponsiveManager;
     private reels: Sprite[] = [];
     private spinButton?: Sprite;
     private titleText?: Text;
     private balanceText?: Text;
 
-    constructor(app: Application, responsiveManager: ResponsiveManager) {
+    constructor(app: Application) {
         this.app = app;
-        this.responsiveManager = responsiveManager;
         this.createSlotGame();
     }
 
@@ -30,10 +27,9 @@ export class SlotGame {
         document.body.appendChild(app.canvas);
         
         // Create responsive manager
-        const responsiveManager = new ResponsiveManager(app);
 
         // Return new instance
-        return new SlotGame(app, responsiveManager);
+        return new SlotGame(app);
     }
 
     private createSlotGame(): void {
@@ -54,12 +50,6 @@ export class SlotGame {
 
         this.titleText = new Text('SLOT MACHINE', titleStyle);
         this.app.stage.addChild(this.titleText);
-
-        // Position title at top center
-        this.responsiveManager.addResponsiveObject(this.titleText, createResponsiveConfig({
-            ...ResponsivePresets.topCenter,
-            y: 0.08  // 8% from top
-        }));
     }
 
     private createReels(): void {
@@ -90,18 +80,6 @@ export class SlotGame {
             reel.addChild(symbol);
             symbol.x = 10;
             symbol.y = 30;
-
-            // Position reels horizontally across the screen
-            const xPosition = 0.2 + (i * 0.15); // Start at 20%, space by 15%
-            
-            this.responsiveManager.addResponsiveObject(reel, createResponsiveConfig({
-                x: xPosition,
-                y: 0.5,
-                anchorX: 0.5,
-                anchorY: 0.5,
-                scaleX: 0.8,
-                scaleY: 0.8
-            }));
         }
     }
 
@@ -135,12 +113,6 @@ export class SlotGame {
         this.spinButton.eventMode = 'static';
         this.spinButton.cursor = 'pointer';
         this.spinButton.on('pointerdown', this.onSpinClick.bind(this));
-
-        // Position spin button at bottom center
-        this.responsiveManager.addResponsiveObject(this.spinButton, createResponsiveConfig({
-            ...ResponsivePresets.bottomCenter,
-            y: 0.85  // 85% from top
-        }));
     }
 
     private createUI(): void {
@@ -155,13 +127,6 @@ export class SlotGame {
         this.balanceText = new Text('BALANCE: $1000', balanceStyle);
         this.app.stage.addChild(this.balanceText);
 
-        // Position balance at top left
-        this.responsiveManager.addResponsiveObject(this.balanceText, createResponsiveConfig({
-            ...ResponsivePresets.topLeft,
-            x: 0.05,  // 5% from left
-            y: 0.05   // 5% from top
-        }));
-
         // Create bet amount display
         const betStyle = new TextStyle({
             fontFamily: 'Arial',
@@ -171,13 +136,6 @@ export class SlotGame {
 
         const betText = new Text('BET: $10', betStyle);
         this.app.stage.addChild(betText);
-
-        // Position bet at top right
-        this.responsiveManager.addResponsiveObject(betText, createResponsiveConfig({
-            ...ResponsivePresets.topRight,
-            x: 0.95,  // 95% from left
-            y: 0.05   // 5% from top
-        }));
 
         // Create win display
         const winStyle = new TextStyle({
@@ -189,12 +147,6 @@ export class SlotGame {
 
         const winText = new Text('WIN: $0', winStyle);
         this.app.stage.addChild(winText);
-
-        // Position win display below reels
-        this.responsiveManager.addResponsiveObject(winText, createResponsiveConfig({
-            ...ResponsivePresets.center,
-            y: 0.7  // 70% from top
-        }));
     }
 
     private onSpinClick(): void {
@@ -221,10 +173,6 @@ export class SlotGame {
 
     public getApp(): Application {
         return this.app;
-    }
-
-    public getResponsiveManager(): ResponsiveManager {
-        return this.responsiveManager;
     }
 }
 

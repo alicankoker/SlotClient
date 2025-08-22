@@ -22,9 +22,9 @@ export class ResponsiveManager {
 
     /**
      *
-     * @description Singleton instance of ResizeManager.
+     * @description Singleton instance of ResponsiveManager.
      * @param app Pixi Application instance
-     * @returns {ResponsiveManager} The instance of ResizeManager.
+     * @returns {ResponsiveManager} The instance of ResponsiveManager.
      * @private
      */
     private constructor(app: Application) {
@@ -119,7 +119,7 @@ export class ResponsiveManager {
             scale: scale
         };
 
-        debug.log("ResizeManager", "Viewport resized: isMobile:", responsiveConfig.isMobile, "viewportWidth:", responsiveConfig.viewportWidth, "viewportHeight:", responsiveConfig.viewportHeight, "orientation:", responsiveConfig.orientation, "scale:", responsiveConfig.scale);
+        debug.log("ResponsiveManager", "Viewport resized: isMobile:", responsiveConfig.isMobile, "viewportWidth:", responsiveConfig.viewportWidth, "viewportHeight:", responsiveConfig.viewportHeight, "orientation:", responsiveConfig.orientation, "scale:", responsiveConfig.scale);
         signals.emit(SCREEN_SIGNALS.SCREEN_RESIZE, responsiveConfig);
     }
 
