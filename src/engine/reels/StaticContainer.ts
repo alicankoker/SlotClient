@@ -170,15 +170,17 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas);
 
-        await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000);
+        if (GameConfig.WIN_ANIMATION.winLoop) {
+            await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000);
 
-        this._isLooping = true;
-        this._isSkipped = false;
+            this._isLooping = true;
+            this._isSkipped = false;
 
-        while (GameConfig.WIN_ANIMATION.winLoop && this._isLooping) {
-            await this.playWinAnimations(winDatas);
+            while (this._isLooping) {
+                await this.playWinAnimations(winDatas);
 
-            await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000);
+                await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000);
+            }
         }
     }
 
@@ -190,6 +192,7 @@ export class StaticContainer extends Container {
         // Play win animations based on the provided data
         for (const winData of winDatas) {
             debug.log(`StaticContainer: Playing win animation for win data:`, winData);
+            console.log(winData);
 
             if (GameConfig.WIN_ANIMATION.winTextVisibility) {
                 // Play win text animation
