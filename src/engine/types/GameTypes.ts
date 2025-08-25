@@ -117,4 +117,5 @@ export interface WinAnimationConfig {
     winLoop?: boolean;
     delayBeforeLoop?: number;
     delayBetweenLoops?: number;
+    winlines?: boolean;
 }

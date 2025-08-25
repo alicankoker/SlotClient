@@ -30,6 +30,10 @@ export class AssetsConfig {
                     {
                         alias: 'multipacked-1',
                         src: '/assets/environment/multipacked_transparent-1.json'
+                    },
+                    {
+                        alias: 'line',
+                        src: '/assets/line.png'
                     }
                 ]
             },
