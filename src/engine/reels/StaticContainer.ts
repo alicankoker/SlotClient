@@ -5,6 +5,7 @@ import { GridSymbol } from '../symbol/GridSymbol';
 import { debug } from '../utils/debug';
 import { WinConfig } from '../types/GameTypes';
 import { gsap } from 'gsap';
+import { WinLinesContainer } from '../components/WinLinesContainer';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -51,6 +52,7 @@ const style: TextStyle = new TextStyle({
 
 export class StaticContainer extends Container {
     private _app: Application;
+    private _winLinesContainer: WinLinesContainer;
     private _config: StaticContainerConfig;
     private _symbolsContainer: Container;
     private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
@@ -59,6 +61,7 @@ export class StaticContainer extends Container {
     private _isPlaying: boolean = false;
     private _isLooping: boolean = false;
     private _isSkipped: boolean = false;
+    private _animationToken: number = 0;
 
     private _pendingResolvers: (() => void)[] = [];
 
@@ -66,6 +69,7 @@ export class StaticContainer extends Container {
         super();
 
         this._app = app;
+        this._winLinesContainer = WinLinesContainer.getInstance();
         this._config = config;
         this._symbolsContainer = new Container();
 
@@ -162,46 +166,60 @@ export class StaticContainer extends Container {
     public async setAnimation(winDatas: WinConfig[]): Promise<void> {
         this.resetWinAnimations();
 
+        const token = ++this._animationToken;
         this._winDatas = winDatas;
 
         this._isPlaying = true;
         this._isSkipped = false;
         this._isLooping = false;
 
-        await this.playWinAnimations(winDatas);
+        await this.playWinAnimations(winDatas, token);
 
-        if (GameConfig.WIN_ANIMATION.winLoop) {
-            await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000);
+        if (GameConfig.WIN_ANIMATION.winLoop && this._animationToken === token) {
+            await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000, token);
 
             this._isLooping = true;
             this._isSkipped = false;
 
-            while (this._isLooping) {
-                await this.playWinAnimations(winDatas);
-
-                await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000);
+            while (this._isLooping && this._animationToken === token) {
+                await this.playWinAnimations(winDatas, token);
+                await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
             }
         }
     }
 
-    private delay(ms: number): Promise<void> {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+    private delay(ms: number, token: number): Promise<void> {
+        return new Promise((resolve) => {
+            const id = setTimeout(() => {
+                if (this._animationToken === token) {
+                    resolve();
+                }
+            }, ms);
+        });
     }
 
-    public async playWinAnimations(winDatas: WinConfig[]): Promise<void> {
+    public async playWinAnimations(winDatas: WinConfig[], token: number): Promise<void> {
+        if (this._animationToken !== token) return;
+
         // Play win animations based on the provided data
         for (const winData of winDatas) {
+            if (this._animationToken !== token) return;
             debug.log(`StaticContainer: Playing win animation for win data:`, winData);
-            console.log(winData);
 
             if (GameConfig.WIN_ANIMATION.winTextVisibility) {
                 // Play win text animation
                 gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                     x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
+                        if (this._animationToken !== token) return;
+
                         this._winText.text = `You won ${winData.amount}€${winData.multiplier > 1 ? ` with X${winData.multiplier} multipliers` : ''}!`;
                         this._winText.visible = true;
                     }
                 });
+            }
+
+            if (GameConfig.WIN_ANIMATION.winlines) {
+                this._winLinesContainer.showLine(winData.line);
             }
 
             // play all symbol animations on this win
@@ -210,7 +228,7 @@ export class StaticContainer extends Container {
                     return new Promise<void>((resolve) => {
                         this._pendingResolvers.push(resolve);
 
-                        if (this._isSkipped) {
+                        if (this._isSkipped || this._animationToken !== token) {
                             resolve();
                             return;
                         }
@@ -223,6 +241,8 @@ export class StaticContainer extends Container {
                     });
                 })
             ).then(() => {
+                if (this._animationToken !== token) return;
+
                 // after all symbols have played their win animations, set them to idle
                 if (!this._isSkipped) {
                     this._pendingResolvers = [];
@@ -230,13 +250,21 @@ export class StaticContainer extends Container {
                     winData.symbolIds.forEach((symbolId, index) => {
                         this._symbols.get(index)?.[symbolId]?.setIdle();
                     });
+
+                    if (GameConfig.WIN_ANIMATION.winlines) {
+                        this._winLinesContainer.hideLine(winData.line);
+                    }
                 }
             });
         }
 
+        if (this._animationToken !== token) return;
+
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
             gsap.to(this._winText.scale, {
                 x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', onComplete: () => {
+                    if (this._animationToken !== token) return;
+
                     this._winText.text = ``;
                     this._winText.visible = false;
                 }
@@ -254,6 +282,10 @@ export class StaticContainer extends Container {
         this._pendingResolvers.forEach(resolve => resolve());
         this._pendingResolvers = [];
 
+        if (GameConfig.WIN_ANIMATION.winlines) {
+            this._winLinesContainer.hideAllLines();
+        }
+
         this._symbols.forEach((reelSymbols) => {
             reelSymbols.forEach((symbol) => {
                 symbol.setIdle();
@@ -262,14 +294,21 @@ export class StaticContainer extends Container {
     }
 
     public resetWinAnimations(): void {
+        this._animationToken++;
+        
         this._isPlaying = false;
         this._isLooping = false;
         this._isSkipped = false;
         this._winDatas = [];
 
+        gsap.killTweensOf(this._winText.scale);
         this._winText.text = ``;
         this._winText.scale.set(0);
         this._winText.visible = false;
+
+        if (GameConfig.WIN_ANIMATION.winlines) {
+            this._winLinesContainer.hideAllLines();
+        }
 
         this._pendingResolvers.forEach(resolve => resolve());
         this._pendingResolvers = [];

@@ -1,0 +1,129 @@
+import { Container, Graphics, MeshRope, Point, Texture } from "pixi.js";
+import { GameRulesConfig } from "../../config/GameRulesConfig";
+import { GameConfig } from "../../config/GameConfig";
+
+export class WinLinesContainer extends Container {
+    private static _instance: WinLinesContainer;
+    private linesContainer: Container;
+    private winLine: Graphics[];
+
+    private constructor() {
+        super({ label: 'WinLinesContainer' });
+
+        this.linesContainer = new Container({ label: 'LinesContainer' });
+        this.winLine = [];
+        this.addChild(this.linesContainer);
+
+        this.createWinLines();
+    }
+
+    public static getInstance(): WinLinesContainer {
+        if (!this._instance) {
+            this._instance = new WinLinesContainer();
+        }
+        return this._instance;
+    }
+
+    private createWinLines(): void {
+        for (const key of Object.keys(GameRulesConfig.LINES)) {
+            const line = GameRulesConfig.getLine(Number(key));
+
+            const winLine = new Graphics();
+            winLine.label = `WinLine_${key}`;
+            winLine.beginPath();
+
+            let preline: Point = new Point();
+            let postline: Point = new Point();
+
+            switch (GameRulesConfig.LINES[Number(key)][0]) {
+                case 1:
+                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2), -GameConfig.REFERENCE_SYMBOL.height);
+                    break;
+                case 6:
+                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2), 0);
+                    break;
+                case 11:
+                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2), GameConfig.REFERENCE_SYMBOL.height);
+                    break;
+            }
+
+            switch (GameRulesConfig.LINES[Number(key)][GameRulesConfig.LINES[Number(key)].length - 1]) {
+                case 5:
+                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2), -GameConfig.REFERENCE_SYMBOL.height);
+                    break;
+                case 10:
+                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2), 0);
+                    break;
+                case 15:
+                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2), GameConfig.REFERENCE_SYMBOL.height);
+                    break;
+            }
+
+            winLine.moveTo(preline.x, preline.y);
+
+            for (let i = 0; i < line.length; i++) {
+                winLine.lineTo(line[i].x, line[i].y);
+                winLine.stroke({
+                    color: 0x000000,
+                    width: 5,
+                    join: 'round',
+                    cap: 'round'
+                });
+            }
+            winLine.lineTo(postline.x, postline.y);
+            winLine.stroke({
+                color: 0x000000,
+                width: 5,
+                join: 'round',
+                cap: 'round'
+            });
+            winLine.closePath();
+
+            winLine.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2));
+            winLine.visible = false; // Hidden by default
+
+            this.winLine.push(winLine);
+
+            this.linesContainer.addChild(winLine);
+
+            // we can use MeshRope tho
+            // const texture = Texture.from("line");
+            // const points: Point[] = [preline, ...line, postline];
+
+            // const rope = new MeshRope({ texture, points });
+
+            // rope.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+            // rope.roundPixels = true;
+            // rope.label = `Rope_WinLine_${key}`;
+            // rope.visible = false;
+
+            // this.linesContainer.addChild(rope);
+        }
+    }
+
+    public getContainer(): Container {
+        return this.linesContainer;
+    }
+
+    public showLine(lineNumber: number): void {
+        const line = this.winLine[lineNumber - 1];
+        if (line) {
+            line.visible = true;
+        }
+    }
+
+    public showAllLines(): void {
+        this.winLine.forEach(line => line.visible = true);
+    }
+
+    public hideLine(lineNumber: number): void {
+        const line = this.winLine[lineNumber - 1];
+        if (line) {
+            line.visible = false;
+        }
+    }
+
+    public hideAllLines(): void {
+        this.winLine.forEach(line => line.visible = false);
+    }
+}

@@ -111,7 +111,8 @@ export class GameConfig {
         winTextVisibility: true,
         winLoop: true,
         delayBeforeLoop: 2000,
-        delayBetweenLoops: 1000
+        delayBetweenLoops: 1000,
+        winlines: true
     };
 
     // Get resolution category for debugging/optimization

@@ -1,5 +1,5 @@
 import '@esotericsoftware/spine-pixi-v8';
-import { Application, Assets, FillGradient, Sprite, Text, TextStyle, Texture } from 'pixi.js';
+import { Application, Assets, FillGradient, Graphics, Matrix, MeshRope, Point, Sprite, Text, TextStyle, Texture } from 'pixi.js';
 import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
@@ -13,6 +13,7 @@ import { GameConfig } from './config/GameConfig';
 import { Loader } from './engine/utils/Loader';
 import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { debug } from './engine/utils/debug';
+import { GameRulesConfig } from './config/GameRulesConfig';
 
 export class DoodleV8Main {
     private app!: Application;
