@@ -98,9 +98,11 @@ export class ReelsController {
     private setWinDisplayData(): WinConfig {
         // Implement win display data logic
         const multiplier: number = Math.max(1, Math.floor(Math.random() * 5)); // Placeholder for multiplier
-        const amount: number = Math.floor(Math.random() * 100) * multiplier; // Placeholder for win amount with multiplier (if multiplier bigger than 1)
-        const line: number = Math.floor(Math.random() * 20); // Placeholder for line
-        const symbolIds: number[] = Array.from({ length: Math.max(Math.round(Math.random() * GameRulesConfig.GRID.reelCount), 3) }, () => Math.floor(Math.random() * GameRulesConfig.GRID.rowCount)); // Placeholder for symbol IDs
+        const amount: number = Math.round(Math.random() * 100) * multiplier; // Placeholder for win amount with multiplier (if multiplier bigger than 1)
+        const line: number = Math.floor(Math.random() * 25) + 1; // Placeholder for line
+        const length = Math.max(Math.round(Math.random() * GameRulesConfig.GRID.reelCount), 3);
+        const baseLine = GameRulesConfig.WINNING_LINES[line];
+        const symbolIds: number[] = baseLine.slice(0, length); // Placeholder for symbol IDs
 
         return {
             multiplier,
@@ -116,6 +118,11 @@ export class ReelsController {
         const winData2 = this.setWinDisplayData();
         const winData3 = this.setWinDisplayData();
         const staticContainer = this.reelsContainer.getStaticContainer();
+        const winLinesContainer = this.reelsContainer.getWinLinesContainer();
+
+        if (GameConfig.WIN_ANIMATION.winlines && winLinesContainer) {
+            winLinesContainer.visible = true;
+        }
 
         await staticContainer?.setAnimation([winData, winData2, winData3]);
     }

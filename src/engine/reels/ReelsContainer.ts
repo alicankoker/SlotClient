@@ -1,4 +1,4 @@
-import { Container, Application, Graphics, Sprite, Texture } from 'pixi.js';
+import { Container, Application, Graphics, Sprite, Texture, Point } from 'pixi.js';
 import { SpinContainer, SpinContainerConfig } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
@@ -10,6 +10,8 @@ import {
 import { GridSymbol } from '../symbol/GridSymbol';
 import { IReelMode } from './ReelController';
 import { debug } from '../utils/debug';
+import { GameRulesConfig } from '../../config/GameRulesConfig';
+import { WinLinesContainer } from '../components/WinLinesContainer';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -21,6 +23,7 @@ export class ReelsContainer extends Container {
     // ONE SpinContainer and ONE StaticContainer for entire game
     private spinContainer?: SpinContainer;
     private staticContainer?: StaticContainer;
+    private winLinesContainer?: WinLinesContainer;
 
     // Position storage
     private reelXPositions: number[] = [];
@@ -78,6 +81,8 @@ export class ReelsContainer extends Container {
         // Create ONE StaticContainer for entire game
         this.createStaticContainer(symbolHeight);
 
+        this.createWinLinesContainer();
+
         if (this.spinContainer) {
             this.spinContainer.mask = this.reelAreaMask;
         }
@@ -119,6 +124,12 @@ export class ReelsContainer extends Container {
         this.addChild(this.staticContainer);
     }
 
+    private createWinLinesContainer(): void {
+        this.winLinesContainer = WinLinesContainer.getInstance();
+        this.winLinesContainer.visible = false;
+        this.addChild(this.winLinesContainer);
+    }
+
     private createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
@@ -136,7 +147,7 @@ export class ReelsContainer extends Container {
         this.reelAreaMask.fill(0xffffff); // White fill for the mask
         this.reelAreaMask.closePath();
         this.addChild(this.reelAreaMask);
-        
+
         debug.log(`ReelsContainer: Created reel area mask at (${maskX}, ${maskY}) with size ${totalWidth}x${totalHeight}`);
     }
 
@@ -147,6 +158,10 @@ export class ReelsContainer extends Container {
 
     public getStaticContainer(): StaticContainer | undefined {
         return this.staticContainer;
+    }
+
+    public getWinLinesContainer(): WinLinesContainer | undefined {
+        return this.winLinesContainer;
     }
 
     public getAllStaticContainers(): StaticContainer[] {
@@ -177,6 +192,11 @@ export class ReelsContainer extends Container {
         if (this.staticContainer) {
             this.staticContainer.visible = mode === IReelMode.STATIC;
             debug.log('ReelsContainer: Static container visible set to:', this.staticContainer.visible);
+        }
+
+        if (this.winLinesContainer) {
+            this.winLinesContainer.visible = mode === IReelMode.STATIC;
+            debug.log('ReelsContainer: Win lines container visible set to:', this.winLinesContainer.visible);
         }
     }
 
