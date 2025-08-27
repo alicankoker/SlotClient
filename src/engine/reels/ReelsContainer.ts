@@ -1,4 +1,4 @@
-import { Container, Application, Graphics, Sprite, Texture } from 'pixi.js';
+import { Container, Application, Graphics, Sprite, Texture, Point, Text } from 'pixi.js';
 import { SpinContainer, SpinContainerConfig } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
@@ -10,6 +10,8 @@ import {
 import { GridSymbol } from '../symbol/GridSymbol';
 import { IReelMode } from './ReelController';
 import { debug } from '../utils/debug';
+import { GameRulesConfig } from '../../config/GameRulesConfig';
+import { WinLinesContainer } from '../components/WinLinesContainer';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -21,12 +23,15 @@ export class ReelsContainer extends Container {
     // ONE SpinContainer and ONE StaticContainer for entire game
     private spinContainer?: SpinContainer;
     private staticContainer?: StaticContainer;
+    private winLinesContainer?: WinLinesContainer;
 
     // Position storage
     private reelXPositions: number[] = [];
     private symbolXPositions: number[][] = []; // [reelIndex][symbolPosition] = x
 
     private reelBackground: Sprite = new Sprite();
+    private _autoPlayCount: number = 0;
+    private _autoPlayCountText: Text;
 
     private readonly numberOfReels: number;
     private readonly symbolsPerReel: number;
@@ -46,6 +51,13 @@ export class ReelsContainer extends Container {
         this.createReelAreaMask();
 
         this.initializeContainers();
+
+        // initialize auto play count indicator
+        this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
+        this._autoPlayCountText.anchor.set(0.5, 0.5);
+        this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 820);
+        this._autoPlayCountText.visible = false;
+        this.addChild(this._autoPlayCountText);
     }
 
     private createReelBackground(): void {
@@ -77,6 +89,8 @@ export class ReelsContainer extends Container {
 
         // Create ONE StaticContainer for entire game
         this.createStaticContainer(symbolHeight);
+
+        this.createWinLinesContainer();
 
         if (this.spinContainer) {
             this.spinContainer.mask = this.reelAreaMask;
@@ -119,6 +133,12 @@ export class ReelsContainer extends Container {
         this.addChild(this.staticContainer);
     }
 
+    private createWinLinesContainer(): void {
+        this.winLinesContainer = WinLinesContainer.getInstance();
+        this.winLinesContainer.visible = false;
+        this.addChild(this.winLinesContainer);
+    }
+
     private createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
@@ -136,7 +156,7 @@ export class ReelsContainer extends Container {
         this.reelAreaMask.fill(0xffffff); // White fill for the mask
         this.reelAreaMask.closePath();
         this.addChild(this.reelAreaMask);
-        
+
         debug.log(`ReelsContainer: Created reel area mask at (${maskX}, ${maskY}) with size ${totalWidth}x${totalHeight}`);
     }
 
@@ -147,6 +167,10 @@ export class ReelsContainer extends Container {
 
     public getStaticContainer(): StaticContainer | undefined {
         return this.staticContainer;
+    }
+
+    public getWinLinesContainer(): WinLinesContainer | undefined {
+        return this.winLinesContainer;
     }
 
     public getAllStaticContainers(): StaticContainer[] {
@@ -177,6 +201,11 @@ export class ReelsContainer extends Container {
         if (this.staticContainer) {
             this.staticContainer.visible = mode === IReelMode.STATIC;
             debug.log('ReelsContainer: Static container visible set to:', this.staticContainer.visible);
+        }
+
+        if (this.winLinesContainer) {
+            this.winLinesContainer.visible = mode === IReelMode.STATIC;
+            debug.log('ReelsContainer: Win lines container visible set to:', this.winLinesContainer.visible);
         }
     }
 
@@ -227,6 +256,24 @@ export class ReelsContainer extends Container {
     public updateSymbolAt(reelIndex: number, position: number, symbolId: number): boolean {
         const container = this.getStaticContainer();
         return container ? container.updateSymbolAt(position, symbolId) : false;
+    }
+
+    public getAutoPlayCount(): number {
+        return this._autoPlayCount;
+    }
+
+    /**
+     * @description Set the auto play count and update the display text.
+     * @param count The new auto play count.
+     * @param text The display text for the auto play count.
+     */
+    public setAutoPlayCount(count: number, text: string): void {
+        this._autoPlayCount = count;
+        this._autoPlayCountText.text = text;
+    }
+
+    public getAutoPlayCountText(): Text {
+        return this._autoPlayCountText;
     }
 
     // Cleanup methods

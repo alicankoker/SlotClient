@@ -84,23 +84,29 @@ export class ReelsController {
         await Promise.all(this.reelControllers.map(controller => {
             return controller.setModeBySpinState(mode);
         }));
-
-        if (this.currentMode === ISpinState.IDLE && this.checkWinCondition()) {
-            await this.playRandomWinAnimation();
-        }
     }
 
-    private checkWinCondition(): boolean {
+    /**
+     * @description Check the win condition for the current spin. Currently, it always returns true. It must be implemented.
+     * @returns True if the win condition is met, false otherwise.
+     */
+    public checkWinCondition(): boolean {
         // Implement win condition logic
         return true; // Placeholder
     }
 
+    /**
+     * @description Set random win display data.
+     * @returns The win configuration data.
+     */
     private setWinDisplayData(): WinConfig {
         // Implement win display data logic
         const multiplier: number = Math.max(1, Math.floor(Math.random() * 5)); // Placeholder for multiplier
-        const amount: number = Math.floor(Math.random() * 100) * multiplier; // Placeholder for win amount with multiplier (if multiplier bigger than 1)
-        const line: number = Math.floor(Math.random() * 20); // Placeholder for line
-        const symbolIds: number[] = Array.from({ length: Math.max(Math.round(Math.random() * GameRulesConfig.GRID.reelCount), 3) }, () => Math.floor(Math.random() * GameRulesConfig.GRID.rowCount)); // Placeholder for symbol IDs
+        const amount: number = Math.round(Math.random() * 100) * multiplier; // Placeholder for win amount with multiplier (if multiplier bigger than 1)
+        const line: number = Math.floor(Math.random() * 25) + 1; // Placeholder for line
+        const length = Math.max(Math.round(Math.random() * GameRulesConfig.GRID.reelCount), 3);
+        const baseLine = GameRulesConfig.WINNING_LINES[line];
+        const symbolIds: number[] = baseLine.slice(0, length); // Placeholder for symbol IDs
 
         return {
             multiplier,
@@ -110,22 +116,45 @@ export class ReelsController {
         };
     }
 
-    public async playRandomWinAnimation(): Promise<void> {
-        // Play a random win animation
+    /**
+     * @description Play a random win animation.
+     * @param isSkipped Whether the animation is skipped.
+     */
+    public async playRandomWinAnimation(isSkipped: boolean = false): Promise<void> {
+        // set win display datas
         const winData = this.setWinDisplayData();
         const winData2 = this.setWinDisplayData();
         const winData3 = this.setWinDisplayData();
         const staticContainer = this.reelsContainer.getStaticContainer();
+        const winLinesContainer = this.reelsContainer.getWinLinesContainer();
 
-        await staticContainer?.setAnimation([winData, winData2, winData3]);
+        if (winLinesContainer && GameConfig.WIN_ANIMATION.winlines) {
+            winLinesContainer.visible = true;
+        }
+
+        // Play the win animations. If skipped, play the skipped animation, otherwise play the full animation.
+        if (isSkipped) {
+            const amount = winData.amount + winData2.amount + winData3.amount;
+            const lines = [winData.line, winData2.line, winData3.line];
+
+            await staticContainer?.playSkippedWinAnimation(amount, lines);
+        } else {
+            await staticContainer?.setAnimation([winData, winData2, winData3]);
+        }
     }
 
+    /**
+     * @description Skip all win animations.
+     */
     public skipWinAnimations(): void {
         const staticContainer = this.reelsContainer.getStaticContainer();
 
         staticContainer?.skipWinAnimations();
     }
 
+    /**
+     * @description Reset all win animations.
+     */
     public resetWinAnimations(): void {
         const staticContainer = this.reelsContainer.getStaticContainer();
 
@@ -168,7 +197,7 @@ export class ReelsController {
         await this.delay(SpinConfig.SPIN_DURATION);
 
         await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
-        this.setMode(ISpinState.IDLE);
+
         this.isSpinning = false;
 
         debug.log('ReelsController: All reels completed spinning');

@@ -1,4 +1,5 @@
 // SpinContainer import removed - not directly used in this controller
+import { GameConfig } from '../../config/GameConfig';
 import { SpinConfig } from '../../config/SpinConfig';
 import { ReelsController } from '../reels/ReelsController';
 import {
@@ -23,6 +24,11 @@ export class SpinController {
     private currentState: ISpinState = ISpinState.IDLE;
     private currentSpinId?: string;
     private currentStepIndex: number = 0;
+    private _autoPlayCount: number = 0;
+    private _autoPlayed: number = 0;
+    private _isAutoPlaying: boolean = false;
+    private _autoPlayDuration: number = GameConfig.AUTO_PLAY.delay || 1000;
+    private _autoPlayTimeoutID: ReturnType<typeof setTimeout> | null = null;
 
     // Spin data - store finalGrid for proper final symbol positioning
     private currentCascadeSteps: CascadeStepData[] = [];
@@ -73,6 +79,7 @@ export class SpinController {
 
             // Display initial grid and start cascading
             //await this.processInitialGrid(response.result.initialGrid);
+
             this.reelsController.startSpin([response.result.finalGrid.symbols.map((symbol: { symbolId: number; }) => symbol.symbolId)]);
             await this.delay(SpinConfig.SPIN_DURATION);
 
@@ -91,13 +98,120 @@ export class SpinController {
                 this.onSpinCompleteCallback(response);
             }
 
-            return response;
+            await this.reelsController.setMode(ISpinState.IDLE);
+            this.setState(ISpinState.IDLE);
 
+            if (this.reelsController.checkWinCondition()) {
+                if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
+                    this.stopAutoPlay();
+                }
+
+                const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
+                await this.reelsController.playRandomWinAnimation(isSkipped);
+            }
+
+            if (this._isAutoPlaying) {
+                this.continueAutoPlay();
+            }
+
+            return response;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             this.handleError(errorMessage);
             return { success: false, error: errorMessage };
         }
+    }
+
+    /**
+     * @description Start auto play with a specified count.
+     * @param count The number of spins to auto play.
+     * @returns A promise that resolves when auto play starts.
+     */
+    public async startAutoPlay(count: number): Promise<void> {
+        if (this._isAutoPlaying || this.getIsSpinning()) {
+            return;
+        }
+
+        this._autoPlayCount = count;
+        this._autoPlayed = 0;
+        this._isAutoPlaying = true;
+
+        const text = `Starting Auto Play: ${this._autoPlayCount}`;
+        this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
+        this.reelsController.getReelsContainer().getAutoPlayCountText().visible = true;
+
+        const staticContainer = this.reelsController.getStaticContainer();
+        if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
+
+        await this.continueAutoPlay();
+
+        debug.log("Auto play started with count:", this._autoPlayCount);
+    }
+
+    /**
+     * @description Continue auto play if conditions are met.
+     * @returns True if auto play continues, false otherwise.
+     */
+    public async continueAutoPlay(): Promise<boolean> {
+        if (!this._isAutoPlaying || this.getIsSpinning() || this._autoPlayCount <= 0) {
+            this.stopAutoPlay();
+            return false;
+        }
+
+        // Set up the auto play timeout
+        this._autoPlayTimeoutID = setTimeout(async () => {
+            const response = this.executeSpin({ betAmount: 1 }); // Replace with actual bet amount
+
+            // Check if the spin was successful. If not, stop auto play.
+            if (!response) {
+                this.stopAutoPlay();
+                return false;
+            }
+
+            this._autoPlayCount -= 1;
+            this._autoPlayed += 1;
+
+            const text = `Auto Plays Left: ${this._autoPlayCount}`;
+            this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
+
+            if (this._autoPlayCount <= 0) {
+                const staticContainer = this.reelsController.getStaticContainer();
+                // Re-enable looped win animation after last auto play spin
+                if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
+            }
+
+            debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
+        }, this._autoPlayDuration);
+
+        return true;
+    }
+
+    /**
+     * @description Stop auto play.
+     */
+    public stopAutoPlay(): void {
+        if (!this._isAutoPlaying) {
+            return;
+        }
+
+        this._autoPlayCount = 0;
+        this._autoPlayed = 0;
+        this._isAutoPlaying = false;
+
+        const text = `Auto Play Stopped`;
+        this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
+        this.reelsController.getReelsContainer().getAutoPlayCountText().visible = false;
+
+        const staticContainer = this.reelsController.getStaticContainer();
+        // Re-enable looped win animation after auto play stops
+        if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
+
+        if (this._autoPlayTimeoutID) {
+            clearTimeout(this._autoPlayTimeoutID);
+            this._autoPlayTimeoutID = null;
+        }
+
+        debug.log("Auto play stopped");
     }
 
     // Process initial grid display
@@ -301,6 +415,14 @@ export class SpinController {
     // State queries
     public getIsSpinning(): boolean {
         return this.currentState === 'spinning' || this.currentState === 'cascading';
+    }
+
+    public getIsAutoPlaying(): boolean {
+        return this._isAutoPlaying;
+    }
+
+    public getAutoPlayCount(): number {
+        return this._autoPlayCount;
     }
 
     public getIsIdle(): boolean {

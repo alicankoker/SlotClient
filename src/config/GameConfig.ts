@@ -1,4 +1,5 @@
-import { OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
+import { FillGradient, TextStyle } from "pixi.js";
+import { AutoPlayConfig, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
 
 export interface ResolutionConfig {
     width: number;
@@ -100,6 +101,7 @@ export class GameConfig {
         }
     };
 
+    // Loader configuration
     public static readonly LOADER_DEFAULT_TIMINGS: LoaderDurations = {
         minDisplayTime: 600,
         transitionTo100: 500,
@@ -107,11 +109,23 @@ export class GameConfig {
         fadeOut: 50
     };
 
+    // Win animation configuration
     public static readonly WIN_ANIMATION: WinAnimationConfig = {
         winTextVisibility: true,
         winLoop: true,
         delayBeforeLoop: 2000,
-        delayBetweenLoops: 1000
+        delayBetweenLoops: 1000,
+        winlines: true
+    };
+
+    // Auto play configuration
+    public static readonly AUTO_PLAY: AutoPlayConfig = {
+        enabled: true,
+        count: 5,
+        delay: 1000,
+        stopOnWin: false,
+        stopOnFeature: false,
+        skipAnimations: true
     };
 
     // Get resolution category for debugging/optimization
@@ -133,4 +147,41 @@ export class GameConfig {
     public static clampBalance(balance: number): number {
         return Math.max(0, balance);
     }
+
+    // Fill gradient stops for UI elements
+    public static readonly fillGradientStops: FillGradient = new FillGradient({
+        colorStops: [
+            {
+                offset: 0,
+                color: 0xffffff
+            },
+            {
+                offset: 0.7,
+                color: 0xffffff
+            },
+            {
+                offset: 1,
+                color: 0xa2bdfb
+            }
+        ]
+    });
+
+    // Text style for UI elements
+    public static readonly style: TextStyle = new TextStyle({
+        dropShadow: {
+            angle: 1.5,
+            color: 0x142c54,
+            distance: 4.5
+        },
+        fill: this.fillGradientStops,
+        fontFamily: "Nunito Black",
+        fontSize: 42,
+        fontWeight: "bolder",
+        stroke: {
+            color: 0x142c54,
+            width: 6,
+            join: 'round'
+        },
+        align: 'center'
+    });
 }
