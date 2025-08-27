@@ -51,10 +51,11 @@ export class GameRulesConfig {
         removeAnimationSteps: 3     // 3 steps for removal animations
     };
 
+    // Reference symbol dimensions at base resolution
     private static sh = GameConfig.REFERENCE_SYMBOL.height;
     private static sw = GameConfig.REFERENCE_SYMBOL.width;
-    private static rc = GameRulesConfig.GRID.reelCount - 1;
 
+    // Winning line symbol coordinates
     public static readonly COORDINATES: { [key: number]: { x: number, y: number } } = {
         1: { x: -this.sw * 2, y: -this.sh },        2: { x: -this.sw, y: -this.sh },        3: { x: 0, y: -this.sh },       4: { x: this.sw, y: -this.sh },         5: { x: this.sw * 2, y: -this.sh },
 
@@ -63,6 +64,7 @@ export class GameRulesConfig {
         11: { x: -this.sw * 2, y: this.sh },        12: { x: -this.sw, y: this.sh },        13: { x: 0, y: this.sh },       14: { x: this.sw, y: this.sh },         15: { x: this.sw * 2, y: this.sh }
     };
 
+    // Winning lines configuration for producing random win lines. it will be removed
     public static readonly WINNING_LINES: { [key: number]: number[] } = {
         1: [0, 0, 0, 0, 0],
         2: [1, 1, 1, 1, 1],
@@ -102,6 +104,7 @@ export class GameRulesConfig {
         25: [2, 0, 2, 0, 2]
     };
 
+    // winning lines configuration
     public static readonly LINES: { [key: number]: number[] } = {
         1: [1, 5],
         2: [6, 10],
@@ -141,6 +144,11 @@ export class GameRulesConfig {
         25: [11, 2, 13, 4, 15]
     };
 
+    /**
+     * Get the coordinates of a winning line.
+     * @param line The line number.
+     * @returns An array of points representing the line.
+     */
     public static getLine(line: number): Point[] {
         const elements = GameRulesConfig.LINES[line];
         const points: Point[] = [];

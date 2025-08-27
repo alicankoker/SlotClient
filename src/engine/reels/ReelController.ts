@@ -152,7 +152,6 @@ export class ReelController {
         if (position < 0 || position >= this.currentSymbols.length) {
             return false;
         }
-        console.log(5);
 
         this.currentSymbols[position] = symbolId;
         this.syncSymbolsToViews();
@@ -199,7 +198,7 @@ export class ReelController {
             });
         });
 
-        this.setMode(IReelMode.STATIC);
+        //this.setMode(IReelMode.STATIC);
     }
 
     private onSpinComplete(finalSymbols: number[]): void {
@@ -208,8 +207,6 @@ export class ReelController {
         // Switch to static mode BEFORE setting symbols so StaticContainer gets updated
         this.setMode(IReelMode.STATIC);
         this.setSymbols(finalSymbols);
-
-        console.log(`ReelController ${this.reelIndex}: Spin complete. Final symbols:`, finalSymbols);
 
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();

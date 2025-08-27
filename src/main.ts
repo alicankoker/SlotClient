@@ -76,23 +76,27 @@ export class DoodleV8Main {
                         break;
                     case 'a':
                         debug.log('🔄 Auto-play triggered');
-                        // Auto-play would need to be implemented differently now
+                        if (GameConfig.AUTO_PLAY.enabled && this.spinController && !this.spinController.getIsAutoPlaying()) {
+                            this.spinController.startAutoPlay(GameConfig.AUTO_PLAY.count || 5); // Start 5 auto spins
+                        }
+                        break;
+                    case 'q':
+                        debug.log('🛑 Stop auto-play');
+                        if (this.spinController && this.spinController.getIsAutoPlaying() && this.spinController.getAutoPlayCount() > 0) {
+                            this.spinController.stopAutoPlay();
+                        }
                         break;
                     case 'w':
-                        debug.log('Show random win animation');
+                        debug.log('🎉 Show random win animation');
                         if (this.reelsController && !this.reelsController.getIsSpinning()) {
                             this.reelsController.playRandomWinAnimation();
                         }
                         break;
                     case 's':
-                        debug.log('Skip win animations');
+                        debug.log('⏹️ Skip win animations');
                         if (this.reelsController) {
                             this.reelsController.skipWinAnimations();
                         }
-                        break;
-                    case 'x':
-                        debug.log('⏹️ Stop auto-play');
-                        // Stop functionality would need to be implemented
                         break;
                     case '1':
                         debug.log('⚡ Fast mode enabled');
@@ -113,9 +117,11 @@ export class DoodleV8Main {
             this.startGameLoop();
 
             debug.log('✅ DoodleV8 initialization complete!');
-            debug.log('🎯 Press SPACE or S to spin');
+            debug.log('🎯 Press SPACE to spin');
             debug.log('🔄 Press A for auto-play');
-            debug.log('⏹️ Press X to stop auto-play');
+            debug.log('🛑 Press Q to stop auto-play');
+            debug.log('🎉 Press W to show random win animation');
+            debug.log('⏹️ Press S to skip win animations');
             debug.log('⚡ Press 1 for fast mode, 2 for instant, 3 for slow');
 
             this.responsiveManager.onResize();
@@ -150,7 +156,7 @@ export class DoodleV8Main {
         });
 
         // Add to DOM
-        document.body.appendChild(this.app.canvas);
+        document.getElementById('pixi-container')?.appendChild(this.app.canvas);
 
         // Add global reference for debugging
         (globalThis as any).__PIXI_APP__ = this.app;
