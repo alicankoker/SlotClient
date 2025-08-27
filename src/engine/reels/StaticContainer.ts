@@ -19,7 +19,6 @@ export class StaticContainer extends Container {
     private _app: Application;
     private _winLinesContainer: WinLinesContainer;
     private _config: StaticContainerConfig;
-    private _symbolsContainer: Container;
     private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
     private _winDatas: WinConfig[] = [];
     private _winText: Text;
@@ -37,12 +36,9 @@ export class StaticContainer extends Container {
         this._app = app;
         this._winLinesContainer = WinLinesContainer.getInstance();
         this._config = config;
-        this._symbolsContainer = new Container();
-
-        // Add containers to this static container
-        this.addChild(this._symbolsContainer);
 
         this._winText = new Text({ text: '', style: GameConfig.style });
+        this._winText.label = 'WinText';
         this._winText.anchor.set(0.5);
         this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 240);
         this._winText.visible = false;
@@ -120,7 +116,7 @@ export class StaticContainer extends Container {
             });
 
             // Add to symbols container and array
-            this._symbolsContainer.addChild(symbol);
+            this.addChild(symbol);
             reelSymbols.push(symbol);
 
             debug.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
@@ -446,16 +442,16 @@ export class StaticContainer extends Container {
         const reelSymbols = this._symbols.get(targetReelIndex);
         if (!reelSymbols) {
             this._symbols.set(targetReelIndex, [symbol]);
-            this._symbolsContainer.addChild(symbol);
+            this.addChild(symbol);
         } else {
             if (position !== undefined && position >= 0 && position <= reelSymbols.length) {
                 // Insert at specific position
                 reelSymbols.splice(position, 0, symbol);
-                this._symbolsContainer.addChildAt(symbol, position);
+                this.addChildAt(symbol, position);
             } else {
                 // Add at the end
                 reelSymbols.push(symbol);
-                this._symbolsContainer.addChild(symbol);
+                this.addChild(symbol);
             }
         }
     }
@@ -469,7 +465,7 @@ export class StaticContainer extends Container {
         }
 
         const symbol = reelSymbols[index];
-        this._symbolsContainer.removeChild(symbol);
+        this.removeChild(symbol);
         symbol.destroy();
         reelSymbols.splice(index, 1);
 
@@ -482,7 +478,7 @@ export class StaticContainer extends Container {
         const reelSymbols = this._symbols.get(targetReelIndex);
         if (reelSymbols) {
             reelSymbols.forEach(symbol => {
-                this._symbolsContainer.removeChild(symbol);
+                this.removeChild(symbol);
                 symbol.destroy();
             });
         }

@@ -4,16 +4,14 @@ import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
 import { ResponsiveManager } from './engine/utils/ResponsiveManager';
-import { signals, SCREEN_SIGNALS } from './engine/controllers/SignalManager';
 import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState } from './engine/types/GameTypes';
-import { Background } from './engine/Background';
+import { BackgroundContainer } from './engine/components/BackgroundContainer';
 import { AssetLoader } from './engine/utils/AssetLoader';
 import { AssetsConfig } from './config/AssetsConfig';
 import { GameConfig } from './config/GameConfig';
 import { Loader } from './engine/utils/Loader';
-import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { debug } from './engine/utils/debug';
-import { GameRulesConfig } from './config/GameRulesConfig';
+import { WinLinesContainer } from './engine/components/WinLinesContainer';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -219,72 +217,21 @@ export class DoodleV8Main {
     private async createScene(): Promise<void> {
         if (!this.reelsController) return;
 
-        const background = new Background(this.app);
+        const background = new BackgroundContainer(this.app);
         this.app.stage.addChild(background);
         // Get the reels container from the controller
         const reelsContainer = this.reelsController.getReelsContainer();
 
-        debug.log('=== SCENE CREATION DEBUG ===');
-        debug.log('ReelsContainer created:', !!reelsContainer);
-        debug.log('ReelsContainer position:', reelsContainer.x, reelsContainer.y);
-        debug.log('ReelsContainer size:', reelsContainer.width, reelsContainer.height);
-        debug.log('ReelsContainer visible:', reelsContainer.visible);
-        debug.log('ReelsContainer children count:', reelsContainer.children.length);
-
         // Add the reels container to the stage
         this.app.stage.addChild(reelsContainer);
 
-        debug.log('App stage children count:', this.app.stage.children.length);
-        debug.log('App screen size:', this.app.screen.width, 'x', this.app.screen.height);
-
-        debug.log('Game initialized. Loading initial reels...');
+        const winLinesContainer = WinLinesContainer.getInstance();
+        this.app.stage.addChild(winLinesContainer);
+        
         const defaultPlayer = this.slotGameController?.getDefaultPlayer();
-        debug.log('Current balance:', defaultPlayer?.balance);
-        debug.log('Player state:', defaultPlayer);
 
         // Set initial mode to static
         this.reelsController.setMode(ISpinState.IDLE);
-
-        debug.log('Scene created successfully');
-        debug.log('=== END SCENE CREATION DEBUG ===');
-
-        // const { atlas, skeleton } = AssetsConfig.BACKGROUND_ANIMATIONS_ASSET;
-        // const atlasAsset = Assets.get(atlas);
-        // const skeletonAsset = Assets.get(skeleton);
-
-        // const attachmentLoader = new AtlasAttachmentLoader(atlasAsset);
-        // const json = new SkeletonJson(attachmentLoader);
-        // const skeletonData = json.readSkeletonData(skeletonAsset);
-
-        // const cloud = new Spine(skeletonData);
-
-        // cloud.skeleton.setSlotsToSetupPose();
-
-        // cloud.state.data.defaultMix = 0.5;
-
-        // cloud.state.setAnimation(0, 'Background_Landscape_Cloud', true);
-        // cloud.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        // this.app.stage.addChild(cloud);
-
-        // const rabbit = new Spine(skeletonData);
-
-        // rabbit.skeleton.setSlotsToSetupPose();
-
-        // rabbit.state.data.defaultMix = 0.5;
-
-        // rabbit.state.setAnimation(0, 'Background_Landscape_Rabbit', true);
-        // rabbit.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        // this.app.stage.addChild(rabbit);
-
-        // const glows = new Spine(skeletonData);
-
-        // glows.skeleton.setSlotsToSetupPose();
-
-        // glows.state.data.defaultMix = 0.5;
-
-        // glows.state.setAnimation(0, 'Background_Landscape_Glows', true);
-        // glows.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        // this.app.stage.addChild(glows);
 
         // let fillGradientStops: FillGradient = new FillGradient({
         //     colorStops: [
