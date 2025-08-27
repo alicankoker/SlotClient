@@ -8,7 +8,7 @@ export class WinLinesContainer extends Container {
     private winLine: Graphics[];
 
     private constructor() {
-        super({ label: 'WinLinesContainer' });
+        super();
 
         this.linesContainer = new Container({ label: 'LinesContainer' });
         this.winLine = [];
@@ -64,7 +64,7 @@ export class WinLinesContainer extends Container {
             for (let i = 0; i < line.length; i++) {
                 winLine.lineTo(line[i].x, line[i].y);
                 winLine.stroke({
-                    color: 0x000000,
+                    color: 0xFFFFFF,
                     width: 5,
                     join: 'round',
                     cap: 'round'
@@ -72,7 +72,7 @@ export class WinLinesContainer extends Container {
             }
             winLine.lineTo(postline.x, postline.y);
             winLine.stroke({
-                color: 0x000000,
+                color: 0xFFFFFF,
                 width: 5,
                 join: 'round',
                 cap: 'round'
@@ -81,6 +81,7 @@ export class WinLinesContainer extends Container {
 
             winLine.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2));
             winLine.visible = false; // Hidden by default
+            winLine.tint = Math.floor(Math.random() * 0xFFFFFF); // Random color for each win line
 
             this.winLine.push(winLine);
 
@@ -110,6 +111,10 @@ export class WinLinesContainer extends Container {
         if (line) {
             line.visible = true;
         }
+    }
+
+    public showLines(lineNumbers: number[]): void {
+        lineNumbers.forEach(lineNumber => this.showLine(lineNumber));
     }
 
     public showAllLines(): void {

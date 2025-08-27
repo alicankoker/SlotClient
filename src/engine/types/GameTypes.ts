@@ -90,32 +90,47 @@ export interface GameState {
     lastBet: number;
 }
 
+// Spine data interface
 export interface SpineData {
-    atlasData: any;
-    skeletonData: any;
+    atlasData: any; // Atlas file data
+    skeletonData: any; // Skeleton file data
 }
 
+// Spine asset data interface
 export interface SpineAssetData {
-    atlas: string;
-    skeleton: string;
+    atlas: string; // Atlas file path
+    skeleton: string; // Skeleton file path
 }
 
+// Orientation configuration interface
 export interface OrientationConfig {
-    landscape: string,
-    portrait: string
+    landscape: string; // Landscape orientation
+    portrait: string; // Portrait orientation
 }
 
+// Win configuration interface
 export interface WinConfig {
-    multiplier: number;
-    amount: number;
-    line: number;
-    symbolIds: number[];
+    multiplier: number; // Win multiplier
+    amount: number; // Win amount
+    line: number; // Line number
+    symbolIds: number[]; // Array of symbol IDs
 }
 
+// Win animation configuration interface
 export interface WinAnimationConfig {
-    winTextVisibility?: boolean;
-    winLoop?: boolean;
-    delayBeforeLoop?: number;
-    delayBetweenLoops?: number;
-    winlines?: boolean;
+    winTextVisibility?: boolean; // Whether to show win text
+    winLoop?: boolean; // Whether to loop win animation
+    delayBeforeLoop?: number; // Delay before starting loop
+    delayBetweenLoops?: number; // Delay between loops
+    winlines?: boolean; // Whether to show win lines
+}
+
+// Auto play configuration interface
+export interface AutoPlayConfig {
+    enabled: boolean; // Whether auto play is enabled
+    count: number; // Number of auto plays to perform
+    delay: number; // Delay between auto play spins
+    stopOnWin: boolean; // Whether to stop auto play on win
+    stopOnFeature: boolean; // Whether to stop auto play on feature trigger
+    skipAnimations: boolean; // Whether to skip animations during auto play
 }

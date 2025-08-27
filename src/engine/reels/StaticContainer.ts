@@ -15,41 +15,6 @@ export interface StaticContainerConfig {
     y?: number;                  // Relative Y position (0-1)
 }
 
-const fillGradientStops: FillGradient = new FillGradient({
-    colorStops: [
-        {
-            offset: 0,
-            color: 0xffffff
-        },
-        {
-            offset: 0.7,
-            color: 0xffffff
-        },
-        {
-            offset: 1,
-            color: 0xa2bdfb
-        }
-    ]
-});
-
-const style: TextStyle = new TextStyle({
-    dropShadow: {
-        angle: 1.5,
-        color: 0x142c54,
-        distance: 4.5
-    },
-    fill: fillGradientStops,
-    fontFamily: "Nunito Black",
-    fontSize: 42,
-    fontWeight: "bolder",
-    stroke: {
-        color: 0x142c54,
-        width: 6,
-        join: 'round'
-    },
-    align: 'center'
-});
-
 export class StaticContainer extends Container {
     private _app: Application;
     private _winLinesContainer: WinLinesContainer;
@@ -61,6 +26,7 @@ export class StaticContainer extends Container {
     private _isPlaying: boolean = false;
     private _isLooping: boolean = false;
     private _isSkipped: boolean = false;
+    private _allowLoop: boolean = GameConfig.WIN_ANIMATION.winLoop ?? true;
     private _animationToken: number = 0;
 
     private _pendingResolvers: (() => void)[] = [];
@@ -76,7 +42,7 @@ export class StaticContainer extends Container {
         // Add containers to this static container
         this.addChild(this._symbolsContainer);
 
-        this._winText = new Text({ text: '', style });
+        this._winText = new Text({ text: '', style: GameConfig.style });
         this._winText.anchor.set(0.5);
         this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 240);
         this._winText.visible = false;
@@ -105,7 +71,7 @@ export class StaticContainer extends Container {
 
         return Promise.all((this._symbols.get(targetReelIndex) ?? []).map(async (symbol, index) => {
             if (symbolIds[index] !== undefined) {
-                await symbol.setSymbol(symbolIds[index]);
+                return symbol.setSymbol(symbolIds[index]);
             }
         }));
     }
@@ -163,6 +129,11 @@ export class StaticContainer extends Container {
         debug.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
     }
 
+    /**
+     * @description Set the win animations.
+     * @param winDatas The winning data.
+     * @returns A promise that resolves when the animations are complete.
+     */
     public async setAnimation(winDatas: WinConfig[]): Promise<void> {
         this.resetWinAnimations();
 
@@ -175,19 +146,17 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas, token);
 
-        if (GameConfig.WIN_ANIMATION.winLoop && this._animationToken === token) {
-            await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000, token);
-
-            this._isLooping = true;
-            this._isSkipped = false;
-
-            while (this._isLooping && this._animationToken === token) {
-                await this.playWinAnimations(winDatas, token);
-                await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
-            }
+        if (this._allowLoop && this._animationToken === token) {
+            this.playLoopAnimations(winDatas, token);
         }
     }
 
+    /**
+     * @description Delay helper function that respects the animation token.
+     * @param ms The delay duration in milliseconds.
+     * @param token The animation token.
+     * @returns A promise that resolves when the delay is complete.
+     */
     private delay(ms: number, token: number): Promise<void> {
         return new Promise((resolve) => {
             const id = setTimeout(() => {
@@ -198,6 +167,12 @@ export class StaticContainer extends Container {
         });
     }
 
+    /**
+     * @description Play the win animations.
+     * @param winDatas The winning data.
+     * @param token The animation token.
+     * @returns A promise that resolves when the animations are complete.
+     */
     public async playWinAnimations(winDatas: WinConfig[], token: number): Promise<void> {
         if (this._animationToken !== token) return;
 
@@ -218,7 +193,7 @@ export class StaticContainer extends Container {
                 });
             }
 
-            if (GameConfig.WIN_ANIMATION.winlines) {
+            if (GameConfig.WIN_ANIMATION.winlines && !this._isSkipped) {
                 this._winLinesContainer.showLine(winData.line);
             }
 
@@ -274,6 +249,28 @@ export class StaticContainer extends Container {
         this._isPlaying = false;
     }
 
+    /**
+     * @description Play the loop animations.
+     * @param winDatas The winning data.
+     * @param token The animation token.
+     * @returns A promise that resolves when the animations are complete.
+     */
+    private async playLoopAnimations(winDatas: WinConfig[], token: number): Promise<void> {
+        await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000, token);
+
+        this._isLooping = true;
+        this._isSkipped = false;
+
+        while (this._isLooping && this._animationToken === token) {
+            await this.playWinAnimations(winDatas, token);
+            await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
+        }
+    }
+
+    /**
+     * @description Skip the win animations.
+     * @returns void
+     */
     public skipWinAnimations(): void {
         if (!this._isPlaying || this._isLooping) return;
 
@@ -293,9 +290,47 @@ export class StaticContainer extends Container {
         });
     }
 
+    /**
+     * @description Play the skipped win animation.
+     * @param amount The win amount.
+     * @param lines The winning lines.
+     * @returns A promise that resolves when the animation is complete.
+     */
+    public playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
+        return new Promise((resolve) => {
+            if (GameConfig.WIN_ANIMATION.winlines) {
+                this._winLinesContainer.showLines(lines);
+            }
+
+            if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+                // Play win text animation
+                gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
+                    x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
+                        this._winText.text = `You won ${amount}€ on lines ${lines.join(', ')}!`;
+                        this._winText.visible = true;
+                    },
+                    onComplete: () => {
+                        gsap.to(this._winText.scale, {
+                            x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', delay: 1, onComplete: () => {
+                                this._winText.text = ``;
+                                this._winText.visible = false;
+
+                                if (GameConfig.WIN_ANIMATION.winlines) {
+                                    this._winLinesContainer.hideAllLines();
+                                }
+
+                                resolve();
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
     public resetWinAnimations(): void {
         this._animationToken++;
-        
+
         this._isPlaying = false;
         this._isLooping = false;
         this._isSkipped = false;
@@ -495,6 +530,14 @@ export class StaticContainer extends Container {
 
     public get isLooping(): boolean {
         return this._isLooping;
+    }
+
+    public get allowLoop(): boolean {
+        return this._allowLoop;
+    }
+
+    public set allowLoop(value: boolean) {
+        this._allowLoop = value;
     }
 
     public destroy(): void {
