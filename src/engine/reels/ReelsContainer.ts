@@ -54,6 +54,7 @@ export class ReelsContainer extends Container {
 
         // initialize auto play count indicator
         this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
+        this._autoPlayCountText.label = 'AutoPlayCountText';
         this._autoPlayCountText.anchor.set(0.5, 0.5);
         this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 820);
         this._autoPlayCountText.visible = false;
