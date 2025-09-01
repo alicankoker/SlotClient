@@ -33,25 +33,25 @@ export class WinLinesContainer extends Container {
 
             switch (GameRulesConfig.LINES[Number(key)][0]) {
                 case 1:
-                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2), -GameConfig.REFERENCE_SYMBOL.height);
+                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2) - GameConfig.REFERENCE_SPACING.horizontal, -GameConfig.REFERENCE_SYMBOL.height);
                     break;
                 case 6:
-                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2), 0);
+                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2) - GameConfig.REFERENCE_SPACING.horizontal, 0);
                     break;
                 case 11:
-                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2), GameConfig.REFERENCE_SYMBOL.height);
+                    preline = new Point((-GameConfig.REFERENCE_SYMBOL.width * 2) - (GameConfig.REFERENCE_SYMBOL.width / 2) - GameConfig.REFERENCE_SPACING.horizontal, GameConfig.REFERENCE_SYMBOL.height);
                     break;
             }
 
             switch (GameRulesConfig.LINES[Number(key)][GameRulesConfig.LINES[Number(key)].length - 1]) {
                 case 5:
-                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2), -GameConfig.REFERENCE_SYMBOL.height);
+                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2) + GameConfig.REFERENCE_SPACING.horizontal, -GameConfig.REFERENCE_SYMBOL.height);
                     break;
                 case 10:
-                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2), 0);
+                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2) + GameConfig.REFERENCE_SPACING.horizontal, 0);
                     break;
                 case 15:
-                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2), GameConfig.REFERENCE_SYMBOL.height);
+                    postline = new Point((GameConfig.REFERENCE_SYMBOL.width * 2) + (GameConfig.REFERENCE_SYMBOL.width / 2) + GameConfig.REFERENCE_SPACING.horizontal, GameConfig.REFERENCE_SYMBOL.height);
                     break;
             }
 

@@ -66,10 +66,20 @@ export class DoodleV8Main {
                     case ' ':
                         debug.log('🎲 Manual spin triggered');
                         if (this.spinController) {
-                            this.spinController.executeSpin({
-                                betAmount: 10,
-                                gameMode: 'manual'
-                            });
+                            if (this.spinController.getIsSpinning() === false) {
+                                this.spinController.executeSpin({
+                                    betAmount: 10,
+                                    gameMode: 'manual'
+                                });
+                            } else {
+                                this.spinController.forceStop();
+                            }
+                        }
+                        break;
+                    case 'f':
+                        debug.log('🔄 Fast spin triggered');
+                        if (this.spinController && this.spinController.getIsSpinning()) {
+                            this.spinController.forceStop();
                         }
                         break;
                     case 'a':
@@ -86,7 +96,7 @@ export class DoodleV8Main {
                         break;
                     case 'w':
                         debug.log('🎉 Show random win animation');
-                        if (this.reelsController && !this.reelsController.getIsSpinning()) {
+                        if (this.reelsController && !this.reelsController.getIsSpinning() && GameConfig.WIN_ANIMATION.enabled) {
                             this.reelsController.playRandomWinAnimation();
                         }
                         break;
@@ -227,50 +237,11 @@ export class DoodleV8Main {
 
         const winLinesContainer = WinLinesContainer.getInstance();
         this.app.stage.addChild(winLinesContainer);
-        
+
         const defaultPlayer = this.slotGameController?.getDefaultPlayer();
 
         // Set initial mode to static
         this.reelsController.setMode(ISpinState.IDLE);
-
-        // let fillGradientStops: FillGradient = new FillGradient({
-        //     colorStops: [
-        //         {
-        //             offset: 0,
-        //             color: 0xffffff
-        //         },
-        //         {
-        //             offset: 0.7,
-        //             color: 0xffffff
-        //         },
-        //         {
-        //             offset: 1,
-        //             color: 0xa2bdfb
-        //         }
-        //     ]
-        // });
-
-        // let textStyle: TextStyle = new TextStyle({
-        //     dropShadow: {
-        //         angle: 1.5,
-        //         color: 0x142c54,
-        //         distance: 4.5
-        //     },
-        //     fill: fillGradientStops,
-        //     fontFamily: "Nunito Black",
-        //     fontSize: 75,
-        //     fontWeight: "bolder",
-        //     stroke: {
-        //         color: 0x142c54,
-        //         width: 6
-        //     },
-        // });
-
-        // let text = new Text({ text: 'Hello Spine!', style: textStyle });
-        // text.position.set(600, 130);
-        // text.anchor.set(0.5, 0.5);
-
-        // this.app.stage.addChild(text);
     }
 }
 

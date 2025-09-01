@@ -98,7 +98,7 @@ export class SpinContainer extends Container {
 
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
 
-        const reelX = ((column - 2) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2); // Center of symbol
+        const reelX = (((column - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2)) + ((GameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
 
         return reelX; // Center in container
     }
@@ -108,7 +108,7 @@ export class SpinContainer extends Container {
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
-        const symbolY = ((row - 2) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2;
+        const symbolY = (((row - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
 
         return symbolY;
     }
@@ -288,7 +288,6 @@ export class SpinContainer extends Container {
 
         // Create spinning symbols for ALL reels
         for (let reelIndex = 0; reelIndex < this.columns; reelIndex++) {
-
             for (let i = 0; i < totalSymbols; i++) {
                 const randomSymbolId = this.getRandomSymbolId();
 

@@ -85,20 +85,11 @@ export class StaticContainer extends Container {
         const totalSymbols = this._config.symbolsVisible;
         const symbolsToCreate = Math.max(totalSymbols, symbolIds.length);
 
-        // Calculate the middle symbol index
-        const middleSymbolIndex = Math.floor(totalSymbols / 2);
-
-        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
-        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
-
-        const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
-        const spacingY = GameConfig.REFERENCE_SPACING.vertical;
-
-        const reelX = ((reelIndex - 2) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2); // Center of symbol
+        const reelX = this.calculateSymbolX(reelIndex);
 
         for (let i = 0; i < symbolsToCreate; i++) {
             // Calculate vertical position (actual pixels)
-            const symbolY = ((i - middleSymbolIndex) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2;
+            const symbolY = this.calculateSymbolY(i);
 
             // Get symbol ID (use provided IDs or generate random for testing)
             const symbolId = i < symbolIds.length ? symbolIds[i] : Math.floor(Math.random() * 10);
@@ -189,7 +180,7 @@ export class StaticContainer extends Container {
                 });
             }
 
-            if (GameConfig.WIN_ANIMATION.winlines && !this._isSkipped) {
+            if (GameConfig.WIN_ANIMATION.winlineVisibility && !this._isSkipped) {
                 this._winLinesContainer.showLine(winData.line);
             }
 
@@ -222,7 +213,7 @@ export class StaticContainer extends Container {
                         this._symbols.get(index)?.[symbolId]?.setIdle();
                     });
 
-                    if (GameConfig.WIN_ANIMATION.winlines) {
+                    if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                         this._winLinesContainer.hideLine(winData.line);
                     }
                 }
@@ -275,7 +266,7 @@ export class StaticContainer extends Container {
         this._pendingResolvers.forEach(resolve => resolve());
         this._pendingResolvers = [];
 
-        if (GameConfig.WIN_ANIMATION.winlines) {
+        if (GameConfig.WIN_ANIMATION.winlineVisibility) {
             this._winLinesContainer.hideAllLines();
         }
 
@@ -294,7 +285,7 @@ export class StaticContainer extends Container {
      */
     public playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
         return new Promise((resolve) => {
-            if (GameConfig.WIN_ANIMATION.winlines) {
+            if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLinesContainer.showLines(lines);
             }
 
@@ -311,7 +302,7 @@ export class StaticContainer extends Container {
                                 this._winText.text = ``;
                                 this._winText.visible = false;
 
-                                if (GameConfig.WIN_ANIMATION.winlines) {
+                                if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                                     this._winLinesContainer.hideAllLines();
                                 }
 
@@ -337,7 +328,7 @@ export class StaticContainer extends Container {
         this._winText.scale.set(0);
         this._winText.visible = false;
 
-        if (GameConfig.WIN_ANIMATION.winlines) {
+        if (GameConfig.WIN_ANIMATION.winlineVisibility) {
             this._winLinesContainer.hideAllLines();
         }
 
@@ -505,6 +496,27 @@ export class StaticContainer extends Container {
         clonedContainer.setSymbolsFromServerData(symbolIds, targetReelIndex);
 
         return clonedContainer;
+    }
+
+    // Position calculation utilities
+    protected calculateSymbolX(column: number = 0): number {
+        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+
+        const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
+
+        const reelX = (((column - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2)) + ((GameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
+
+        return reelX; // Center in container
+    }
+
+    protected calculateSymbolY(row: number): number {
+        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+
+        const spacingY = GameConfig.REFERENCE_SPACING.vertical;
+
+        const symbolY = (((row - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
+
+        return symbolY;
     }
 
     // Getters
