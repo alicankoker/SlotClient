@@ -1,7 +1,7 @@
-import { IReelMode } from "./reels/ReelController";
-import { ISpinState } from "./types/GameTypes";
+import { IReelMode } from "../reels/ReelController";
+import { ISpinState } from "../types/GameTypes";
 
-export class Utils {
+export class Helpers {
     public static getReelModeBySpinState(spinState: ISpinState): IReelMode {
         switch (spinState) {
             case ISpinState.IDLE:

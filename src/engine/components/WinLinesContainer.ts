@@ -4,16 +4,12 @@ import { GameConfig } from "../../config/GameConfig";
 
 export class WinLinesContainer extends Container {
     private static _instance: WinLinesContainer;
-    private linesContainer: Container;
     private winLine: Graphics[];
 
     private constructor() {
         super();
 
-        this.linesContainer = new Container({ label: 'LinesContainer' });
         this.winLine = [];
-        this.addChild(this.linesContainer);
-
         this.createWinLines();
     }
 
@@ -85,7 +81,7 @@ export class WinLinesContainer extends Container {
 
             this.winLine.push(winLine);
 
-            this.linesContainer.addChild(winLine);
+            this.addChild(winLine);
 
             // we can use MeshRope tho
             // const texture = Texture.from("line");
@@ -98,12 +94,8 @@ export class WinLinesContainer extends Container {
             // rope.label = `Rope_WinLine_${key}`;
             // rope.visible = false;
 
-            // this.linesContainer.addChild(rope);
+            // this.addChild(rope);
         }
-    }
-
-    public getContainer(): Container {
-        return this.linesContainer;
     }
 
     public showLine(lineNumber: number): void {

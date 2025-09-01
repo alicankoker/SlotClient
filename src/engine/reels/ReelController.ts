@@ -9,7 +9,7 @@ import {
 } from '../types/GameTypes';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { Sprite } from 'pixi.js';
-import { Utils } from '../Utils';
+import { Helpers } from '../utils/Helpers';
 import { SpinConfig } from '../../config/SpinConfig';
 import { debug } from '../utils/debug';
 
@@ -98,7 +98,7 @@ export class ReelController {
 
     public async setModeBySpinState(spinState: ISpinState): Promise<void> {
         //translate spin state to reel mode by switch-case
-        await this.setMode(Utils.getReelModeBySpinState(spinState));
+        await this.setMode(Helpers.getReelModeBySpinState(spinState));
     }
 
     // Mode management

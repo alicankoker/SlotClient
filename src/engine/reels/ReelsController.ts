@@ -10,7 +10,7 @@ import {
     ISpinState,
     WinConfig
 } from '../types/GameTypes';
-import { Utils } from '../Utils';
+import { Helpers } from '../utils/Helpers';
 import { SpinConfig } from '../../config/SpinConfig';
 import { debug } from '../utils/debug';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
@@ -78,7 +78,7 @@ export class ReelsController {
         this.currentMode = mode;
 
         // Update container mode
-        this.reelsContainer.setMode(Utils.getReelModeBySpinState(mode));
+        this.reelsContainer.setMode(Helpers.getReelModeBySpinState(mode));
 
         // Update all reel controllers
         await Promise.all(this.reelControllers.map(controller => {
