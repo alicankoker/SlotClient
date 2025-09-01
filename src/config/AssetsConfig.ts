@@ -34,6 +34,10 @@ export class AssetsConfig {
                     {
                         alias: 'line',
                         src: '/assets/line.png'
+                    },
+                    {
+                        alias: 'frame_background_base',
+                        src: '/assets/Frame_Background_Base_Game.png'
                     }
                 ]
             },
@@ -152,7 +156,7 @@ export class AssetsConfig {
         return this.IMAGES;
     }
 
-    public static getSymbolAssetName(symbolIndex: number): string {
+    public static getSymbolAsset(symbolIndex: number): string {
         const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
         if (!assetName) {
             debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
@@ -161,7 +165,7 @@ export class AssetsConfig {
         return assetName.idle;
     }
 
-    public static getBlurredSymbolAssetName(symbolIndex: number): string {
+    public static getBlurredSymbolAsset(symbolIndex: number): string {
         const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
         if (!assetName) {
             debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
@@ -170,7 +174,7 @@ export class AssetsConfig {
         return assetName.blurred;
     }
 
-    public static getSpineSymbolAssetName(): SpineData {
+    public static getSpineSymbolAsset(): SpineData {
         const { atlas, skeleton }: SpineAssetData = this.SPINE_SYMBOL_ASSET;
         const atlasData = Assets.get(atlas);
         const skeletonData = Assets.get(skeleton);
@@ -182,7 +186,19 @@ export class AssetsConfig {
         return { atlasData, skeletonData };
     }
 
-    public static getSymbolIndexFromAssetName(assetName: string): number {
+    public static getBackgroundAnimationsAsset(): SpineData {
+        const { atlas, skeleton }: SpineAssetData = this.BACKGROUND_ANIMATIONS_ASSET;
+        const atlasData = Assets.get(atlas);
+        const skeletonData = Assets.get(skeleton);
+
+        if (!atlasData || !skeletonData) {
+            throw new Error(`Missing spine asset data for background animations`);
+        }
+
+        return { atlasData, skeletonData };
+    }
+
+    public static getSymbolIndexFromAsset(assetName: string): number {
         for (const [index, name] of Object.entries(this.SYMBOL_ASSET_DATA)) {
             if (name.idle === assetName) {
                 return parseInt(index);

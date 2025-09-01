@@ -52,7 +52,7 @@ export class Symbol extends Sprite {
         debug.log('Symbol.getTextureForSymbol: Spritesheet found, checking textures...');
         debug.log('Available textures:', Object.keys(spritesheet.textures || {}));
 
-        const symbolAssetName = AssetsConfig.getSymbolAssetName(symbolId);
+        const symbolAssetName = AssetsConfig.getSymbolAsset(symbolId);
         debug.log(`Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName}"`);
         
         const texture = spritesheet.textures[symbolAssetName];
@@ -94,7 +94,7 @@ export class Symbol extends Sprite {
         if (spritesheet && spritesheet.textures[symbolAssetName]) {
             this.texture = spritesheet.textures[symbolAssetName];
             // Update symbolId based on asset name if possible
-            const symbolId = AssetsConfig.getSymbolIndexFromAssetName(symbolAssetName);
+            const symbolId = AssetsConfig.getSymbolIndexFromAsset(symbolAssetName);
             if (symbolId !== -1) {
                 this._symbolId = symbolId;
             }

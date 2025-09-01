@@ -12,6 +12,8 @@ import { IReelMode } from './ReelController';
 import { debug } from '../utils/debug';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { WinLinesContainer } from '../components/WinLinesContainer';
+import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
+import { AssetsConfig } from '../../config/AssetsConfig';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -29,7 +31,8 @@ export class ReelsContainer extends Container {
     private reelXPositions: number[] = [];
     private symbolXPositions: number[][] = []; // [reelIndex][symbolPosition] = x
 
-    private reelBackground: Sprite = new Sprite();
+    private _reelBackground: Sprite = new Sprite();
+    private _reelFrame!: Spine;
     private _autoPlayCount: number = 0;
     private _autoPlayCountText: Text;
 
@@ -56,22 +59,34 @@ export class ReelsContainer extends Container {
         this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
         this._autoPlayCountText.label = 'AutoPlayCountText';
         this._autoPlayCountText.anchor.set(0.5, 0.5);
-        this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 820);
+        this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 830);
         this._autoPlayCountText.visible = false;
         this.addChild(this._autoPlayCountText);
     }
 
     private createReelBackground(): void {
         // Create a background for the reels
-        const texture = Texture.from("reel_background.png");
-        this.reelBackground = new Sprite(texture);
-        this.reelBackground.anchor.set(0.5);
-        this.reelBackground.x = GameConfig.REFERENCE_RESOLUTION.width / 2;
-        this.reelBackground.y = GameConfig.REFERENCE_RESOLUTION.height / 2 - 15;
-        this.reelBackground.scale.set(0.33);
-        this.addChild(this.reelBackground);
+        const texture = Texture.from("frame_background_base");
+        this._reelBackground = new Sprite(texture);
+        this._reelBackground.anchor.set(0.5, 0.5);
+        this._reelBackground.x = GameConfig.REFERENCE_RESOLUTION.width / 2;
+        this._reelBackground.y = GameConfig.REFERENCE_RESOLUTION.height / 2;
+        this._reelBackground.scale.set(0.625, 0.475);
+        this.addChild(this._reelBackground);
 
-        debug.log('ReelsContainer: Reel background created with size:', this.reelBackground.width, 'x', this.reelBackground.height);
+        const { atlasData, skeletonData } = AssetsConfig.getBackgroundAnimationsAsset();
+
+        const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
+        const json = new SkeletonJson(attachmentLoader);
+        const skeleton = json.readSkeletonData(skeletonData);
+
+        this._reelFrame = new Spine(skeleton);
+        this._reelFrame.position.set(966, 548);
+        this._reelFrame.scale.set(0.62, 0.475);
+        this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', true);
+        this.addChild(this._reelFrame);
+
+        debug.log('ReelsContainer: Reel background created with size:', this._reelBackground.width, 'x', this._reelBackground.height);
     }
 
     private setupResizeHandler(): void {
@@ -94,7 +109,7 @@ export class ReelsContainer extends Container {
         this.createWinLinesContainer();
 
         if (this.spinContainer) {
-            this.spinContainer.mask = this.reelAreaMask;
+              this.spinContainer.mask = this.reelAreaMask;
         }
     }
 
@@ -143,9 +158,9 @@ export class ReelsContainer extends Container {
     private createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
-        const totalWidth = (this.numberOfReels * GameConfig.REFERENCE_SYMBOL.width) + 10;
+        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 10;
         // Height: cover visible rows with proper spacing
-        const totalHeight = (this.symbolsPerReel * GameConfig.REFERENCE_SYMBOL.height) + 10;
+        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount) - 5);
 
         // Center the mask
         const maskX = (GameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
@@ -159,6 +174,14 @@ export class ReelsContainer extends Container {
         this.addChild(this.reelAreaMask);
 
         debug.log(`ReelsContainer: Created reel area mask at (${maskX}, ${maskY}) with size ${totalWidth}x${totalHeight}`);
+    }
+
+    public playFrameAnimation(): void {
+        this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame', true);
+    }
+
+    public stopFrameAnimation(): void {
+        this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', false);
     }
 
     // Container access methods

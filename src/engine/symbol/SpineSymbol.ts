@@ -21,7 +21,7 @@ export class SpineSymbol extends Spine {
         debug.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
 
         // Get the texture for this symbol
-        const { atlasData, skeletonData } = AssetsConfig.getSpineSymbolAssetName();
+        const { atlasData, skeletonData } = AssetsConfig.getSpineSymbolAsset();
 
         if (!atlasData || !skeletonData) {
             throw new Error(`Texture not found for symbol ID: ${config.symbolId}`);

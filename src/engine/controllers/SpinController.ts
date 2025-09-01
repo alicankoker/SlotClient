@@ -27,8 +27,10 @@ export class SpinController {
     private _autoPlayCount: number = 0;
     private _autoPlayed: number = 0;
     private _isAutoPlaying: boolean = false;
+    private _isForceStopped: boolean = false;
     private _autoPlayDuration: number = GameConfig.AUTO_PLAY.delay || 1000;
     private _autoPlayTimeoutID: ReturnType<typeof setTimeout> | null = null;
+    private _abortController: AbortController | null = null;
 
     // Spin data - store finalGrid for proper final symbol positioning
     private currentCascadeSteps: CascadeStepData[] = [];
@@ -53,12 +55,12 @@ export class SpinController {
             return { success: false, error };
         }
 
-        try {
-            const staticContainer = this.reelsController.getStaticContainer();
-            if (staticContainer && (staticContainer.isPlaying || staticContainer.isLooping)) {
-                staticContainer.resetWinAnimations(); // Reset any previous win animations
-            }
+        this._abortController = new AbortController();
+        const signal = this._abortController.signal;
 
+        this._isForceStopped = false;
+
+        try {
             this.setState(ISpinState.SPINNING);
 
             if (this.onSpinStartCallback) {
@@ -81,11 +83,12 @@ export class SpinController {
             //await this.processInitialGrid(response.result.initialGrid);
 
             this.reelsController.startSpin([response.result.finalGrid.symbols.map((symbol: { symbolId: number; }) => symbol.symbolId)]);
-            await this.delay(SpinConfig.SPIN_DURATION);
 
-            this.reelsController.slowDown();
+            await this.delay(SpinConfig.SPIN_DURATION, signal);
 
-            await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
+            this._isForceStopped === false && this.reelsController.slowDown();
+
+            await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
             //await this.processCascadeSequence();
 
             // Apply final grid with spinning animation
@@ -107,7 +110,7 @@ export class SpinController {
                 }
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
-                await this.reelsController.playRandomWinAnimation(isSkipped);
+                GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
             }
 
             if (this._isAutoPlaying) {
@@ -116,6 +119,7 @@ export class SpinController {
 
             return response;
         } catch (error) {
+            console.error('SpinController: Spin execution error', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             this.handleError(errorMessage);
             return { success: false, error: errorMessage };
@@ -337,8 +341,14 @@ export class SpinController {
 
         debug.log('SpinController: Force stopping spin');
 
+        this._isForceStopped = true;
+
+        this._abortController?.abort();
+        this._abortController = null;
+
         this.reelsController.forceStopAllReels();
-        this.setState(ISpinState.IDLE);
+
+        //this.setState(ISpinState.IDLE);
         this.resetSpinData();
     }
 
@@ -369,17 +379,11 @@ export class SpinController {
     // Error handling
     private handleError(error: string): void {
         debug.error(`SpinController Error: ${error}`);
-        this.setState(ISpinState.ERROR);
+        this.setState(ISpinState.IDLE);
 
         if (this.onErrorCallback) {
             this.onErrorCallback(error);
         }
-
-        // Reset to idle after error
-        setTimeout(() => {
-            this.setState(ISpinState.IDLE);
-            this.resetSpinData();
-        }, 1000);
     }
 
     // Data cleanup
@@ -391,8 +395,23 @@ export class SpinController {
     }
 
     // Utility methods
-    private delay(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    private delay(ms: number, signal?: AbortSignal): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const id = setTimeout(() => resolve(), ms);
+
+            if (signal) {
+                if (signal.aborted) {
+                    clearTimeout(id);
+                    resolve();
+                    return;
+                }
+
+                signal.addEventListener("abort", () => {
+                    clearTimeout(id);
+                    resolve();
+                }, { once: true });
+            }
+        });
     }
 
     // Event callbacks
