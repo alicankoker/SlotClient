@@ -217,8 +217,7 @@ export class ReelController {
         if (!this.isSpinning) return;
 
         this.isSpinning = false;
-        this.setMode(IReelMode.STATIC);
-        this.syncSymbolsToViews();
+        //this.setMode(IReelMode.STATIC);
     }
 
     // Update method for game loop

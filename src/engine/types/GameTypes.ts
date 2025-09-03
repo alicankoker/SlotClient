@@ -118,11 +118,12 @@ export interface WinConfig {
 
 // Win animation configuration interface
 export interface WinAnimationConfig {
+    enabled: boolean; // Whether win animation is enabled
     winTextVisibility?: boolean; // Whether to show win text
     winLoop?: boolean; // Whether to loop win animation
     delayBeforeLoop?: number; // Delay before starting loop
     delayBetweenLoops?: number; // Delay between loops
-    winlines?: boolean; // Whether to show win lines
+    winlineVisibility?: boolean; // Whether to show win lines
 }
 
 // Auto play configuration interface

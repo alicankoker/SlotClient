@@ -128,7 +128,7 @@ export class ReelsController {
         const staticContainer = this.reelsContainer.getStaticContainer();
         const winLinesContainer = this.reelsContainer.getWinLinesContainer();
 
-        if (winLinesContainer && GameConfig.WIN_ANIMATION.winlines) {
+        if (winLinesContainer && GameConfig.WIN_ANIMATION.winlineVisibility) {
             winLinesContainer.visible = true;
         }
 
@@ -139,6 +139,7 @@ export class ReelsController {
 
             await staticContainer?.playSkippedWinAnimation(amount, lines);
         } else {
+            this.reelsContainer.playFrameAnimation();
             await staticContainer?.setAnimation([winData, winData2, winData3]);
         }
     }
@@ -156,6 +157,8 @@ export class ReelsController {
      * @description Reset all win animations.
      */
     public resetWinAnimations(): void {
+        this.reelsContainer.stopFrameAnimation();
+        
         const staticContainer = this.reelsContainer.getStaticContainer();
 
         staticContainer?.resetWinAnimations();
@@ -171,6 +174,8 @@ export class ReelsController {
             debug.warn('ReelsController: Spin already in progress');
             return;
         }
+
+        this.resetWinAnimations();
 
         this.isSpinning = true;
         this.spinStartTime = Date.now();
@@ -228,7 +233,7 @@ export class ReelsController {
         });
 
         this.isSpinning = false;
-        this.setMode(ISpinState.IDLE);
+        // this.setMode(ISpinState.IDLE);
     }
 
     // Cascading functionality

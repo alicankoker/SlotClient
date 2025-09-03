@@ -32,28 +32,6 @@ export interface LoaderDurations {
 }
 
 export class GameConfig {
-    // Reference resolution - all sizes are designed for this resolution
-    public static readonly REFERENCE_RESOLUTION: ResolutionConfig = {
-        width: 1920,
-        height: 1080
-    };
-
-    public static readonly ORIENTATION: OrientationConfig = {
-        landscape: "landscape",
-        portrait: "portrait"
-    };
-
-    public static readonly SAFE_AREA = {
-        landscape: {
-            width: 1100,
-            height: 650
-        },
-        portrait: {
-            width: 850,
-            height: 1920
-        }
-    }
-
     // Reference symbol size at base resolution
     public static readonly REFERENCE_SYMBOL: SymbolConfig = {
         width: 150,
@@ -63,8 +41,8 @@ export class GameConfig {
 
     // Reference spacing at base resolution
     public static readonly REFERENCE_SPACING = {
-        horizontal: 2,  // 10 pixels horizontal spacing at reference resolution
-        vertical: 0      // 5 pixels vertical spacing at reference resolution
+        horizontal: 25,  // 10 pixels horizontal spacing at reference resolution
+        vertical: -10      // 10 pixels vertical spacing at reference resolution
     };
 
     // Reference UI sizes at base resolution
@@ -111,11 +89,12 @@ export class GameConfig {
 
     // Win animation configuration
     public static readonly WIN_ANIMATION: WinAnimationConfig = {
+        enabled: true,
         winTextVisibility: true,
         winLoop: true,
         delayBeforeLoop: 2000,
         delayBetweenLoops: 1000,
-        winlines: true
+        winlineVisibility: true
     };
 
     // Auto play configuration
@@ -126,6 +105,28 @@ export class GameConfig {
         stopOnWin: false,
         stopOnFeature: false,
         skipAnimations: true
+    };
+
+    // Reference resolution - all sizes are designed for this resolution
+    public static readonly REFERENCE_RESOLUTION: ResolutionConfig = {
+        width: 1920,
+        height: 1080
+    };
+
+    public static readonly ORIENTATION: OrientationConfig = {
+        landscape: "landscape",
+        portrait: "portrait"
+    };
+
+    public static readonly SAFE_AREA = {
+        landscape: {
+            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1.25),
+            height: 650
+        },
+        portrait: {
+            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1.25),
+            height: 1920
+        }
     };
 
     // Get resolution category for debugging/optimization
