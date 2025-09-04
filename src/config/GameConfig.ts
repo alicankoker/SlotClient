@@ -1,5 +1,5 @@
 import { FillGradient, TextStyle } from "pixi.js";
-import { AutoPlayConfig, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
+import { AutoPlayConfig, BigWinConfig, ForceStopConfig, LoaderDurations, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
 
 export interface ResolutionConfig {
     width: number;
@@ -22,13 +22,6 @@ export interface UIConfig {
         padding: number;
         margin: number;
     };
-}
-
-export interface LoaderDurations {
-    minDisplayTime: number;
-    transitionTo100: number;
-    holdAfter100: number;
-    fadeOut: number;
 }
 
 export class GameConfig {
@@ -105,6 +98,16 @@ export class GameConfig {
         stopOnWin: false,
         stopOnFeature: false,
         skipAnimations: true
+    };
+
+    public static readonly FORCE_STOP: ForceStopConfig = {
+        enabled: true
+    }
+
+    public static readonly BIG_WIN: BigWinConfig = {
+        enabled: true,
+        duration: 3,
+        canSkip: true
     };
 
     // Reference resolution - all sizes are designed for this resolution

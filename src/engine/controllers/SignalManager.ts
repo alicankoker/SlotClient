@@ -156,7 +156,11 @@ export const SCREEN_SIGNALS = {
     // System signals
     SCREEN_RESIZE: 'system:resize',
     ASSETS_LOADED: 'system:assets:loaded',
-    FULLSCREEN_CHANGE: 'system:fullscreen:change'
+    FULLSCREEN_CHANGE: 'system:fullscreen:change',
+
+    // Big Win signals
+    BIG_WIN_STARTED: 'bigwin:started',
+    BIG_WIN_STOPPED: 'bigwin:stopped'
 } as const;
 
 // Export singleton instance for convenience

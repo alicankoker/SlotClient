@@ -4,7 +4,7 @@ import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
 import { ResponsiveManager } from './engine/utils/ResponsiveManager';
-import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState } from './engine/types/GameTypes';
+import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState, BigWinType } from './engine/types/GameTypes';
 import { BackgroundContainer } from './engine/components/BackgroundContainer';
 import { AssetLoader } from './engine/utils/AssetLoader';
 import { AssetsConfig } from './config/AssetsConfig';
@@ -12,6 +12,7 @@ import { GameConfig } from './config/GameConfig';
 import { Loader } from './engine/utils/Loader';
 import { debug } from './engine/utils/debug';
 import { WinLinesContainer } from './engine/components/WinLinesContainer';
+import { BigWin } from './engine/components/BigWin';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -19,6 +20,7 @@ export class DoodleV8Main {
     private slotGameController?: SlotGameController;
     private spinController?: SpinController;
     private reelsController?: ReelsController;
+    private bigWinContainer!: BigWin;
     private assetLoader!: AssetLoader;
 
     public async init(): Promise<void> {
@@ -66,25 +68,25 @@ export class DoodleV8Main {
                     case ' ':
                         debug.log('🎲 Manual spin triggered');
                         if (this.spinController) {
-                            if (this.spinController.getIsSpinning() === false) {
+                            if (this.spinController.getIsSpinning() === false && this.bigWinContainer.isBigWinActive === false && this.spinController.getIsAutoPlaying() === false) {
                                 this.spinController.executeSpin({
                                     betAmount: 10,
                                     gameMode: 'manual'
                                 });
                             } else {
-                                this.spinController.forceStop();
+                                GameConfig.FORCE_STOP.enabled && this.spinController.forceStop();
                             }
                         }
                         break;
                     case 'f':
                         debug.log('🔄 Fast spin triggered');
-                        if (this.spinController && this.spinController.getIsSpinning()) {
+                        if (this.spinController && this.spinController.getIsSpinning() && GameConfig.FORCE_STOP.enabled) {
                             this.spinController.forceStop();
                         }
                         break;
                     case 'a':
                         debug.log('🔄 Auto-play triggered');
-                        if (GameConfig.AUTO_PLAY.enabled && this.spinController && !this.spinController.getIsAutoPlaying()) {
+                        if (GameConfig.AUTO_PLAY.enabled && this.spinController && this.spinController.getIsSpinning() === false && this.spinController.getIsAutoPlaying() === false && this.bigWinContainer.isBigWinActive === false) {
                             this.spinController.startAutoPlay(GameConfig.AUTO_PLAY.count || 5); // Start 5 auto spins
                         }
                         break;
@@ -96,14 +98,20 @@ export class DoodleV8Main {
                         break;
                     case 'w':
                         debug.log('🎉 Show random win animation');
-                        if (this.reelsController && !this.reelsController.getIsSpinning() && GameConfig.WIN_ANIMATION.enabled) {
+                        if (this.reelsController && !this.reelsController.getIsSpinning() && GameConfig.WIN_ANIMATION.enabled && this.bigWinContainer.isBigWinActive === false) {
                             this.reelsController.playRandomWinAnimation();
                         }
                         break;
                     case 's':
                         debug.log('⏹️ Skip win animations');
-                        if (this.reelsController) {
+                        if (this.reelsController && this.reelsController.getStaticContainer()?.isPlaying === true) {
                             this.reelsController.skipWinAnimations();
+                        }
+                        break;
+                    case 'b':
+                        debug.log('🎉 Show big win animation');
+                        if (this.bigWinContainer && GameConfig.BIG_WIN.enabled && !this.reelsController?.getIsSpinning()) {
+                            this.bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
                         }
                         break;
                     case '1':
@@ -237,6 +245,9 @@ export class DoodleV8Main {
 
         const winLinesContainer = WinLinesContainer.getInstance();
         this.app.stage.addChild(winLinesContainer);
+
+        this.bigWinContainer = BigWin.getInstance();
+        this.app.stage.addChild(this.bigWinContainer);
 
         const defaultPlayer = this.slotGameController?.getDefaultPlayer();
 

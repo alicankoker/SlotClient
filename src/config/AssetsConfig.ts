@@ -1,5 +1,5 @@
 import { Assets } from "pixi.js";
-import { SpineAssetData, SpineData } from "../engine/types/GameTypes";
+import { SpineAsset, SpineAssetData, SpineData } from "../engine/types/GameTypes";
 import { BundleFile } from "../engine/types/IAssetLoader";
 import { debug } from "../engine/utils/debug";
 
@@ -93,6 +93,32 @@ export class AssetsConfig {
                         src: '/assets/animations/background.json'
                     }
                 ]
+            },
+            {
+                name: 'wins',
+                assets: [
+                    {
+                        alias: 'wins_atlas',
+                        src: '/assets/animations/wins.atlas'
+                    },
+                    {
+                        alias: 'wins_data',
+                        src: '/assets/animations/wins.json'
+                    }
+                ]
+            },
+            {
+                name: 'elements',
+                assets: [
+                    {
+                        alias: 'elements_atlas',
+                        src: '/assets/animations/elements.atlas'
+                    },
+                    {
+                        alias: 'elements_data',
+                        src: '/assets/animations/elements.json'
+                    }
+                ]
             }
         ]
     };
@@ -130,9 +156,13 @@ export class AssetsConfig {
     };
 
     // spine symbol indexes to asset name mapping
-    public static readonly SPINE_SYMBOL_ASSET: SpineAssetData = { atlas: 'icons_atlas', skeleton: 'icons_data' } as const;
+    public static readonly SYMBOL_SPINE_ASSET: SpineAssetData = { atlas: 'icons_atlas', skeleton: 'icons_data' } as const;
 
-    public static readonly BACKGROUND_ANIMATIONS_ASSET: SpineAssetData = { atlas: 'background_atlas', skeleton: 'background_data' } as const;
+    public static readonly BACKGROUND_SPINE_ASSET: SpineAssetData = { atlas: 'background_atlas', skeleton: 'background_data' } as const;
+
+    public static readonly ELEMENTS_SPINE_ASSET: SpineAssetData = { atlas: 'elements_atlas', skeleton: 'elements_data' } as const;
+
+    public static readonly WINS_SPINE_ASSET: SpineAssetData = { atlas: 'wins_atlas', skeleton: 'wins_data' } as const;
 
     public static getAllAssets(): BundleFile {
         const allAssets: BundleFile = {
@@ -174,25 +204,29 @@ export class AssetsConfig {
         return assetName.blurred;
     }
 
-    public static getSpineSymbolAsset(): SpineData {
-        const { atlas, skeleton }: SpineAssetData = this.SPINE_SYMBOL_ASSET;
-        const atlasData = Assets.get(atlas);
-        const skeletonData = Assets.get(skeleton);
+    public static getSpineAsset(asset: SpineAsset): SpineData {
+        let atlas: string, skeleton: string;
 
-        if (!atlasData || !skeletonData) {
-            throw new Error(`Missing spine asset data for symbols`);
+        switch (asset) {
+            case "symbol":
+                ({ atlas, skeleton } = this.SYMBOL_SPINE_ASSET);
+                break;
+            case "background":
+                ({ atlas, skeleton } = this.BACKGROUND_SPINE_ASSET);
+                break;
+            case "elements":
+                ({ atlas, skeleton } = this.ELEMENTS_SPINE_ASSET);
+                break;
+            case "wins":
+                ({ atlas, skeleton } = this.WINS_SPINE_ASSET);
+                break;
         }
 
-        return { atlasData, skeletonData };
-    }
-
-    public static getBackgroundAnimationsAsset(): SpineData {
-        const { atlas, skeleton }: SpineAssetData = this.BACKGROUND_ANIMATIONS_ASSET;
         const atlasData = Assets.get(atlas);
         const skeletonData = Assets.get(skeleton);
 
         if (!atlasData || !skeletonData) {
-            throw new Error(`Missing spine asset data for background animations`);
+            throw new Error(`Missing spine asset data for ${asset}`);
         }
 
         return { atlasData, skeletonData };
