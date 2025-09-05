@@ -1,6 +1,7 @@
 import { AtlasAttachmentLoader, SkeletonData, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { AssetsConfig } from '../../config/AssetsConfig';
 import { debug } from '../utils/debug';
+import { Helpers } from '../utils/Helpers';
 
 export interface SymbolConfig {
     symbolId: number;           // Symbol index (0-9) - provided by server/game logic
@@ -20,16 +21,7 @@ export class SpineSymbol extends Spine {
     constructor(config: SymbolConfig) {
         debug.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
 
-        // Get the texture for this symbol
-        const { atlasData, skeletonData } = AssetsConfig.getSpineSymbolAsset();
-
-        if (!atlasData || !skeletonData) {
-            throw new Error(`Texture not found for symbol ID: ${config.symbolId}`);
-        }
-
-        const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
-        const json = new SkeletonJson(attachmentLoader);
-        const skeleton = json.readSkeletonData(skeletonData);
+        const skeleton = Helpers.getSpineSkeletonData("symbol");
 
         super(skeleton);
 

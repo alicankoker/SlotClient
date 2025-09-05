@@ -12,12 +12,15 @@ export interface ResponsiveConfig {
     orientation: string;
     scale: number;
 }
+
+export type Alignment = "topleft" | "bottomleft" | "bottomright" | "topright" | "center";
+
 export class ResponsiveManager {
     private static _instance: ResponsiveManager;
     private _app: Application;
     private _resizeTimeOut: number = 100; // timeout for resize event
     private _resizeTimer: number | undefined;
-    private _alignment: string = "center"; // default alignment
+    private _alignment: Alignment = "center"; // default alignment
     private _boundOnResize: () => void;
 
     /**
@@ -152,7 +155,7 @@ export class ResponsiveManager {
                 break;
         }
 
-        return { x: left!, y: top! };
+        return { x: left, y: top };
     }
 
     public destroy(): void {

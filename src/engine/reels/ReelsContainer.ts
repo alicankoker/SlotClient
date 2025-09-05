@@ -14,6 +14,7 @@ import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { WinLinesContainer } from '../components/WinLinesContainer';
 import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { AssetsConfig } from '../../config/AssetsConfig';
+import { Helpers } from '../utils/Helpers';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -74,11 +75,7 @@ export class ReelsContainer extends Container {
         this._reelBackground.scale.set(0.625, 0.475);
         this.addChild(this._reelBackground);
 
-        const { atlasData, skeletonData } = AssetsConfig.getBackgroundAnimationsAsset();
-
-        const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
-        const json = new SkeletonJson(attachmentLoader);
-        const skeleton = json.readSkeletonData(skeletonData);
+        const skeleton = Helpers.getSpineSkeletonData("background");
 
         this._reelFrame = new Spine(skeleton);
         this._reelFrame.position.set(966, 548);
