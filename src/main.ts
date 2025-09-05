@@ -4,7 +4,7 @@ import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
 import { ResponsiveManager } from './engine/utils/ResponsiveManager';
-import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState, BigWinType } from './engine/types/GameTypes';
+import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState, BigWinType, SpinMode } from './engine/types/GameTypes';
 import { BackgroundContainer } from './engine/components/BackgroundContainer';
 import { AssetLoader } from './engine/utils/AssetLoader';
 import { AssetsConfig } from './config/AssetsConfig';
@@ -13,6 +13,7 @@ import { Loader } from './engine/utils/Loader';
 import { debug } from './engine/utils/debug';
 import { WinLinesContainer } from './engine/components/WinLinesContainer';
 import { BigWin } from './engine/components/BigWin';
+import { gsap } from 'gsap';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -22,6 +23,7 @@ export class DoodleV8Main {
     private reelsController?: ReelsController;
     private bigWinContainer!: BigWin;
     private assetLoader!: AssetLoader;
+    private _spinModeText!: Text;
 
     public async init(): Promise<void> {
         try {
@@ -60,6 +62,12 @@ export class DoodleV8Main {
             // Step 5: Create scene/sprites
             this.createScene();
 
+            this._spinModeText = new Text({ text: ``, style: GameConfig.style.clone() });
+            this._spinModeText.anchor.set(0.5, 0.5);
+            this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+            this._spinModeText.visible = false; // Hide by default
+            this.app.stage.addChild(this._spinModeText);
+
             // Step 6: Start game systems (controllers handle the game loop)
 
             // Add keyboard handlers
@@ -79,7 +87,7 @@ export class DoodleV8Main {
                         }
                         break;
                     case 'f':
-                        debug.log('🔄 Fast spin triggered');
+                        debug.log('🔄 Force stop triggered');
                         if (this.spinController && this.spinController.getIsSpinning() && GameConfig.FORCE_STOP.enabled) {
                             this.spinController.forceStop();
                         }
@@ -115,16 +123,60 @@ export class DoodleV8Main {
                         }
                         break;
                     case '1':
-                        debug.log('⚡ Fast mode enabled');
-                        // Fast mode would be handled differently
+                        debug.log(' Normal mode activated');
+                        if (this.spinController && this.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL) {
+                            this.spinController.setSpinMode(GameConfig.SPIN_MODES.NORMAL as SpinMode);
+
+                            gsap.killTweensOf([this._spinModeText, this._spinModeText.position, this._spinModeText.scale]);
+                            this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+
+                            gsap.fromTo(this._spinModeText, { alpha: 0, scale: 0 }, {
+                                alpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)',
+                                onStart: () => {
+                                    this._spinModeText.text = `Fast Spin Mode Off!`;
+                                    this._spinModeText.visible = true;
+                                }, onComplete: () => {
+                                    gsap.to(this._spinModeText, {
+                                        alpha: 0, duration: 0.25, ease: 'none', delay: 0.15,
+                                    });
+
+                                    gsap.to(this._spinModeText.position, {
+                                        y: GameConfig.REFERENCE_RESOLUTION.height / 2 - 25, duration: 0.25, ease: 'none', delay: 0.15,
+                                        onComplete: () => {
+                                            this._spinModeText.visible = false;
+                                        }
+                                    });
+                                }
+                            });
+                        }
                         break;
                     case '2':
-                        debug.log('🚀 Instant mode enabled');
-                        // Instant mode would be handled differently
-                        break;
-                    case '3':
-                        debug.log('🐌 Slow mode enabled');
-                        // Slow mode would be handled differently
+                        debug.log('⚡ Fast mode activated');
+                        if (this.spinController && this.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
+                            this.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
+
+                            gsap.killTweensOf([this._spinModeText, this._spinModeText.position, this._spinModeText.scale]);
+                            this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+
+                            gsap.fromTo(this._spinModeText, { alpha: 0, scale: 0 }, {
+                                alpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)',
+                                onStart: () => {
+                                    this._spinModeText.text = `Fast Spin Mode On!`;
+                                    this._spinModeText.visible = true;
+                                }, onComplete: () => {
+                                    gsap.to(this._spinModeText, {
+                                        alpha: 0, duration: 0.25, ease: 'none', delay: 0.15,
+                                    });
+
+                                    gsap.to(this._spinModeText.position, {
+                                        y: GameConfig.REFERENCE_RESOLUTION.height / 2 - 25, duration: 0.25, ease: 'none', delay: 0.15,
+                                        onComplete: () => {
+                                            this._spinModeText.visible = false;
+                                        }
+                                    });
+                                }
+                            });
+                        }
                         break;
                 }
             });
@@ -138,7 +190,7 @@ export class DoodleV8Main {
             debug.log('🛑 Press Q to stop auto-play');
             debug.log('🎉 Press W to show random win animation');
             debug.log('⏹️ Press S to skip win animations');
-            debug.log('⚡ Press 1 for fast mode, 2 for instant, 3 for slow');
+            debug.log('⚡ Press 1 for normal mode, 2 for fast mode');
 
             this.responsiveManager.onResize();
         } catch (error) {

@@ -1,4 +1,4 @@
-import { Application, Text } from "pixi.js";
+import { Graphics, Text } from "pixi.js";
 import { BigWinContainer } from "./BigWinContainer";
 import { gsap } from "gsap";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
@@ -11,6 +11,7 @@ export class BigWin extends BigWinContainer {
     private static _instance: BigWin;
 
     private _wins!: Spine;
+    private _dimmer!: Graphics;
 
     private constructor() {
         super();
@@ -26,6 +27,16 @@ export class BigWin extends BigWinContainer {
     }
 
     private init(): void {
+        this._dimmer = new Graphics();
+        this._dimmer.beginPath();
+        this._dimmer.rect(0, 0, GameConfig.REFERENCE_RESOLUTION.width, GameConfig.REFERENCE_RESOLUTION.height);
+        this._dimmer.fill({ color: 0x000000, alpha: 0.75 });
+        this._dimmer.closePath();
+        this._dimmer.pivot.set(this._dimmer.width / 2, this._dimmer.height / 2);
+        this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._dimmer.scale.set(3, 3);
+        this.addChild(this._dimmer);
+        
         const skeleton = Helpers.getSpineSkeletonData("wins");
 
         this._wins = new Spine(skeleton);
