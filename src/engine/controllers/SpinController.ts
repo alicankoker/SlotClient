@@ -9,7 +9,8 @@ import {
     InitialGridData,
     CascadeStepData,
     ISpinState,
-    BigWinType
+    BigWinType,
+    SpinMode
 } from '../types/GameTypes';
 import { debug } from '../utils/debug';
 
@@ -25,6 +26,7 @@ export class SpinController {
 
     // State management
     private currentState: ISpinState = ISpinState.IDLE;
+    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
     private currentSpinId?: string;
     private currentStepIndex: number = 0;
     private _autoPlayCount: number = 0;
@@ -88,11 +90,16 @@ export class SpinController {
 
             this.reelsController.startSpin([response.result.finalGrid.symbols.map((symbol: { symbolId: number; }) => symbol.symbolId)]);
 
-            await this.delay(SpinConfig.SPIN_DURATION, signal);
+            if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+                await this.delay(SpinConfig.SPIN_DURATION, signal);
 
-            this._isForceStopped === false && this.reelsController.slowDown();
+                this._isForceStopped === false && this.reelsController.slowDown();
 
-            await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
+                await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
+            } else {
+                await this.delay(SpinConfig.FAST_SPIN_SPEED);
+            }
+
             //await this.processCascadeSequence();
 
             // Apply final grid with spinning animation
@@ -354,7 +361,6 @@ export class SpinController {
 
         this.reelsController.forceStopAllReels();
 
-        //this.setState(ISpinState.IDLE);
         this.resetSpinData();
     }
 
@@ -460,6 +466,23 @@ export class SpinController {
 
     public getIsError(): boolean {
         return this.currentState === 'error';
+    }
+
+    public getSpinMode(): SpinMode {
+        return this._spinMode;
+    }
+
+    public setSpinMode(mode: SpinMode): void {
+        if (this._spinMode === mode) return;
+
+        this._spinMode = mode;
+        this.reelsController.setSpinMode(mode);
+
+        debug.log(`SpinController: Spin mode set to ${mode}`);
+
+        if (this._spinMode === GameConfig.SPIN_MODES.FAST && this.getIsSpinning()) {
+            this.forceStop();
+        }
     }
 
     // Cleanup

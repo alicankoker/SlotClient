@@ -170,3 +170,5 @@ export const BigWinTypeValue: Record<BigWinType, number> = {
     [BigWinType.MASSIVE]: 2,
     [BigWinType.INSANE]: 3,
 };
+
+export type SpinMode = "normal" | "fast";

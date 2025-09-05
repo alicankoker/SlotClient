@@ -110,6 +110,11 @@ export class GameConfig {
         canSkip: true
     };
 
+    public static readonly SPIN_MODES = {
+        NORMAL: 'normal',
+        FAST: 'fast'
+    };
+
     // Reference resolution - all sizes are designed for this resolution
     public static readonly REFERENCE_RESOLUTION: ResolutionConfig = {
         width: 1920,

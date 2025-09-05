@@ -5,7 +5,8 @@ import {
     InitialGridData,
     CascadeStepData,
     GridUtils,
-    ISpinState
+    ISpinState,
+    SpinMode
 } from '../types/GameTypes';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { Sprite } from 'pixi.js';
@@ -40,6 +41,7 @@ export class ReelController {
     protected bottomSymbolYPos: number = 0;
     protected topSymbolYPos: number = 0;
     protected currentSpeed: number = SpinConfig.SPIN_SPEED;
+    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
     // Animation state
     private spinDuration: number = 2000;
@@ -217,7 +219,6 @@ export class ReelController {
         if (!this.isSpinning) return;
 
         this.isSpinning = false;
-        //this.setMode(IReelMode.STATIC);
     }
 
     // Update method for game loop
@@ -327,6 +328,18 @@ export class ReelController {
 
     public getSymbolCount(): number {
         return this.currentSymbols.length;
+    }
+
+    public getSpinMode(): SpinMode {
+        return this._spinMode;
+    }
+
+    public setSpinMode(mode: SpinMode): void {
+        if (this._spinMode === mode) return;
+
+        this._spinMode = mode;
+        
+        debug.log(`ReelController ${this.reelIndex}: Spin mode set to ${mode}`);
     }
 
     // Cleanup
