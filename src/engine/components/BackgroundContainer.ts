@@ -1,5 +1,5 @@
 import { Sprite, Texture, Application, Container, Assets, Filter, BlurFilter } from "pixi.js";
-import { signals, SCREEN_SIGNALS, SignalSubscription } from '../controllers/SignalManager';
+import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
 import { GameConfig } from "../../config/GameConfig";
 import { debug } from "../utils/debug";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
@@ -77,7 +77,7 @@ export class BackgroundContainer extends Container {
 
     private setupResizeHandler(): void {
         // Subscribe to resize events using the signal system
-        this.resizeSubscription = signals.on(SCREEN_SIGNALS.SCREEN_RESIZE, this.onResize.bind(this));
+        this.resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, this.onResize.bind(this));
     }
 
     private onResize(responsiveConfig?: ResponsiveConfig): void {

@@ -4,7 +4,7 @@ import { SymbolUtils } from '../symbol/SymbolUtils';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { Symbol } from '../symbol/Symbol';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
-import { signals, SCREEN_SIGNALS, SignalSubscription } from '../controllers/SignalManager';
+import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
 import {
     SymbolData,
     InitialGridData,
@@ -84,7 +84,7 @@ export class SpinContainer extends Container {
     }
 
     protected setupResizeHandler(): void {
-        this.resizeSubscription = signals.on(SCREEN_SIGNALS.SCREEN_RESIZE, () => {
+        this.resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, () => {
             //this.onResize();
         });
     }
