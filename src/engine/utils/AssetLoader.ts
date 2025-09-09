@@ -1,6 +1,6 @@
 import { Assets, Texture } from "pixi.js";
 import { BundleAssets, IAssetLoader, BundleFile } from "../types/IAssetLoader";
-import { SCREEN_SIGNALS, signals } from '../controllers/SignalManager';
+import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { gsap } from "gsap";
 import { debug } from "./debug";
 
@@ -29,7 +29,7 @@ export class AssetLoader implements IAssetLoader {
             duration: 0.35,
             ease: "power2.out",
             onUpdate: () => {
-                signals.emit(SCREEN_SIGNALS.ASSETS_LOADED, { label, percent: this.smooth.percent });
+                signals.emit(SIGNAL_EVENTS.ASSETS_LOADED, { label, percent: this.smooth.percent });
                 debug.log("AssetLoader", `Loading ${label}: ${this.smooth.percent.toFixed(2)}%`);
             },
         });

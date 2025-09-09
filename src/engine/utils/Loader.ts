@@ -1,5 +1,5 @@
 import { Application, Container, Graphics, Text } from "pixi.js";
-import { signals, SCREEN_SIGNALS } from "../controllers/SignalManager";
+import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import { GameConfig } from "../../config/GameConfig";
@@ -32,7 +32,7 @@ export class Loader extends Container {
 
         this.completionPromise = new Promise<void>((resolve) => (this.resolveCompletion = resolve));
         
-        signals.on(SCREEN_SIGNALS.ASSETS_LOADED, this.handleAssetsLoaded);
+        signals.on(SIGNAL_EVENTS.ASSETS_LOADED, this.handleAssetsLoaded);
     }
 
     public static getInstance(): Loader {
@@ -136,7 +136,7 @@ export class Loader extends Container {
         gsap.killTweensOf(this.smooth);
         gsap.killTweensOf(this.fill);
         // remove event listeners
-        signals.off(SCREEN_SIGNALS.ASSETS_LOADED);
+        signals.off(SIGNAL_EVENTS.ASSETS_LOADED);
         Loader._instance = null as any;
         this.destroy({ children: true });
     }

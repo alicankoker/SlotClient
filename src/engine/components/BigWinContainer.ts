@@ -1,5 +1,5 @@
 import { Application, Container, Text } from "pixi.js";
-import { SCREEN_SIGNALS, signals } from "../controllers/SignalManager";
+import { SIGNAL_EVENTS, signals } from "../controllers/SignalManager";
 import { debug } from "../utils/debug";
 import { Counter } from "../utils/Counter";
 import { GameConfig } from "../../config/GameConfig";
@@ -57,7 +57,7 @@ export abstract class BigWinContainer extends Container {
         this._isAnimating = true;
         this._isBigWinSkipped = false;
 
-        signals.emit(SCREEN_SIGNALS.BIG_WIN_STARTED);
+        signals.emit(SIGNAL_EVENTS.BIG_WIN_STARTED);
 
         this.playBigWinAnimation();
         this.playCoinAnimation();
@@ -65,7 +65,7 @@ export abstract class BigWinContainer extends Container {
         this.stopCoinAnimation();
         await this.stopBigWinAnimation();
 
-        signals.emit(SCREEN_SIGNALS.BIG_WIN_STOPPED);
+        signals.emit(SIGNAL_EVENTS.BIG_WIN_STOPPED);
 
         await this.afterBigWin();
     }
