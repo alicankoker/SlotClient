@@ -6,6 +6,7 @@ import { debug } from '../utils/debug';
 import { WinConfig } from '../types/GameTypes';
 import { gsap } from 'gsap';
 import { WinLinesContainer } from '../components/WinLinesContainer';
+import SoundManager from '../controllers/SoundManager';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -17,6 +18,7 @@ export interface StaticContainerConfig {
 
 export class StaticContainer extends Container {
     private _app: Application;
+    private _soundManager: SoundManager;
     private _winLinesContainer: WinLinesContainer;
     private _config: StaticContainerConfig;
     private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
@@ -34,6 +36,7 @@ export class StaticContainer extends Container {
         super();
 
         this._app = app;
+        this._soundManager = SoundManager.getInstance();
         this._winLinesContainer = WinLinesContainer.getInstance();
         this._config = config;
 
@@ -168,6 +171,8 @@ export class StaticContainer extends Container {
             if (this._animationToken !== token) return;
             debug.log(`StaticContainer: Playing win animation for win data:`, winData);
 
+            this._isLooping === false && this._soundManager.play('win', false, 0.75); // Play win sound effect
+
             if (GameConfig.WIN_ANIMATION.winTextVisibility) {
                 // Play win text animation
                 gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
@@ -262,6 +267,8 @@ export class StaticContainer extends Container {
         if (!this._isPlaying || this._isLooping) return;
 
         this._isSkipped = true;
+
+        this._soundManager.stop('win');
 
         this._pendingResolvers.forEach(resolve => resolve());
         this._pendingResolvers = [];

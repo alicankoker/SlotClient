@@ -6,15 +6,18 @@ import { Helpers } from "../utils/Helpers";
 import { GameConfig } from "../../config/GameConfig";
 import { BigWinType, BigWinTypeValue } from "../types/GameTypes";
 import { Counter } from "../utils/Counter";
+import SoundManager from "../controllers/SoundManager";
 
 export class BigWin extends BigWinContainer {
     private static _instance: BigWin;
 
+    private _soundManager: SoundManager;
     private _wins!: Spine;
     private _dimmer!: Graphics;
 
     private constructor() {
         super();
+        this._soundManager = SoundManager.getInstance();
 
         this.init();
     }
@@ -36,7 +39,7 @@ export class BigWin extends BigWinContainer {
         this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this._dimmer.scale.set(3, 3);
         this.addChild(this._dimmer);
-        
+
         const skeleton = Helpers.getSpineSkeletonData("wins");
 
         this._wins = new Spine(skeleton);
@@ -59,6 +62,9 @@ export class BigWin extends BigWinContainer {
     // Implement the big win animation logic here
     protected playBigWinAnimation(): void {
         this._duration = GameConfig.BIG_WIN.duration + (this._bigWinType * GameConfig.BIG_WIN.duration);
+
+        this._soundManager.playFor('bigwin', this._duration, 0.5);
+        this._soundManager.play('coin', false, 0.25);
 
         this._wins.state.setAnimation(0, Object.values(BigWinType)[0] + '_Landing', false);
         this._wins.state.addAnimation(0, Object.values(BigWinType)[0] + '_Loop', true);
@@ -84,13 +90,19 @@ export class BigWin extends BigWinContainer {
     }
 
     protected override skipBigWin(): void {
-        this._wins.state.setAnimation(0, Object.values(BigWinType)[this._bigWinType] + '_Loop', true);
-
         super.skipBigWin();
+
+        this._wins.state.setAnimation(0, Object.values(BigWinType)[this._bigWinType] + '_Loop', true);
     }
 
     protected override async stopBigWinAnimation(): Promise<void> {
+        this._soundManager.fade('bigwin', 0.5, 0, 0.5);
+        this._soundManager.fade('coin', 0.25, 0, 0.5);
+
         await super.stopBigWinAnimation();
+
+        this._soundManager.stop('bigwin');
+        this._soundManager.stop('coin');
 
         this._wins.state.data.defaultMix = 0;
     }

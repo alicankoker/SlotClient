@@ -1,8 +1,9 @@
 import { Assets, Texture } from "pixi.js";
-import { BundleAssets, IAssetLoader, BundleFile } from "../types/IAssetLoader";
+import { AssetBundle, IAssetLoader, BundleFile, AudioBundle } from "../types/IAssetLoader";
 import { SCREEN_SIGNALS, signals } from '../controllers/SignalManager';
 import { gsap } from "gsap";
 import { debug } from "./debug";
+import SoundManager from "../controllers/SoundManager";
 
 export class AssetLoader implements IAssetLoader {
     private static instance: AssetLoader;
@@ -18,7 +19,7 @@ export class AssetLoader implements IAssetLoader {
         return AssetLoader.instance;
     }
 
-    private assetsCount(assets: BundleAssets): number {
+    private assetsCount(assets: AssetBundle | AudioBundle): number {
         return Array.isArray(assets) ? assets.length : Object.keys(assets ?? {}).length;
     }
 
@@ -55,27 +56,12 @@ export class AssetLoader implements IAssetLoader {
             const bundle = bundles[bIndex];
             const weight = weights[bIndex];
 
-            // we can show loading progress for individual assets if needed
-            // if (Array.isArray(bundle.assets)) {
-            //     for (let aIndex = 0; aIndex < bundle.assets.length; aIndex++) {
-            //         const asset = bundle.assets[aIndex];
-
-            //         await Assets.load({ src: asset.src, alias: asset.alias }, (progress: number) => {
-            //             const overall01 = (weightBefore + progress * weight) / totalWeight;
-            //             const isLast = bIndex === bundles.length - 1;
-            //             const capped01 = isLast ? overall01 : Math.min(overall01, 0.995);
-            //             this.emitSmooth(capped01 * 100, asset.alias);
-            //         });
-            //     }
-            // } else {
-            // or we can load the whole bundle at once
             await Assets.loadBundle(bundle.name, (progress: number) => {
                 const overall01 = (weightBefore + progress * weight) / totalWeight;
                 const isLast = bIndex === bundles.length - 1;
                 const capped01 = isLast ? overall01 : Math.min(overall01, 0.995);
                 this.emitSmooth(capped01 * 100, bundle.name);
             });
-            // }
 
             weightBefore += weight;
         }
@@ -83,6 +69,25 @@ export class AssetLoader implements IAssetLoader {
         this.emitSmooth(100, "completed");
 
         debug.log("AssetLoader", "bundles loaded");
+
+        const soundBundle = bundles.find((bundle) => bundle.name === "audio");
+        if (!soundBundle) {
+            debug.warn("AssetLoader", "No 'audio' bundle found");
+            return;
+        }
+
+        const soundManager = SoundManager.getInstance();
+        const { assets } = soundBundle as { assets: AudioBundle };
+
+        assets.forEach((asset) => {
+            soundManager.add([{
+                alias: Array.isArray(asset.alias) ? asset.alias[0] : asset.alias,
+                src: Array.isArray(asset.src) ? asset.src[0] : asset.src,
+                channel: (asset.channel as 'sfx' | 'music') || 'sfx'
+            }]);
+        });
+
+        debug.log("AssetLoader", "'audio' bundles added to SoundManager");
     }
 
     public getAsset(key: string): Texture | undefined {
