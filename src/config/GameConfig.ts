@@ -191,6 +191,7 @@ export class GameConfig {
             width: 6,
             join: 'round'
         },
-        align: 'center'
+        align: 'center',
+        trim: true
     });
 }
