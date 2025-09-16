@@ -21,6 +21,31 @@ export class AssetsConfig {
     public static readonly IMAGES: BundleFile = {
         bundles: [
             {
+                name: 'preload',
+                assets: [
+                    {
+                        alias: 'background_landscape_1440',
+                        src: '/assets/Background_Base_Landscape_1440.png'
+                    },
+                    {
+                        alias: 'game_logo_vertical',
+                        src: '/assets/raw/Logo_Base_Game_Vertical.png'
+                    },
+                    {
+                        alias: 'loading_bar_fill',
+                        src: '/assets/raw/Loading_Bar_Fill.png'
+                    },
+                    {
+                        alias: 'loading_bar_frame',
+                        src: '/assets/raw/Loading_Bar_Frame.png'
+                    },
+                    {
+                        alias: 'Nunito Black',
+                        src: '/assets/fonts/Nunito-Black.ttf'
+                    }
+                ]
+            },
+            {
                 name: 'environment',
                 assets: [
                     {
@@ -32,16 +57,16 @@ export class AssetsConfig {
                         src: '/assets/raw/Frame_Background_Base_Game.png'
                     },
                     {
-                        alias: 'game_logo_vertical',
-                        src: '/assets/raw/Logo_Base_Game_Vertical.png'
-                    },
-                    {
                         alias: 'game_logo_1000',
                         src: '/assets/raw/Logo_1000_Game.png'
                     },
                     {
                         alias: 'game_logo_super_scatter',
                         src: '/assets/raw/Logo_Super_Scatter_Game.png'
+                    },
+                    {
+                        alias: 'game_logo_vertical',
+                        src: '/assets/raw/Logo_Base_Game_Vertical.png'
                     },
                     {
                         alias: 'slider_button_frame',

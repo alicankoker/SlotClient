@@ -38,6 +38,11 @@ export class AssetLoader implements IAssetLoader {
     public async loadBundles(manifest: BundleFile): Promise<void> {
         await Assets.init({ manifest });
 
+        const preloadBundle = manifest.bundles?.find(b => b.name === 'preload');
+        if (preloadBundle) {
+            await Assets.loadBundle(preloadBundle.name); // ensure preload bundle is loaded first
+        }
+
         const bundles = manifest.bundles ?? [];
         if (!bundles.length) {
             debug.warn("AssetLoader", "No bundles in manifest");
@@ -52,6 +57,12 @@ export class AssetLoader implements IAssetLoader {
         let weightBefore = 0;
 
         for (let bIndex = 0; bIndex < bundles.length; bIndex++) {
+            if (bundles[bIndex].name === 'preload') {
+                // skip, already loaded
+                weightBefore += weights[bIndex];
+                continue;
+            }
+
             const bundle = bundles[bIndex];
             const weight = weights[bIndex];
 
