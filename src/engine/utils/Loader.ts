@@ -32,7 +32,6 @@ export class Loader extends Container {
         this.app = app;
 
         this.completionPromise = new Promise<void>((resolve) => (this.resolveCompletion = resolve));
-
         signals.on(SCREEN_SIGNALS.ASSETS_LOADED, this.handleAssetsLoaded);
 
         app.stage.addChild(this);
@@ -169,7 +168,7 @@ export class Loader extends Container {
         gsap.killTweensOf(this.smooth);
         gsap.killTweensOf(this.fill);
         // remove event listeners
-        signals.off(SCREEN_SIGNALS.ASSETS_LOADED);
+        signals.off(SIGNAL_EVENTS.ASSETS_LOADED);
         Loader._instance = null as any;
         this.destroy({ children: true });
     }
