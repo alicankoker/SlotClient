@@ -10,7 +10,7 @@ export class AssetsConfig {
                 name: 'symbols',
                 assets: [
                     {
-                        alias: 'symbols',
+                        alias: ['symbols'],
                         src: '/assets/symbols/symbols.json'
                     }
                 ]
@@ -24,19 +24,19 @@ export class AssetsConfig {
                 name: 'environment',
                 assets: [
                     {
-                        alias: 'multipacked-0',
+                        alias: ['multipacked-0'],
                         src: '/assets/environment/multipacked_transparent-0.json'
                     },
                     {
-                        alias: 'multipacked-1',
+                        alias: ['multipacked-1'],
                         src: '/assets/environment/multipacked_transparent-1.json'
                     },
                     {
-                        alias: 'line',
+                        alias: ['line'],
                         src: '/assets/line.png'
                     },
                     {
-                        alias: 'frame_background_base',
+                        alias: ['frame_background_base'],
                         src: '/assets/Frame_Background_Base_Game.png'
                     }
                 ]
@@ -45,11 +45,11 @@ export class AssetsConfig {
                 name: 'background',
                 assets: [
                     {
-                        alias: 'background_landscape_1440',
+                        alias: ['background_landscape_1440'],
                         src: '/assets/Background_Base_Landscape_1440.png'
                     },
                     {
-                        alias: 'background_portrait_1440',
+                        alias: ['background_portrait_1440'],
                         src: '/assets/Background_Base_Portrait_1440.png'
                     }
                 ]
@@ -64,15 +64,11 @@ export class AssetsConfig {
                 assets: [
                     {
                         alias: ['icons_atlas'],
-                        src: [
-                            '/assets/symbols/icons.atlas',
-                        ]
+                        src: '/assets/symbols/icons.atlas'
                     },
                     {
                         alias: ['icons_data'],
-                        src: [
-                            '/assets/symbols/icons.json'
-                        ]
+                        src: '/assets/symbols/icons.json'
                     }
                 ]
             }
@@ -85,11 +81,11 @@ export class AssetsConfig {
                 name: 'background_animations',
                 assets: [
                     {
-                        alias: 'background_atlas',
+                        alias: ['background_atlas'],
                         src: '/assets/animations/background.atlas'
                     },
                     {
-                        alias: 'background_data',
+                        alias: ['background_data'],
                         src: '/assets/animations/background.json'
                     }
                 ]
@@ -98,11 +94,11 @@ export class AssetsConfig {
                 name: 'wins',
                 assets: [
                     {
-                        alias: 'wins_atlas',
+                        alias: ['wins_atlas'],
                         src: '/assets/animations/wins.atlas'
                     },
                     {
-                        alias: 'wins_data',
+                        alias: ['wins_data'],
                         src: '/assets/animations/wins.json'
                     }
                 ]
@@ -111,12 +107,47 @@ export class AssetsConfig {
                 name: 'elements',
                 assets: [
                     {
-                        alias: 'elements_atlas',
+                        alias: ['elements_atlas'],
                         src: '/assets/animations/elements.atlas'
                     },
                     {
-                        alias: 'elements_data',
+                        alias: ['elements_data'],
                         src: '/assets/animations/elements.json'
+                    }
+                ]
+            }
+        ]
+    };
+
+    public static readonly AUDIO: BundleFile = {
+        bundles: [
+            {
+                name: 'audio',
+                assets: [
+                    {
+                        alias: 'bigwin',
+                        src: ['/assets/sounds/bigwin.mp3', /*'/assets/sounds/bigwin.ogg'*/],
+                        channel: 'sfx'
+                    },
+                    {
+                        alias: 'coin',
+                        src: ['/assets/sounds/coin.mp3', /*'/assets/sounds/coin.ogg'*/],
+                        channel: 'sfx'
+                    },
+                    {
+                        alias: 'spin',
+                        src: ['/assets/sounds/spin.mp3', /*'/assets/sounds/spin.ogg'*/],
+                        channel: 'sfx'
+                    },
+                    {
+                        alias: 'stop',
+                        src: ['/assets/sounds/stop.mp3', /*'/assets/sounds/stop.ogg'*/],
+                        channel: 'sfx'
+                    },
+                    {
+                        alias: 'win',
+                        src: ['/assets/sounds/win.mp3', /*'/assets/sounds/win.ogg'*/],
+                        channel: 'sfx'
                     }
                 ]
             }
@@ -171,6 +202,7 @@ export class AssetsConfig {
                 ...this.IMAGES.bundles,
                 ...this.SPINE_SYMBOLS.bundles,
                 ...this.ANIMATIONS.bundles,
+                ...this.AUDIO.bundles,
                 ...this.FONTS.bundles
             ]
         };
