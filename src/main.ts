@@ -14,6 +14,7 @@ import { debug } from './engine/utils/debug';
 import { WinLinesContainer } from './engine/components/WinLinesContainer';
 import { BigWin } from './engine/components/BigWin';
 import { gsap } from 'gsap';
+import { FeatureScreen } from './engine/components/FeatureScreen';
 import { Storage } from './engine/utils/Storage';
 
 export class DoodleV8Main {
@@ -72,6 +73,11 @@ export class DoodleV8Main {
             this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
             this._spinModeText.visible = false; // Hide by default
             this.app.stage.addChild(this._spinModeText);
+
+            if (localStorage.getItem('featureScreenDontShow') === 'false' || !localStorage.getItem('featureScreenDontShow')) {
+                const featureScreen = new FeatureScreen(this.app);
+                this.app.stage.addChild(featureScreen);
+            }
 
             // Step 6: Start game systems (controllers handle the game loop)
 

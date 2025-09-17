@@ -2,6 +2,7 @@ import { AtlasAttachmentLoader, SkeletonData, SkeletonJson } from "@esotericsoft
 import { IReelMode } from "../reels/ReelController";
 import { ISpinState, SpineAsset } from "../types/GameTypes";
 import { AssetsConfig } from "../../config/AssetsConfig";
+import { GameConfig } from "../../config/GameConfig";
 
 export class Helpers {
     public static getReelModeBySpinState(spinState: ISpinState): IReelMode {
@@ -31,6 +32,66 @@ export class Helpers {
             default:
                 return IReelMode.STATIC;
         }
+    }
+
+    /**
+     * @description Calculate the X position of a symbol in the grid.
+     * @param column The column index of the symbol.
+     * @param maxColumn The maximum number of columns in the grid.
+     * @param referenceX The reference X position to calculate from.
+     * @param gapX The gap between symbols in the X direction.
+     * @returns The calculated X position of the symbol.
+     */
+    public static calculateSymbolX(column: number = 0, maxColumn: number, referenceX: number, gapX?: number): number {
+        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+
+        const spacingX = gapX ?? GameConfig.REFERENCE_SPACING.horizontal;
+
+        const reelX = (((column - Math.floor(maxColumn / 2)) * (symbolWidth + spacingX)) + referenceX) + ((maxColumn % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0);
+
+        return reelX;
+    }
+
+    /**
+     * @description Calculate the Y position of a symbol in the grid.
+     * @param row The row index of the symbol.
+     * @param maxRow The maximum number of rows in the grid.
+     * @param referenceY The reference Y position to calculate from.
+     * @param gapY The gap between symbols in the Y direction.
+     * @returns The calculated Y position of the symbol.
+     */
+    public static calculateSymbolY(row: number, maxRow: number, referenceY: number, gapY?: number): number {
+        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+
+        const spacingY = gapY ?? GameConfig.REFERENCE_SPACING.vertical;
+
+        const symbolY = (((row - Math.floor(maxRow / 2)) * (symbolHeight + spacingY)) + referenceY) + ((maxRow % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
+
+        return symbolY;
+    }
+
+    /**
+     * @description Create a grid of positions for symbols.
+     * @param maxColumn The maximum number of columns in the grid.
+     * @param maxRow The maximum number of rows in the grid.
+     * @param referenceX The reference X position to calculate from.
+     * @param referenceY The reference Y position to calculate from.
+     * @param gapX The gap between symbols in the X direction.
+     * @param gapY The gap between symbols in the Y direction.
+     * @returns An array of positions for the symbols in the grid.
+     */
+    public static createGrid(maxColumn: number, maxRow: number, referenceX: number, referenceY: number, gapX?: number, gapY?: number): { x: number, y: number }[] {
+        const grid: { x: number, y: number }[] = [];
+
+        for (let col = 0; col < maxColumn; col++) {
+            for (let row = 0; row < maxRow; row++) {
+                const x = this.calculateSymbolX(col, maxColumn, referenceX, gapX);
+                const y = this.calculateSymbolY(row, maxRow, referenceY, gapY);
+                grid.push({ x, y });
+            }
+        }
+
+        return grid;
     }
 
     /**

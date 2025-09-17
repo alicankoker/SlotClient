@@ -18,7 +18,7 @@ export class BackgroundContainer extends Container {
 
         this.app = app;
 
-        this.backgroundSprite = new Sprite();
+        this.backgroundSprite = new Sprite(Texture.EMPTY);
         this.backgroundSprite.label = 'BackgroundSprite';
         this.addChild(this.backgroundSprite);
 
@@ -32,10 +32,10 @@ export class BackgroundContainer extends Container {
         this.backgroundSprite.anchor.set(0.5, 0.5);
         this.backgroundSprite.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
 
-        const blurFilter = new BlurFilter();
-        blurFilter.strength = 10;
-        blurFilter.quality = 10;
-        this.filters = [blurFilter];
+        // const blurFilter = new BlurFilter();
+        // blurFilter.strength = 10;
+        // blurFilter.quality = 10;
+        // this.filters = [blurFilter];
     }
 
     private setupBackgroundElements(): void {

@@ -24,20 +24,44 @@ export class AssetsConfig {
                 name: 'environment',
                 assets: [
                     {
-                        alias: ['multipacked-0'],
-                        src: '/assets/environment/multipacked_transparent-0.json'
+                        alias: 'bet_area',
+                        src: '/assets/raw/Bet_Amount_Area.png'
                     },
                     {
-                        alias: ['multipacked-1'],
-                        src: '/assets/environment/multipacked_transparent-1.json'
+                        alias: 'frame_background_base',
+                        src: '/assets/raw/Frame_Background_Base_Game.png'
                     },
                     {
-                        alias: ['line'],
-                        src: '/assets/line.png'
+                        alias: 'game_logo_vertical',
+                        src: '/assets/raw/Logo_Base_Game_Vertical.png'
                     },
                     {
-                        alias: ['frame_background_base'],
-                        src: '/assets/Frame_Background_Base_Game.png'
+                        alias: 'game_logo_1000',
+                        src: '/assets/raw/Logo_1000_Game.png'
+                    },
+                    {
+                        alias: 'game_logo_super_scatter',
+                        src: '/assets/raw/Logo_Super_Scatter_Game.png'
+                    },
+                    {
+                        alias: 'slider_button_frame',
+                        src: '/assets/raw/Slider_Button_Frame_Splash_Scene.png'
+                    },
+                    {
+                        alias: 'slider_button',
+                        src: '/assets/raw/Slider_Button_Splash_Scene.png'
+                    },
+                    {
+                        alias: 'spin_button',
+                        src: '/assets/raw/Spin_Button.png'
+                    },
+                    {
+                        alias: 'spin_button_icon',
+                        src: '/assets/raw/Spin_Button_Icon.png'
+                    },
+                    {
+                        alias: 'volatility_arrow',
+                        src: '/assets/raw/Volatility_Arrow.png'
                     }
                 ]
             },
