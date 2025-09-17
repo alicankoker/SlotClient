@@ -128,7 +128,7 @@ export class SpinController {
                     this.stopAutoPlay();
                 }
 
-                await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
+                GameConfig.BIG_WIN.enabled && await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
@@ -168,7 +168,7 @@ export class SpinController {
         const staticContainer = this.reelsController.getStaticContainer();
         if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
 
-        await this.continueAutoPlay();
+        void this.continueAutoPlay();
 
         debug.log("Auto play started with count:", this._autoPlayCount);
     }

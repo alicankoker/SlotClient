@@ -30,7 +30,7 @@ export class AssetLoader implements IAssetLoader {
             duration: 0.35,
             ease: "power2.out",
             onUpdate: () => {
-                signals.emit(SCREEN_SIGNALS.ASSETS_LOADED, { label, percent: this.smooth.percent });
+                signals.emit(SIGNAL_EVENTS.ASSETS_LOADED, { label, percent: this.smooth.percent });
                 debug.log("AssetLoader", `Loading ${label}: ${this.smooth.percent.toFixed(2)}%`);
             },
         });

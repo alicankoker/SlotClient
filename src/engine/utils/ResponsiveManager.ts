@@ -1,6 +1,6 @@
 import { Application, isMobile } from "pixi.js";
 import { debug } from "./debug";
-import { SCREEN_SIGNALS, signals } from '../controllers/SignalManager';
+import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { GameConfig } from "../../config/GameConfig";
 
 export interface ResponsiveConfig {
@@ -123,7 +123,7 @@ export class ResponsiveManager {
         };
 
         debug.log("ResponsiveManager", "Viewport resized: isMobile:", responsiveConfig.isMobile, "viewportWidth:", responsiveConfig.viewportWidth, "viewportHeight:", responsiveConfig.viewportHeight, "orientation:", responsiveConfig.orientation, "scale:", responsiveConfig.scale);
-        signals.emit(SCREEN_SIGNALS.SCREEN_RESIZE, responsiveConfig);
+        signals.emit(SIGNAL_EVENTS.SCREEN_RESIZE, responsiveConfig);
     }
 
     /**
