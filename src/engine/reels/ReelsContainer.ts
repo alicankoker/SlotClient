@@ -2,7 +2,7 @@ import { Container, Application, Graphics, Sprite, Texture, Point, Text } from '
 import { SpinContainer, SpinContainerConfig } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
-import { signals, SCREEN_SIGNALS, SignalSubscription } from '../controllers/SignalManager';
+import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
 import {
     InitialGridData,
     CascadeStepData
@@ -87,7 +87,7 @@ export class ReelsContainer extends Container {
     }
 
     private setupResizeHandler(): void {
-        this.resizeSubscription = signals.on(SCREEN_SIGNALS.SCREEN_RESIZE, () => {
+        this.resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, () => {
             //this.onResize();
         });
     }

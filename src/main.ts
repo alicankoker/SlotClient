@@ -14,6 +14,7 @@ import { debug } from './engine/utils/debug';
 import { WinLinesContainer } from './engine/components/WinLinesContainer';
 import { BigWin } from './engine/components/BigWin';
 import { gsap } from 'gsap';
+import { Storage } from './engine/utils/Storage';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -62,6 +63,10 @@ export class DoodleV8Main {
             // Step 5: Create scene/sprites
             this.createScene();
 
+            const storage = Storage.getInstance();
+
+            storage.setItem('player_balance', 1000);
+
             this._spinModeText = new Text({ text: ``, style: GameConfig.style.clone() });
             this._spinModeText.anchor.set(0.5, 0.5);
             this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
@@ -77,6 +82,7 @@ export class DoodleV8Main {
                         debug.log('🎲 Manual spin triggered');
                         if (this.spinController) {
                             if (this.spinController.getIsSpinning() === false && this.bigWinContainer.isBigWinActive === false && this.spinController.getIsAutoPlaying() === false) {
+                                storage.getItem('player_balance');
                                 this.spinController.executeSpin({
                                     betAmount: 10,
                                     gameMode: 'manual'
