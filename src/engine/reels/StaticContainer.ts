@@ -43,7 +43,7 @@ export class StaticContainer extends Container {
         this._winText = new Text({ text: '', style: GameConfig.style });
         this._winText.label = 'WinText';
         this._winText.anchor.set(0.5);
-        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 240);
+        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 130);
         this._winText.visible = false;
         this.addChild(this._winText);
     }

@@ -1,5 +1,6 @@
 import { FillGradient, TextStyle } from "pixi.js";
 import { AutoPlayConfig, BigWinConfig, ForceStopConfig, LoaderDurations, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
+import { GameRulesConfig } from "./GameRulesConfig";
 
 export interface ResolutionConfig {
     width: number;
@@ -34,7 +35,7 @@ export class GameConfig {
 
     // Reference spacing at base resolution
     public static readonly REFERENCE_SPACING = {
-        horizontal: 25,  // 10 pixels horizontal spacing at reference resolution
+        horizontal: 18,  // 10 pixels horizontal spacing at reference resolution
         vertical: -10      // 10 pixels vertical spacing at reference resolution
     };
 
@@ -53,8 +54,8 @@ export class GameConfig {
 
     // Game mechanics
     public static readonly GAME_RULES = {
-        reelCount: 5,
-        rowCount: 3,
+        reelCount: 6,
+        rowCount: 5,
         minBet: 1,
         maxBet: 100,
         defaultBet: 10,
@@ -63,8 +64,8 @@ export class GameConfig {
 
     // Grid layout configuration
     public static readonly GRID_LAYOUT = {
-        columns: 5,                    // Number of columns
-        visibleRows: 3,                // Number of visible rows (inside mask)
+        columns: 6,                    // Number of columns
+        visibleRows: 5,                // Number of visible rows (inside mask)
         rowsAboveMask: 1,              // Number of rows above visible area
         rowsBelowMask: 1,              // Number of rows below visible area
         totalRows: function () {
@@ -82,7 +83,7 @@ export class GameConfig {
 
     // Win animation configuration
     public static readonly WIN_ANIMATION: WinAnimationConfig = {
-        enabled: true,
+        enabled: false,
         winTextVisibility: true,
         winLoop: true,
         delayBeforeLoop: 2000,
@@ -128,12 +129,12 @@ export class GameConfig {
 
     public static readonly SAFE_AREA = {
         landscape: {
-            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1.25),
-            height: 650
+            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
+            height: this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
         },
         portrait: {
-            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1.25),
-            height: 1920
+            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
+            height: 1920 // based on REFERENCE_RESOLUTION portrait heights
         }
     };
 

@@ -45,7 +45,6 @@ export class SpinContainer extends Container {
 
     // Symbol storage - unified approach
     public symbols: (GridSymbol | Sprite | null)[][] = [];
-    public animationSymbols: Sprite[] = []; // For spinning animations
 
     // Animation state
     protected spinStartTime: number = 0;
@@ -270,13 +269,12 @@ export class SpinContainer extends Container {
 
         this.createSpinningSymbols();
         this.animateSpin();
+        this.stopSpin(); // Temporary - remove when animation implemented
 
         return true;
     }
 
     protected createSpinningSymbols(): void {
-        this.clearAnimationSymbols();
-
         const totalSymbols = this.config.symbolsVisible + 10; // Extra symbols for smooth animation
         const middleSymbolIndex = Math.floor(totalSymbols / 2);
 
@@ -296,11 +294,8 @@ export class SpinContainer extends Container {
 
                 const symbol = this.createBasicSprite(randomSymbolId, symbolY);
                 symbol.x = GameConfig.REFERENCE_RESOLUTION.width / 2; // Offset for container position
-                this.animationSymbols.push(symbol);
             }
         }
-
-        debug.log(`SpinContainer: Created ${this.animationSymbols.length} spinning symbols for ${this.columns} reels with pixel coordinates`);
     }
 
     protected animateSpin(): void {
@@ -332,8 +327,6 @@ export class SpinContainer extends Container {
 
     protected stopSpin(): void {
         this.isSpinning = false;
-        this.clearAnimationSymbols();
-        //this.setSymbols(this.targetSymbols);
 
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();
@@ -422,15 +415,6 @@ export class SpinContainer extends Container {
                 symbol.destroy();
             });
         });
-        this.clearAnimationSymbols();
-    }
-
-    protected clearAnimationSymbols(): void {
-        this.animationSymbols.forEach(symbol => {
-            this.removeChild(symbol);
-            symbol.destroy();
-        });
-        this.animationSymbols = [];
     }
 
     // Getters
