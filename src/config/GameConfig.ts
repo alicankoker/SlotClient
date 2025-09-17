@@ -74,10 +74,10 @@ export class GameConfig {
 
     // Loader configuration
     public static readonly LOADER_DEFAULT_TIMINGS: LoaderDurations = {
-        minDisplayTime: 600,
-        transitionTo100: 500,
-        holdAfter100: 150,
-        fadeOut: 50
+        minDisplayTime: 1000, // minimum time to show loader (ms)
+        transitionTo100: 600, // time to transition to 100% (ms)
+        holdAfter100: 150, // time to hold at 100% before fade out (ms)
+        fadeOut: 50 // fade out duration (ms)
     };
 
     // Win animation configuration

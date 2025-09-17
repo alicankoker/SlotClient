@@ -1,5 +1,5 @@
-import { Application, Container, Graphics, Text } from "pixi.js";
-import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
+import { Application, Assets, Container, Graphics, Sprite, Text } from "pixi.js";
+import { signals, SCREEN_SIGNALS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import { GameConfig } from "../../config/GameConfig";
@@ -18,59 +18,110 @@ export class Loader extends Container {
     private completionPromise: Promise<void>;
     private resolveCompletion!: () => void;
 
-    private track!: Graphics;
-    private fill!: Graphics;
+    private frame!: Sprite;
+    private fill!: Sprite;
+    private fillMask!: Graphics;
     private percentageLabel!: Text;
     private progressStatus!: Text;
-    
-    private barWidth: number = 450;
-    private barHeight: number = 26;
-    private padding: number = 4;
 
-    private constructor() {
+    private padding: number = 1533;
+
+    private constructor(app: Application) {
         super();
 
+        this.app = app;
+
         this.completionPromise = new Promise<void>((resolve) => (this.resolveCompletion = resolve));
-        
-        signals.on(SIGNAL_EVENTS.ASSETS_LOADED, this.handleAssetsLoaded);
+        signals.on(SCREEN_SIGNALS.ASSETS_LOADED, this.handleAssetsLoaded);
+
+        app.stage.addChild(this);
+        app.stage.sortableChildren = true;
+        this.zIndex = 9999;
     }
 
-    public static getInstance(): Loader {
+    public static getInstance(app: Application): Loader {
         if (!Loader._instance) {
-            Loader._instance = new Loader();
+            Loader._instance = new Loader(app);
         }
         return Loader._instance;
     }
 
-    public init(): void {
-        if (!this.track) this.create();
-    }
+    public async create(): Promise<void> {
+        const backgroundTexture = await Assets.load('background_landscape_1440');
+        const logoTexture = await Assets.load('game_logo_vertical');
+        const frameTexture = await Assets.load('loading_bar_frame');
+        const fillTexture = await Assets.load('loading_bar_fill');
 
-    private create(): void {
-        this.track = new Graphics()
-            .roundRect(0, 0, this.barWidth, this.barHeight, this.barHeight / 2)
-            .fill(0x22242a);
-        this.addChild(this.track);
+        const background = Sprite.from(backgroundTexture);
+        background.anchor.set(0.5, 0.5);
+        background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this.addChild(background);
 
-        this.fill = new Graphics();
+        const logo = Sprite.from(logoTexture);
+        logo.anchor.set(0.5, 0.5);
+        logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this.addChild(logo);
+
+        this.frame = Sprite.from(frameTexture);
+        this.frame.anchor.set(0.5, 0.5);
+        this.frame.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
+        this.addChild(this.frame);
+
+        this.fill = Sprite.from(fillTexture);
+        this.fill.anchor.set(1, 0.5);
+        this.fill.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2 - this.frame.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 299);
         this.addChild(this.fill);
-        this.redrawFill(0);
+
+        this.fillMask = new Graphics();
+        this.fillMask.roundRect(
+            GameConfig.REFERENCE_RESOLUTION.width / 2 - this.fill.width / 2,
+            GameConfig.REFERENCE_RESOLUTION.height / 2 - this.fill.height / 2 + 299,
+            this.fill.width,
+            this.fill.height,
+            20
+        );
+        this.fillMask.fill({ color: 0xffffff, alpha: 0 });
+        this.addChild(this.fillMask);
+        this.fill.mask = this.fillMask;
 
         this.percentageLabel = new Text({
             text: "0%",
-            style: { fontFamily: "Inter, Arial", fontSize: 15, fill: 0xffffff },
+            style: {
+                fontFamily: "Nunito Black",
+                fontSize: 35,
+                fill: 0x000000,
+                trim: true
+            },
         });
         this.percentageLabel.anchor.set(0.5, 0.5);
-        this.percentageLabel.position.set(this.barWidth / 2, this.barHeight / 2);
+        this.percentageLabel.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         this.addChild(this.percentageLabel);
 
         this.progressStatus = new Text({
             text: "Loading...",
-            style: { fontFamily: "Inter, Arial", fontSize: 18, fill: 0x000000 },
+            style: {
+                fontFamily: "Nunito Black",
+                fontSize: 35,
+                fill: 0x000000,
+                trim: true
+            },
         });
         this.progressStatus.anchor.set(0.5, 0.5);
-        this.progressStatus.position.set(this.barWidth / 2, this.barHeight / 2 + 30);
+        this.progressStatus.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
         this.addChild(this.progressStatus);
+
+        const bePatientText = new Text({
+            text: "Please be patient, this may take a while...",
+            style: {
+                fontFamily: "Nunito Black",
+                fontSize: 35,
+                fill: 0x000000,
+                trim: true
+            },
+        });
+        bePatientText.anchor.set(0.5, 0.5);
+        bePatientText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 930);
+        this.addChild(bePatientText);
     }
 
     private onLoaded(label: string, percent: number) {
@@ -91,30 +142,11 @@ export class Loader extends Container {
 
     private redrawFill(ratio01: number) {
         const clamped = Math.max(0, Math.min(1, ratio01));
-        const width = clamped * (this.barWidth - this.padding * 2);
-        this.fill
-            .clear()
-            .roundRect(
-                this.padding,
-                this.padding,
-                width,
-                this.barHeight - this.padding * 2,
-                (this.barHeight - this.padding * 2) / 2
-            )
-            .fill(0x30d158);
+        const width = clamped * this.padding;
+        this.fill.position.x = width;
     }
 
-    public mount(app: Application) {
-        this.app = app;
-        app.stage.addChild(this);
-        app.stage.sortableChildren = true;
-        this.zIndex = 9999;
-
-        this.position.set(
-            (GameConfig.REFERENCE_RESOLUTION.width - this.barWidth) / 2,
-            (GameConfig.REFERENCE_RESOLUTION.height - this.barHeight) / 2
-        );
-
+    public mount() {
         // pulse effect
         gsap.to(this.fill, {
             alpha: 0.5,
@@ -200,16 +232,6 @@ export class Loader extends Container {
         });
 
         this.resolveCompletion?.();
-    }
-
-    public resize(width: number) {
-        this.barWidth = width;
-        this.track
-            .clear()
-            .roundRect(0, 0, this.barWidth, this.barHeight, this.barHeight / 2)
-            .fill(0x22242a);
-        this.percentageLabel.position.set(this.barWidth / 2, this.barHeight / 2);
-        this.redrawFill(this.smooth.percent / 100);
     }
 
     public get progress(): Promise<void> {

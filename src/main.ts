@@ -15,6 +15,7 @@ import { WinLinesContainer } from './engine/components/WinLinesContainer';
 import { BigWin } from './engine/components/BigWin';
 import { gsap } from 'gsap';
 import { FeatureScreen } from './engine/components/FeatureScreen';
+import { eventBus } from './engine/utils/EventManager';
 import { Storage } from './engine/utils/Storage';
 
 export class DoodleV8Main {
@@ -53,9 +54,10 @@ export class DoodleV8Main {
 
             // Step 3: Load assets with progress bar BEFORE creating controllers (symbols need textures)
             await Promise.all([
-                this.startLoader(),
-                this.loadAssets()
+                this.loadAssets(),
+                this.startLoader()
             ]);
+            
             // Step 4: Initialize controllers (now that assets are loaded)
             this.initializeControllers(initData);
 
@@ -284,9 +286,9 @@ export class DoodleV8Main {
     }
 
     private async startLoader(): Promise<void> {
-        const loader = Loader.getInstance();
-        loader.init();
-        loader.mount(this.app);
+        const loader = Loader.getInstance(this.app);
+        await loader.create();
+        loader.mount();
         // set custom loader timings (milliseconds)
         loader.setTimings(GameConfig.LOADER_DEFAULT_TIMINGS);
         await loader.progress; // Wait for the loader to complete
