@@ -13,6 +13,7 @@ import {
     SpinMode
 } from '../types/GameTypes';
 import { debug } from '../utils/debug';
+import SoundManager from './SoundManager';
 
 export interface SpinControllerConfig {
     reelsController: ReelsController;
@@ -22,6 +23,7 @@ export interface SpinControllerConfig {
 
 export class SpinController {
     private reelsController: ReelsController;
+    private _soundManager: SoundManager;
     private _bigWinContainer: BigWin;
 
     // State management
@@ -49,6 +51,7 @@ export class SpinController {
 
     constructor(config: SpinControllerConfig) {
         this.reelsController = config.reelsController;
+        this._soundManager = SoundManager.getInstance();
         this._bigWinContainer = BigWin.getInstance();
     }
 
@@ -88,6 +91,8 @@ export class SpinController {
             // Display initial grid and start cascading
             //await this.processInitialGrid(response.result.initialGrid);
 
+            this._soundManager.play('spin', true, 0.75); // Play spin sound effect
+
             this.reelsController.startSpin([response.result.finalGrid.symbols.map((symbol: { symbolId: number; }) => symbol.symbolId)]);
 
             if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
@@ -108,6 +113,9 @@ export class SpinController {
             this.reelsController.stopSpin();
             this.setState(ISpinState.COMPLETED);
 
+            this._soundManager.stop('spin');
+            this._soundManager.play('stop', false, 0.75); // Play stop sound effect
+
             if (this.onSpinCompleteCallback) {
                 this.onSpinCompleteCallback(response);
             }
@@ -120,7 +128,7 @@ export class SpinController {
                     this.stopAutoPlay();
                 }
 
-                await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
+                GameConfig.BIG_WIN.enabled && await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
@@ -160,7 +168,7 @@ export class SpinController {
         const staticContainer = this.reelsController.getStaticContainer();
         if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
 
-        await this.continueAutoPlay();
+        void this.continueAutoPlay();
 
         debug.log("Auto play started with count:", this._autoPlayCount);
     }
