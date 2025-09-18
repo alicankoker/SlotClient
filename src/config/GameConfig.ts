@@ -83,12 +83,12 @@ export class GameConfig {
 
     // Win animation configuration
     public static readonly WIN_ANIMATION: WinAnimationConfig = {
-        enabled: false,
+        enabled: true,
         winTextVisibility: true,
         winLoop: true,
         delayBeforeLoop: 2000,
         delayBetweenLoops: 1000,
-        winlineVisibility: true
+        winlineVisibility: false
     };
 
     // Auto play configuration

@@ -1,6 +1,6 @@
 import { Application, Circle, Container, NineSliceSprite, Sprite, Text, Texture } from "pixi.js";
 import { GameConfig } from "../../config/GameConfig";
-import { SCREEN_SIGNALS, signals, SignalSubscription } from "../controllers/SignalManager";
+import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import gsap from "gsap";
 import { Helpers } from "../utils/Helpers";
@@ -392,7 +392,7 @@ export class FeatureScreen extends Container {
 
     private setupResizeHandler(): void {
         // Subscribe to resize events using the signal system
-        this._resizeSubscription = signals.on(SCREEN_SIGNALS.SCREEN_RESIZE, this.onResize.bind(this));
+        this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, this.onResize.bind(this));
     }
 
     private onResize(responsiveConfig?: ResponsiveConfig): void {

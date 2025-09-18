@@ -269,7 +269,7 @@ export class SpinContainer extends Container {
 
         this.createSpinningSymbols();
         this.animateSpin();
-        this.stopSpin(); // Temporary - remove when animation implemented
+        //this.stopSpin(); // Temporary - remove when animation implemented
 
         return true;
     }

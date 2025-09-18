@@ -7,6 +7,7 @@ import { WinConfig } from '../types/GameTypes';
 import { gsap } from 'gsap';
 import { WinLinesContainer } from '../components/WinLinesContainer';
 import SoundManager from '../controllers/SoundManager';
+import { Helpers } from '../utils/Helpers';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -179,7 +180,7 @@ export class StaticContainer extends Container {
                     x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
                         if (this._animationToken !== token) return;
 
-                        this._winText.text = `You won ${winData.amount}€${winData.multiplier > 1 ? ` with X${winData.multiplier} multipliers` : ''}!`;
+                        this._winText.text = `You won ${Helpers.convertToDecimal(winData.amount)}€${winData.multiplier > 1 ? ` with X${winData.multiplier} multipliers` : ''}!`;
                         this._winText.visible = true;
                     }
                 });
@@ -300,7 +301,7 @@ export class StaticContainer extends Container {
                 // Play win text animation
                 gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                     x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                        this._winText.text = `You won ${amount}€ on lines ${lines.join(', ')}!`;
+                        this._winText.text = `You won ${Helpers.convertToDecimal(amount)}€ on lines ${lines.join(', ')}!`;
                         this._winText.visible = true;
                     },
                     onComplete: () => {

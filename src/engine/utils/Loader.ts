@@ -1,5 +1,5 @@
 import { Application, Assets, Container, Graphics, Sprite, Text } from "pixi.js";
-import { signals, SCREEN_SIGNALS } from "../controllers/SignalManager";
+import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import { GameConfig } from "../../config/GameConfig";
@@ -32,7 +32,7 @@ export class Loader extends Container {
         this.app = app;
 
         this.completionPromise = new Promise<void>((resolve) => (this.resolveCompletion = resolve));
-        signals.on(SCREEN_SIGNALS.ASSETS_LOADED, this.handleAssetsLoaded);
+        signals.on(SIGNAL_EVENTS.ASSETS_LOADED, this.handleAssetsLoaded);
 
         app.stage.addChild(this);
         app.stage.sortableChildren = true;
