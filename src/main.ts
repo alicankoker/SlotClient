@@ -15,7 +15,6 @@ import { WinLinesContainer } from './engine/components/WinLinesContainer';
 import { BigWin } from './engine/components/BigWin';
 import { gsap } from 'gsap';
 import { FeatureScreen } from './engine/components/FeatureScreen';
-import { eventBus } from './engine/utils/EventManager';
 import { Storage } from './engine/utils/Storage';
 
 export class DoodleV8Main {

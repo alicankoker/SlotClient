@@ -13,6 +13,7 @@ import { Sprite } from 'pixi.js';
 import { Helpers } from '../utils/Helpers';
 import { SpinConfig } from '../../config/SpinConfig';
 import { debug } from '../utils/debug';
+import { GameRulesConfig } from '../../config/GameRulesConfig';
 
 export enum IReelMode {
     STATIC = 'static',
@@ -56,7 +57,7 @@ export class ReelController {
         // Extract symbols for this reel (column) from flat array
         // Using GridUtils helper for proper index calculation
         const reelSymbols: number[] = [];
-        for (let row = 0; row < 3; row++) {
+        for (let row = 0; row < GameRulesConfig.GRID.rowCount; row++) {
             const flatIndex = GridUtils.positionToIndex(this.reelIndex, row);
             reelSymbols.push(initData.symbols[flatIndex].symbolId);
         }
@@ -122,6 +123,7 @@ export class ReelController {
     // Symbol management
     public setSymbols(symbols: number[]): void {
         this.currentSymbols = [...symbols];
+        console.log(this.currentSymbols);
         this.syncSymbolsToViews();
     }
 
@@ -175,6 +177,7 @@ export class ReelController {
         this.currentSpeed = SpinConfig.SPIN_SPEED;
 
         return this.spinContainer.startSpin(targetSymbols, () => {
+            console.log(targetSymbols);
             this.onSpinComplete(targetSymbols);
         });
     }
@@ -338,7 +341,7 @@ export class ReelController {
         if (this._spinMode === mode) return;
 
         this._spinMode = mode;
-        
+
         debug.log(`ReelController ${this.reelIndex}: Spin mode set to ${mode}`);
     }
 

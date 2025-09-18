@@ -1,6 +1,6 @@
 import { Assets, Texture } from "pixi.js";
 import { AssetBundle, IAssetLoader, BundleFile, AudioBundle } from "../types/IAssetLoader";
-import { SCREEN_SIGNALS, signals } from '../controllers/SignalManager';
+import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import SoundManager from "../controllers/SoundManager";

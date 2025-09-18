@@ -70,43 +70,43 @@ export class ResponsiveManager {
         // set orientation
         const orientation = viewportWidth >= viewportHeight ? GameConfig.ORIENTATION.landscape : GameConfig.ORIENTATION.portrait;
 
-        // game width and height
-        const gameWidth: number = GameConfig.REFERENCE_RESOLUTION.width * this._app.renderer.resolution;
-        const gameHeight: number = GameConfig.REFERENCE_RESOLUTION.height * this._app.renderer.resolution;
+        // reference width/height
+        const refWidth: number = GameConfig.REFERENCE_RESOLUTION.width;
+        const refHeight: number = GameConfig.REFERENCE_RESOLUTION.height;
 
-        // safe width and height
-        const safeWidth: number = (orientation == GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.width : GameConfig.SAFE_AREA.portrait.width) * this._app.renderer.resolution;
-        const safeHeight: number = (orientation == GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.height : GameConfig.SAFE_AREA.portrait.height) * this._app.renderer.resolution;
+        // safe width/height
+        const safeWidth: number = orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.width : GameConfig.SAFE_AREA.portrait.width;
+        const safeHeight: number = orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.height : GameConfig.SAFE_AREA.portrait.height;
 
-        // new width and height
+        // effective width/height (clamped between reference and safe area)
+        const effectiveWidth = Math.min(Math.max(viewportWidth, Math.max(refWidth, safeWidth)), safeWidth);
+        const effectiveHeight = Math.min(Math.max(viewportHeight, Math.max(refHeight, safeHeight)), safeHeight);
+
+        // calculated width/height
         let calculatedWidth: number;
         let calculatedHeight: number;
-        if (gameHeight / gameWidth > viewportHeight / viewportWidth) {
-            if (safeHeight / gameWidth > viewportHeight / viewportWidth) {
-                calculatedHeight = (viewportHeight * gameHeight) / safeHeight;
-                calculatedWidth = (calculatedHeight * gameWidth) / gameHeight;
-            } else {
-                calculatedWidth = viewportWidth;
-                calculatedHeight = (calculatedWidth * gameHeight) / gameWidth;
-            }
+
+        if (effectiveHeight / effectiveWidth > viewportHeight / viewportWidth) {
+            calculatedHeight = viewportHeight;
+            calculatedWidth = (calculatedHeight * effectiveWidth) / effectiveHeight;
         } else {
-            if (gameHeight / safeWidth > viewportHeight / viewportWidth) {
-                calculatedHeight = viewportHeight;
-                calculatedWidth = (calculatedHeight * gameWidth) / gameHeight;
-            } else {
-                calculatedWidth = (viewportWidth * gameWidth) / safeWidth;
-                calculatedHeight = (calculatedWidth * gameHeight) / gameWidth;
-            }
+            calculatedWidth = viewportWidth;
+            calculatedHeight = (calculatedWidth * effectiveHeight) / effectiveWidth;
         }
 
-        // aligns screen with padding
-        const padding = this.resolveAlignment({ width: viewportWidth, height: viewportHeight }, { width: calculatedWidth, height: calculatedHeight });
+        // scale
+        const scale: number = Math.round((orientation === GameConfig.ORIENTATION.landscape ? calculatedHeight / effectiveHeight : calculatedWidth / effectiveWidth) * 10000) / 10000;
 
-        // set viewport scale
-        const scale: number = Math.round((orientation == GameConfig.ORIENTATION.landscape ? calculatedHeight / gameHeight : calculatedWidth / gameWidth) * this._app.renderer.resolution * 10000) / 10000;
         this._app.stage.scale.set(scale);
 
-        // set game new size
+        // final stage width/height (reference size scaled)
+        const stageWidth = refWidth * scale;
+        const stageHeight = refHeight * scale;
+
+        // alignment
+        const padding = this.resolveAlignment({ width: viewportWidth, height: viewportHeight }, { width: stageWidth, height: stageHeight });
+
+        // resize + position
         this._app.renderer.resize(viewportWidth, viewportHeight);
         this._app.stage.position.set(padding.x, padding.y);
 
@@ -127,8 +127,10 @@ export class ResponsiveManager {
     }
 
     /**
-     * @description Get the current viewport width.
-     * @returns {number} The viewport width.
+     * @description Resolve alignment based on the specified alignment setting.
+     * @param viewport The current viewport dimensions.
+     * @param calculated The calculated stage dimensions.
+     * @returns {number} The x and y coordinates for the stage position.
      */
     private resolveAlignment(viewport: { width: number; height: number }, calculated: { width: number; height: number }): { x: number; y: number } {
         let left, top;

@@ -1,5 +1,6 @@
 // SpinContainer import removed - not directly used in this controller
 import { GameConfig } from '../../config/GameConfig';
+import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { SpinConfig } from '../../config/SpinConfig';
 import { BigWin } from '../components/BigWin';
 import { ReelsController } from '../reels/ReelsController';
@@ -324,12 +325,18 @@ export class SpinController {
         await this.delay(100);
 
         // Mock response - replace with actual server call
+        const createRandomGrid = (maxSymbolId: number) => {
+            return Array(GameRulesConfig.GRID.rowCount * GameRulesConfig.GRID.reelCount)
+                .fill(0)
+                .map(() => ({ symbolId: Math.floor(Math.random() * maxSymbolId) }));
+        };
+
         const mockResponse: SpinResponseData = {
             success: true,
             result: {
                 spinId: `spin_${Date.now()}`,
                 initialGrid: {
-                    symbols: Array(15).fill(0).map((_, i) => ({ symbolId: i % 10 }))
+                    symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
                 },
                 cascadeSteps: [
                     {
@@ -337,16 +344,20 @@ export class SpinController {
                         matches: [],
                         indicesToRemove: [0, 1, 2],
                         symbolsToDrop: [],
-                        newSymbols: [{ symbolId: 5 }, { symbolId: 6 }, { symbolId: 7 }],
+                        newSymbols: [
+                            { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) },
+                            { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) },
+                            { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) }
+                        ],
                         newSymbolIndices: [0, 1, 2],
                         gridAfter: {
-                            symbols: Array(15).fill(0).map((_, i) => ({ symbolId: (i + 5) % 10 }))
+                            symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
                         }
                     }
                 ],
                 totalWin: request.betAmount * 2,
                 finalGrid: {
-                    symbols: Array(15).fill(0).map((_, i) => ({ symbolId: (i + 5) % 10 }))
+                    symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
                 }
             }
         };
