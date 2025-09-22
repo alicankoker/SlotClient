@@ -25,6 +25,8 @@ export class Symbol extends Sprite {
         const texture = Symbol.getTextureForSymbol(config.symbolId);
         super(texture);
 
+        this.label = `Symbol_${config.symbolId}`;
+
         this.anchor.set(0.5, 0.5);
         this.scale.set(config.scale || 1);
         this.position.set(config.position.x, config.position.y);

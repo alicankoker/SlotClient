@@ -5,6 +5,7 @@ import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import gsap from "gsap";
 import { Helpers } from "../utils/Helpers";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { eventBus } from "../utils/WindowEventManager";
 
 export class FeatureScreen extends Container {
     private _app: Application;
@@ -13,7 +14,9 @@ export class FeatureScreen extends Container {
     private _previewContainer!: Container;
     private _spinButtonContainer!: Container;
     private _volatilityContainer!: Container;
+    private _dontShowContainer!: Container;
     private _resizeSubscription?: SignalSubscription;
+    private _resolveClose?: () => void;
     private _previewElements: any[][] = [];
     private _previewText!: Text;
     private _previewButton!: Sprite;
@@ -243,7 +246,14 @@ export class FeatureScreen extends Container {
 
             localStorage.setItem('featureScreenDontShow', this._dontShow ? 'true' : 'false');
 
+            eventBus.emit("showUI");
+
             this.destroy();
+
+            if (this._resolveClose) {
+                this._resolveClose();
+                this._resolveClose = undefined;
+            }
         });
     }
 
@@ -302,10 +312,10 @@ export class FeatureScreen extends Container {
     }
 
     private setupDontShowButton(): void {
-        const dontShowContainer = new Container();
-        dontShowContainer.label = 'DontShowContainer';
-        dontShowContainer.position.set(1550, 900);
-        this.addChild(dontShowContainer);
+        this._dontShowContainer = new Container();
+        this._dontShowContainer.label = 'DontShowContainer';
+        this._dontShowContainer.position.set(1550, 900);
+        this.addChild(this._dontShowContainer);
 
         const dontShowTextBg = new NineSliceSprite({
             texture: Texture.from('bet_area'),
@@ -321,7 +331,7 @@ export class FeatureScreen extends Container {
         });
         dontShowTextBg.width = 575;
         dontShowTextBg.label = 'DontShowTextBg';
-        dontShowContainer.addChild(dontShowTextBg);
+        this._dontShowContainer.addChild(dontShowTextBg);
 
         const dontShowButton = Sprite.from('slider_button_frame');
         dontShowButton.label = 'DontShowButton';
@@ -330,7 +340,7 @@ export class FeatureScreen extends Container {
         dontShowButton.interactive = true;
         dontShowButton.cursor = 'pointer';
         dontShowButton.hitArea = new Circle(0, 0, 30);
-        dontShowContainer.addChild(dontShowButton);
+        this._dontShowContainer.addChild(dontShowButton);
 
         const dontShowButtonIcon = Sprite.from('slider_button');
         dontShowButtonIcon.label = 'DontShowButtonIcon';
@@ -351,7 +361,7 @@ export class FeatureScreen extends Container {
         dontShowText.label = 'DontShowText';
         dontShowText.anchor.set(0, 0.5);
         dontShowText.position.set(-220, 0);
-        dontShowContainer.addChild(dontShowText);
+        this._dontShowContainer.addChild(dontShowText);
 
         dontShowButton.on('pointerup', () => {
             dontShowButtonIcon.visible = !dontShowButtonIcon.visible;
@@ -390,6 +400,12 @@ export class FeatureScreen extends Container {
         this._lastTime = performance.now();
     }
 
+    public async waitForClose(): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this._resolveClose = resolve;
+        });
+    }
+
     private setupResizeHandler(): void {
         // Subscribe to resize events using the signal system
         this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, this.onResize.bind(this));
@@ -398,6 +414,34 @@ export class FeatureScreen extends Container {
     private onResize(responsiveConfig?: ResponsiveConfig): void {
         const assetName = responsiveConfig?.isMobile ? (responsiveConfig.orientation === GameConfig.ORIENTATION.landscape ? "background_landscape_1440" : "background_portrait_1440") : "background_landscape_1440";
         this._background.texture = Texture.from(assetName);
+
+        switch (responsiveConfig?.isMobile) {
+            case true:
+                switch (responsiveConfig?.orientation) {
+                    case GameConfig.ORIENTATION.portrait:
+                        this._background.texture = Texture.from("background_portrait_1440");
+
+                        this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, -200);
+                        this._previewContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 330);
+                        this._spinButtonContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 970);
+                        this._volatilityContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1130);
+                        this._dontShowContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1250);
+                        break;
+                    case GameConfig.ORIENTATION.landscape:
+                        this._background.texture = Texture.from("background_landscape_1440");
+
+                        this._logo.position.set(1550, 260);
+                        this._previewContainer.position.set(690, 460);
+                        this._spinButtonContainer.position.set(1550, 620);
+                        this._volatilityContainer.position.set(1550, 760);
+                        this._dontShowContainer.position.set(1550, 900);
+                        break;
+                }
+                break;
+            default:
+                this._background.texture = Texture.from("background_landscape_1440");
+                break;
+        }
     }
 
     public destroy(): void {

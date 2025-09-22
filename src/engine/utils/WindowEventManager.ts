@@ -2,9 +2,12 @@ type eventType = {
   error: string;
   spin: null;
   setComponentState: TSetComponentStateEventMap;
+  setBatchComponentState: TSetBatchComponentStateEventMap;
+  showUI: null;
+  hideUI: null;
 };
 
-class EventManager<Events extends Record<string, any>> {
+class EventManager<Events extends eventType> {
   on<K extends keyof Events>(event: K, listener: (payload: Events[K]) => void) {
     const domListener = (e: Event) => {
       listener((e as CustomEvent).detail as Events[K]);
@@ -15,10 +18,7 @@ class EventManager<Events extends Record<string, any>> {
     window.addEventListener(event as string, domListener);
   }
 
-  off<K extends keyof Events>(
-    event: K,
-    listener: (payload: Events[K]) => void
-  ) {
+  off<K extends keyof Events>(event: K, listener: (payload: Events[K]) => void) {
     const domListener = (listener as any).__domListener;
     if (domListener) {
       window.removeEventListener(event as string, domListener);
@@ -37,12 +37,25 @@ export const eventBus = new EventManager<eventType>();
 
 export type { eventType };
 
+// Common properties for Batch Update that exist in all components
+type TCommonComponentProperties = {
+  disabled?: boolean;
+  onPress?: () => void;
+};
+// Intersection of all component variants for Batch Update (only 'default' exists in all)
+type TCommonVariants = 'default';
+
 type TSetComponentStateEventMap = {
   [K in TComponentNames]: {
     componentName: K;
     variantOrUpdates: TComponentVariants[K] | TComponentUpdates[K];
   };
 }[TComponentNames];
+
+type TSetBatchComponentStateEventMap = {
+  componentNames: TComponentNames[];
+  variantOrUpdates: TCommonVariants | TCommonComponentProperties;
+};
 
 type TComponentNames =
   | 'mobileBetButton'
@@ -82,29 +95,29 @@ type TComponentUpdates = {
 
 type TOutlinedButtonSpan =
   | {
-      label: string;
-      iconSvgPath?: undefined;
-      iconSvgFillColor?: undefined;
-      iconSvgClassName?: undefined;
-    }
+    label: string;
+    iconSvgPath?: undefined;
+    iconSvgFillColor?: undefined;
+    iconSvgClassName?: undefined;
+  }
   | {
-      label?: undefined;
-      iconSvgPath: string;
-      iconSvgFillColor: TSvgFillColor;
-      iconSvgClassName?: string;
-    };
+    label?: undefined;
+    iconSvgPath: string;
+    iconSvgFillColor: TSvgFillColor;
+    iconSvgClassName?: string;
+  };
 
 type TOutlinedButtonOutline =
   | {
-      outlineSvgPath?: undefined;
-      outlineSvgFillColor?: undefined;
-      outlineSvgClassName?: undefined;
-    }
+    outlineSvgPath?: undefined;
+    outlineSvgFillColor?: undefined;
+    outlineSvgClassName?: undefined;
+  }
   | {
-      outlineSvgPath: string;
-      outlineSvgFillColor: TSvgFillColor;
-      outlineSvgClassName?: string;
-    };
+    outlineSvgPath: string;
+    outlineSvgFillColor: TSvgFillColor;
+    outlineSvgClassName?: string;
+  };
 
 type IOutlinedButton = TOutlinedButtonSpan &
   TOutlinedButtonOutline & {
@@ -114,76 +127,76 @@ type IOutlinedButton = TOutlinedButtonSpan &
     bgColor?: TColors;
     color?: TColors;
     disabled?: boolean;
-  }; 
+  };
 
-  interface IInfoButton {
+interface IInfoButton {
+  variant: TButtonVariants;
+  onPress?: () => void;
+  fillColor: TSvgFillColor;
+  disabled?: boolean;
+}
+
+type TSvgFillColor =
+  | `#${string}`
+  | `rgb(${number},${number},${number})`
+  | `rgba(${number},${number},${number},${number})`
+  | 'transparent'
+  | 'currentColor';
+
+type TColors =
+  | 'background'
+  | 'blue'
+  | 'green'
+  | 'orange'
+  | 'white'
+  | 'black'
+  | 'red';
+type TButtonVariants =
+  | 'default'
+  | 'pressable'
+  | 'active'
+  | 'spinning'
+  | 'passive';
+
+interface IIconButton {
+  variant: TButtonVariants;
+  icon: string;
+  onPress?: () => void;
+  color?: string;
+  disabled?: boolean;
+}
+
+type TLabeledPriceButtonLabel =
+  | {
+    label: string;
+    labelColor: string;
+  }
+  | {
+    label?: undefined;
+    labelColor?: undefined;
+  };
+
+type TLabeledPriceButtonRightIcon =
+  | {
+    rightIconSvgPath: string;
+    rightIconBgColor: string;
+    rightIconSvgFillColor: TSvgFillColor;
+  }
+  | {
+    rightIconSvgPath?: undefined;
+    rightIconBgColor?: undefined;
+    rightIconSvgFillColor?: undefined;
+  };
+
+type ILabeledPriceButton = TLabeledPriceButtonLabel &
+  TLabeledPriceButtonRightIcon & {
     variant: TButtonVariants;
     onPress?: () => void;
-    fillColor: TSvgFillColor;
+    value?: number;
     disabled?: boolean;
-  }
+  };
 
-  type TSvgFillColor =
-    | `#${string}`
-    | `rgb(${number},${number},${number})`
-    | `rgba(${number},${number},${number},${number})`
-    | 'transparent'
-    | 'currentColor';
 
-    type TColors =
-      | 'background'
-      | 'blue'
-      | 'green'
-      | 'orange'
-      | 'white'
-      | 'black'
-      | 'red';
-    type TButtonVariants =
-      | 'default'
-      | 'pressable'
-      | 'active'
-      | 'spinning'
-      | 'passive';
-
-      interface IIconButton {
-        variant: TButtonVariants;
-        icon: string;
-        onPress?: () => void;
-        color?: string;
-        disabled?: boolean;
-      }
-
-      type TLabeledPriceButtonLabel =
-        | {
-            label: string;
-            labelColor: string;
-          }
-        | {
-            label?: undefined;
-            labelColor?: undefined;
-          };
-
-      type TLabeledPriceButtonRightIcon =
-        | {
-            rightIconSvgPath: string;
-            rightIconBgColor: string;
-            rightIconSvgFillColor: TSvgFillColor;
-          }
-        | {
-            rightIconSvgPath?: undefined;
-            rightIconBgColor?: undefined;
-            rightIconSvgFillColor?: undefined;
-          };
-
-      type ILabeledPriceButton = TLabeledPriceButtonLabel &
-        TLabeledPriceButtonRightIcon & {
-          variant: TButtonVariants;
-          onPress?: () => void;
-          value?: number;
-          disabled?: boolean;
-        };
-
-        
 interface ISvgButton {
   variant: TButtonVariants;
   svgFilePath: string;

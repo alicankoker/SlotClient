@@ -110,10 +110,6 @@ export class ReelController {
         debug.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
         this.currentMode = mode;
         this.updateViewVisibility();
-        // Update symbols in the static container if in STATIC mode
-        if (this.currentMode === IReelMode.STATIC && this.staticContainer) {
-            await this.staticContainer.updateSymbols(this.currentSymbols, this.reelIndex);
-        }
     }
 
     public getMode(): IReelMode {
@@ -123,8 +119,6 @@ export class ReelController {
     // Symbol management
     public setSymbols(symbols: number[]): void {
         this.currentSymbols = [...symbols];
-        console.log(this.currentSymbols);
-        this.syncSymbolsToViews();
     }
 
     public getSymbols(): number[] {
@@ -158,7 +152,6 @@ export class ReelController {
         }
 
         this.currentSymbols[position] = symbolId;
-        this.syncSymbolsToViews();
         return true;
     }
 
@@ -177,7 +170,6 @@ export class ReelController {
         this.currentSpeed = SpinConfig.SPIN_SPEED;
 
         return this.spinContainer.startSpin(targetSymbols, () => {
-            console.log(targetSymbols);
             this.onSpinComplete(targetSymbols);
         });
     }
@@ -210,8 +202,8 @@ export class ReelController {
         this.isSpinning = false;
 
         // Switch to static mode BEFORE setting symbols so StaticContainer gets updated
-        this.setMode(IReelMode.STATIC);
         this.setSymbols(finalSymbols);
+        this.setMode(IReelMode.STATIC);
 
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();

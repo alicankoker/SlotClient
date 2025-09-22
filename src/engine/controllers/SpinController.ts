@@ -113,6 +113,7 @@ export class SpinController {
 
             this.reelsController.stopSpin();
             this.setState(ISpinState.COMPLETED);
+            this.reelsController.getReelsContainer()?.getSpinContainer()?.stopSpin();
 
             this._soundManager.stop('spin');
             this._soundManager.play('stop', false, 0.75); // Play stop sound effect

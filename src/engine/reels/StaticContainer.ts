@@ -66,10 +66,8 @@ export class StaticContainer extends Container {
      * @param reelIndex - The index of the reel to update (optional).
      * @returns void
      */
-    public updateSymbols(symbolIds: number[], reelIndex?: number): Promise<void[]> {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
-
-        return Promise.all((this._symbols.get(targetReelIndex) ?? []).map(async (symbol, index) => {
+    public updateSymbols(symbolIds: number[]): Promise<void[]> { // TODO bazen sembollerin landing animasyonu promise atmıyor
+        return Promise.all(Array.from(this._symbols.values()).flat().map(async (symbol, index) => {
             if (symbolIds[index] !== undefined) {
                 return symbol.setSymbol(symbolIds[index]);
             }

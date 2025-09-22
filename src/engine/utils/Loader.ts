@@ -1,8 +1,9 @@
-import { Application, Assets, Container, Graphics, Sprite, Text } from "pixi.js";
+import { Application, Assets, Container, Graphics, Sprite, Text, Texture } from "pixi.js";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import { GameConfig } from "../../config/GameConfig";
+import { ResponsiveConfig } from "./ResponsiveManager";
 
 export class Loader extends Container {
     private static _instance: Loader;
@@ -47,15 +48,20 @@ export class Loader extends Container {
     }
 
     public async create(): Promise<void> {
-        const backgroundTexture = await Assets.load('background_landscape_1440');
+        const backgroundTextureLandscape = await Assets.load('background_landscape_1440');
+        const backgroundTexturePortrait = await Assets.load('background_portrait_1440');
         const logoTexture = await Assets.load('game_logo_vertical');
         const frameTexture = await Assets.load('loading_bar_frame');
         const fillTexture = await Assets.load('loading_bar_fill');
 
-        const background = Sprite.from(backgroundTexture);
+        const background = Sprite.from(Texture.EMPTY);
         background.anchor.set(0.5, 0.5);
         background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(background);
+
+        signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig?: ResponsiveConfig) => {
+            background.texture = responsiveConfig?.orientation === "portrait" ? backgroundTexturePortrait : backgroundTextureLandscape;
+        });
 
         const logo = Sprite.from(logoTexture);
         logo.anchor.set(0.5, 0.5);

@@ -63,7 +63,7 @@ export class BigWin extends BigWinContainer {
 
     // Implement the big win animation logic here
     protected playBigWinAnimation(): void {
-        eventBus.emit("setComponentState", { componentName: "spinButton", variantOrUpdates: "spinning" });
+        eventBus.emit("hideUI");
 
         this._duration = GameConfig.BIG_WIN.duration + (this._bigWinType * GameConfig.BIG_WIN.duration);
 
@@ -107,8 +107,8 @@ export class BigWin extends BigWinContainer {
 
         this._soundManager.stop('bigwin');
         this._soundManager.stop('coin');
-        
-        eventBus.emit("setComponentState", { componentName: "spinButton", variantOrUpdates: "default" });
+
+        eventBus.emit("showUI");
 
         this._wins.state.data.defaultMix = 0;
     }

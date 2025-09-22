@@ -16,6 +16,7 @@ import { BigWin } from './engine/components/BigWin';
 import { gsap } from 'gsap';
 import { FeatureScreen } from './engine/components/FeatureScreen';
 import { Storage } from './engine/utils/Storage';
+import { eventBus } from './engine/utils/WindowEventManager';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -56,7 +57,21 @@ export class DoodleV8Main {
                 this.loadAssets(),
                 this.startLoader()
             ]);
-            
+
+            const storage = Storage.getInstance();
+            storage.setItem('player_balance', 1000);
+
+            if (localStorage.getItem('featureScreenDontShow') !== 'true') {
+                const featureScreen = new FeatureScreen(this.app);
+                this.app.stage.addChild(featureScreen);
+
+                this.responsiveManager.onResize();
+
+                await featureScreen.waitForClose();
+            } else {
+                eventBus.emit("showUI");
+            }
+
             // Step 4: Initialize controllers (now that assets are loaded)
             this.initializeControllers(initData);
 
@@ -65,20 +80,13 @@ export class DoodleV8Main {
             // Step 5: Create scene/sprites
             this.createScene();
 
-            const storage = Storage.getInstance();
-
-            storage.setItem('player_balance', 1000);
-
             this._spinModeText = new Text({ text: ``, style: GameConfig.style.clone() });
             this._spinModeText.anchor.set(0.5, 0.5);
             this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
             this._spinModeText.visible = false; // Hide by default
             this.app.stage.addChild(this._spinModeText);
 
-            if (localStorage.getItem('featureScreenDontShow') === 'false' || !localStorage.getItem('featureScreenDontShow')) {
-                const featureScreen = new FeatureScreen(this.app);
-                this.app.stage.addChild(featureScreen);
-            }
+            // localStorage.getItem('featureScreenDontShow') === 'true' && eventBus.emit("showUI");
 
             // Step 6: Start game systems (controllers handle the game loop)
 
@@ -302,6 +310,7 @@ export class DoodleV8Main {
 
         const background = new BackgroundContainer(this.app);
         this.app.stage.addChild(background);
+
         // Get the reels container from the controller
         const reelsContainer = this.reelsController.getReelsContainer();
 
