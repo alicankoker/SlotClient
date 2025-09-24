@@ -13,6 +13,7 @@ import { Sprite } from 'pixi.js';
 import { Helpers } from '../utils/Helpers';
 import { SpinConfig } from '../../config/SpinConfig';
 import { debug } from '../utils/debug';
+import { GameRulesConfig } from '../../config/GameRulesConfig';
 
 export enum IReelMode {
     STATIC = 'static',
@@ -56,7 +57,7 @@ export class ReelController {
         // Extract symbols for this reel (column) from flat array
         // Using GridUtils helper for proper index calculation
         const reelSymbols: number[] = [];
-        for (let row = 0; row < 3; row++) {
+        for (let row = 0; row < GameRulesConfig.GRID.rowCount; row++) {
             const flatIndex = GridUtils.positionToIndex(this.reelIndex, row);
             reelSymbols.push(initData.symbols[flatIndex].symbolId);
         }
@@ -109,10 +110,6 @@ export class ReelController {
         debug.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
         this.currentMode = mode;
         this.updateViewVisibility();
-        // Update symbols in the static container if in STATIC mode
-        if (this.currentMode === IReelMode.STATIC && this.staticContainer) {
-            await this.staticContainer.updateSymbols(this.currentSymbols, this.reelIndex);
-        }
     }
 
     public getMode(): IReelMode {
@@ -122,7 +119,6 @@ export class ReelController {
     // Symbol management
     public setSymbols(symbols: number[]): void {
         this.currentSymbols = [...symbols];
-        this.syncSymbolsToViews();
     }
 
     public getSymbols(): number[] {
@@ -156,7 +152,6 @@ export class ReelController {
         }
 
         this.currentSymbols[position] = symbolId;
-        this.syncSymbolsToViews();
         return true;
     }
 
@@ -207,8 +202,8 @@ export class ReelController {
         this.isSpinning = false;
 
         // Switch to static mode BEFORE setting symbols so StaticContainer gets updated
-        this.setMode(IReelMode.STATIC);
         this.setSymbols(finalSymbols);
+        this.setMode(IReelMode.STATIC);
 
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();
@@ -338,7 +333,7 @@ export class ReelController {
         if (this._spinMode === mode) return;
 
         this._spinMode = mode;
-        
+
         debug.log(`ReelController ${this.reelIndex}: Spin mode set to ${mode}`);
     }
 

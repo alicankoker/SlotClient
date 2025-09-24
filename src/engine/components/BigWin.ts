@@ -7,6 +7,7 @@ import { GameConfig } from "../../config/GameConfig";
 import { BigWinType, BigWinTypeValue } from "../types/GameTypes";
 import { Counter } from "../utils/Counter";
 import SoundManager from "../controllers/SoundManager";
+import { eventBus } from "../utils/WindowEventManager";
 
 export class BigWin extends BigWinContainer {
     private static _instance: BigWin;
@@ -40,6 +41,7 @@ export class BigWin extends BigWinContainer {
         this._dimmer.scale.set(3, 3);
         this.addChild(this._dimmer);
 
+
         const skeleton = Helpers.getSpineSkeletonData("wins");
 
         this._wins = new Spine(skeleton);
@@ -61,6 +63,8 @@ export class BigWin extends BigWinContainer {
 
     // Implement the big win animation logic here
     protected playBigWinAnimation(): void {
+        eventBus.emit("hideUI");
+
         this._duration = GameConfig.BIG_WIN.duration + (this._bigWinType * GameConfig.BIG_WIN.duration);
 
         this._soundManager.playFor('bigwin', this._duration, 0.5);
@@ -103,6 +107,8 @@ export class BigWin extends BigWinContainer {
 
         this._soundManager.stop('bigwin');
         this._soundManager.stop('coin');
+
+        eventBus.emit("showUI");
 
         this._wins.state.data.defaultMix = 0;
     }

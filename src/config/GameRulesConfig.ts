@@ -27,8 +27,8 @@ export interface CascadeConfig {
 export class GameRulesConfig {
     // Grid layout configuration
     public static readonly GRID: GridConfig = {
-        reelCount: 5,               // 5x3 grid
-        rowCount: 3,                // 3 visible rows per reel
+        reelCount: 6,               // 5x3 grid
+        rowCount: 5,                // 3 visible rows per reel
         totalSymbols: 13,           // Symbol IDs 0-12
         bufferRows: {
             above: 2,               // 2 buffer rows above for smooth scrolling

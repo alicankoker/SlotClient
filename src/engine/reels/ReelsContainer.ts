@@ -60,7 +60,7 @@ export class ReelsContainer extends Container {
         this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
         this._autoPlayCountText.label = 'AutoPlayCountText';
         this._autoPlayCountText.anchor.set(0.5, 0.5);
-        this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 830);
+        this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
         this._autoPlayCountText.visible = false;
         this.addChild(this._autoPlayCountText);
     }
@@ -70,16 +70,17 @@ export class ReelsContainer extends Container {
         const texture = Texture.from("frame_background_base");
         this._reelBackground = new Sprite(texture);
         this._reelBackground.anchor.set(0.5, 0.5);
+        this._reelBackground.width = (GameConfig.REFERENCE_SYMBOL.width * (GameRulesConfig.GRID.reelCount + 1)) - (GameConfig.REFERENCE_SYMBOL.width / 4);
+        this._reelBackground.height = (GameConfig.REFERENCE_SYMBOL.height * GameRulesConfig.GRID.rowCount) - (GameConfig.REFERENCE_SYMBOL.height / 4);
         this._reelBackground.x = GameConfig.REFERENCE_RESOLUTION.width / 2;
         this._reelBackground.y = GameConfig.REFERENCE_RESOLUTION.height / 2;
-        this._reelBackground.scale.set(0.625, 0.475);
         this.addChild(this._reelBackground);
 
         const skeleton = Helpers.getSpineSkeletonData("background");
 
         this._reelFrame = new Spine(skeleton);
-        this._reelFrame.position.set(966, 548);
-        this._reelFrame.scale.set(0.62, 0.475);
+        this._reelFrame.position.set(968, 554);
+        this._reelFrame.scale.set(0.76, 0.82);
         this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', true);
         this.addChild(this._reelFrame);
 
@@ -106,7 +107,7 @@ export class ReelsContainer extends Container {
         this.createWinLinesContainer();
 
         if (this.spinContainer) {
-              this.spinContainer.mask = this.reelAreaMask;
+            this.spinContainer.mask = this.reelAreaMask;
         }
     }
 

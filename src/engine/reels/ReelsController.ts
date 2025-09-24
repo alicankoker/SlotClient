@@ -86,6 +86,8 @@ export class ReelsController {
         await Promise.all(this.reelControllers.map(controller => {
             return controller.setModeBySpinState(mode);
         }));
+
+        this.getMode() === ISpinState.IDLE && await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
     }
 
     /**

@@ -36,6 +36,8 @@ export class SpineSymbol extends Spine {
 
         this.state.data.defaultMix = 0.05;
 
+        this.label = `Symbol_${config.symbolId}`;
+
         this.setIdle();
 
         this._symbolId = config.symbolId;
@@ -66,6 +68,7 @@ export class SpineSymbol extends Spine {
      * @returns void
      */
     public setLanding(onComplete?: () => void): Promise<void> {
+        this.skeleton.setSlotsToSetupPose();
         this.state.clearTrack(0);
         const track = this.state.setAnimation(0, `${this._prefix}_Landing`, false);
         if (track) track.timeScale = 1;
@@ -143,6 +146,8 @@ export class SpineSymbol extends Spine {
     public async setSymbol(symbolId: number): Promise<void> {
         this._symbolId = symbolId;
         this._prefix = AssetsConfig.SYMBOL_ASSET_DATA[symbolId]?.prefix || 'Symbol1';
+        this.state.data.defaultMix = 0.05;
+        this.label = `Symbol_${symbolId}`;
         await this.setLanding();
     }
 }
