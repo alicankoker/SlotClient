@@ -1,15 +1,19 @@
 // SpinContainer import removed - not directly used in this controller
 import { GameConfig } from '../../config/GameConfig';
 import { SpinConfig } from '../../config/SpinConfig';
+import { BigWin } from '../components/BigWin';
 import { ReelsController } from '../reels/ReelsController';
 import {
     SpinRequestData,
     SpinResponseData,
     InitialGridData,
     CascadeStepData,
-    ISpinState
+    ISpinState,
+    BigWinType,
+    SpinMode
 } from '../types/GameTypes';
 import { debug } from '../utils/debug';
+import SoundManager from './SoundManager';
 
 export interface SpinControllerConfig {
     reelsController: ReelsController;
@@ -19,9 +23,12 @@ export interface SpinControllerConfig {
 
 export class SpinController {
     private reelsController: ReelsController;
+    private _soundManager: SoundManager;
+    private _bigWinContainer: BigWin;
 
     // State management
     private currentState: ISpinState = ISpinState.IDLE;
+    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
     private currentSpinId?: string;
     private currentStepIndex: number = 0;
     private _autoPlayCount: number = 0;
@@ -44,6 +51,8 @@ export class SpinController {
 
     constructor(config: SpinControllerConfig) {
         this.reelsController = config.reelsController;
+        this._soundManager = SoundManager.getInstance();
+        this._bigWinContainer = BigWin.getInstance();
     }
 
     // Main spin orchestration methods
@@ -82,13 +91,20 @@ export class SpinController {
             // Display initial grid and start cascading
             //await this.processInitialGrid(response.result.initialGrid);
 
+            this._soundManager.play('spin', true, 0.75); // Play spin sound effect
+
             this.reelsController.startSpin([response.result.finalGrid.symbols.map((symbol: { symbolId: number; }) => symbol.symbolId)]);
 
-            await this.delay(SpinConfig.SPIN_DURATION, signal);
+            if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+                await this.delay(SpinConfig.SPIN_DURATION, signal);
 
-            this._isForceStopped === false && this.reelsController.slowDown();
+                this._isForceStopped === false && this.reelsController.slowDown();
 
-            await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
+                await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
+            } else {
+                await this.delay(SpinConfig.FAST_SPIN_SPEED);
+            }
+
             //await this.processCascadeSequence();
 
             // Apply final grid with spinning animation
@@ -96,6 +112,9 @@ export class SpinController {
 
             this.reelsController.stopSpin();
             this.setState(ISpinState.COMPLETED);
+
+            this._soundManager.stop('spin');
+            this._soundManager.play('stop', false, 0.75); // Play stop sound effect
 
             if (this.onSpinCompleteCallback) {
                 this.onSpinCompleteCallback(response);
@@ -108,6 +127,8 @@ export class SpinController {
                 if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
                     this.stopAutoPlay();
                 }
+
+                GameConfig.BIG_WIN.enabled && await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
@@ -147,7 +168,7 @@ export class SpinController {
         const staticContainer = this.reelsController.getStaticContainer();
         if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
 
-        await this.continueAutoPlay();
+        void this.continueAutoPlay();
 
         debug.log("Auto play started with count:", this._autoPlayCount);
     }
@@ -348,7 +369,6 @@ export class SpinController {
 
         this.reelsController.forceStopAllReels();
 
-        //this.setState(ISpinState.IDLE);
         this.resetSpinData();
     }
 
@@ -454,6 +474,23 @@ export class SpinController {
 
     public getIsError(): boolean {
         return this.currentState === 'error';
+    }
+
+    public getSpinMode(): SpinMode {
+        return this._spinMode;
+    }
+
+    public setSpinMode(mode: SpinMode): void {
+        if (this._spinMode === mode) return;
+
+        this._spinMode = mode;
+        this.reelsController.setSpinMode(mode);
+
+        debug.log(`SpinController: Spin mode set to ${mode}`);
+
+        if (this._spinMode === GameConfig.SPIN_MODES.FAST && this.getIsSpinning()) {
+            this.forceStop();
+        }
     }
 
     // Cleanup

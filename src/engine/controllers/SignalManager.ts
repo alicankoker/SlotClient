@@ -130,7 +130,7 @@ export class SignalManager {
 }
 
 // Common signal names as constants to avoid typos
-export const SCREEN_SIGNALS = {
+export const SIGNAL_EVENTS = {
     // Reel signals
     REEL_SPIN_START: 'reel:spin:start',
     REEL_SPIN_STOP: 'reel:spin:stop',
@@ -142,6 +142,9 @@ export const SCREEN_SIGNALS = {
     GAME_OVER: 'game:over',
     GAME_PAUSE: 'game:pause',
     GAME_RESUME: 'game:resume',
+
+    // Storage signals
+    REGISTRY_ITEM_CHANGE: 'storage:registry:item_change',
     
     // UI signals
     SPIN_BUTTON_CLICKED: 'ui:spin:clicked',
@@ -156,7 +159,11 @@ export const SCREEN_SIGNALS = {
     // System signals
     SCREEN_RESIZE: 'system:resize',
     ASSETS_LOADED: 'system:assets:loaded',
-    FULLSCREEN_CHANGE: 'system:fullscreen:change'
+    FULLSCREEN_CHANGE: 'system:fullscreen:change',
+
+    // Big Win signals
+    BIG_WIN_STARTED: 'bigwin:started',
+    BIG_WIN_STOPPED: 'bigwin:stopped'
 } as const;
 
 // Export singleton instance for convenience

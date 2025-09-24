@@ -4,7 +4,7 @@ import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
 import { ResponsiveManager } from './engine/utils/ResponsiveManager';
-import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState } from './engine/types/GameTypes';
+import { SpinResponseData, CascadeStepData, InitialGridData, ISpinState, BigWinType, SpinMode } from './engine/types/GameTypes';
 import { BackgroundContainer } from './engine/components/BackgroundContainer';
 import { AssetLoader } from './engine/utils/AssetLoader';
 import { AssetsConfig } from './config/AssetsConfig';
@@ -12,6 +12,11 @@ import { GameConfig } from './config/GameConfig';
 import { Loader } from './engine/utils/Loader';
 import { debug } from './engine/utils/debug';
 import { WinLinesContainer } from './engine/components/WinLinesContainer';
+import { BigWin } from './engine/components/BigWin';
+import { gsap } from 'gsap';
+import { FeatureScreen } from './engine/components/FeatureScreen';
+import { eventBus } from './engine/utils/EventManager';
+import { Storage } from './engine/utils/Storage';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -19,7 +24,9 @@ export class DoodleV8Main {
     private slotGameController?: SlotGameController;
     private spinController?: SpinController;
     private reelsController?: ReelsController;
+    private bigWinContainer!: BigWin;
     private assetLoader!: AssetLoader;
+    private _spinModeText!: Text;
 
     public async init(): Promise<void> {
         try {
@@ -47,9 +54,10 @@ export class DoodleV8Main {
 
             // Step 3: Load assets with progress bar BEFORE creating controllers (symbols need textures)
             await Promise.all([
-                this.startLoader(),
-                this.loadAssets()
+                this.loadAssets(),
+                this.startLoader()
             ]);
+            
             // Step 4: Initialize controllers (now that assets are loaded)
             this.initializeControllers(initData);
 
@@ -57,6 +65,21 @@ export class DoodleV8Main {
             this.setupControllersCallbacks();
             // Step 5: Create scene/sprites
             this.createScene();
+
+            const storage = Storage.getInstance();
+
+            storage.setItem('player_balance', 1000);
+
+            this._spinModeText = new Text({ text: ``, style: GameConfig.style.clone() });
+            this._spinModeText.anchor.set(0.5, 0.5);
+            this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+            this._spinModeText.visible = false; // Hide by default
+            this.app.stage.addChild(this._spinModeText);
+
+            if (localStorage.getItem('featureScreenDontShow') === 'false' || !localStorage.getItem('featureScreenDontShow')) {
+                const featureScreen = new FeatureScreen(this.app);
+                this.app.stage.addChild(featureScreen);
+            }
 
             // Step 6: Start game systems (controllers handle the game loop)
 
@@ -66,25 +89,26 @@ export class DoodleV8Main {
                     case ' ':
                         debug.log('🎲 Manual spin triggered');
                         if (this.spinController) {
-                            if (this.spinController.getIsSpinning() === false) {
+                            if (this.spinController.getIsSpinning() === false && this.bigWinContainer.isBigWinActive === false && this.spinController.getIsAutoPlaying() === false) {
+                                storage.getItem('player_balance');
                                 this.spinController.executeSpin({
                                     betAmount: 10,
                                     gameMode: 'manual'
                                 });
                             } else {
-                                this.spinController.forceStop();
+                                GameConfig.FORCE_STOP.enabled && this.spinController.forceStop();
                             }
                         }
                         break;
                     case 'f':
-                        debug.log('🔄 Fast spin triggered');
-                        if (this.spinController && this.spinController.getIsSpinning()) {
+                        debug.log('🔄 Force stop triggered');
+                        if (this.spinController && this.spinController.getIsSpinning() && GameConfig.FORCE_STOP.enabled) {
                             this.spinController.forceStop();
                         }
                         break;
                     case 'a':
                         debug.log('🔄 Auto-play triggered');
-                        if (GameConfig.AUTO_PLAY.enabled && this.spinController && !this.spinController.getIsAutoPlaying()) {
+                        if (GameConfig.AUTO_PLAY.enabled && this.spinController && this.spinController.getIsSpinning() === false && this.spinController.getIsAutoPlaying() === false && this.bigWinContainer.isBigWinActive === false) {
                             this.spinController.startAutoPlay(GameConfig.AUTO_PLAY.count || 5); // Start 5 auto spins
                         }
                         break;
@@ -96,27 +120,77 @@ export class DoodleV8Main {
                         break;
                     case 'w':
                         debug.log('🎉 Show random win animation');
-                        if (this.reelsController && !this.reelsController.getIsSpinning() && GameConfig.WIN_ANIMATION.enabled) {
+                        if (this.reelsController && !this.reelsController.getIsSpinning() && GameConfig.WIN_ANIMATION.enabled && this.bigWinContainer.isBigWinActive === false) {
                             this.reelsController.playRandomWinAnimation();
                         }
                         break;
                     case 's':
                         debug.log('⏹️ Skip win animations');
-                        if (this.reelsController) {
+                        if (this.reelsController && this.reelsController.getStaticContainer()?.isPlaying === true) {
                             this.reelsController.skipWinAnimations();
                         }
                         break;
+                    case 'b':
+                        debug.log('🎉 Show big win animation');
+                        if (this.bigWinContainer && GameConfig.BIG_WIN.enabled && !this.reelsController?.getIsSpinning()) {
+                            this.bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
+                        }
+                        break;
                     case '1':
-                        debug.log('⚡ Fast mode enabled');
-                        // Fast mode would be handled differently
+                        debug.log(' Normal mode activated');
+                        if (this.spinController && this.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL) {
+                            this.spinController.setSpinMode(GameConfig.SPIN_MODES.NORMAL as SpinMode);
+
+                            gsap.killTweensOf([this._spinModeText, this._spinModeText.position, this._spinModeText.scale]);
+                            this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+
+                            gsap.fromTo(this._spinModeText, { alpha: 0, scale: 0 }, {
+                                alpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)',
+                                onStart: () => {
+                                    this._spinModeText.text = `Fast Spin Mode Off!`;
+                                    this._spinModeText.visible = true;
+                                }, onComplete: () => {
+                                    gsap.to(this._spinModeText, {
+                                        alpha: 0, duration: 0.25, ease: 'none', delay: 0.15,
+                                    });
+
+                                    gsap.to(this._spinModeText.position, {
+                                        y: GameConfig.REFERENCE_RESOLUTION.height / 2 - 25, duration: 0.25, ease: 'none', delay: 0.15,
+                                        onComplete: () => {
+                                            this._spinModeText.visible = false;
+                                        }
+                                    });
+                                }
+                            });
+                        }
                         break;
                     case '2':
-                        debug.log('🚀 Instant mode enabled');
-                        // Instant mode would be handled differently
-                        break;
-                    case '3':
-                        debug.log('🐌 Slow mode enabled');
-                        // Slow mode would be handled differently
+                        debug.log('⚡ Fast mode activated');
+                        if (this.spinController && this.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
+                            this.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
+
+                            gsap.killTweensOf([this._spinModeText, this._spinModeText.position, this._spinModeText.scale]);
+                            this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+
+                            gsap.fromTo(this._spinModeText, { alpha: 0, scale: 0 }, {
+                                alpha: 1, scale: 1, duration: 0.25, ease: 'back.out(2)',
+                                onStart: () => {
+                                    this._spinModeText.text = `Fast Spin Mode On!`;
+                                    this._spinModeText.visible = true;
+                                }, onComplete: () => {
+                                    gsap.to(this._spinModeText, {
+                                        alpha: 0, duration: 0.25, ease: 'none', delay: 0.15,
+                                    });
+
+                                    gsap.to(this._spinModeText.position, {
+                                        y: GameConfig.REFERENCE_RESOLUTION.height / 2 - 25, duration: 0.25, ease: 'none', delay: 0.15,
+                                        onComplete: () => {
+                                            this._spinModeText.visible = false;
+                                        }
+                                    });
+                                }
+                            });
+                        }
                         break;
                 }
             });
@@ -130,7 +204,7 @@ export class DoodleV8Main {
             debug.log('🛑 Press Q to stop auto-play');
             debug.log('🎉 Press W to show random win animation');
             debug.log('⏹️ Press S to skip win animations');
-            debug.log('⚡ Press 1 for fast mode, 2 for instant, 3 for slow');
+            debug.log('⚡ Press 1 for normal mode, 2 for fast mode');
 
             this.responsiveManager.onResize();
         } catch (error) {
@@ -212,9 +286,9 @@ export class DoodleV8Main {
     }
 
     private async startLoader(): Promise<void> {
-        const loader = Loader.getInstance();
-        loader.init();
-        loader.mount(this.app);
+        const loader = Loader.getInstance(this.app);
+        await loader.create();
+        loader.mount();
         // set custom loader timings (milliseconds)
         loader.setTimings(GameConfig.LOADER_DEFAULT_TIMINGS);
         await loader.progress; // Wait for the loader to complete
@@ -237,6 +311,9 @@ export class DoodleV8Main {
 
         const winLinesContainer = WinLinesContainer.getInstance();
         this.app.stage.addChild(winLinesContainer);
+
+        this.bigWinContainer = BigWin.getInstance();
+        this.app.stage.addChild(this.bigWinContainer);
 
         const defaultPlayer = this.slotGameController?.getDefaultPlayer();
 

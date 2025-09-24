@@ -1,6 +1,6 @@
 import { Application, isMobile } from "pixi.js";
 import { debug } from "./debug";
-import { SCREEN_SIGNALS, signals } from '../controllers/SignalManager';
+import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { GameConfig } from "../../config/GameConfig";
 
 export interface ResponsiveConfig {
@@ -12,12 +12,15 @@ export interface ResponsiveConfig {
     orientation: string;
     scale: number;
 }
+
+export type Alignment = "topleft" | "bottomleft" | "bottomright" | "topright" | "center";
+
 export class ResponsiveManager {
     private static _instance: ResponsiveManager;
     private _app: Application;
     private _resizeTimeOut: number = 100; // timeout for resize event
     private _resizeTimer: number | undefined;
-    private _alignment: string = "center"; // default alignment
+    private _alignment: Alignment = "center"; // default alignment
     private _boundOnResize: () => void;
 
     /**
@@ -120,7 +123,7 @@ export class ResponsiveManager {
         };
 
         debug.log("ResponsiveManager", "Viewport resized: isMobile:", responsiveConfig.isMobile, "viewportWidth:", responsiveConfig.viewportWidth, "viewportHeight:", responsiveConfig.viewportHeight, "orientation:", responsiveConfig.orientation, "scale:", responsiveConfig.scale);
-        signals.emit(SCREEN_SIGNALS.SCREEN_RESIZE, responsiveConfig);
+        signals.emit(SIGNAL_EVENTS.SCREEN_RESIZE, responsiveConfig);
     }
 
     /**
@@ -152,7 +155,7 @@ export class ResponsiveManager {
                 break;
         }
 
-        return { x: left!, y: top! };
+        return { x: left, y: top };
     }
 
     public destroy(): void {

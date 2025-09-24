@@ -1,5 +1,5 @@
 import { FillGradient, TextStyle } from "pixi.js";
-import { AutoPlayConfig, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
+import { AutoPlayConfig, BigWinConfig, ForceStopConfig, LoaderDurations, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
 
 export interface ResolutionConfig {
     width: number;
@@ -22,13 +22,6 @@ export interface UIConfig {
         padding: number;
         margin: number;
     };
-}
-
-export interface LoaderDurations {
-    minDisplayTime: number;
-    transitionTo100: number;
-    holdAfter100: number;
-    fadeOut: number;
 }
 
 export class GameConfig {
@@ -81,10 +74,10 @@ export class GameConfig {
 
     // Loader configuration
     public static readonly LOADER_DEFAULT_TIMINGS: LoaderDurations = {
-        minDisplayTime: 600,
-        transitionTo100: 500,
-        holdAfter100: 150,
-        fadeOut: 50
+        minDisplayTime: 1000, // minimum time to show loader (ms)
+        transitionTo100: 600, // time to transition to 100% (ms)
+        holdAfter100: 150, // time to hold at 100% before fade out (ms)
+        fadeOut: 50 // fade out duration (ms)
     };
 
     // Win animation configuration
@@ -105,6 +98,21 @@ export class GameConfig {
         stopOnWin: false,
         stopOnFeature: false,
         skipAnimations: true
+    };
+
+    public static readonly FORCE_STOP: ForceStopConfig = {
+        enabled: true
+    }
+
+    public static readonly BIG_WIN: BigWinConfig = {
+        enabled: true,
+        duration: 3,
+        canSkip: true
+    };
+
+    public static readonly SPIN_MODES = {
+        NORMAL: 'normal',
+        FAST: 'fast'
     };
 
     // Reference resolution - all sizes are designed for this resolution
@@ -183,6 +191,7 @@ export class GameConfig {
             width: 6,
             join: 'round'
         },
-        align: 'center'
+        align: 'center',
+        trim: true
     });
 }

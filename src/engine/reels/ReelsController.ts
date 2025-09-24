@@ -8,7 +8,8 @@ import {
     InitialGridData,
     CascadeStepData,
     ISpinState,
-    WinConfig
+    WinConfig,
+    SpinMode
 } from '../types/GameTypes';
 import { Helpers } from '../utils/Helpers';
 import { SpinConfig } from '../../config/SpinConfig';
@@ -23,6 +24,7 @@ export class ReelsController {
     // State management
     private currentMode: ISpinState = ISpinState.IDLE;
     private isSpinning: boolean = false;
+    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
     // Animation and timing
     private spinStartTime: number = 0;
@@ -158,7 +160,7 @@ export class ReelsController {
      */
     public resetWinAnimations(): void {
         this.reelsContainer.stopFrameAnimation();
-        
+
         const staticContainer = this.reelsContainer.getStaticContainer();
 
         staticContainer?.resetWinAnimations();
@@ -199,9 +201,12 @@ export class ReelsController {
         this.reelControllers.forEach(controller => {
             controller.startSpin(finalSymbols[0], 0, () => { });
         });
-        await this.delay(SpinConfig.SPIN_DURATION);
 
-        await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
+        if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+            await this.delay(SpinConfig.SPIN_DURATION);
+
+            await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
+        }
 
         this.isSpinning = false;
 
@@ -233,7 +238,6 @@ export class ReelsController {
         });
 
         this.isSpinning = false;
-        // this.setMode(ISpinState.IDLE);
     }
 
     // Cascading functionality
@@ -369,6 +373,21 @@ export class ReelsController {
 
     public getSpinElapsedTime(): number {
         return this.isSpinning ? Date.now() - this.spinStartTime : 0;
+    }
+
+    public getSpinMode(): SpinMode {
+        return this._spinMode;
+    }
+
+    public setSpinMode(mode: SpinMode): void {
+        if (this._spinMode === mode) return;
+
+        this._spinMode = mode;
+        this.reelControllers.forEach(controller => {
+            controller.setSpinMode(mode);
+        });
+
+        debug.log(`ReelsController: Spin mode set to ${mode}`);
     }
 
     // Cleanup

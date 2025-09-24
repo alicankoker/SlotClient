@@ -2,7 +2,7 @@ import { Container, Application, Graphics, Sprite, Texture, Point, Text } from '
 import { SpinContainer, SpinContainerConfig } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
-import { signals, SCREEN_SIGNALS, SignalSubscription } from '../controllers/SignalManager';
+import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
 import {
     InitialGridData,
     CascadeStepData
@@ -14,6 +14,7 @@ import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { WinLinesContainer } from '../components/WinLinesContainer';
 import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { AssetsConfig } from '../../config/AssetsConfig';
+import { Helpers } from '../utils/Helpers';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -74,11 +75,7 @@ export class ReelsContainer extends Container {
         this._reelBackground.scale.set(0.625, 0.475);
         this.addChild(this._reelBackground);
 
-        const { atlasData, skeletonData } = AssetsConfig.getBackgroundAnimationsAsset();
-
-        const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
-        const json = new SkeletonJson(attachmentLoader);
-        const skeleton = json.readSkeletonData(skeletonData);
+        const skeleton = Helpers.getSpineSkeletonData("background");
 
         this._reelFrame = new Spine(skeleton);
         this._reelFrame.position.set(966, 548);
@@ -90,7 +87,7 @@ export class ReelsContainer extends Container {
     }
 
     private setupResizeHandler(): void {
-        this.resizeSubscription = signals.on(SCREEN_SIGNALS.SCREEN_RESIZE, () => {
+        this.resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, () => {
             //this.onResize();
         });
     }
