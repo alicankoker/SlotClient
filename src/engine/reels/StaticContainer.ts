@@ -7,6 +7,7 @@ import { WinConfig } from '../types/GameTypes';
 import { gsap } from 'gsap';
 import { WinLinesContainer } from '../components/WinLinesContainer';
 import SoundManager from '../controllers/SoundManager';
+import { Helpers } from '../utils/Helpers';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -43,7 +44,7 @@ export class StaticContainer extends Container {
         this._winText = new Text({ text: '', style: GameConfig.style });
         this._winText.label = 'WinText';
         this._winText.anchor.set(0.5);
-        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 240);
+        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 130);
         this._winText.visible = false;
         this.addChild(this._winText);
     }
@@ -65,10 +66,8 @@ export class StaticContainer extends Container {
      * @param reelIndex - The index of the reel to update (optional).
      * @returns void
      */
-    public updateSymbols(symbolIds: number[], reelIndex?: number): Promise<void[]> {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
-
-        return Promise.all((this._symbols.get(targetReelIndex) ?? []).map(async (symbol, index) => {
+    public updateSymbols(symbolIds: number[]): Promise<void[]> { // TODO bazen sembollerin landing animasyonu promise atmıyor
+        return Promise.all(Array.from(this._symbols.values()).flat().map(async (symbol, index) => {
             if (symbolIds[index] !== undefined) {
                 return symbol.setSymbol(symbolIds[index]);
             }
@@ -179,7 +178,7 @@ export class StaticContainer extends Container {
                     x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
                         if (this._animationToken !== token) return;
 
-                        this._winText.text = `You won ${winData.amount}€${winData.multiplier > 1 ? ` with X${winData.multiplier} multipliers` : ''}!`;
+                        this._winText.text = `You won ${Helpers.convertToDecimal(winData.amount)}€${winData.multiplier > 1 ? ` with X${winData.multiplier} multipliers` : ''}!`;
                         this._winText.visible = true;
                     }
                 });
@@ -300,7 +299,7 @@ export class StaticContainer extends Container {
                 // Play win text animation
                 gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                     x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                        this._winText.text = `You won ${amount}€ on lines ${lines.join(', ')}!`;
+                        this._winText.text = `You won ${Helpers.convertToDecimal(amount)}€ on lines ${lines.join(', ')}!`;
                         this._winText.visible = true;
                     },
                     onComplete: () => {

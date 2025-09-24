@@ -45,7 +45,6 @@ export class SpinContainer extends Container {
 
     // Symbol storage - unified approach
     public symbols: (GridSymbol | Sprite | null)[][] = [];
-    public animationSymbols: Sprite[] = []; // For spinning animations
 
     // Animation state
     protected spinStartTime: number = 0;
@@ -163,9 +162,7 @@ export class SpinContainer extends Container {
         // Create symbols with buffer for smooth scrolling (like StaticContainer)
         const totalSymbols = this.config.symbolsVisible + (this.config.rowsAboveMask || 0) + (this.config.rowsBelowMask || 0); // 1 above + visible + 1 below
         const symbolsToCreate = Math.max(totalSymbols, symbols.length);
-
-        // Calculate the middle symbol index
-        const middleSymbolIndex = Math.floor(totalSymbols / 2);
+        
         const symbolX = this.calculateSymbolX(reelIndex);
 
         for (let i = 0; i < symbolsToCreate; i++) {
@@ -190,9 +187,7 @@ export class SpinContainer extends Container {
         // Create symbols with buffer for smooth scrolling (like StaticContainer)
         const totalSymbols = this.config.symbolsVisible + (this.config.rowsAboveMask || 0) + (this.config.rowsBelowMask || 0); // 1 above + visible + 1 below
         const symbolsToCreate = Math.max(totalSymbols, symbols.length);
-
-        // Calculate the middle symbol index
-        const middleSymbolIndex = Math.floor(totalSymbols / 2);
+        
         const symbolX = this.calculateSymbolX(reelIndex);
 
         for (let i = 0; i < symbolsToCreate; i++) {
@@ -223,12 +218,6 @@ export class SpinContainer extends Container {
 
     // Symbol creation
     protected createGridSymbol(symbolData: SymbolData, column: number, row: number): GridSymbol | null {
-        //const { column, row } = GridUtils.indexToPosition(index);
-
-        /*if (column !== this.config.reelIndex) {
-            return null;
-        }*/
-
         const symbolX = this.calculateSymbolX(column);
         const symbolY = this.calculateSymbolY(row);
 
@@ -240,20 +229,7 @@ export class SpinContainer extends Container {
             gridY: row
         });
 
-        //this.addChild(gridSymbol);
         return gridSymbol;
-    }
-
-    protected createBasicSprite(symbolId: number, y: number): Sprite {
-        const texture = SymbolUtils.getTextureForSymbol(symbolId);
-        const sprite = new Sprite(texture);
-
-        sprite.anchor.set(0.5);
-        sprite.x = 0; // Will be set by caller
-        sprite.y = y - GameConfig.REFERENCE_RESOLUTION.height / 2; // Offset for container position
-
-        //this.addChild(sprite);
-        return sprite;
     }
 
     // Spinning functionality
@@ -265,75 +241,11 @@ export class SpinContainer extends Container {
         this.targetSymbols = [...targetSymbols];
         this.onSpinCompleteCallback = onComplete;
 
-        // Clear all existing symbols before starting spin animation
-        //this.clearAllSymbols();
-
-        this.createSpinningSymbols();
-        this.animateSpin();
-
         return true;
     }
 
-    protected createSpinningSymbols(): void {
-        this.clearAnimationSymbols();
-
-        const totalSymbols = this.config.symbolsVisible + 10; // Extra symbols for smooth animation
-        const middleSymbolIndex = Math.floor(totalSymbols / 2);
-
-        // Calculate actual pixel positions
-        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
-        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
-        const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
-        const spacingY = GameConfig.REFERENCE_SPACING.vertical;
-
-        // Create spinning symbols for ALL reels
-        for (let reelIndex = 0; reelIndex < this.columns; reelIndex++) {
-            for (let i = 0; i < totalSymbols; i++) {
-                const randomSymbolId = this.getRandomSymbolId();
-
-                // Calculate vertical position (actual pixels)
-                const symbolY = GameConfig.REFERENCE_RESOLUTION.height / 2 + (i - middleSymbolIndex) * (symbolHeight + spacingY);
-
-                const symbol = this.createBasicSprite(randomSymbolId, symbolY);
-                symbol.x = GameConfig.REFERENCE_RESOLUTION.width / 2; // Offset for container position
-                this.animationSymbols.push(symbol);
-            }
-        }
-
-        debug.log(`SpinContainer: Created ${this.animationSymbols.length} spinning symbols for ${this.columns} reels with pixel coordinates`);
-    }
-
-    protected animateSpin(): void {
-        /*const elapsed = Date.now() - this.spinStartTime;
-        const spinDuration = this.config.spinDuration || 2000;
-        const spinSpeed = this.config.spinSpeed || 10;
-        const progress = Math.min(elapsed / spinDuration, 1);
-
-        // Use proper spacing for animation movement
-        const verticalSpacing = this.getVerticalSpacing();
-        const screenSpacing = verticalSpacing * this.app.screen.height;
-
-        this.animationSymbols.forEach(symbol => {
-            symbol.y += spinSpeed;
-
-            // Wrap around using proper spacing
-            const maxY = screenSpacing * (this.config.symbolsVisible + 5);
-            if (symbol.y > maxY) {
-                symbol.y -= screenSpacing * this.animationSymbols.length;
-            }
-        });
-
-        if (progress < 1) {
-            requestAnimationFrame(() => this.animateSpin());
-        } else {
-            this.stopSpin();
-        }*/
-    }
-
-    protected stopSpin(): void {
+    public stopSpin(): void {
         this.isSpinning = false;
-        this.clearAnimationSymbols();
-        //this.setSymbols(this.targetSymbols);
 
         if (this.onSpinCompleteCallback) {
             this.onSpinCompleteCallback();
@@ -422,15 +334,6 @@ export class SpinContainer extends Container {
                 symbol.destroy();
             });
         });
-        this.clearAnimationSymbols();
-    }
-
-    protected clearAnimationSymbols(): void {
-        this.animationSymbols.forEach(symbol => {
-            this.removeChild(symbol);
-            symbol.destroy();
-        });
-        this.animationSymbols = [];
     }
 
     // Getters
