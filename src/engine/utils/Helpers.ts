@@ -3,6 +3,7 @@ import { IReelMode } from "../reels/ReelController";
 import { ISpinState, SpineAsset } from "../types/GameTypes";
 import { AssetsConfig } from "../../config/AssetsConfig";
 import { GameConfig } from "../../config/GameConfig";
+import { Point } from "pixi.js";
 
 export class Helpers {
     public static getReelModeBySpinState(spinState: ISpinState): IReelMode {
@@ -150,5 +151,51 @@ export class Helpers {
 
             return convertedAmount.toFixed(digit);
         }
+    }
+
+    /**
+     * @description Generates a path for an arc.
+     * @param radius Radius of the arc
+     * @param degree Total angle (in degrees)
+     * @param segments How many segments to divide the arc into (default is 360)
+     * @returns Array of points representing the arc path
+     */
+    public static generateArcPath(radius: number, degree: number, segments: number = 360): Point[] {
+        const points: Point[] = [];
+        const radStep = (degree * Math.PI / 180) / segments; // Convert degree to radians and divide by segments
+
+        for (let i = 0; i <= segments; i++) {
+            const angle = radStep * i;
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+            points.push(new Point(x, y));
+        }
+
+        return points;
+    }
+
+    /**
+     * @description Generates a wave path (sine wave).
+     * @recommendation For a smooth wave, use fontSize × amplitude for the wavelength (one wave). Multiply by N for the total length.
+     * @param axis Axis along which the wave oscillates ('x' or 'y')
+     * @param amplitude Peak height of the wave
+     * @param wavelength Width of one full wave cycle
+     * @param waves Total length of the wave path (default is 1)
+     * @param segmentsPerWave How many segments to divide into (default is one wavelength)
+     * @returns Array of points representing the wave path
+     */
+    public static generateWavePath(axis: 'x' | 'y', amplitude: number, wavelength: number, waves: number = 1, segmentsPerWave: number = wavelength): Point[] {
+        const points: Point[] = [];
+        const totalLength = wavelength * waves;
+        const segments = Math.round(segmentsPerWave * waves);
+        const step = totalLength / segments;
+
+        for (let i = 0; i <= segments; i++) {
+            const x = i * step;
+            const y = Math.sin((2 * Math.PI * x) / wavelength) * amplitude;
+            points.push(new Point(axis === 'x' ? x : y, axis === 'x' ? y : x));
+        }
+
+        return points;
     }
 }

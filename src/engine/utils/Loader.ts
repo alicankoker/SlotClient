@@ -3,7 +3,7 @@ import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import { GameConfig } from "../../config/GameConfig";
-import { ResponsiveConfig } from "./ResponsiveManager";
+import { ResponsiveConfig, ResponsiveManager } from "./ResponsiveManager";
 
 export class Loader extends Container {
     private static _instance: Loader;
@@ -25,7 +25,7 @@ export class Loader extends Container {
     private percentageLabel!: Text;
     private progressStatus!: Text;
 
-    private padding: number = 1533;
+    private padding: number = 1418; //1533
 
     private constructor(app: Application) {
         super();
@@ -54,14 +54,11 @@ export class Loader extends Container {
         const frameTexture = await Assets.load('loading_bar_frame');
         const fillTexture = await Assets.load('loading_bar_fill');
 
-        const background = Sprite.from(Texture.EMPTY);
+        const texture = ResponsiveManager.instance().orientation === GameConfig.ORIENTATION.landscape ? backgroundTextureLandscape : backgroundTexturePortrait;
+        const background = Sprite.from(texture || backgroundTextureLandscape);
         background.anchor.set(0.5, 0.5);
         background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(background);
-
-        signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig?: ResponsiveConfig) => {
-            background.texture = responsiveConfig?.orientation === "portrait" ? backgroundTexturePortrait : backgroundTextureLandscape;
-        });
 
         const logo = Sprite.from(logoTexture);
         logo.anchor.set(0.5, 0.5);
@@ -71,11 +68,13 @@ export class Loader extends Container {
         this.frame = Sprite.from(frameTexture);
         this.frame.anchor.set(0.5, 0.5);
         this.frame.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
+        this.frame.scale.set(0.8, 0.8);
         this.addChild(this.frame);
 
         this.fill = Sprite.from(fillTexture);
         this.fill.anchor.set(1, 0.5);
         this.fill.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2 - this.frame.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 299);
+        this.fill.scale.set(0.8, 0.8);
         this.addChild(this.fill);
 
         this.fillMask = new Graphics();
