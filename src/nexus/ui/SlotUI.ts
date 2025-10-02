@@ -1,4 +1,5 @@
 
+import Communication from '../../communication';
 import { debug } from './../../engine/utils/debug';
 
 export class SlotUI {
@@ -11,12 +12,7 @@ export class SlotUI {
             switch (event.key.toLowerCase()) {
                 case ' ':
                     debug.log('🎲 Manual spin triggered');
-                    if (this.spinController) {
-                        this.nexusInstance?.requestSpin({
-                            betAmount: 10,
-                            gameMode: 'manual'
-                        });
-                    }
+                    Communication.getInstance().requestSpin();
                     break;
                 case 'a':
                     debug.log('🔄 Auto-play triggered');
@@ -24,15 +20,11 @@ export class SlotUI {
                     break;
                 case 'w':
                     debug.log('Show random win animation');
-                    if (this.reelsController && !this.reelsController.getIsSpinning()) {
-                        this.reelsController.playRandomWinAnimation();
-                    }
+                    
                     break;
                 case 's':
                     debug.log('Skip win animations');
-                    if (this.reelsController) {
-                        this.reelsController.skipWinAnimations();
-                    }
+                    
                     break;
                 case 'x':
                     debug.log('⏹️ Stop auto-play');

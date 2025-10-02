@@ -302,76 +302,12 @@ export class FeatureScreen extends Container {
     });
   }
 
-    private setupDontShowButton(): void {
-        this._dontShowContainer = new Container();
-        this._dontShowContainer.label = 'DontShowContainer';
-        this._dontShowContainer.position.set(1550, 900);
-        this.addChild(this._dontShowContainer);
-
-        const dontShowTextBg = new NineSliceSprite({
-            texture: Texture.from('bet_area'),
-            leftWidth: 100, // Width of the left edge
-            rightWidth: 100, // Width of the right edge
-            topHeight: 0, // Height of the top edge
-            bottomHeight: 0, // Height of the bottom edge
-
-            anchor: 0.5, // Center the sprite's anchor point
-
-            x: -10,
-            y: 0,
-        });
-        dontShowTextBg.width = 575;
-        dontShowTextBg.label = 'DontShowTextBg';
-        this._dontShowContainer.addChild(dontShowTextBg);
-
-        const dontShowButton = Sprite.from('slider_button_frame');
-        dontShowButton.label = 'DontShowButton';
-        dontShowButton.anchor.set(0.5, 0.5);
-        dontShowButton.position.set(-270, 0);
-        dontShowButton.interactive = true;
-        dontShowButton.cursor = 'pointer';
-        dontShowButton.hitArea = new Circle(0, 0, 30);
-        this._dontShowContainer.addChild(dontShowButton);
-
-        const dontShowButtonIcon = Sprite.from('slider_button');
-        dontShowButtonIcon.label = 'DontShowButtonIcon';
-        dontShowButtonIcon.anchor.set(0.5, 0.5);
-        dontShowButtonIcon.visible = false;
-        dontShowButton.addChild(dontShowButtonIcon);
-
-        const dontShowText = new Text({
-            text: "DON'T SHOW NEXT TIME!",
-            style: {
-                fontFamily: 'Nunito Black',
-                fontSize: 32,
-                fill: 0xFFFFFF,
-                align: 'center',
-                trim: true
-            }
-        });
-        dontShowText.label = 'DontShowText';
-        dontShowText.anchor.set(0, 0.5);
-        dontShowText.position.set(-220, 0);
-        this._dontShowContainer.addChild(dontShowText);
-
-        const amplitude = 10;
-        const length = dontShowText.style.fontSize * amplitude;
-        const points = Helpers.generateWavePath('x', amplitude, length);
-        const ropeTexture = this._app.renderer.generateTexture(dontShowText);
-
-        const rope = new MeshRope({ texture: ropeTexture, points });
-        rope.label = 'DontShowTextRope';
-        rope.position.set(-600, -500);
-        this._dontShowContainer.addChild(rope);
-        //gsap.to(rope, { angle: '+=360', duration: 5, ease: 'none', repeat: -1 });
-
-        dontShowButton.on('pointerup', () => {
-            dontShowButtonIcon.visible = !dontShowButtonIcon.visible;
-            this._dontShow = !this._dontShow;
-        });
-    }
+  private setupVolatilityIndicator(): void {
+    this._volatilityContainer = new Container();
+    this._volatilityContainer.label = "VolatilityContainer";
+    this._volatilityContainer.position.set(1550, 760);
+    this.addChild(this._volatilityContainer);
   }
-
   private setupDontShowButton(): void {
     this._dontShowContainer = new Container();
     this._dontShowContainer.label = "DontShowContainer";
