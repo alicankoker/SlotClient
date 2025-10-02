@@ -1,4 +1,4 @@
-import { Application, Circle, Container, NineSliceSprite, Sprite, Text, Texture } from "pixi.js";
+import { Application, Circle, Container, MeshRope, NineSliceSprite, Point, Sprite, Text, Texture } from "pixi.js";
 import { GameConfig } from "../../config/GameConfig";
 import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
@@ -349,7 +349,7 @@ export class FeatureScreen extends Container {
         dontShowButton.addChild(dontShowButtonIcon);
 
         const dontShowText = new Text({
-            text: "DON'T SHOW NEXT TIME",
+            text: "DON'T SHOW NEXT TIME!",
             style: {
                 fontFamily: 'Nunito Black',
                 fontSize: 32,
@@ -362,6 +362,17 @@ export class FeatureScreen extends Container {
         dontShowText.anchor.set(0, 0.5);
         dontShowText.position.set(-220, 0);
         this._dontShowContainer.addChild(dontShowText);
+
+        const amplitude = 10;
+        const length = dontShowText.style.fontSize * amplitude;
+        const points = Helpers.generateWavePath('x', amplitude, length);
+        const ropeTexture = this._app.renderer.generateTexture(dontShowText);
+
+        const rope = new MeshRope({ texture: ropeTexture, points });
+        rope.label = 'DontShowTextRope';
+        rope.position.set(-600, -500);
+        this._dontShowContainer.addChild(rope);
+        //gsap.to(rope, { angle: '+=360', duration: 5, ease: 'none', repeat: -1 });
 
         dontShowButton.on('pointerup', () => {
             dontShowButtonIcon.visible = !dontShowButtonIcon.visible;
