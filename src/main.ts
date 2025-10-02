@@ -1,16 +1,18 @@
-import "@esotericsoftware/spine-pixi-v8";
 import {
   Application,
   Assets,
+  Container,
   FillGradient,
   Graphics,
   Matrix,
   MeshRope,
   Point,
+  RenderTexture,
   Sprite,
   Text,
   TextStyle,
   Texture,
+  TextureSource
 } from "pixi.js";
 import { SlotGameController } from "./game/controllers/SlotGameController";
 import { SpinController } from "./engine/controllers/SpinController";
@@ -24,19 +26,21 @@ import {
   BigWinType,
   SpinMode,
 } from "./engine/types/GameTypes";
-import { BackgroundContainer } from "./engine/components/BackgroundContainer";
-import { AssetLoader } from "./engine/utils/AssetLoader";
-import { AssetsConfig } from "./config/AssetsConfig";
-import { GameConfig } from "./config/GameConfig";
-import { Loader } from "./engine/utils/Loader";
-import { debug } from "./engine/utils/debug";
-import { WinLinesContainer } from "./engine/components/WinLinesContainer";
-import { BigWin } from "./engine/components/BigWin";
-import { gsap } from "gsap";
-import { FeatureScreen } from "./engine/components/FeatureScreen";
-import { Storage } from "./engine/utils/Storage";
-import { eventBus } from "./engine/utils/WindowEventManager";
 import { AssetSizeManager } from "./engine/multiResolutionSupport/AssetSizeManager";
+import '@esotericsoftware/spine-pixi-v8';
+import { BackgroundContainer } from './engine/components/BackgroundContainer';
+import { AssetLoader } from './engine/utils/AssetLoader';
+import { AssetsConfig } from './config/AssetsConfig';
+import { GameConfig } from './config/GameConfig';
+import { Loader } from './engine/utils/Loader';
+import { debug } from './engine/utils/debug';
+import { WinLinesContainer } from './engine/components/WinLinesContainer';
+import { BigWin } from './engine/components/BigWin';
+import { gsap } from 'gsap';
+import { FeatureScreen } from './engine/components/FeatureScreen';
+import { Storage } from './engine/utils/Storage';
+import { eventBus } from './engine/utils/WindowEventManager';
+import { GameRulesConfig } from './config/GameRulesConfig';
 
 export class DoodleV8Main {
   private app!: Application;

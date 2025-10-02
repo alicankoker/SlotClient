@@ -1,8 +1,11 @@
+
 import {
   Application,
   Circle,
-  Container,
+  Container, 
+  MeshRope,
   NineSliceSprite,
+  Point,
   Sprite,
   Text,
   Texture,
@@ -299,58 +302,73 @@ export class FeatureScreen extends Container {
     });
   }
 
-  private setupVolatilityIndicator(): void {
-    this._volatilityContainer = new Container();
-    this._volatilityContainer.label = "VolatilityContainer";
-    this._volatilityContainer.position.set(1550, 760);
-    this.addChild(this._volatilityContainer);
+    private setupDontShowButton(): void {
+        this._dontShowContainer = new Container();
+        this._dontShowContainer.label = 'DontShowContainer';
+        this._dontShowContainer.position.set(1550, 900);
+        this.addChild(this._dontShowContainer);
 
-    const volatilityBg = new NineSliceSprite({
-      texture: Texture.from("bet_area"),
-      leftWidth: 100, // Width of the left edge
-      rightWidth: 100, // Width of the right edge
-      topHeight: 0, // Height of the top edge
-      bottomHeight: 0, // Height of the bottom edge
+        const dontShowTextBg = new NineSliceSprite({
+            texture: Texture.from('bet_area'),
+            leftWidth: 100, // Width of the left edge
+            rightWidth: 100, // Width of the right edge
+            topHeight: 0, // Height of the top edge
+            bottomHeight: 0, // Height of the bottom edge
 
-      anchor: 0.5, // Center the sprite's anchor point
+            anchor: 0.5, // Center the sprite's anchor point
 
-      x: 0,
-      y: 0,
-    });
-    volatilityBg.width = 390;
-    volatilityBg.label = "VolatilityBackground";
-    this._volatilityContainer.addChild(volatilityBg);
+            x: -10,
+            y: 0,
+        });
+        dontShowTextBg.width = 575;
+        dontShowTextBg.label = 'DontShowTextBg';
+        this._dontShowContainer.addChild(dontShowTextBg);
 
-    const volatilityText = new Text({
-      text: "VOLATILITY",
-      style: {
-        fontFamily: "Arial",
-        fontSize: 20,
-        fill: 0xffffff,
-        align: "center",
-      },
-    });
-    volatilityText.label = "VolatilityText";
-    volatilityText.anchor.set(0, 0.5);
-    volatilityText.position.set(-170, 0);
-    this._volatilityContainer.addChild(volatilityText);
+        const dontShowButton = Sprite.from('slider_button_frame');
+        dontShowButton.label = 'DontShowButton';
+        dontShowButton.anchor.set(0.5, 0.5);
+        dontShowButton.position.set(-270, 0);
+        dontShowButton.interactive = true;
+        dontShowButton.cursor = 'pointer';
+        dontShowButton.hitArea = new Circle(0, 0, 30);
+        this._dontShowContainer.addChild(dontShowButton);
 
-    const inactiveArrows = 1;
-    for (let index = 0; index < 5; index++) {
-      const element = Sprite.from("spin_button");
-      element.label = "VolatilityIndicator" + index;
-      element.anchor.set(0.5, 0.5);
-      element.scale.set(0.17, 0.17);
-      element.position.set(167 - index * 40, 0);
-      element.tint = index < inactiveArrows ? 0x939598 : 0xfbbc31;
-      this._volatilityContainer.addChild(element);
+        const dontShowButtonIcon = Sprite.from('slider_button');
+        dontShowButtonIcon.label = 'DontShowButtonIcon';
+        dontShowButtonIcon.anchor.set(0.5, 0.5);
+        dontShowButtonIcon.visible = false;
+        dontShowButton.addChild(dontShowButtonIcon);
 
-      const arrow = Sprite.from("volatility_arrow");
-      arrow.label = "VolatilityArrow" + index;
-      arrow.anchor.set(0.5, 0.5);
-      arrow.position.set(167 - index * 40, -1);
-      arrow.tint = 0x30343c;
-      this._volatilityContainer.addChild(arrow);
+        const dontShowText = new Text({
+            text: "DON'T SHOW NEXT TIME!",
+            style: {
+                fontFamily: 'Nunito Black',
+                fontSize: 32,
+                fill: 0xFFFFFF,
+                align: 'center',
+                trim: true
+            }
+        });
+        dontShowText.label = 'DontShowText';
+        dontShowText.anchor.set(0, 0.5);
+        dontShowText.position.set(-220, 0);
+        this._dontShowContainer.addChild(dontShowText);
+
+        const amplitude = 10;
+        const length = dontShowText.style.fontSize * amplitude;
+        const points = Helpers.generateWavePath('x', amplitude, length);
+        const ropeTexture = this._app.renderer.generateTexture(dontShowText);
+
+        const rope = new MeshRope({ texture: ropeTexture, points });
+        rope.label = 'DontShowTextRope';
+        rope.position.set(-600, -500);
+        this._dontShowContainer.addChild(rope);
+        //gsap.to(rope, { angle: '+=360', duration: 5, ease: 'none', repeat: -1 });
+
+        dontShowButton.on('pointerup', () => {
+            dontShowButtonIcon.visible = !dontShowButtonIcon.visible;
+            this._dontShow = !this._dontShow;
+        });
     }
   }
 

@@ -142,7 +142,7 @@ export class AssetsConfig {
       },
     ],
   };
-
+  
   public static readonly ANIMATIONS: BundleFile = {
     bundles: [
       {
