@@ -21,6 +21,7 @@ export class ResponsiveManager {
     private _resizeTimeOut: number = 100; // timeout for resize event
     private _resizeTimer: number | undefined;
     private _alignment: Alignment = "center"; // default alignment
+    private _orientation: string = GameConfig.ORIENTATION.landscape; // default orientation
     private _boundOnResize: () => void;
 
     /**
@@ -39,6 +40,13 @@ export class ResponsiveManager {
     public static getInstance(app: Application): ResponsiveManager {
         if (!ResponsiveManager._instance) {
             ResponsiveManager._instance = new ResponsiveManager(app);
+        }
+        return ResponsiveManager._instance;
+    }
+
+    public static instance(): ResponsiveManager {
+        if (!ResponsiveManager._instance) {
+            throw new Error("ResponsiveManager not initialized. Call getInstance(app) first.");
         }
         return ResponsiveManager._instance;
     }
@@ -68,15 +76,15 @@ export class ResponsiveManager {
         const viewportHeight: number = window.innerHeight;
 
         // set orientation
-        const orientation = viewportWidth >= viewportHeight ? GameConfig.ORIENTATION.landscape : GameConfig.ORIENTATION.portrait;
+        this._orientation = viewportWidth >= viewportHeight ? GameConfig.ORIENTATION.landscape : GameConfig.ORIENTATION.portrait;
 
         // reference width/height
         const refWidth: number = GameConfig.REFERENCE_RESOLUTION.width;
         const refHeight: number = GameConfig.REFERENCE_RESOLUTION.height;
 
         // safe width/height
-        const safeWidth: number = orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.width : GameConfig.SAFE_AREA.portrait.width;
-        const safeHeight: number = orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.height : GameConfig.SAFE_AREA.portrait.height;
+        const safeWidth: number = this._orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.width : GameConfig.SAFE_AREA.portrait.width;
+        const safeHeight: number = this._orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.height : GameConfig.SAFE_AREA.portrait.height;
 
         // effective width/height (clamped between reference and safe area)
         const effectiveWidth = Math.min(Math.max(viewportWidth, Math.max(refWidth, safeWidth)), safeWidth);
@@ -95,7 +103,7 @@ export class ResponsiveManager {
         }
 
         // scale
-        const scale: number = Math.round((orientation === GameConfig.ORIENTATION.landscape ? calculatedHeight / effectiveHeight : calculatedWidth / effectiveWidth) * 10000) / 10000;
+        const scale: number = Math.round((this._orientation === GameConfig.ORIENTATION.landscape ? calculatedHeight / effectiveHeight : calculatedWidth / effectiveWidth) * 10000) / 10000;
 
         this._app.stage.scale.set(scale);
 
@@ -118,7 +126,7 @@ export class ResponsiveManager {
             viewportHeight: viewportHeight,
             safeWidth: safeWidth,
             safeHeight: safeHeight,
-            orientation: orientation,
+            orientation: this._orientation,
             scale: scale
         };
 
@@ -158,6 +166,10 @@ export class ResponsiveManager {
         }
 
         return { x: left, y: top };
+    }
+
+    public get orientation(): string {
+        return this._orientation;
     }
 
     public destroy(): void {
