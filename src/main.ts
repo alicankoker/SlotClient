@@ -134,10 +134,11 @@ export class DoodleV8Main {
                 this.spinController.getIsAutoPlaying() === false
               ) {
                 storage.getItem("player_balance");
-                this.spinController.executeSpin({
+                eventBus.emit("spin");
+                /*this.spinController.executeSpin({
                   betAmount: 10,
                   gameMode: "manual",
-                });
+                });*/
               } else {
                 GameConfig.FORCE_STOP.enabled &&
                   this.spinController.forceStop();

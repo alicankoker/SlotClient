@@ -19,6 +19,27 @@ export interface CommunicationAdapter {
     requestGameState(playerId: string): Promise<any>;
 }
 
+// EventManager exports
+export { 
+    EventManager, 
+    GameEventEmitter, 
+    GameEventTypes,
+    LoggingMiddleware,
+    ThrottlingMiddleware,
+    PlayerFilterMiddleware
+} from './EventManager';
+
+export { 
+    EventAdapterFactory, 
+    EventBridge,
+    LocalEventAdapter,
+    HttpEventAdapter,
+    WebSocketEventAdapter,
+    WebWorkerEventAdapter
+} from './EventAdapters';
+
+export { runEventManagerExamples } from './EventManagerExample';
+
 // Event-driven communication bridge
 export class CommunicationBridge {
     private static instance: CommunicationBridge;
