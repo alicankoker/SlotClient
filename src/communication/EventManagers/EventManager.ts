@@ -1,6 +1,8 @@
 // EventManager - A comprehensive event system for the slot game
 // This can serve as a separate API for event handling and communication
 
+import { GameEvents } from '../Channels/EventChannels';
+
 export interface EventData {
     [key: string]: any;
 }
@@ -95,8 +97,9 @@ export class EventManager {
     public emit(eventType: string, data: EventData, context?: Partial<EventContext>): string {
         const eventId = this.generateEventId();
         const fullContext: EventContext = {
-            ...this.config.defaultContext!,
             timestamp: Date.now(),
+            source: 'EventManager',
+            ...this.config.defaultContext,
             ...context
         };
 
@@ -115,8 +118,9 @@ export class EventManager {
     public async emitAsync(eventType: string, data: EventData, context?: Partial<EventContext>): Promise<string> {
         const eventId = this.generateEventId();
         const fullContext: EventContext = {
-            ...this.config.defaultContext!,
             timestamp: Date.now(),
+            source: 'EventManager',
+            ...this.config.defaultContext,
             ...context
         };
 
@@ -413,39 +417,6 @@ export const PlayerFilterMiddleware = (playerId: string): EventMiddleware => ({
     }
 });
 
-// Game-specific event types
-export enum GameEventTypes {
-    // Spin events
-    SPIN_STARTED = 'spin:started',
-    SPIN_COMPLETED = 'spin:completed',
-    SPIN_FAILED = 'spin:failed',
-    
-    // Reel events
-    REEL_STARTED = 'reel:started',
-    REEL_STOPPED = 'reel:stopped',
-    REEL_SLOWING = 'reel:slowing',
-    
-    // Win events
-    WIN_DETECTED = 'win:detected',
-    WIN_ANIMATION_STARTED = 'win:animation:started',
-    WIN_ANIMATION_COMPLETED = 'win:animation:completed',
-    BIG_WIN_TRIGGERED = 'win:big:triggered',
-    
-    // Player events
-    PLAYER_BALANCE_CHANGED = 'player:balance:changed',
-    PLAYER_BET_CHANGED = 'player:bet:changed',
-    PLAYER_LEVEL_UP = 'player:level:up',
-    
-    // UI events
-    UI_BUTTON_CLICKED = 'ui:button:clicked',
-    UI_PANEL_OPENED = 'ui:panel:opened',
-    UI_PANEL_CLOSED = 'ui:panel:closed',
-    
-    // System events
-    SYSTEM_ERROR = 'system:error',
-    SYSTEM_WARNING = 'system:warning',
-    SYSTEM_INFO = 'system:info'
-}
 
 // Convenience methods for common game events
 export class GameEventEmitter {
@@ -457,21 +428,21 @@ export class GameEventEmitter {
 
     // Spin events
     public emitSpinStarted(betAmount: number, playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.SPIN_STARTED, {
+        return this.eventManager.emit(GameEvents.SPIN_STARTED, {
             betAmount,
             playerId
         }, { playerId, sessionId });
     }
 
     public emitSpinCompleted(result: any, playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.SPIN_COMPLETED, {
+        return this.eventManager.emit(GameEvents.SPIN_COMPLETED, {
             result,
             playerId
         }, { playerId, sessionId });
     }
 
     public emitSpinFailed(error: string, playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.SPIN_FAILED, {
+        return this.eventManager.emit(GameEvents.SPIN_FAILED, {
             error,
             playerId
         }, { playerId, sessionId });
@@ -479,13 +450,13 @@ export class GameEventEmitter {
 
     // Reel events
     public emitReelStarted(reelIndex: number, playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.REEL_STARTED, {
+        return this.eventManager.emit(GameEvents.REEL_STARTED, {
             reelIndex
         }, { playerId, sessionId });
     }
 
     public emitReelStopped(reelIndex: number, finalSymbols: number[], playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.REEL_STOPPED, {
+        return this.eventManager.emit(GameEvents.REEL_STOPPED, {
             reelIndex,
             finalSymbols
         }, { playerId, sessionId });
@@ -493,21 +464,21 @@ export class GameEventEmitter {
 
     // Win events
     public emitWinDetected(winAmount: number, matches: any[], playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.WIN_DETECTED, {
+        return this.eventManager.emit(GameEvents.WIN_DETECTED, {
             winAmount,
             matches
         }, { playerId, sessionId });
     }
 
     public emitBigWinTriggered(winAmount: number, playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.BIG_WIN_TRIGGERED, {
+        return this.eventManager.emit(GameEvents.BIG_WIN_TRIGGERED, {
             winAmount
         }, { playerId, sessionId });
     }
 
     // Player events
     public emitBalanceChanged(oldBalance: number, newBalance: number, playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.PLAYER_BALANCE_CHANGED, {
+        return this.eventManager.emit(GameEvents.PLAYER_BALANCE_CHANGED, {
             oldBalance,
             newBalance,
             change: newBalance - oldBalance
@@ -516,14 +487,14 @@ export class GameEventEmitter {
 
     // UI events
     public emitButtonClicked(buttonId: string, playerId: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.UI_BUTTON_CLICKED, {
+        return this.eventManager.emit(GameEvents.UI_BUTTON_CLICKED, {
             buttonId
         }, { playerId, sessionId });
     }
 
     // System events
     public emitError(error: string, details?: any, playerId?: string, sessionId?: string): string {
-        return this.eventManager.emit(GameEventTypes.SYSTEM_ERROR, {
+        return this.eventManager.emit(GameEvents.SYSTEM_ERROR, {
             error,
             details
         }, { playerId, sessionId });

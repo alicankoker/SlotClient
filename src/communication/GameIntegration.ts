@@ -1,7 +1,8 @@
 // GameIntegration - Example of integrating EventManager with the existing slot game
 // This shows how to add event tracking to your current game controllers
 
-import { EventManager, GameEventEmitter, GameEventTypes } from './EventManager';
+import { EventManager, GameEventEmitter } from './EventManagers/EventManager';
+import { GameEvents } from './Channels/EventChannels';
 import { EventAdapterFactory, EventBridge } from './EventAdapters';
 
 // Example integration with SpinController
@@ -41,19 +42,19 @@ export class EventEnabledSpinController {
         });
 
         // Listen to specific events for game logic
-        this.eventManager.on(GameEventTypes.SPIN_STARTED, (event) => {
+        this.eventManager.on(GameEvents.SPIN_STARTED, (event) => {
             this.onSpinStarted(event);
         });
 
-        this.eventManager.on(GameEventTypes.SPIN_COMPLETED, (event) => {
+        this.eventManager.on(GameEvents.SPIN_COMPLETED, (event) => {
             this.onSpinCompleted(event);
         });
 
-        this.eventManager.on(GameEventTypes.WIN_DETECTED, (event) => {
+        this.eventManager.on(GameEvents.WIN_DETECTED, (event) => {
             this.onWinDetected(event);
         });
 
-        this.eventManager.on(GameEventTypes.BIG_WIN_TRIGGERED, (event) => {
+        this.eventManager.on(GameEvents.BIG_WIN_TRIGGERED, (event) => {
             this.onBigWinTriggered(event);
         });
     }
@@ -121,7 +122,8 @@ export class EventEnabledSpinController {
 
         } catch (error) {
             // Emit error event
-            this.gameEmitter.emitSpinFailed(error.message, playerId, sessionId);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.gameEmitter.emitSpinFailed(errorMessage, playerId, sessionId);
             throw error;
         }
     }
@@ -193,20 +195,20 @@ export class EventEnabledUI {
 
     public setupPanelListeners(): void {
         // Example: Track panel open/close events
-        this.eventManager.on(GameEventTypes.UI_PANEL_OPENED, (event) => {
+        this.eventManager.on(GameEvents.UI_PANEL_OPENED, (event) => {
             console.log('Panel opened:', event.data.panelId);
         });
 
-        this.eventManager.on(GameEventTypes.UI_PANEL_CLOSED, (event) => {
+        this.eventManager.on(GameEvents.UI_PANEL_CLOSED, (event) => {
             console.log('Panel closed:', event.data.panelId);
         });
     }
 
     public emitPanelEvent(panelId: string, action: 'opened' | 'closed'): void {
         if (action === 'opened') {
-            this.eventManager.emit(GameEventTypes.UI_PANEL_OPENED, { panelId });
+            this.eventManager.emit(GameEvents.UI_PANEL_OPENED, { panelId });
         } else {
-            this.eventManager.emit(GameEventTypes.UI_PANEL_CLOSED, { panelId });
+            this.eventManager.emit(GameEvents.UI_PANEL_CLOSED, { panelId });
         }
     }
 }
@@ -228,7 +230,7 @@ export class EventEnabledPlayerController {
 
     public updateBet(playerId: string, oldBet: number, newBet: number, sessionId?: string): void {
         // Emit bet change event
-        this.eventManager.emit(GameEventTypes.PLAYER_BET_CHANGED, {
+        this.eventManager.emit(GameEvents.PLAYER_BET_CHANGED, {
             oldBet,
             newBet,
             change: newBet - oldBet

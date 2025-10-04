@@ -1,7 +1,7 @@
 // EventAdapters - Different communication adapters for EventManager
 // These allow the EventManager to work with various communication backends
 
-import { EventManager, GameEvent, EventData, EventContext } from './EventManager';
+import { EventManager, GameEvent, EventData, EventContext } from './EventManagers/EventManager';
 
 export interface EventAdapter {
     emit(event: GameEvent): Promise<boolean>;
@@ -10,10 +10,6 @@ export interface EventAdapter {
     connect(): Promise<void>;
     disconnect(): Promise<void>;
     isConnected(): boolean;
-    spinRequest(betAmount: number): Promise<boolean>;
-    spinResponse(response: any): Promise<boolean>;
-    balance(playerId: string): Promise<number>;
-    gameState(playerId: string): Promise<any>;
 }
 
 export interface EventAdapterConfig {

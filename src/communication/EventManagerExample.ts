@@ -3,12 +3,12 @@
 
 import { 
     EventManager, 
-    GameEventEmitter, 
-    GameEventTypes,
+    GameEventEmitter,
     LoggingMiddleware,
     ThrottlingMiddleware,
     PlayerFilterMiddleware
-} from './EventManager';
+} from './EventManagers/EventManager';
+import { GameEvents } from './Channels/EventChannels';
 import { 
     EventAdapterFactory, 
     EventBridge,
@@ -40,23 +40,23 @@ export class BasicEventExample {
 
     private setupEventListeners(): void {
         // Listen to spin events
-        this.eventManager.on(GameEventTypes.SPIN_STARTED, (event) => {
+        this.eventManager.on(GameEvents.SPIN_STARTED, (event) => {
             console.log('Spin started for player:', event.context.playerId);
         });
 
-        this.eventManager.on(GameEventTypes.SPIN_COMPLETED, (event) => {
+        this.eventManager.on(GameEvents.SPIN_COMPLETED, (event) => {
             console.log('Spin completed with result:', event.data.result);
         });
 
         // Listen to win events with filtering
-        this.eventManager.on(GameEventTypes.WIN_DETECTED, (event) => {
+        this.eventManager.on(GameEvents.WIN_DETECTED, (event) => {
             console.log('Win detected:', event.data.winAmount);
         }, {
             filter: (event) => event.data.winAmount > 100 // Only big wins
         });
 
         // One-time listener
-        this.eventManager.once(GameEventTypes.BIG_WIN_TRIGGERED, (event) => {
+        this.eventManager.once(GameEvents.BIG_WIN_TRIGGERED, (event) => {
             console.log('First big win!', event.data.winAmount);
         });
     }
@@ -100,7 +100,7 @@ export class AdvancedEventExample {
     private createAnalyticsMiddleware() {
         return {
             name: 'analytics',
-            execute: (event, next) => {
+            execute: (event: any, next: () => void) => {
                 // Track events for analytics
                 this.trackEvent(event);
                 next();
@@ -111,13 +111,14 @@ export class AdvancedEventExample {
     private createErrorHandlingMiddleware() {
         return {
             name: 'error-handling',
-            execute: (event, next) => {
+            execute: (event: any, next: () => void) => {
                 try {
                     next();
                 } catch (error) {
                     console.error('Error in event processing:', error);
-                    this.eventManager.emit(GameEventTypes.SYSTEM_ERROR, {
-                        error: error.message,
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    this.eventManager.emit(GameEvents.SYSTEM_ERROR, {
+                        error: errorMessage,
                         originalEvent: event
                     });
                 }
@@ -139,12 +140,12 @@ export class AdvancedEventExample {
         });
 
         // High-priority system events
-        this.eventManager.on(GameEventTypes.SYSTEM_ERROR, (event) => {
+        this.eventManager.on(GameEvents.SYSTEM_ERROR, (event) => {
             console.error('System error occurred:', event.data);
         }, { priority: 10 });
 
         // Balance change tracking
-        this.eventManager.on(GameEventTypes.PLAYER_BALANCE_CHANGED, (event) => {
+        this.eventManager.on(GameEvents.PLAYER_BALANCE_CHANGED, (event) => {
             const { oldBalance, newBalance, change } = event.data;
             console.log(`Balance changed: ${oldBalance} -> ${newBalance} (${change > 0 ? '+' : ''}${change})`);
         });
@@ -242,7 +243,7 @@ export class EventReplayExample {
 
         // Get event history
         const history = this.eventManager.getEventHistory({
-            eventTypes: [GameEventTypes.SPIN_STARTED, GameEventTypes.SPIN_COMPLETED]
+            eventTypes: [GameEvents.SPIN_STARTED, GameEvents.SPIN_COMPLETED]
         });
         console.log('Event history:', history);
     }
@@ -265,17 +266,17 @@ export class GameIntegrationExample {
 
     private setupGameIntegration(): void {
         // This would integrate with your existing SpinController, etc.
-        this.eventManager.on(GameEventTypes.SPIN_STARTED, (event) => {
+        this.eventManager.on(GameEvents.SPIN_STARTED, (event) => {
             // Trigger your existing spin logic
             console.log('Integrating with SpinController...');
         });
 
-        this.eventManager.on(GameEventTypes.REEL_STARTED, (event) => {
+        this.eventManager.on(GameEvents.REEL_STARTED, (event) => {
             // Trigger reel animations
             console.log('Starting reel animation for reel:', event.data.reelIndex);
         });
 
-        this.eventManager.on(GameEventTypes.REEL_STOPPED, (event) => {
+        this.eventManager.on(GameEvents.REEL_STOPPED, (event) => {
             // Handle reel stop
             console.log('Reel stopped with symbols:', event.data.finalSymbols);
         });
@@ -329,7 +330,7 @@ export function runEventManagerExamples(): void {
 export {
     EventManager,
     GameEventEmitter,
-    GameEventTypes,
+    GameEvents as GameEventTypes,
     EventAdapterFactory,
     EventBridge
 };

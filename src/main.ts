@@ -39,8 +39,10 @@ import { BigWin } from './engine/components/BigWin';
 import { gsap } from 'gsap';
 import { FeatureScreen } from './engine/components/FeatureScreen';
 import { Storage } from './engine/utils/Storage';
-import { eventBus } from './engine/utils/WindowEventManager';
+import { eventBus } from './communication/EventManagers/WindowEventManager';
 import { GameRulesConfig } from './config/GameRulesConfig';
+import { GameEventTypes, CommunicationEventTypes, SpinEventTypes } from "./communication";
+import { EVENT_CHANNELS } from "./communication/Channels/EventChannels";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -133,12 +135,11 @@ export class DoodleV8Main {
                 this.bigWinContainer.isBigWinActive === false &&
                 this.spinController.getIsAutoPlaying() === false
               ) {
-                storage.getItem("player_balance");
-                eventBus.emit("spin");
-                /*this.spinController.executeSpin({
+                eventBus.emit(SpinEventTypes.REQUEST, "manual_spin");
+                this.spinController.executeSpin({
                   betAmount: 10,
                   gameMode: "manual",
-                });*/
+                });
               } else {
                 GameConfig.FORCE_STOP.enabled &&
                   this.spinController.forceStop();

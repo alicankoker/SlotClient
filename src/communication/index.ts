@@ -22,12 +22,24 @@ export interface CommunicationAdapter {
 // EventManager exports
 export { 
     EventManager, 
-    GameEventEmitter, 
-    GameEventTypes,
+    GameEventEmitter,
     LoggingMiddleware,
     ThrottlingMiddleware,
     PlayerFilterMiddleware
-} from './EventManager';
+} from './EventManagers/EventManager';
+
+// Event types exports
+export { 
+    GameEvents as GameEventTypes,
+    CommunicationEvents as CommunicationEventTypes,
+    SpinEvents as SpinEventTypes,
+    ReelEvents as ReelEventTypes,
+    WinEvents as WinEventTypes,
+    PlayerEvents as PlayerEventTypes,
+    UIEvents as UIEventTypes,
+    SystemEvents as SystemEventTypes,
+    type AllEventTypes
+} from './Channels/EventChannels';
 
 export { 
     EventAdapterFactory, 

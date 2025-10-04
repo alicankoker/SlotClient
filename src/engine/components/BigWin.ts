@@ -7,7 +7,7 @@ import { GameConfig } from "../../config/GameConfig";
 import { BigWinType, BigWinTypeValue } from "../types/GameTypes";
 import { Counter } from "../utils/Counter";
 import SoundManager from "../controllers/SoundManager";
-import { eventBus } from "../utils/WindowEventManager";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 
 export class BigWin extends BigWinContainer {
     private static _instance: BigWin;

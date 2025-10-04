@@ -20,7 +20,7 @@ import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import gsap from "gsap";
 import { Helpers } from "../utils/Helpers";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { eventBus } from "../utils/WindowEventManager";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 
 export class FeatureScreen extends Container {
   private _app: Application;
