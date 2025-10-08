@@ -1,5 +1,5 @@
 import '@esotericsoftware/spine-pixi-v8';
-import { Application, Assets, FillGradient, Graphics, Matrix, MeshRope, Point, Sprite, Text, TextStyle, Texture } from 'pixi.js';
+import { Application, Assets, Container, FillGradient, Graphics, Matrix, MeshRope, Point, RenderTexture, Sprite, Text, TextStyle, Texture, TextureSource } from 'pixi.js';
 import { SlotGameController } from './game/controllers/SlotGameController';
 import { SpinController } from './engine/controllers/SpinController';
 import { ReelsController } from './engine/reels/ReelsController';
@@ -17,6 +17,7 @@ import { gsap } from 'gsap';
 import { FeatureScreen } from './engine/components/FeatureScreen';
 import { Storage } from './engine/utils/Storage';
 import { eventBus } from './engine/utils/WindowEventManager';
+import { GameRulesConfig } from './config/GameRulesConfig';
 
 export class DoodleV8Main {
     private app!: Application;
@@ -85,8 +86,6 @@ export class DoodleV8Main {
             this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
             this._spinModeText.visible = false; // Hide by default
             this.app.stage.addChild(this._spinModeText);
-
-            // localStorage.getItem('featureScreenDontShow') === 'true' && eventBus.emit("showUI");
 
             // Step 6: Start game systems (controllers handle the game loop)
 

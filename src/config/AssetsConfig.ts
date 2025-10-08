@@ -164,6 +164,19 @@ export class AssetsConfig {
                         src: '/assets/animations/elements.json'
                     }
                 ]
+            },
+            {
+                name: 'freespin',
+                assets: [
+                    {
+                        alias: ['freespin_atlas'],
+                        src: '/assets/animations/freespin.atlas'
+                    },
+                    {
+                        alias: ['freespin_data'],
+                        src: '/assets/animations/freespin.json'
+                    }
+                ]
             }
         ]
     };
