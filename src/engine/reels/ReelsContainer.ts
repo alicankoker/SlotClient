@@ -1,5 +1,5 @@
 import { Container, Application, Graphics, Sprite, Texture, Point, Text } from 'pixi.js';
-import { SpinContainer, SpinContainerConfig } from './SpinContainer';
+import { SpinContainer, SpinContainerConfig } from '../Spin/SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
 import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
@@ -15,6 +15,7 @@ import { WinLinesContainer } from '../components/WinLinesContainer';
 import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
 import { AssetsConfig } from '../../config/AssetsConfig';
 import { Helpers } from '../utils/Helpers';
+import { ClassicSpinContainer } from '../Spin/ClassicSpin/ClassicSpinContainer';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -24,7 +25,7 @@ export class ReelsContainer extends Container {
     private reelAreaMask: Graphics;
 
     // ONE SpinContainer and ONE StaticContainer for entire game
-    private spinContainer?: SpinContainer;
+    private spinContainer!: SpinContainer;
     private staticContainer?: StaticContainer;
     private winLinesContainer?: WinLinesContainer;
 
@@ -52,10 +53,9 @@ export class ReelsContainer extends Container {
         // Create mask for the entire reel area
         this.reelAreaMask = new Graphics();
 
-        this.createReelAreaMask();
-
         this.initializeContainers();
 
+        // bu main container'a taşınacak
         // initialize auto play count indicator
         this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
         this._autoPlayCountText.label = 'AutoPlayCountText';
@@ -102,7 +102,7 @@ export class ReelsContainer extends Container {
         this.createSpinContainer(symbolHeight);
 
         // Create ONE StaticContainer for entire game
-        this.createStaticContainer(symbolHeight);
+        //this.createStaticContainer(symbolHeight);
 
         this.createWinLinesContainer();
 
@@ -112,27 +112,18 @@ export class ReelsContainer extends Container {
     }
 
     private createSpinContainer(symbolHeight: number): void {
-        const spinContainerConfig: SpinContainerConfig = {
-            reelIndex: 0, // Single container manages all reels, but still needs this for compatibility
-            numberOfReels: this.numberOfReels, // Will handle all reels
-            symbolHeight,
-            symbolsVisible: this.symbolsPerReel,
-            rowsAboveMask: GameConfig.GRID_LAYOUT.rowsAboveMask,
-            rowsBelowMask: GameConfig.GRID_LAYOUT.rowsBelowMask,
-            spinSpeed: 10,
-            spinDuration: 2000
-        };
 
-        this.spinContainer = new SpinContainer(this.app, spinContainerConfig);
+
+        /*this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig);
 
         // Set initial visibility - hidden by default
         this.spinContainer.visible = false;
 
         // Add to display
-        this.addChild(this.spinContainer);
+        this.addChild(this.spinContainer!);*/
     }
 
-    private createStaticContainer(symbolHeight: number): void {
+    /*private createStaticContainer(symbolHeight: number): void {
         // Create single StaticContainer for all reels
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0, // Single container manages all reels
@@ -145,33 +136,12 @@ export class ReelsContainer extends Container {
 
         // Add to display
         this.addChild(this.staticContainer);
-    }
+    }*/
 
     private createWinLinesContainer(): void {
         this.winLinesContainer = WinLinesContainer.getInstance();
         this.winLinesContainer.visible = false;
         this.addChild(this.winLinesContainer);
-    }
-
-    private createReelAreaMask(): void {
-        // Calculate mask dimensions to cover all reels and visible rows
-        // Width: cover all reels with proper spacing
-        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 10;
-        // Height: cover visible rows with proper spacing
-        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount) - 5);
-
-        // Center the mask
-        const maskX = (GameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
-        const maskY = (GameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2);
-
-        // Redraw the mask
-        this.reelAreaMask.beginPath();
-        this.reelAreaMask.rect(maskX, maskY, totalWidth, totalHeight);
-        this.reelAreaMask.fill(0xffffff); // White fill for the mask
-        this.reelAreaMask.closePath();
-        this.addChild(this.reelAreaMask);
-
-        debug.log(`ReelsContainer: Created reel area mask at (${maskX}, ${maskY}) with size ${totalWidth}x${totalHeight}`);
     }
 
     public playFrameAnimation(): void {
@@ -304,7 +274,7 @@ export class ReelsContainer extends Container {
         if (this.spinContainer) {
             this.removeChild(this.spinContainer);
             this.spinContainer.destroy();
-            this.spinContainer = undefined; // Clear the reference
+            this.spinContainer = null as unknown as SpinContainer; // Clear the reference
         }
 
         // Destroy the single staticContainer if it exists

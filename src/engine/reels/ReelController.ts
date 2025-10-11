@@ -1,4 +1,4 @@
-import { SpinContainer } from './SpinContainer';
+import { SpinContainer } from '../Spin/SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
 import {
@@ -41,7 +41,6 @@ export class ReelController {
     private spinContainer?: SpinContainer;
     protected bottomSymbolYPos: number = 0;
     protected topSymbolYPos: number = 0;
-    protected currentSpeed: number = SpinConfig.SPIN_SPEED;
     private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
     // Animation state
@@ -87,15 +86,15 @@ export class ReelController {
     }
 
     private syncSymbolsToViews(): void {
-        if (this.spinContainer && !this.isSpinning) {
-            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
-            this.spinContainer.setSymbols(this.currentSymbols, this.reelIndex);
-        }
 
         if (this.staticContainer && this.currentMode === IReelMode.STATIC) {
             debug.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
             this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
             debug.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
+        }else if (this.spinContainer && !this.isSpinning) {
+            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
+            //burada semboller set ediliyor
+            this.spinContainer.setSymbols(this.currentSymbols, this.reelIndex);
         }
     }
 
@@ -156,23 +155,6 @@ export class ReelController {
     }
 
     // Spinning functionality
-    public startSpin(targetSymbols: number[], duration?: number, onComplete?: () => void): boolean {
-        if (this.isSpinning || !this.spinContainer) return false;
-
-        this.bottomSymbolYPos = 840;
-        this.topSymbolYPos = 240;
-
-        this.isSpinning = true;
-        this.spinDuration = duration || this.spinDuration;
-        this.onSpinCompleteCallback = onComplete;
-
-        this.setMode(IReelMode.SPINNING);
-        this.currentSpeed = SpinConfig.SPIN_SPEED;
-
-        return this.spinContainer.startSpin(targetSymbols, () => {
-            this.onSpinComplete(targetSymbols);
-        });
-    }
 
     public slowDown(): void {
         this.setMode(IReelMode.SLOWING);
@@ -214,55 +196,6 @@ export class ReelController {
         if (!this.isSpinning) return;
 
         this.isSpinning = false;
-    }
-
-    // Update method for game loop
-    public update(deltaTime: number = 0): void {
-        // Update spin progress and state
-        if (this.spinContainer && this.isSpinning) {
-            // Monitor spin container state for any needed updates
-            this.updateSpinProgress(deltaTime);
-        }
-
-        // Update container states if needed
-        this.updateContainerStates(deltaTime);
-
-        // Handle any time-based state transitions
-        this.updateStateMachine(deltaTime);
-    }
-
-    private updateSpinProgress(deltaTime: number): void {
-        // This method can be used to:
-        // - Monitor spin animation progress
-        // - Handle spin timing adjustments
-        // - Coordinate with other systems during spin
-        // - Update spin-related UI elements
-
-        if (this.spinContainer && this.isSpinning) {
-            // Future: Add any spin progress tracking here
-            // e.g., spin speed adjustments, progress callbacks, etc.
-
-            if (this.currentMode === IReelMode.SLOWING && this.currentSpeed > SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
-                this.currentSpeed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT;
-            }
-
-            if (this.currentMode === IReelMode.SPEEDING) {
-                this.currentSpeed -= SpinConfig.REEL_SPEED_UP_COEFFICIENT;
-            }
-
-            this.spinContainer?.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
-                debug.log(`${this.currentSpeed}`);
-                reelSymbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
-                    if (symbol) {
-                        if (symbol.position.y > this.bottomSymbolYPos) {
-                            symbol.position.y = this.topSymbolYPos;
-                        } else {
-                            symbol.position.y += this.currentSpeed;
-                        }
-                    }
-                });
-            });
-        }
     }
 
     private updateContainerStates(deltaTime: number): void {

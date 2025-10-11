@@ -2,7 +2,6 @@ import { Application } from 'pixi.js';
 import { ReelsContainer } from './ReelsContainer';
 import { ReelController, IReelMode } from './ReelController';
 import { StaticContainer } from './StaticContainer';
-import { SpinContainer } from './SpinContainer';
 import { GameConfig } from '../../config/GameConfig';
 import {
     InitialGridData,
@@ -15,11 +14,12 @@ import { Helpers } from '../utils/Helpers';
 import { SpinConfig } from '../../config/SpinConfig';
 import { debug } from '../utils/debug';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
+import { SpinContainer } from '../Spin/SpinContainer';
 
 export class ReelsController {
     private app: Application;
     private reelsContainer!: ReelsContainer;
-    private reelControllers: ReelController[] = [];
+    public reelControllers: ReelController[] = [];
 
     // State management
     private currentMode: ISpinState = ISpinState.IDLE;
@@ -31,16 +31,14 @@ export class ReelsController {
     private spinPromises: Promise<void>[] = [];
     protected bottomSymbolYPos: number = 0;
 
-    constructor(initData: InitialGridData, app: Application) {
+    constructor(app: Application, initData: InitialGridData, reelsContainer?: ReelsContainer) {
         this.app = app;
+        
+        if (reelsContainer) {
+            this.reelsContainer = reelsContainer;
+        }
 
-        this.initializeContainers();
         this.initializeControllers(initData);
-        this.connectControllers();
-    }
-
-    private initializeContainers(): void {
-        this.reelsContainer = new ReelsContainer(this.app);
     }
 
     private initializeControllers(initData: InitialGridData): void {
@@ -52,26 +50,10 @@ export class ReelsController {
         }
     }
 
-    private connectControllers(): void {
-        // Get the single containers that handle all reels
-        const spinContainer = this.reelsContainer.getSpinContainer();
-        const staticContainer = this.reelsContainer.getStaticContainer(); // Single container for all reels
-
-        if (!spinContainer) {
-            debug.error('ReelsController: No SpinContainer available');
-            return;
-        }
-
-        if (!staticContainer) {
-            debug.error('ReelsController: No StaticContainer available');
-            return;
-        }
-
-        for (let i = 0; i < this.reelControllers.length; i++) {
-            this.reelControllers[i].setViews(staticContainer, spinContainer);
-        }
+    // Method to set reelsContainer after creation
+    public setReelsContainer(reelsContainer: ReelsContainer): void {
+        this.reelsContainer = reelsContainer;
     }
-
     // Mode management
     public async setMode(mode: ISpinState): Promise<void> {
         if (this.currentMode === mode) return;
@@ -80,14 +62,16 @@ export class ReelsController {
         this.currentMode = mode;
 
         // Update container mode
-        this.reelsContainer.setMode(Helpers.getReelModeBySpinState(mode));
+        if (this.reelsContainer) {
+            this.reelsContainer.setMode(Helpers.getReelModeBySpinState(mode));
+        }
 
         // Update all reel controllers
         await Promise.all(this.reelControllers.map(controller => {
             return controller.setModeBySpinState(mode);
         }));
 
-        this.getMode() === ISpinState.IDLE && await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
+        this.getMode() === ISpinState.IDLE && this.reelsContainer && await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
     }
 
     /**
@@ -161,6 +145,11 @@ export class ReelsController {
      * @description Reset all win animations.
      */
     public resetWinAnimations(): void {
+        if (!this.reelsContainer) {
+            debug.warn('ReelsController: reelsContainer not set, skipping resetWinAnimations');
+            return;
+        }
+
         this.reelsContainer.stopFrameAnimation();
 
         const staticContainer = this.reelsContainer.getStaticContainer();
@@ -185,6 +174,14 @@ export class ReelsController {
         this.spinStartTime = Date.now();
         this.setMode(ISpinState.SPINNING);
 
+        // Start spin animation on the spin container
+        if (this.reelsContainer) {
+            const spinContainer = this.reelsContainer.getSpinContainer();
+            if (spinContainer && 'startSpinAnimation' in spinContainer) {
+                (spinContainer as any).startSpinAnimation(finalSymbols[0] || []);
+            }
+        }
+
         // Start all reels spinning with staggered timing
         /*this.spinPromises = this.reelControllers.map((controller, index) => {
             return new Promise<void>((resolve) => {
@@ -200,9 +197,11 @@ export class ReelsController {
         
         // Wait for all reels to complete
         await Promise.all(this.spinPromises);*/
-        this.reelControllers.forEach(controller => {
+
+        //burada reel'ler spin start ediliyor
+        /*this.reelControllers.forEach(controller => {
             controller.startSpin(finalSymbols[0], 0, () => { });
-        });
+        });*/
 
         if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
             await this.delay(SpinConfig.SPIN_DURATION);
@@ -216,6 +215,14 @@ export class ReelsController {
     }
 
     public stopSpin(): void {
+        // Stop spin animation on the spin container
+        if (this.reelsContainer) {
+            const spinContainer = this.reelsContainer.getSpinContainer();
+            if (spinContainer && 'stopSpinAnimation' in spinContainer) {
+                (spinContainer as any).stopSpinAnimation();
+            }
+        }
+
         this.reelControllers.forEach(controller => {
             controller.stopSpin();
         });
@@ -298,9 +305,10 @@ export class ReelsController {
     // Update method for game loop
     public update(deltaTime: number = 0): void {
         // Update all reel controllers
-        this.reelControllers.forEach(controller => {
+        //burada reel'ler update ediliyor
+        /*this.reelControllers.forEach(controller => {
             controller.update(deltaTime);
-        });
+        });*/
 
         // Update spinning state based on individual reel states
         this.updateSpinningState();

@@ -1,6 +1,7 @@
 import { FillGradient, TextStyle } from "pixi.js";
 import { AutoPlayConfig, BigWinConfig, ForceStopConfig, LoaderDurations, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
 import { GameRulesConfig } from "./GameRulesConfig";
+import { SpinContainerConfig } from "../engine/Spin/SpinContainer";
 
 export interface ResolutionConfig {
     width: number;
@@ -24,6 +25,16 @@ export interface UIConfig {
         margin: number;
     };
 }
+export const spinContainerConfig: SpinContainerConfig = {
+    reelIndex: 0, // Single container manages all reels, but still needs this for compatibility
+    numberOfReels: 6, // Will handle all reels (6 columns)
+    symbolHeight: 150,
+    symbolsVisible: 5,
+    rowsAboveMask: 1,
+    rowsBelowMask: 1,
+    spinSpeed: 10,
+    spinDuration: 2000
+};
 
 export class GameConfig {
     // Reference symbol size at base resolution

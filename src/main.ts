@@ -15,7 +15,7 @@ import {
   TextureSource
 } from "pixi.js";
 import { SlotGameController } from "./game/controllers/SlotGameController";
-import { SpinController } from "./engine/controllers/SpinController";
+import { SpinController } from "./engine/Spin/SpinController";
 import { ReelsController } from "./engine/reels/ReelsController";
 import { ResponsiveManager } from "./engine/utils/ResponsiveManager";
 import {
@@ -59,16 +59,6 @@ export class DoodleV8Main {
     try {
       debug.log("🎰 DoodleV8 initializing...");
 
-      // Initialize SlotGameController first (needed for grid generation)
-      this.slotGameController = SlotGameController.getInstance();
-
-      let initData: InitialGridData;
-      try {
-        initData = await this.slotGameController.generateInitialGrid();
-      } catch (error) {
-        debug.error("❌ Failed to generate initial grid:", error);
-        throw error;
-      }
 
       // Step 1: Initialize PIXI Application with modern config
       await this.initializePixiApp();
@@ -86,6 +76,17 @@ export class DoodleV8Main {
         this.startLoader(),
       ]);
 
+      // Initialize SlotGameController first (needed for grid generation)
+      this.slotGameController = new SlotGameController(this.app)
+
+      let initData: InitialGridData;
+      try {
+        initData = await this.slotGameController.generateInitialGrid();
+      } catch (error) {
+        debug.error("❌ Failed to generate initial grid:", error);
+        throw error;
+      }
+      
       const storage = Storage.getInstance();
       storage.setItem("player_balance", 1000);
 
@@ -101,7 +102,7 @@ export class DoodleV8Main {
       }
 
       // Step 4: Initialize controllers (now that assets are loaded)
-      this.initializeControllers(initData);
+      this.initializeControllers(initData as InitialGridData);
 
       // Set up controllers callbacks
       this.setupControllersCallbacks();
@@ -124,48 +125,49 @@ export class DoodleV8Main {
 
       // Step 6: Start game systems (controllers handle the game loop)
 
+      //TO-DO: this needs to be moved to a separate place
       // Add keyboard handlers
       window.addEventListener("keydown", (event) => {
         switch (event.key.toLowerCase()) {
           case " ":
             debug.log("🎲 Manual spin triggered");
-            if (this.spinController) {
+            if (this.slotGameController?.spinController) {
               if (
-                this.spinController.getIsSpinning() === false &&
+                this.slotGameController.spinController.getIsSpinning() === false &&
                 this.bigWinContainer.isBigWinActive === false &&
-                this.spinController.getIsAutoPlaying() === false
+                this.slotGameController.spinController.getIsAutoPlaying() === false
               ) {
                 eventBus.emit(SpinEventTypes.REQUEST, "manual_spin");
-                this.spinController.executeSpin({
+                this.slotGameController.spinController.executeSpin({
                   betAmount: 10,
                   gameMode: "manual",
                 });
               } else {
                 GameConfig.FORCE_STOP.enabled &&
-                  this.spinController.forceStop();
+                  this.slotGameController.spinController.forceStop();
               }
             }
             break;
           case "f":
             debug.log("🔄 Force stop triggered");
             if (
-              this.spinController &&
-              this.spinController.getIsSpinning() &&
+              this.slotGameController?.spinController &&
+              this.slotGameController.spinController.getIsSpinning() &&
               GameConfig.FORCE_STOP.enabled
             ) {
-              this.spinController.forceStop();
+              this.slotGameController.spinController.forceStop();
             }
             break;
           case "a":
             debug.log("🔄 Auto-play triggered");
             if (
               GameConfig.AUTO_PLAY.enabled &&
-              this.spinController &&
-              this.spinController.getIsSpinning() === false &&
-              this.spinController.getIsAutoPlaying() === false &&
+              this.slotGameController?.spinController &&
+              this.slotGameController.spinController.getIsSpinning() === false &&
+              this.slotGameController.spinController.getIsAutoPlaying() === false &&
               this.bigWinContainer.isBigWinActive === false
             ) {
-              this.spinController.startAutoPlay(
+              this.slotGameController.spinController.startAutoPlay(
                 GameConfig.AUTO_PLAY.count || 5
               ); // Start 5 auto spins
             }
@@ -173,31 +175,31 @@ export class DoodleV8Main {
           case "q":
             debug.log("🛑 Stop auto-play");
             if (
-              this.spinController &&
-              this.spinController.getIsAutoPlaying() &&
-              this.spinController.getAutoPlayCount() > 0
+              this.slotGameController?.spinController &&
+              this.slotGameController.spinController.getIsAutoPlaying() &&
+              this.slotGameController.spinController.getAutoPlayCount() > 0
             ) {
-              this.spinController.stopAutoPlay();
+              this.slotGameController.spinController.stopAutoPlay();
             }
             break;
           case "w":
             debug.log("🎉 Show random win animation");
             if (
-              this.reelsController &&
-              !this.reelsController.getIsSpinning() &&
+              this.slotGameController?.reelsController &&
+              !this.slotGameController.reelsController.getIsSpinning() &&
               GameConfig.WIN_ANIMATION.enabled &&
               this.bigWinContainer.isBigWinActive === false
             ) {
-              this.reelsController.playRandomWinAnimation();
+              this.slotGameController.reelsController.playRandomWinAnimation();
             }
             break;
           case "s":
             debug.log("⏹️ Skip win animations");
             if (
-              this.reelsController &&
-              this.reelsController.getStaticContainer()?.isPlaying === true
+              this.slotGameController?.reelsController &&
+              this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true
             ) {
-              this.reelsController.skipWinAnimations();
+              this.slotGameController.reelsController.skipWinAnimations();
             }
             break;
           case "b":
@@ -205,7 +207,7 @@ export class DoodleV8Main {
             if (
               this.bigWinContainer &&
               GameConfig.BIG_WIN.enabled &&
-              !this.reelsController?.getIsSpinning()
+              !this.slotGameController?.reelsController?.getIsSpinning()
             ) {
               this.bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
             }
@@ -213,10 +215,10 @@ export class DoodleV8Main {
           case "1":
             debug.log(" Normal mode activated");
             if (
-              this.spinController &&
-              this.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL
+              this.slotGameController?.spinController &&
+              this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL
             ) {
-              this.spinController.setSpinMode(
+              this.slotGameController.spinController.setSpinMode(
                 GameConfig.SPIN_MODES.NORMAL as SpinMode
               );
 
@@ -267,10 +269,10 @@ export class DoodleV8Main {
           case "2":
             debug.log("⚡ Fast mode activated");
             if (
-              this.spinController &&
-              this.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST
+              this.slotGameController?.spinController &&
+              this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST
             ) {
-              this.spinController.setSpinMode(
+              this.slotGameController.spinController.setSpinMode(
                 GameConfig.SPIN_MODES.FAST as SpinMode
               );
 
@@ -381,34 +383,28 @@ export class DoodleV8Main {
     // slotGameController already initialized in init() method
 
     // Create ReelsController first
-    this.reelsController = new ReelsController(initData, this.app);
+    //this.reelsController = new ReelsController(this.app, initData);
 
-    // Create SpinController with ReelsController dependency
-    this.spinController = new SpinController({
-      reelsController: this.reelsController,
-      defaultSpinDuration: 2000,
-      staggerDelay: 150,
-    });
   }
 
   private setupControllersCallbacks(): void {
-    if (!this.spinController) return;
+    if (!this.slotGameController?.spinController) return;
 
-    this.spinController.setOnSpinStartCallback(() => {
+    this.slotGameController.spinController.setOnSpinStartCallback(() => {
       debug.log("🎲 Spin started!");
     });
 
-    this.spinController.setOnSpinCompleteCallback(
+    this.slotGameController.spinController.setOnSpinCompleteCallback(
       (result: SpinResponseData) => {
         debug.log("✅ Spin completed!", result);
       }
     );
 
-    this.spinController.setOnCascadeStepCallback((step: CascadeStepData) => {
+    this.slotGameController.spinController.setOnCascadeStepCallback((step: CascadeStepData) => {
       debug.log("💥 Cascade step:", step.step);
     });
 
-    this.spinController.setOnErrorCallback((error: string) => {
+    this.slotGameController.spinController.setOnErrorCallback((error: string) => {
       debug.error("❌ Spin error:", error);
     });
   }
@@ -427,16 +423,14 @@ export class DoodleV8Main {
   }
 
   private async createScene(): Promise<void> {
-    if (!this.reelsController) return;
+    //if (!this.reelsController) return;
 
     const background = new BackgroundContainer(this.app);
     this.app.stage.addChild(background);
 
-    // Get the reels container from the controller
-    const reelsContainer = this.reelsController.getReelsContainer();
-
     // Add the reels container to the stage
-    this.app.stage.addChild(reelsContainer);
+    //this.app.stage.addChild(this.slotGameController!.reelsController.getReelsContainer());
+    this.slotGameController!.initialize();
 
     const winLinesContainer = WinLinesContainer.getInstance();
     this.app.stage.addChild(winLinesContainer);
@@ -447,7 +441,7 @@ export class DoodleV8Main {
     const defaultPlayer = this.slotGameController?.getDefaultPlayer();
 
     // Set initial mode to static
-    this.reelsController.setMode(ISpinState.IDLE);
+    this.slotGameController!.reelsController!.setMode(ISpinState.IDLE);
   }
 }
 

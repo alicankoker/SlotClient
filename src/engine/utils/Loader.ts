@@ -146,6 +146,7 @@ export class Loader extends Container {
     };
 
     private redrawFill(ratio01: number) {
+        if (!this.fill) return; // Guard against undefined fill
         const clamped = Math.max(0, Math.min(1, ratio01));
         const width = clamped * this.padding;
         this.fill.position.x = width;
@@ -187,7 +188,9 @@ export class Loader extends Container {
             onUpdate: () => {
                 const ratio = this.smooth.percent / 100;
                 this.redrawFill(ratio);
-                this.percentageLabel.text = `${Math.round(this.smooth.percent)}%`;
+                if (this.percentageLabel) {
+                    this.percentageLabel.text = `${Math.round(this.smooth.percent)}%`;
+                }
             },
         });
     }
@@ -196,7 +199,9 @@ export class Loader extends Container {
         this.smooth.percent = Math.max(0, Math.min(percent, 100));
         const ratio = this.smooth.percent / 100;
         this.redrawFill(ratio);
-        this.percentageLabel.text = `${Math.round(this.smooth.percent)}%`;
+        if (this.percentageLabel) {
+            this.percentageLabel.text = `${Math.round(this.smooth.percent)}%`;
+        }
     }
 
     public async completeProgress(): Promise<void> {
@@ -212,7 +217,9 @@ export class Loader extends Container {
                 onUpdate: () => {
                     const ratio = this.smooth.percent / 100;
                     this.redrawFill(ratio);
-                    this.percentageLabel.text = `${Math.round(this.smooth.percent)}%`;
+                    if (this.percentageLabel) {
+                        this.percentageLabel.text = `${Math.round(this.smooth.percent)}%`;
+                    }
                 },
                 onComplete: resolve,
             });

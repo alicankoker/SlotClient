@@ -8,6 +8,11 @@ export interface InitialGridData {
     symbols: SymbolData[];      // Flat array of 15 symbols [0-14], where index = column * 3 + row
 }
 
+export interface SpinData {
+    symbolsToDrop: DropData[];
+    incomingSymbols: DropData[];
+}
+
 // Helper functions for grid index calculations
 export const GridUtils = {
     // Convert array index to column/row (assumes 5 columns, 3 rows)

@@ -7,13 +7,9 @@ import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
 import {
     SymbolData,
-    InitialGridData,
-    CascadeStepData,
-    DropData,
     GridUtils,
-    ISpinState
 } from '../types/GameTypes';
-import { IReelMode } from './ReelController';
+import { IReelMode } from '../reels/ReelController';
 import { debug } from '../utils/debug';
 
 export interface SpinContainerConfig {
@@ -28,7 +24,7 @@ export interface SpinContainerConfig {
 }
 
 
-export class SpinContainer extends Container {
+export abstract class SpinContainer extends Container {
     protected app: Application;
     protected config: SpinContainerConfig;
     protected resizeSubscription?: SignalSubscription;
@@ -135,11 +131,12 @@ export class SpinContainer extends Container {
 
         //this.clearSymbolsForReel(targetReelIndex);
 
-        if (this.currentMode === 'cascading') {
+        this.setGridSymbols(symbols, targetReelIndex);
+        /*if (this.currentMode === 'cascading') {
             this.setGridSymbols(symbols, targetReelIndex);
         } else {
             this.setBasicSymbols(symbols, targetReelIndex);
-        }
+        }*/
     }
 
     protected clearSymbolsForReel(reelIndex: number): void {
@@ -162,7 +159,7 @@ export class SpinContainer extends Container {
         // Create symbols with buffer for smooth scrolling (like StaticContainer)
         const totalSymbols = this.config.symbolsVisible + (this.config.rowsAboveMask || 0) + (this.config.rowsBelowMask || 0); // 1 above + visible + 1 below
         const symbolsToCreate = Math.max(totalSymbols, symbols.length);
-        
+
         const symbolX = this.calculateSymbolX(reelIndex);
 
         for (let i = 0; i < symbolsToCreate; i++) {
@@ -177,7 +174,11 @@ export class SpinContainer extends Container {
 
             if (gridSymbol) {
                 const gridIndex = this.calculateGridIndex(i);
-                this.symbols[reelIndex][gridIndex] = gridSymbol;
+                try {
+                    this.symbols[reelIndex][gridIndex] = gridSymbol;
+                } catch (error) {
+                    debugger;
+                }
             }
         }
     }
@@ -187,7 +188,7 @@ export class SpinContainer extends Container {
         // Create symbols with buffer for smooth scrolling (like StaticContainer)
         const totalSymbols = this.config.symbolsVisible + (this.config.rowsAboveMask || 0) + (this.config.rowsBelowMask || 0); // 1 above + visible + 1 below
         const symbolsToCreate = Math.max(totalSymbols, symbols.length);
-        
+
         const symbolX = this.calculateSymbolX(reelIndex);
 
         for (let i = 0; i < symbolsToCreate; i++) {
@@ -207,10 +208,12 @@ export class SpinContainer extends Container {
                 scale: GameConfig.REFERENCE_SYMBOL.scale
             });
 
+            if (symbol === null)
+                debugger;
             // Add to container and grid
             this.addChild(symbol);
             const gridIndex = this.calculateGridIndex(i);
-            this.symbols[reelIndex][gridIndex] = symbol;
+            this.symbols[reelIndex][i] = symbol;
         }
 
         debug.log(`SpinContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} using pixel coordinates`);
@@ -228,6 +231,9 @@ export class SpinContainer extends Container {
             gridX: column,
             gridY: row
         });
+
+        // Add to display
+        this.addChild(gridSymbol);
 
         return gridSymbol;
     }

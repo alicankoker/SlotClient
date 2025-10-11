@@ -4,6 +4,17 @@ import { GameServer } from '../../server/GameServer';
 import { SpinResultData, CascadeStepData, InitialGridData } from '../../engine/types/GameTypes';
 import { INexusPlayerData, NexusSpinRequest, SpinTransaction } from '../../nexus/NexusInterfaces';
 import { debug } from '../../engine/utils/debug';
+import { SpinController } from '../../engine/Spin/SpinController';
+import { ClassicSpinContainer } from '../../engine/Spin/ClassicSpin/ClassicSpinContainer';
+import { SpinContainer } from '../../engine/Spin/SpinContainer';
+import { ReelsController } from '../../engine/reels/ReelsController';
+import { Application } from 'pixi.js/lib/app/Application';
+import { ClassicSpinController } from '../../engine/Spin/ClassicSpin/ClassicSpinController';
+import { CascadeSpinController } from '../../engine/Spin/cascade/CascadeSpinController';
+import { GameConfig, spinContainerConfig } from '../../config/GameConfig';
+import { StaticContainer } from '../../engine/reels/StaticContainer';
+import { ReelsContainer } from '../../engine/reels/ReelsContainer';
+import { CascadeSpinContainer } from '../../engine/Spin/cascade/CascadeSpinContainer';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -24,21 +35,75 @@ export class SlotGameController {
     private nexusInstance: Nexus;
     private playerController: PlayerController;
     private gameServer: GameServer;
+    private app: Application;
+    public spinController!: SpinController;
+    public spinContainer!: SpinContainer;
+    public staticContainer!: StaticContainer;
+    public reelsContainer!: ReelsContainer;
+    public reelsController!: ReelsController;
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
     private onSpinResultCallback?: (result: SpinResultData) => void;
     private onCascadeStepCallback?: (step: CascadeStepData) => void;
 
-    private constructor() {
+    constructor(app: Application) {
+        this.app = app;
         this.nexusInstance = Nexus.getInstance();
         this.playerController = this.nexusInstance.getPlayerController();
         this.gameServer = GameServer.getInstance();
     }
 
+    public initialize(): void {
+        // Create ReelsContainer first
+        this.reelsContainer = new ReelsContainer(this.app);
+        
+        // Create ReelsController with the ReelsContainer
+        this.reelsController = new ReelsController(this.app, this.gameServer.generateInitialGridData(), this.reelsContainer);
+        
+        this.spinContainer = new CascadeSpinContainer(this.app, spinContainerConfig);
+        this.staticContainer = new StaticContainer(this.app, {
+            reelIndex: 0,
+            symbolHeight: GameConfig.REFERENCE_SYMBOL.height,
+            symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows
+        });
+        
+        // Set initial visibility - StaticContainer visible, SpinContainer hidden
+        this.staticContainer.visible = true;
+        this.spinContainer.visible = false;
+        
+        this.reelsContainer.addChild(this.staticContainer);
+        this.reelsContainer.addChild(this.spinContainer);
+        this.app.stage.addChild(this.reelsContainer);
+        
+        this.spinController = new CascadeSpinController(this.spinContainer as SpinContainer, {
+            reelsController: this.reelsController
+        });
+
+        this.connectControllers();
+    }
+
     public static getInstance(): SlotGameController {
-        if (!SlotGameController.slotGameInstance) {
-            SlotGameController.slotGameInstance = new SlotGameController();
-        }
         return SlotGameController.slotGameInstance;
+    }
+
+
+    private connectControllers(): void {
+        // Get the single containers that handle all reels
+        const spinContainer = this.spinContainer;
+        const staticContainer = this.staticContainer;
+
+        if (!spinContainer) {
+            debug.error('ReelsController: No SpinContainer available');
+            return;
+        }
+
+        if (!staticContainer) {
+            debug.error('ReelsController: No StaticContainer available');
+            return;
+        }
+
+        this.reelsController.reelControllers.forEach(controller => {
+            controller.setViews(staticContainer, spinContainer);
+        });
     }
 
     // Event handlers for the unified controller
@@ -216,6 +281,16 @@ export class SlotGameController {
 
     public getPlayerTransactions(playerId: string, limit: number = 10): any[] {
         return this.nexusInstance.getPlayerTransactions(playerId, limit);
+    }
+
+    // Convenience method for executing spins
+    public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
+        if (this.spinController) {
+            await this.spinController.executeSpin({
+                betAmount,
+                gameMode
+            });
+        }
     }
 
     // For demo purposes - method to add balance using PlayerController

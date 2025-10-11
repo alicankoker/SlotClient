@@ -11,10 +11,15 @@ import {
     CascadeStepData,
     ISpinState,
     BigWinType,
-    SpinMode
+    SpinMode,
+    GridUtils,
+    MatchData,
+    DropData,
+    SymbolData
 } from '../types/GameTypes';
 import { debug } from '../utils/debug';
-import SoundManager from './SoundManager';
+import SoundManager from '../controllers/SoundManager';
+import { SpinContainer } from './SpinContainer';
 
 export interface SpinControllerConfig {
     reelsController: ReelsController;
@@ -22,7 +27,7 @@ export interface SpinControllerConfig {
     staggerDelay?: number;
 }
 
-export class SpinController {
+export abstract class SpinController {
     private reelsController: ReelsController;
     private _soundManager: SoundManager;
     private _bigWinContainer: BigWin;
@@ -49,8 +54,10 @@ export class SpinController {
     private onSpinCompleteCallback?: (result: SpinResponseData) => void;
     private onCascadeStepCallback?: (stepData: CascadeStepData) => void;
     private onErrorCallback?: (error: string) => void;
+    private container: SpinContainer;
 
-    constructor(config: SpinControllerConfig) {
+    constructor(container: SpinContainer, config: SpinControllerConfig) {
+        this.container = container;
         this.reelsController = config.reelsController;
         this._soundManager = SoundManager.getInstance();
         this._bigWinContainer = BigWin.getInstance();
@@ -89,11 +96,12 @@ export class SpinController {
             this.currentCascadeSteps = response.result.cascadeSteps;
             this.finalGridData = response.result.finalGrid; // Store final grid
 
-            // Display initial grid and start cascading
-            //await this.processInitialGrid(response.result.initialGrid);
+            // Step 1: Transfer symbols from StaticContainer to SpinContainer
+            await this.transferSymbolsToSpinContainer(response.result.initialGrid);
 
             this._soundManager.play('spin', true, 0.75); // Play spin sound effect
 
+            // Step 2: Start spinning animation
             this.reelsController.startSpin([response.result.finalGrid.symbols.map((symbol: { symbolId: number; }) => symbol.symbolId)]);
 
             if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
@@ -106,10 +114,11 @@ export class SpinController {
                 await this.delay(SpinConfig.FAST_SPIN_SPEED);
             }
 
-            //await this.processCascadeSequence();
+            // Step 3: Process cascade sequence (if any)
+            await this.processCascadeSequence();
 
-            // Apply final grid with spinning animation
-            //await this.applyFinalGrid();
+            // Step 4: Transfer final symbols back to StaticContainer
+            await this.transferSymbolsToStaticContainer(response.result.finalGrid);
 
             this.reelsController.stopSpin();
             this.setState(ISpinState.COMPLETED);
@@ -273,21 +282,6 @@ export class SpinController {
         }
     }*/
 
-    // Apply final grid with spinning animation
-    private async applyFinalGrid(): Promise<void> {
-        if (!this.finalGridData || !this.finalGridData.symbols) {
-            debug.warn('SpinController: No final grid data to apply');
-            return;
-        }
-
-        debug.log('SpinController: Applying final grid with spinning animation');
-
-        // Convert finalGrid symbols to the format expected by ReelsController.startSpin()
-        // const finalSymbols = this.convertGridToReelFormat(this.finalGridData.symbols);
-
-        // Apply final symbols with spinning animation
-        //await this.reelsController.startSpin(finalSymbols);
-    }
 
     // Convert grid format to reel format for ReelsController.startSpin()
     private convertGridToReelFormat(gridSymbols: Array<{ symbolId: number }>): number[][] {
@@ -332,38 +326,193 @@ export class SpinController {
                 .map(() => ({ symbolId: Math.floor(Math.random() * maxSymbolId) }));
         };
 
+        // Create realistic cascade steps with dropping symbols
+        const createCascadeSteps = (initialGrid: InitialGridData): CascadeStepData[] => {
+            const steps: CascadeStepData[] = [];
+            const totalSymbols = GameRulesConfig.GRID.totalSymbols;
+            const gridSize = GameRulesConfig.GRID.rowCount * GameRulesConfig.GRID.reelCount;
+            
+            // Generate 1-3 cascade steps
+            const numSteps = Math.floor(Math.random() * 3) + 1;
+            
+            for (let step = 1; step <= numSteps; step++) {
+                // Find some random matches (simulate winning combinations)
+                const matches: MatchData[] = [];
+                const indicesToRemove: number[] = [];
+                
+                // Create 1-2 random horizontal matches
+                const numMatches = Math.floor(Math.random() * 2) + 1;
+                for (let m = 0; m < numMatches; m++) {
+                    const startCol = Math.floor(Math.random() * (GameRulesConfig.GRID.reelCount - 2)); // Ensure 3+ symbols
+                    const row = Math.floor(Math.random() * GameRulesConfig.GRID.rowCount);
+                    const matchLength = Math.floor(Math.random() * 3) + 3; // 3-5 symbols
+                    
+                    const matchIndices: number[] = [];
+                    for (let i = 0; i < matchLength && startCol + i < GameRulesConfig.GRID.reelCount; i++) {
+                        const index = GridUtils.positionToIndex(startCol + i, row);
+                        if (GridUtils.isValidIndex(index)) {
+                            matchIndices.push(index);
+                            indicesToRemove.push(index);
+                        }
+                    }
+                    
+                    if (matchIndices.length >= 3) {
+                        matches.push({
+                            indices: matchIndices,
+                            matchType: 'horizontal',
+                            winAmount: matchIndices.length * request.betAmount * 0.5
+                        });
+                    }
+                }
+                
+                // Create drop data for symbols falling down
+                const symbolsToDrop: DropData[] = [];
+                const newSymbols: SymbolData[] = [];
+                const newSymbolIndices: number[] = [];
+                
+                // For each column, simulate symbols dropping
+                for (let col = 0; col < GameRulesConfig.GRID.reelCount; col++) {
+                    const columnIndices = indicesToRemove.filter(idx => {
+                        const { column } = GridUtils.indexToPosition(idx);
+                        return column === col;
+                    });
+                    
+                    if (columnIndices.length > 0) {
+                        // Calculate how many symbols need to drop
+                        const removedCount = columnIndices.length;
+                        
+                        // Create new symbols at the top
+                        for (let i = 0; i < removedCount; i++) {
+                            const newSymbolId = Math.floor(Math.random() * totalSymbols);
+                            newSymbols.push({ symbolId: newSymbolId });
+                            
+                            // Place new symbol at the top of the column
+                            const topRow = 0;
+                            const newIndex = GridUtils.positionToIndex(col, topRow);
+                            newSymbolIndices.push(newIndex);
+                        }
+                        
+                        // Create drop data for existing symbols
+                        const remainingIndices = [];
+                        for (let row = 0; row < GameRulesConfig.GRID.rowCount; row++) {
+                            const index = GridUtils.positionToIndex(col, row);
+                            if (!indicesToRemove.includes(index)) {
+                                remainingIndices.push(index);
+                            }
+                        }
+                        
+                        // Move remaining symbols down
+                        for (let i = 0; i < remainingIndices.length; i++) {
+                            const fromIndex = remainingIndices[i];
+                            const toRow = i + removedCount;
+                            if (toRow < GameRulesConfig.GRID.rowCount) {
+                                const toIndex = GridUtils.positionToIndex(col, toRow);
+                                symbolsToDrop.push({
+                                    symbolId: Math.floor(Math.random() * totalSymbols), // In real implementation, get actual symbol ID
+                                    fromIndex: fromIndex,
+                                    toIndex: toIndex
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                // Create grid after this step by applying the changes
+                const gridAfter = this.calculateGridAfterStep(initialGrid.symbols, step, matches, indicesToRemove, symbolsToDrop, newSymbols, newSymbolIndices);
+                
+                steps.push({
+                    step: step,
+                    matches: matches,
+                    indicesToRemove: indicesToRemove,
+                    symbolsToDrop: symbolsToDrop,
+                    newSymbols: newSymbols,
+                    newSymbolIndices: newSymbolIndices,
+                    gridAfter: gridAfter
+                });
+            }
+            
+            return steps;
+        };
+
+        // Use server-generated initial grid
+        const initialGrid: InitialGridData = {
+            symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
+        };
+        
+        // Generate realistic cascade steps
+        const cascadeSteps = createCascadeSteps(initialGrid);
+        
+        // Calculate total win from all matches
+        const totalWin = cascadeSteps.reduce((total, step) => {
+            return total + step.matches.reduce((stepTotal, match) => {
+                return stepTotal + (match.winAmount || 0);
+            }, 0);
+        }, 0);
+
+        // Use the gridAfter from the last cascade step as the final grid
+        const finalGrid: InitialGridData = cascadeSteps.length > 0 
+            ? cascadeSteps[cascadeSteps.length - 1].gridAfter 
+            : { symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols) };
+
         const mockResponse: SpinResponseData = {
             success: true,
             result: {
                 spinId: `spin_${Date.now()}`,
-                initialGrid: {
-                    symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
-                },
-                cascadeSteps: [
-                    {
-                        step: 1,
-                        matches: [],
-                        indicesToRemove: [0, 1, 2],
-                        symbolsToDrop: [],
-                        newSymbols: [
-                            { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) },
-                            { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) },
-                            { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) }
-                        ],
-                        newSymbolIndices: [0, 1, 2],
-                        gridAfter: {
-                            symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
-                        }
-                    }
-                ],
-                totalWin: request.betAmount * 2,
-                finalGrid: {
-                    symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
-                }
+                initialGrid: initialGrid,
+                cascadeSteps: cascadeSteps,
+                totalWin: totalWin || request.betAmount * 0.5, // Fallback to small win
+                finalGrid: finalGrid
             }
         };
 
         return mockResponse;
+    }
+
+    // Helper method to calculate grid after applying cascade step changes
+    private calculateGridAfterStep(
+        initialSymbols: SymbolData[], 
+        step: number, 
+        matches: MatchData[], 
+        indicesToRemove: number[], 
+        symbolsToDrop: DropData[], 
+        newSymbols: SymbolData[], 
+        newSymbolIndices: number[]
+    ): InitialGridData {
+        // Start with a copy of the initial symbols
+        const gridAfter = {
+            symbols: [...initialSymbols]
+        };
+
+        // Remove matched symbols
+        indicesToRemove.forEach(index => {
+            if (index >= 0 && index < gridAfter.symbols.length) {
+                gridAfter.symbols[index] = { symbolId: -1 }; // Mark as removed
+            }
+        });
+
+        // Apply symbol drops
+        symbolsToDrop.forEach(drop => {
+            if (drop.toIndex >= 0 && drop.toIndex < gridAfter.symbols.length) {
+                gridAfter.symbols[drop.toIndex] = { symbolId: drop.symbolId };
+            }
+        });
+
+        // Add new symbols
+        newSymbols.forEach((symbol, i) => {
+            const index = newSymbolIndices[i];
+            if (index >= 0 && index < gridAfter.symbols.length) {
+                gridAfter.symbols[index] = { symbolId: symbol.symbolId };
+            }
+        });
+
+        // Fill any remaining empty slots with random symbols
+        for (let i = 0; i < gridAfter.symbols.length; i++) {
+            if (gridAfter.symbols[i].symbolId === -1) {
+                gridAfter.symbols[i] = { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) };
+            }
+        }
+
+        return gridAfter;
     }
 
     // Force stop current spin
@@ -504,6 +653,110 @@ export class SpinController {
             this.forceStop();
         }
     }
+
+    // Symbol transfer methods
+    private async transferSymbolsToSpinContainer(initialGrid: InitialGridData): Promise<void> {
+        debug.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
+        
+        const reelsContainer = this.reelsController.getReelsContainer();
+        if (!reelsContainer) {
+            debug.error('SpinController: No reels container available for symbol transfer');
+            return;
+        }
+
+        const staticContainer = reelsContainer.getStaticContainer();
+        const spinContainer = reelsContainer.getSpinContainer();
+        
+        if (!staticContainer || !spinContainer) {
+            debug.error('SpinController: Missing containers for symbol transfer');
+            return;
+        }
+
+        // Hide static container symbols and clear them
+        staticContainer.visible = false;
+        if ('clearSymbols' in staticContainer) {
+            (staticContainer as any).clearSymbols();
+        }
+        debug.log('SpinController: StaticContainer hidden and cleared');
+        
+        // Show spin container and display initial grid
+        spinContainer.visible = true;
+        debug.log('SpinController: SpinContainer shown');
+        
+        if ('displayInitialGrid' in spinContainer) {
+            (spinContainer as any).displayInitialGrid(initialGrid);
+            debug.log('SpinController: Initial grid displayed on SpinContainer');
+        }
+    }
+
+    private async transferSymbolsToStaticContainer(finalGrid: InitialGridData): Promise<void> {
+        debug.log('SpinController: Transferring final symbols from SpinContainer to StaticContainer');
+        
+        const reelsContainer = this.reelsController.getReelsContainer();
+        if (!reelsContainer) {
+            debug.error('SpinController: No reels container available for symbol transfer');
+            return;
+        }
+
+        const staticContainer = reelsContainer.getStaticContainer();
+        const spinContainer = reelsContainer.getSpinContainer();
+        
+        if (!staticContainer || !spinContainer) {
+            debug.error('SpinController: Missing containers for symbol transfer');
+            return;
+        }
+
+        // Hide spin container
+        spinContainer.visible = false;
+        
+        // Show static container and update with final symbols
+        staticContainer.visible = true;
+        
+        // Convert final grid to the format expected by StaticContainer
+        const finalSymbols = this.convertGridToReelFormat(finalGrid.symbols);
+        await staticContainer.updateSymbols(finalSymbols[0]); // Assuming single reel for now
+    }
+
+    // Cascade processing methods
+    private async processCascadeSequence(): Promise<void> {
+        if (!this.currentCascadeSteps || this.currentCascadeSteps.length === 0) {
+            debug.log('SpinController: No cascade steps to process');
+            return;
+        }
+
+        debug.log(`SpinController: Processing ${this.currentCascadeSteps.length} cascade steps`);
+        
+        for (const step of this.currentCascadeSteps) {
+            await this.processCascadeStep(step);
+            
+            // Notify about cascade step
+            if (this.onCascadeStepCallback) {
+                this.onCascadeStepCallback(step);
+            }
+            
+            // Small delay between steps for visual clarity
+            await this.delay(500);
+        }
+    }
+
+    private async processCascadeStep(step: CascadeStepData): Promise<void> {
+        debug.log(`SpinController: Processing cascade step ${step.step}`);
+        
+        // Get the spin container (assuming it's a CascadeSpinContainer)
+        const spinContainer = this.reelsController.getReelsContainer()?.getSpinContainer();
+        if (!spinContainer) {
+            debug.error('SpinController: No spin container available for cascade processing');
+            return;
+        }
+
+        // Process the cascade step
+        if ('processCascadeStep' in spinContainer) {
+            await (spinContainer as any).processCascadeStep(step);
+        } else {
+            debug.warn('SpinController: Spin container does not support cascade processing');
+        }
+    }
+
 
     // Cleanup
     public destroy(): void {
