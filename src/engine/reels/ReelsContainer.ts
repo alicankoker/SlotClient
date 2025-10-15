@@ -4,7 +4,7 @@ import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
 import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
 import {
-    InitialGridData,
+    GridData,
     CascadeStepData
 } from '../types/GameTypes';
 import { GridSymbol } from '../symbol/GridSymbol';
@@ -158,7 +158,7 @@ export class ReelsContainer extends Container {
     }
 
     public getStaticContainer(): StaticContainer | undefined {
-        return this.staticContainer;
+        return this.getChildByLabel('StaticContainer') as StaticContainer;
     }
 
     public getWinLinesContainer(): WinLinesContainer | undefined {

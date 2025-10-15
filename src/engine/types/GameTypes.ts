@@ -4,7 +4,7 @@ export interface SymbolData {
     symbolId: number;           // Symbol index (0-9)
 }
 
-export interface InitialGridData {
+export interface GridData {
     symbols: SymbolData[];      // Flat array of 15 symbols [0-14], where index = column * 3 + row
 }
 
@@ -17,15 +17,15 @@ export interface SpinData {
 export const GridUtils = {
     // Convert array index to column/row (assumes 5 columns, 3 rows)
     indexToPosition: (index: number): { column: number, row: number } => ({
-        column: Math.floor(index / 3),
-        row: index % 3
+        column: Math.floor(index / 5),
+        row: index % 5
     }),
 
     // Convert column/row to array index
-    positionToIndex: (column: number, row: number): number => column * 3 + row,
+    positionToIndex: (column: number, row: number): number => column * 5 + row,
 
     // Validate index is within grid bounds
-    isValidIndex: (index: number): boolean => index >= 0 && index < 15
+    isValidIndex: (index: number): boolean => index >= 0 && index < 30
 };
 
 export interface MatchData {
@@ -57,7 +57,7 @@ export interface CascadeStepData {
     symbolsToDrop: DropData[];  // How existing symbols should drop
     newSymbols: SymbolData[];   // New symbols to add at specific indices
     newSymbolIndices: number[]; // Indices where new symbols should be placed
-    gridAfter: InitialGridData; // Grid state after this cascade step is applied
+    gridAfter: GridData; // Grid state after this cascade step is applied
 }
 
 export interface DropData {
@@ -68,10 +68,11 @@ export interface DropData {
 
 export interface SpinResultData {
     spinId: string;             // Unique spin identifier
-    initialGrid: InitialGridData;
+    initialGrid: GridData;
     cascadeSteps: CascadeStepData[];
     totalWin: number;
-    finalGrid: InitialGridData; // Final state after all cascades
+    finalGrid: GridData; // Final state after all cascades
+    previousGrid: GridData;
 }
 
 // Server request/response types

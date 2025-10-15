@@ -1,20 +1,26 @@
 import { Application, Graphics } from "pixi.js";
 import { SpinContainer, SpinContainerConfig } from "../SpinContainer";
-import { CascadeStepData, DropData, GridUtils, InitialGridData, SpinData, SymbolData } from "../../types/GameTypes";
+import { CascadeStepData, DropData, GridUtils, GridData, SpinData, SpinResultData, SymbolData } from "../../types/GameTypes";
 import { debug } from "../../utils/debug";
 import { GameRulesConfig } from "../../../config/GameRulesConfig";
 import { GameConfig } from "../../../config/GameConfig";
 import { gsap } from "gsap";
+import { GridSymbol } from "../../symbol/GridSymbol";
 
 export class CascadeSpinContainer extends SpinContainer {
     private reelAreaMask: Graphics = new Graphics();
 
     constructor(app: Application, config: SpinContainerConfig) {
         super(app, config);
+        this.label = 'SpinContainer';
         this.createReelAreaMask();
+        this.totalRows = config.symbolsVisible;
     }
 
     public clearSymbols(): void {
+        // Kill any running animations before clearing symbols
+        gsap.killTweensOf(this.symbols);
+        
         // Clear all symbols from the grid 
         for (let col = 0; col < this.columns; col++) {
             for (let row = 0; row < this.totalRows; row++) {
@@ -31,7 +37,7 @@ export class CascadeSpinContainer extends SpinContainer {
     }
 
     // Cascading functionality
-    public displayInitialGrid(gridData: InitialGridData): void {
+    public displayInitialGrid(gridData: GridData): void {
         debug.log(`SpinContainer ${this.config.reelIndex}: Displaying initial grid`);
         this.clearSymbols();
         this.updateGridFromData(gridData);
@@ -41,128 +47,165 @@ export class CascadeSpinContainer extends SpinContainer {
 
     public async processCascadeStep(stepData: CascadeStepData): Promise<void> {
         debug.log(`CascadeSpinContainer: Processing cascade step ${stepData.step}`);
-        
+
         // Step 1: Remove matched symbols with animation
         await this.removeSymbolsWithAnimation(stepData.indicesToRemove);
-        
+
         // Step 2: Drop existing symbols down
         await this.dropSymbolsWithAnimation(stepData.symbolsToDrop);
-        
+
         // Step 3: Add new symbols from the top
         await this.addNewSymbolsWithAnimation(stepData.newSymbols, stepData.newSymbolIndices);
-        
+
         debug.log(`CascadeSpinContainer: Completed cascade step ${stepData.step}`);
     }
 
+    // Spinning functionality
+    public startSpin(spinData: SpinResultData, onComplete?: () => void): boolean {
+        if (this.isSpinning) return false;
+
+        this.isSpinning = true;
+        this.spinStartTime = Date.now();
+        this.targetSymbols = [...spinData.finalGrid.symbols.map((symbol: SymbolData) => symbol.symbolId)];
+        this.onSpinCompleteCallback = onComplete;
+
+        debug.log('CascadeSpinContainer: Starting spin with symbols array:', this.symbols);
+        
+        // Ensure symbols array is properly initialized
+        if (!this.symbols || this.symbols.length === 0) {
+            debug.warn('CascadeSpinContainer: Symbols array not initialized, skipping animation');
+            return true;
+        }
+        
+        this.symbols.forEach((row, rowIndex) => {
+            if (row && Array.isArray(row)) {
+                row.forEach((symbol, colIndex) => {
+                    try {
+                        // More robust null checking
+                        if (symbol && 
+                            symbol !== null && 
+                            symbol !== undefined && 
+                            typeof symbol === 'object' && 
+                            symbol.y !== undefined && 
+                            symbol.y !== null &&
+                            !isNaN(symbol.y)) {
+                            
+                            // Calculate grid height
+                            const maskHeight = this.reelAreaMask.height;
+                            
+                            // Create a safe animation with onUpdate callback to check for null
+                            gsap.to(symbol, { 
+                                duration: 3, 
+                                y: maskHeight +400, 
+                                ease: "power2.out",
+                                onUpdate: function() {
+                                    // Check if symbol is still valid during animation
+                                    if (!symbol || symbol === null || symbol === undefined) {
+                                        this.kill(); // Stop the animation if symbol becomes null
+                                    }
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        debug.error(`CascadeSpinContainer: Error animating symbol at row ${rowIndex}, col ${colIndex}:`, error);
+                    }
+                });
+            }
+        });
+
+        return true;
+    }
+
+    public stopSpin(): void {
+        this.isSpinning = false;
+
+        if (this.onSpinCompleteCallback) {
+            this.onSpinCompleteCallback();
+        }
+    }
+
     // Spin animation methods
-    public startSpinAnimation(targetSymbols: number[]): void {
+    public startSpinAnimation(spinData: SpinResultData): void {
         debug.log('CascadeSpinContainer: Starting spin animation with', this.symbols.length, 'columns');
         this.isSpinning = true;
-        
+
         // Animate all symbols moving down continuously
-        this.animateSpinningSymbols(targetSymbols);
+        //this.moveSymbolsDown(targetSymbols);
     }
 
     public stopSpinAnimation(): void {
         debug.log('CascadeSpinContainer: Stopping spin animation');
         this.isSpinning = false;
-        
+
         // Stop all spinning animations
         gsap.killTweensOf(this.symbols);
     }
 
-    private animateSpinningSymbols(targetSymbols: number[]): void {
-        if (!this.isSpinning) return;
 
-        debug.log('CascadeSpinContainer: Animating symbols in', this.columns, 'columns');
-
-        // Animate each column of symbols
-        for (let col = 0; col < this.columns; col++) {
-            const columnSymbols = this.symbols[col] || [];
-            
-            columnSymbols.forEach((symbol, row) => {
-                if (symbol) {
-                    // Create continuous downward movement
-                    const currentY = symbol.y;
-                    const targetY = currentY + GameConfig.REFERENCE_SYMBOL.height;
-                    
-                    gsap.to(symbol, {
-                        y: targetY,
-                        duration: 0.3,
-                        ease: "power2.out",
-                        onComplete: () => {
-                            if (this.isSpinning) {
-                                // Reset position and continue
-                                symbol.y = currentY - GameConfig.REFERENCE_SYMBOL.height;
-                            }
-                        }
-                    });
-                }
-            });
-        }
-        
-        // Continue animation after a delay
-        if (this.isSpinning) {
-            setTimeout(() => {
-                this.animateSpinningSymbols(targetSymbols);
-            }, 300);
-        }
-    }
-
-    protected updateGridFromData(gridData: InitialGridData): void {
+    protected updateGridFromData(gridData: GridData): void {
         debug.log(`CascadeSpinContainer: Updating grid with ${gridData.symbols.length} symbols from server`);
-        
+
         gridData.symbols.forEach((symbolData: SymbolData, index: number) => {
             const { column, row } = GridUtils.indexToPosition(index);
-            
-            // Process all columns since this container manages all reels
-            const gridIndex = row + this.rowsAboveMask;
-            const newSymbol = this.createGridSymbol(symbolData, column, row);
-            if (newSymbol) {
-                // Ensure the column array exists
-                if (!this.symbols[column]) {
-                    this.symbols[column] = [];
+
+            try {
+                const symbolRef: GridSymbol = this.symbols[column][row] as GridSymbol;
+                if (symbolRef) {
+                    symbolRef.updateSymbolTexture(symbolData.symbolId);
+                } else {
+                    // Process all columns since this container manages all reels
+                    const gridIndex = row;
+                    const newSymbol = this.createGridSymbol(symbolData, column, row);
+                    if (newSymbol) {
+                        // Ensure the column array exists
+                        if (!this.symbols[column]) {
+                            this.symbols[column] = [];
+                        }
+                        this.symbols[column][gridIndex] = newSymbol;
+                        debug.log(`CascadeSpinContainer: Created symbol ID ${symbolData.symbolId} at column ${column}, row ${row}, gridIndex ${gridIndex}`);
+                    }
                 }
-                this.symbols[column][gridIndex] = newSymbol;
-                debug.log(`CascadeSpinContainer: Created symbol ID ${symbolData.symbolId} at column ${column}, row ${row}, gridIndex ${gridIndex}`);
+            } catch (error) {
+                debug.error(`CascadeSpinContainer: Error updating symbol ${symbolData.symbolId} at column ${column}, row ${row}`, error);
             }
         });
-        
+
         debug.log(`CascadeSpinContainer: Grid updated with server data`);
     }
+
     protected applyDropsFromData(dropsData: DropData[]): void {
         dropsData.forEach(dropData => {
             const { column: fromCol, row: fromRow } = GridUtils.indexToPosition(dropData.fromIndex);
             const { column: toCol, row: toRow } = GridUtils.indexToPosition(dropData.toIndex);
-            
+
             if (fromCol !== this.config.reelIndex || toCol !== this.config.reelIndex) return;
-            
-            const fromGridIndex = fromRow + this.rowsAboveMask;
-            const toGridIndex = toRow + this.rowsAboveMask;
+
+            const fromGridIndex = fromRow;
+            const toGridIndex = toRow;
             const symbol = this.symbols[this.config.reelIndex][fromGridIndex];
-            
+
             if (symbol) {
                 const symbolX = this.calculateSymbolX();
                 const pixelY = this.calculateSymbolY(toRow);
                 symbol.x = symbolX;
                 symbol.y = pixelY;
-                
+
                 this.symbols[this.config.reelIndex][fromGridIndex] = null;
                 this.symbols[this.config.reelIndex][toGridIndex] = symbol;
             }
         });
     }
-    
+
     private dropSymbol(dropData: DropData): void {
         const { column: fromCol, row: fromRow } = GridUtils.indexToPosition(dropData.fromIndex);
         const { column: toCol, row: toRow } = GridUtils.indexToPosition(dropData.toIndex);
-        
+
         if (fromCol !== this.config.reelIndex || toCol !== this.config.reelIndex) return;
 
-        const fromGridIndex = fromRow + this.rowsAboveMask;
-        const toGridIndex = toRow + this.rowsAboveMask;
+        const fromGridIndex = fromRow;
+        const toGridIndex = toRow;
         const symbol = this.symbols[this.config.reelIndex][fromGridIndex];
-        
+
         if (symbol) {
             const symbolX = this.calculateSymbolX();
             const pixelY = this.calculateSymbolY(toRow);
@@ -176,16 +219,16 @@ export class CascadeSpinContainer extends SpinContainer {
         if (indicesToRemove.length === 0) return;
 
         debug.log(`CascadeSpinContainer: Removing ${indicesToRemove.length} symbols with animation`);
-        
+
         const animations: Promise<void>[] = [];
-        
+
         indicesToRemove.forEach(index => {
             const { column, row } = GridUtils.indexToPosition(index);
             if (column !== this.config.reelIndex) return;
 
-            const gridIndex = row + this.rowsAboveMask;
+            const gridIndex = row;
             const symbol = this.symbols[this.config.reelIndex][gridIndex];
-            
+
             if (symbol) {
                 // Create removal animation
                 const animation = new Promise<void>((resolve) => {
@@ -202,11 +245,11 @@ export class CascadeSpinContainer extends SpinContainer {
                         }
                     });
                 });
-                
+
                 animations.push(animation);
             }
         });
-        
+
         await Promise.all(animations);
     }
 
@@ -214,24 +257,24 @@ export class CascadeSpinContainer extends SpinContainer {
         if (dropsData.length === 0) return;
 
         debug.log(`CascadeSpinContainer: Dropping ${dropsData.length} symbols with animation`);
-        
+
         const animations: Promise<void>[] = [];
-        
+
         dropsData.forEach(dropData => {
             const { column: fromCol, row: fromRow } = GridUtils.indexToPosition(dropData.fromIndex);
             const { column: toCol, row: toRow } = GridUtils.indexToPosition(dropData.toIndex);
-            
+
             if (fromCol !== this.config.reelIndex || toCol !== this.config.reelIndex) return;
 
-            const fromGridIndex = fromRow + this.rowsAboveMask;
-            const toGridIndex = toRow + this.rowsAboveMask;
+            const fromGridIndex = fromRow;
+            const toGridIndex = toRow;
             const symbol = this.symbols[this.config.reelIndex][fromGridIndex];
-            
+
             if (symbol) {
                 // Calculate target position
                 const targetX = this.calculateSymbolX(toCol);
                 const targetY = this.calculateSymbolY(toRow);
-                
+
                 // Create drop animation
                 const animation = new Promise<void>((resolve) => {
                     gsap.to(symbol, {
@@ -247,11 +290,11 @@ export class CascadeSpinContainer extends SpinContainer {
                         }
                     });
                 });
-                
+
                 animations.push(animation);
             }
         });
-        
+
         await Promise.all(animations);
     }
 
@@ -259,28 +302,28 @@ export class CascadeSpinContainer extends SpinContainer {
         if (newSymbols.length === 0) return;
 
         debug.log(`CascadeSpinContainer: Adding ${newSymbols.length} new symbols with animation`);
-        
+
         const animations: Promise<void>[] = [];
-        
+
         newSymbols.forEach((symbolData, i) => {
             const index = newSymbolIndices[i];
             const { column, row } = GridUtils.indexToPosition(index);
-            
+
             if (column !== this.config.reelIndex) return;
 
-            const gridIndex = row + this.rowsAboveMask;
+            const gridIndex = row;
             const newSymbol = this.createGridSymbol(symbolData, column, row);
-            
+
             if (newSymbol) {
                 // Start from above the visible area
                 const startY = this.calculateSymbolY(-1); // Above the grid
                 const targetY = this.calculateSymbolY(row);
-                
+
                 newSymbol.y = startY;
                 newSymbol.alpha = 0;
                 this.addChild(newSymbol);
                 this.symbols[this.config.reelIndex][gridIndex] = newSymbol;
-                
+
                 // Create drop-in animation
                 const animation = new Promise<void>((resolve) => {
                     gsap.to(newSymbol, {
@@ -291,11 +334,11 @@ export class CascadeSpinContainer extends SpinContainer {
                         onComplete: () => resolve()
                     });
                 });
-                
+
                 animations.push(animation);
             }
         });
-        
+
         await Promise.all(animations);
     }
 

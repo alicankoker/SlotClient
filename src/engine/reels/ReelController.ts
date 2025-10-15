@@ -2,7 +2,7 @@ import { SpinContainer } from '../Spin/SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
 import {
-    InitialGridData,
+    GridData,
     CascadeStepData,
     GridUtils,
     ISpinState,
@@ -47,12 +47,12 @@ export class ReelController {
     private spinDuration: number = 2000;
     private onSpinCompleteCallback?: () => void;
 
-    constructor(reelIndex: number, initData: InitialGridData) {
+    constructor(reelIndex: number, initData: GridData) {
         this.reelIndex = reelIndex;
         this.initializeSymbols(initData);
     }
 
-    private initializeSymbols(initData: InitialGridData): void {
+    private initializeSymbols(initData: GridData): void {
         // Extract symbols for this reel (column) from flat array
         // Using GridUtils helper for proper index calculation
         const reelSymbols: number[] = [];
@@ -81,7 +81,7 @@ export class ReelController {
 
         if (this.spinContainer) {
             this.spinContainer.setMode(this.currentMode);
-            this.spinContainer.visible = this.currentMode !== IReelMode.STATIC;
+            //this.spinContainer.visible = this.currentMode !== IReelMode.STATIC;
         }
     }
 

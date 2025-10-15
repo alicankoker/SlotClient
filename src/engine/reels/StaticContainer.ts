@@ -36,6 +36,7 @@ export class StaticContainer extends Container {
     constructor(app: Application, config: StaticContainerConfig) {
         super();
 
+        this.label = 'StaticContainer';
         this._app = app;
         this._soundManager = SoundManager.getInstance();
         this._winLinesContainer = WinLinesContainer.getInstance();

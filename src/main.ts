@@ -21,7 +21,7 @@ import { ResponsiveManager } from "./engine/utils/ResponsiveManager";
 import {
   SpinResponseData,
   CascadeStepData,
-  InitialGridData,
+  GridData,
   ISpinState,
   BigWinType,
   SpinMode,
@@ -43,6 +43,7 @@ import { eventBus } from './communication/EventManagers/WindowEventManager';
 import { GameRulesConfig } from './config/GameRulesConfig';
 import { GameEventTypes, CommunicationEventTypes, SpinEventTypes } from "./communication";
 import { EVENT_CHANNELS } from "./communication/Channels/EventChannels";
+import { GameDataManager } from "./engine/data/GameDataManager";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -76,10 +77,13 @@ export class DoodleV8Main {
         this.startLoader(),
       ]);
 
+      // Initialize GameDataManager first
+      const gameDataManager = GameDataManager.getInstance();
+      
       // Initialize SlotGameController first (needed for grid generation)
       this.slotGameController = new SlotGameController(this.app)
 
-      let initData: InitialGridData;
+      let initData: GridData;
       try {
         initData = await this.slotGameController.generateInitialGrid();
       } catch (error) {
@@ -102,7 +106,7 @@ export class DoodleV8Main {
       }
 
       // Step 4: Initialize controllers (now that assets are loaded)
-      this.initializeControllers(initData as InitialGridData);
+      this.initializeControllers(initData as GridData);
 
       // Set up controllers callbacks
       this.setupControllersCallbacks();
@@ -138,10 +142,7 @@ export class DoodleV8Main {
                 this.slotGameController.spinController.getIsAutoPlaying() === false
               ) {
                 eventBus.emit(SpinEventTypes.REQUEST, "manual_spin");
-                this.slotGameController.spinController.executeSpin({
-                  betAmount: 10,
-                  gameMode: "manual",
-                });
+                this.slotGameController.executeGameSpin(10, "manual");
               } else {
                 GameConfig.FORCE_STOP.enabled &&
                   this.slotGameController.spinController.forceStop();
@@ -167,9 +168,9 @@ export class DoodleV8Main {
               this.slotGameController.spinController.getIsAutoPlaying() === false &&
               this.bigWinContainer.isBigWinActive === false
             ) {
-              this.slotGameController.spinController.startAutoPlay(
+              /*this.slotGameController.spinController.startAutoPlay(
                 GameConfig.AUTO_PLAY.count || 5
-              ); // Start 5 auto spins
+              ); // Start 5 auto spins*/
             }
             break;
           case "q":
@@ -378,7 +379,7 @@ export class DoodleV8Main {
     this.responsiveManager = ResponsiveManager.getInstance(this.app);
   }
 
-  private initializeControllers(initData: InitialGridData): void {
+  private initializeControllers(initData: GridData): void {
     // Step 3: Initialize controllers with new architecture
     // slotGameController already initialized in init() method
 

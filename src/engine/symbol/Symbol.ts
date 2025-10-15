@@ -63,6 +63,8 @@ export class Symbol extends Sprite {
       `Symbol.getTextureForSymbol: Requesting texture for symbolId ${symbolId}`
     );
 
+    const extension = '.png'
+
     const spritesheet = Assets.cache.get("symbols");
 
     if (!spritesheet) {
@@ -70,7 +72,6 @@ export class Symbol extends Sprite {
         "Symbol.getTextureForSymbol: Spritesheet not found in cache!"
       );
       debug.log("Cache lookup failed for: /assets/symbols/symbols.json");
-      debug.log("Available cache keys:", Object.keys(Assets.cache._parsers));
       throw new Error("Spritesheet not available");
     }
 
@@ -81,10 +82,10 @@ export class Symbol extends Sprite {
 
     const symbolAssetName = AssetsConfig.getSymbolAsset(symbolId);
     debug.log(
-      `Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName}"`
+      `Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`
     );
 
-    const texture = spritesheet.textures[symbolAssetName];
+    const texture = spritesheet.textures[symbolAssetName + extension];
 
     if (!texture) {
       debug.error(

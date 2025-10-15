@@ -4,7 +4,7 @@ import { ReelController, IReelMode } from './ReelController';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
 import {
-    InitialGridData,
+    GridData,
     CascadeStepData,
     ISpinState,
     WinConfig,
@@ -31,7 +31,7 @@ export class ReelsController {
     private spinPromises: Promise<void>[] = [];
     protected bottomSymbolYPos: number = 0;
 
-    constructor(app: Application, initData: InitialGridData, reelsContainer?: ReelsContainer) {
+    constructor(app: Application, initData: GridData, reelsContainer?: ReelsContainer) {
         this.app = app;
         
         if (reelsContainer) {
@@ -41,7 +41,7 @@ export class ReelsController {
         this.initializeControllers(initData);
     }
 
-    private initializeControllers(initData: InitialGridData): void {
+    private initializeControllers(initData: GridData): void {
         const numberOfReels = GameConfig.GRID_LAYOUT.columns;
 
         for (let i = 0; i < numberOfReels; i++) {
@@ -174,13 +174,13 @@ export class ReelsController {
         this.spinStartTime = Date.now();
         this.setMode(ISpinState.SPINNING);
 
+        /*const spinContainer = this.reelsContainer.getChildByLabel('SpinContainer') as SpinContainer;
         // Start spin animation on the spin container
-        if (this.reelsContainer) {
-            const spinContainer = this.reelsContainer.getSpinContainer();
+        if (spinContainer) {
             if (spinContainer && 'startSpinAnimation' in spinContainer) {
                 (spinContainer as any).startSpinAnimation(finalSymbols[0] || []);
             }
-        }
+        }*/
 
         // Start all reels spinning with staggered timing
         /*this.spinPromises = this.reelControllers.map((controller, index) => {

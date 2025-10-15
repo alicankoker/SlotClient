@@ -55,4 +55,8 @@ export class GridSymbol extends Symbol {
         // Any grid-specific cleanup can go here
         super.destroy();
     }
+
+    public updateSymbolTexture(symbolId: number): void {
+        this.setSymbolId(symbolId);
+    }
 } 

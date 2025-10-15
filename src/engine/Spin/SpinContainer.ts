@@ -8,6 +8,8 @@ import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/Signa
 import {
     SymbolData,
     GridUtils,
+    SpinData,
+    SpinResultData,
 } from '../types/GameTypes';
 import { IReelMode } from '../reels/ReelController';
 import { debug } from '../utils/debug';
@@ -34,10 +36,10 @@ export abstract class SpinContainer extends Container {
     protected isSpinning: boolean = false;
 
     // Grid layout properties
-    protected readonly columns: number; // Number of reels
-    protected readonly rowsAboveMask: number;
-    protected readonly rowsBelowMask: number;
-    protected readonly totalRows: number;
+    protected columns: number; // Number of reels
+    protected rowsAboveMask: number;
+    protected rowsBelowMask: number;
+    protected totalRows: number;
 
     // Symbol storage - unified approach
     public symbols: (GridSymbol | Sprite | null)[][] = [];
@@ -50,10 +52,10 @@ export abstract class SpinContainer extends Container {
     constructor(app: Application, config: SpinContainerConfig) {
         super();
 
+        this.label = 'SpinContainer';
         this.app = app;
-        this.config = config;
+        this.config = config;// Initialize grid layout properties
 
-        // Initialize grid layout properties
         this.columns = config.numberOfReels || 1; // Default to 1 if not provided
         this.rowsAboveMask = config.rowsAboveMask || GameConfig.GRID_LAYOUT.rowsAboveMask;
         this.rowsBelowMask = config.rowsBelowMask || GameConfig.GRID_LAYOUT.rowsBelowMask;
@@ -239,12 +241,12 @@ export abstract class SpinContainer extends Container {
     }
 
     // Spinning functionality
-    public startSpin(targetSymbols: number[], onComplete?: () => void): boolean {
+    public startSpin(spinData: SpinResultData, onComplete?: () => void): boolean {
         if (this.isSpinning) return false;
 
         this.isSpinning = true;
         this.spinStartTime = Date.now();
-        this.targetSymbols = [...targetSymbols];
+        this.targetSymbols = [...spinData.finalGrid.symbols.map((symbol: SymbolData) => symbol.symbolId)];
         this.onSpinCompleteCallback = onComplete;
 
         return true;

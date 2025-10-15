@@ -4,7 +4,7 @@ import {
     SpinRequestData, 
     SpinResponseData, 
     SpinResultData, 
-    InitialGridData, 
+    GridData, 
     CascadeStepData, 
     SymbolData, 
     MatchData, 
@@ -18,6 +18,10 @@ export class GameServer {
     private spinCounter: number = 0;
     private readonly totalSymbols: number = 13; // Number of available symbols (0-12)
 
+    protected previousGrid: GridData = { symbols: [] };
+    protected currentGrid: GridData = { symbols: [] };
+    protected initialGrid: GridData = { symbols: [] };
+
     private constructor() {
         // No longer need symbolNames array
     }
@@ -29,7 +33,7 @@ export class GameServer {
         return GameServer.instance;
     }
 
-    public generateInitialGridData(): InitialGridData {
+    public generateInitialGridData(): GridData {
         return this.generateInitialGrid();
     }
 
@@ -59,18 +63,22 @@ export class GameServer {
     }
 
     private generateSpinResult(spinId: string, request: SpinRequestData): SpinResultData {
-        // Generate initial grid
-        const initialGrid = this.generateInitialGrid();
-        
         // Process cascades
         const cascadeSteps: CascadeStepData[] = [];
-        let currentGrid = this.cloneGrid(initialGrid);
         let stepNumber = 0;
         let totalWin = 0;
+        // Generate initial grid
+        if(this.currentGrid.symbols.length == 0) {
+            this.initialGrid = this.generateInitialGrid();
+            this.currentGrid = this.initialGrid;
+        } else {
+            this.previousGrid = this.currentGrid;
+        }
+        
         
         // Process initial matches and subsequent cascades
         while (true) {
-            const matches = this.findMatches(currentGrid);
+            const matches = this.findMatches(this.currentGrid);
             
             if (matches.length === 0) {
                 // No more matches, cascade sequence complete
@@ -83,13 +91,13 @@ export class GameServer {
             
             // Calculate cascade components
             const indicesToRemove = matches.flatMap(match => match.indices);
-            const symbolsToDrop = this.calculateDrops(currentGrid, indicesToRemove);
-            const { newSymbols, newSymbolIndices } = this.generateNewSymbols(currentGrid, indicesToRemove);
+            const symbolsToDrop = this.calculateDrops(this.currentGrid, indicesToRemove);
+            const { newSymbols, newSymbolIndices } = this.generateNewSymbols(this.currentGrid, indicesToRemove);
             
             debug.log(`Cascade step ${stepNumber}: Removing ${indicesToRemove.length} symbols, dropping ${symbolsToDrop.length} symbols, adding ${newSymbols.length} new symbols`);
             
             // Apply the cascade to current grid first
-            const updatedGrid = this.applyCascade(currentGrid, {
+            const updatedGrid = this.applyCascade(this.currentGrid, {
                 step: stepNumber,
                 matches: matches.map(match => ({
                     ...match,
@@ -121,7 +129,7 @@ export class GameServer {
             cascadeSteps.push(cascadeStep);
             
             // Update current grid for next iteration
-            currentGrid = updatedGrid;
+            this.currentGrid = updatedGrid;
             stepNumber++;
             
             // Prevent infinite loops (safety)
@@ -133,14 +141,15 @@ export class GameServer {
         
         return {
             spinId,
-            initialGrid,
+            initialGrid: this.initialGrid,
             cascadeSteps,
             totalWin,
-            finalGrid: currentGrid
+            finalGrid: this.currentGrid,
+            previousGrid: this.previousGrid
         };
     }
 
-    private generateInitialGrid(): InitialGridData {
+    private generateInitialGrid(): GridData {
         const symbols: SymbolData[] = [];
         
         // Generate 15 symbols in a flat array (column-major order: col0row0, col0row1, col0row2, col1row0, ...)
@@ -154,10 +163,11 @@ export class GameServer {
         
         debug.log(`Generated initial grid with ${symbols.length} symbols (expected: ${GameConfig.GRID_LAYOUT.columns * GameConfig.GRID_LAYOUT.visibleRows})`);
         debug.log('Symbol IDs:', symbols.map(s => s.symbolId));
+        console.log('GameServer: Initial symbols created:', symbols);
         return { symbols };
     }
 
-    private findMatches(grid: InitialGridData): MatchData[] {
+    private findMatches(grid: GridData): MatchData[] {
         const matches: MatchData[] = [];
         const symbols = grid.symbols;
         
@@ -228,7 +238,7 @@ export class GameServer {
         return matches;
     }
 
-    private calculateDrops(grid: InitialGridData, indicesToRemove: number[]): DropData[] {
+    private calculateDrops(grid: GridData, indicesToRemove: number[]): DropData[] {
         const drops: DropData[] = [];
         const symbols = [...grid.symbols]; // Copy array
         const removeSet = new Set(indicesToRemove);
@@ -267,7 +277,7 @@ export class GameServer {
         return drops;
     }
 
-    private generateNewSymbols(_grid: InitialGridData, indicesToRemove: number[]): { newSymbols: SymbolData[], newSymbolIndices: number[] } {
+    private generateNewSymbols(_grid: GridData, indicesToRemove: number[]): { newSymbols: SymbolData[], newSymbolIndices: number[] } {
         const newSymbols: SymbolData[] = [];
         const newSymbolIndices: number[] = [];
         const removeSet = new Set(indicesToRemove);
@@ -296,7 +306,7 @@ export class GameServer {
         return { newSymbols, newSymbolIndices };
     }
 
-    private applyCascade(grid: InitialGridData, cascadeStep: CascadeStepData): InitialGridData {
+    private applyCascade(grid: GridData, cascadeStep: CascadeStepData): GridData {
         // Start with a copy of the current grid
         const symbols = [...grid.symbols];
         
@@ -357,7 +367,7 @@ export class GameServer {
         return Math.floor(Math.random() * this.totalSymbols);
     }
 
-    private cloneGrid(grid: InitialGridData): InitialGridData {
+    private cloneGrid(grid: GridData): GridData {
         return {
             symbols: grid.symbols.map(symbol => ({ ...symbol }))
         };
