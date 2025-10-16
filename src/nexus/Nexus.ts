@@ -29,7 +29,7 @@ export class Nexus {
     public createSpinTransaction(request: NexusSpinRequest): SpinTransaction | null {
         const player = this.playerController.getPlayer(request.playerId);
         if (!player) {
-            debug.error('Nexus: Player not found:', request.playerId);
+            console.error('Nexus: Player not found:', request.playerId);
             return null;
         }
 
@@ -50,12 +50,12 @@ export class Nexus {
 
         // Deduct bet amount from balance using PlayerController
         if (!this.playerController.deductPlayerBet(request.playerId, request.betAmount)) {
-            debug.error('Nexus: Failed to deduct bet amount');
+            console.error('Nexus: Failed to deduct bet amount');
             return null;
         }
         
         this.transactions.set(transaction.transactionId, transaction);
-        debug.log('Nexus: Created spin transaction:', transaction);
+        console.log('Nexus: Created spin transaction:', transaction);
         
         return transaction;
     }
@@ -63,18 +63,18 @@ export class Nexus {
     public completeSpinTransaction(transactionId: string, winAmount: number): boolean {
         const transaction = this.transactions.get(transactionId);
         if (!transaction) {
-            debug.error('Nexus: Transaction not found:', transactionId);
+            console.error('Nexus: Transaction not found:', transactionId);
             return false;
         }
 
         if (transaction.status !== 'pending') {
-            debug.error('Nexus: Transaction already completed:', transactionId);
+            console.error('Nexus: Transaction already completed:', transactionId);
             return false;
         }
 
         const player = this.playerController.getPlayer(transaction.playerId);
         if (!player) {
-            debug.error('Nexus: Player not found for transaction:', transaction.playerId);
+            console.error('Nexus: Player not found for transaction:', transaction.playerId);
             return false;
         }
 
@@ -87,25 +87,25 @@ export class Nexus {
             this.playerController.addPlayerWinnings(transaction.playerId, winAmount);
         }
 
-        debug.log('Nexus: Completed spin transaction:', transaction);
+        console.log('Nexus: Completed spin transaction:', transaction);
         return true;
     }
 
     public failSpinTransaction(transactionId: string): boolean {
         const transaction = this.transactions.get(transactionId);
         if (!transaction) {
-            debug.error('Nexus: Transaction not found:', transactionId);
+            console.error('Nexus: Transaction not found:', transactionId);
             return false;
         }
 
         if (transaction.status !== 'pending') {
-            debug.error('Nexus: Transaction already processed:', transactionId);
+            console.error('Nexus: Transaction already processed:', transactionId);
             return false;
         }
 
         const player = this.playerController.getPlayer(transaction.playerId);
         if (!player) {
-            debug.error('Nexus: Player not found for transaction:', transaction.playerId);
+            console.error('Nexus: Player not found for transaction:', transaction.playerId);
             return false;
         }
 
@@ -113,7 +113,7 @@ export class Nexus {
         this.playerController.addPlayerWinnings(transaction.playerId, transaction.betAmount);
 
         transaction.status = 'failed';
-        debug.log('Nexus: Failed spin transaction (refunded):', transaction);
+        console.log('Nexus: Failed spin transaction (refunded):', transaction);
         return true;
     }
 
@@ -146,6 +146,6 @@ export class Nexus {
     // Future API integration points
     public async syncWithAPI(): Promise<void> {
         // TODO: Implement API synchronization
-        debug.log('Nexus: API sync not implemented yet');
+        console.log('Nexus: API sync not implemented yet');
     }
 } 

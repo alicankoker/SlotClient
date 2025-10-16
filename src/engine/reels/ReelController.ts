@@ -56,10 +56,12 @@ export class ReelController {
         // Extract symbols for this reel (column) from flat array
         // Using GridUtils helper for proper index calculation
         const reelSymbols: number[] = [];
-        for (let row = 0; row < GameRulesConfig.GRID.rowCount; row++) {
+
+        //TO-DO: Initialize symbols for this reel from initData
+        /*for (let row = 0; row < GameRulesConfig.GRID.rowCount; row++) {
             const flatIndex = GridUtils.positionToIndex(this.reelIndex, row);
             reelSymbols.push(initData.symbols[flatIndex].symbolId);
-        }
+        }*/
         this.currentSymbols = reelSymbols;
     }
 
@@ -68,11 +70,11 @@ export class ReelController {
         this.staticContainer = staticContainer;
         this.spinContainer = spinContainer;
 
-        debug.log(`ReelController ${this.reelIndex}: Views set. Current symbols:`, this.currentSymbols);
+        console.log(`ReelController ${this.reelIndex}: Views set. Current symbols:`, this.currentSymbols);
         this.updateViewVisibility();
         this.syncSymbolsToViews();
 
-        debug.log(`ReelController ${this.reelIndex}: Views synced. StaticContainer symbol count:`, this.staticContainer.getSymbolCount(this.reelIndex));
+        console.log(`ReelController ${this.reelIndex}: Views synced. StaticContainer symbol count:`, this.staticContainer.getSymbolCount(this.reelIndex));
     }
 
     private updateViewVisibility(): void {
@@ -88,11 +90,11 @@ export class ReelController {
     private syncSymbolsToViews(): void {
 
         if (this.staticContainer && this.currentMode === IReelMode.STATIC) {
-            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
+            console.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
             this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
-            debug.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
+            console.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
         }else if (this.spinContainer && !this.isSpinning) {
-            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
+            console.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
             //burada semboller set ediliyor
             this.spinContainer.setSymbols(this.currentSymbols, this.reelIndex);
         }
@@ -106,7 +108,7 @@ export class ReelController {
     // Mode management
     public async setMode(mode: IReelMode): Promise<void> {
         if (this.currentMode === mode) return;
-        debug.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
+        console.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
         this.currentMode = mode;
         this.updateViewVisibility();
     }
@@ -267,7 +269,7 @@ export class ReelController {
 
         this._spinMode = mode;
 
-        debug.log(`ReelController ${this.reelIndex}: Spin mode set to ${mode}`);
+        console.log(`ReelController ${this.reelIndex}: Spin mode set to ${mode}`);
     }
 
     // Cleanup

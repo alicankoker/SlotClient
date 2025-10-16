@@ -58,7 +58,7 @@ export class DoodleV8Main {
 
   public async init(): Promise<void> {
     try {
-      debug.log("🎰 DoodleV8 initializing...");
+      console.log("🎰 DoodleV8 initializing...");
 
 
       // Step 1: Initialize PIXI Application with modern config
@@ -87,7 +87,7 @@ export class DoodleV8Main {
       try {
         initData = await this.slotGameController.generateInitialGrid();
       } catch (error) {
-        debug.error("❌ Failed to generate initial grid:", error);
+        console.error("❌ Failed to generate initial grid:", error);
         throw error;
       }
       
@@ -134,7 +134,7 @@ export class DoodleV8Main {
       window.addEventListener("keydown", (event) => {
         switch (event.key.toLowerCase()) {
           case " ":
-            debug.log("🎲 Manual spin triggered");
+            console.log("🎲 Manual spin triggered");
             if (this.slotGameController?.spinController) {
               if (
                 this.slotGameController.spinController.getIsSpinning() === false &&
@@ -150,7 +150,7 @@ export class DoodleV8Main {
             }
             break;
           case "f":
-            debug.log("🔄 Force stop triggered");
+            console.log("🔄 Force stop triggered");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getIsSpinning() &&
@@ -160,7 +160,7 @@ export class DoodleV8Main {
             }
             break;
           case "a":
-            debug.log("🔄 Auto-play triggered");
+            console.log("🔄 Auto-play triggered");
             if (
               GameConfig.AUTO_PLAY.enabled &&
               this.slotGameController?.spinController &&
@@ -174,7 +174,7 @@ export class DoodleV8Main {
             }
             break;
           case "q":
-            debug.log("🛑 Stop auto-play");
+            console.log("🛑 Stop auto-play");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getIsAutoPlaying() &&
@@ -184,7 +184,7 @@ export class DoodleV8Main {
             }
             break;
           case "w":
-            debug.log("🎉 Show random win animation");
+            console.log("🎉 Show random win animation");
             if (
               this.slotGameController?.reelsController &&
               !this.slotGameController.reelsController.getIsSpinning() &&
@@ -195,7 +195,7 @@ export class DoodleV8Main {
             }
             break;
           case "s":
-            debug.log("⏹️ Skip win animations");
+            console.log("⏹️ Skip win animations");
             if (
               this.slotGameController?.reelsController &&
               this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true
@@ -204,7 +204,7 @@ export class DoodleV8Main {
             }
             break;
           case "b":
-            debug.log("🎉 Show big win animation");
+            console.log("🎉 Show big win animation");
             if (
               this.bigWinContainer &&
               GameConfig.BIG_WIN.enabled &&
@@ -214,7 +214,7 @@ export class DoodleV8Main {
             }
             break;
           case "1":
-            debug.log(" Normal mode activated");
+            console.log(" Normal mode activated");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL
@@ -268,7 +268,7 @@ export class DoodleV8Main {
             }
             break;
           case "2":
-            debug.log("⚡ Fast mode activated");
+            console.log("⚡ Fast mode activated");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST
@@ -327,17 +327,17 @@ export class DoodleV8Main {
       // Step 7: Start the main game loop
       this.startGameLoop();
 
-      debug.log("✅ DoodleV8 initialization complete!");
-      debug.log("🎯 Press SPACE to spin");
-      debug.log("🔄 Press A for auto-play");
-      debug.log("🛑 Press Q to stop auto-play");
-      debug.log("🎉 Press W to show random win animation");
-      debug.log("⏹️ Press S to skip win animations");
-      debug.log("⚡ Press 1 for normal mode, 2 for fast mode");
+      console.log("✅ DoodleV8 initialization complete!");
+      console.log("🎯 Press SPACE to spin");
+      console.log("🔄 Press A for auto-play");
+      console.log("🛑 Press Q to stop auto-play");
+      console.log("🎉 Press W to show random win animation");
+      console.log("⏹️ Press S to skip win animations");
+      console.log("⚡ Press 1 for normal mode, 2 for fast mode");
 
       this.responsiveManager.onResize();
     } catch (error) {
-      debug.error("❌ Failed to initialize DoodleV8:", error);
+      console.error("❌ Failed to initialize DoodleV8:", error);
       throw error;
     }
   }
@@ -351,7 +351,7 @@ export class DoodleV8Main {
         this.reelsController?.update(ticker.deltaTime);
       });
 
-      debug.log("🎰 Game loop started");
+      console.log("🎰 Game loop started");
     }
   }
 
@@ -372,7 +372,7 @@ export class DoodleV8Main {
     // Add global reference for debugging
     (globalThis as any).__PIXI_APP__ = this.app;
 
-    debug.log("PIXI Application initialized");
+    console.log("PIXI Application initialized");
   }
 
   private initializeResponsiveSystem(): void {
@@ -392,21 +392,21 @@ export class DoodleV8Main {
     if (!this.slotGameController?.spinController) return;
 
     this.slotGameController.spinController.setOnSpinStartCallback(() => {
-      debug.log("🎲 Spin started!");
+      console.log("🎲 Spin started!");
     });
 
     this.slotGameController.spinController.setOnSpinCompleteCallback(
       (result: SpinResponseData) => {
-        debug.log("✅ Spin completed!", result);
+        console.log("✅ Spin completed!", result);
       }
     );
 
     this.slotGameController.spinController.setOnCascadeStepCallback((step: CascadeStepData) => {
-      debug.log("💥 Cascade step:", step.step);
+      console.log("💥 Cascade step:", step.step);
     });
 
     this.slotGameController.spinController.setOnErrorCallback((error: string) => {
-      debug.error("❌ Spin error:", error);
+      console.error("❌ Spin error:", error);
     });
   }
 

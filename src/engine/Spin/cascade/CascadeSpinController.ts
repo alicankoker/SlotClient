@@ -42,7 +42,7 @@ export class CascadeSpinController extends SpinController {
                 return response;
             }
 
-            this.currentSpinId = response.result.spinId;
+            /*this.currentSpinId = response.result.spinId;
             this.currentCascadeSteps = response.result.cascadeSteps;
             this.finalGridData = response.result.finalGrid; // Store final grid
 
@@ -53,7 +53,7 @@ export class CascadeSpinController extends SpinController {
 
             await Utils.delay(500);
 
-            console.log(response.result.initialGrid);
+            console.log(response.result.initialGrid);*/
             //this._soundManager.play('spin', true, 0.75); // Play spin sound effect
 
             // Step 2: Start spinning animation
@@ -71,7 +71,7 @@ export class CascadeSpinController extends SpinController {
             await this.processCascadeSequence();
 
             // Step 4: Transfer final symbols back to StaticContainer
-            await this.transferSymbolsToStaticContainer(response.result.finalGrid);
+            //await this.transferSymbolsToStaticContainer(response.result.finalGrid);
 
             //this.reelsController.stopSpin();
             this.setState(ISpinState.COMPLETED);
@@ -113,7 +113,7 @@ export class CascadeSpinController extends SpinController {
     
     // Symbol transfer methods
     protected async transferSymbolsToSpinContainer(initialGrid: GridData): Promise<void> {
-        debug.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
+        console.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
 
 
         const reelsContainer = this.reelsController.getReelsContainer();
@@ -121,7 +121,7 @@ export class CascadeSpinController extends SpinController {
         const spinContainer = this.container;
 
         if (!staticContainer || !spinContainer) {
-            debug.error('SpinController: Missing containers for symbol transfer');
+            console.error('SpinController: Missing containers for symbol transfer');
             return;
         }
 
@@ -130,15 +130,15 @@ export class CascadeSpinController extends SpinController {
         if ('clearSymbols' in staticContainer) {
             (staticContainer as any).clearSymbols();
         }
-        debug.log('SpinController: StaticContainer hidden and cleared');
+        console.log('SpinController: StaticContainer hidden and cleared');
 
         // Show spin container and display initial grid
         spinContainer.visible = true;
-        debug.log('SpinController: SpinContainer shown');
+        console.log('SpinController: SpinContainer shown');
 
         if ('displayInitialGrid' in spinContainer) {
             (spinContainer as any).displayInitialGrid(initialGrid);
-            debug.log('SpinController: Initial grid displayed on SpinContainer');
+            console.log('SpinController: Initial grid displayed on SpinContainer');
         }
     }
 

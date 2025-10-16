@@ -69,19 +69,19 @@ export class GameController {
         });
 
         try {
-            debug.log('GameController: Starting spin with bet:', bet);
+            console.log('GameController: Starting spin with bet:', bet);
             
             const request: SpinRequestData = {
                 betAmount: bet
             };
 
-            const response = await this.gameServer.processSpin(request);
+            const response = await this.gameServer.processSpinRequest(request);
             if(response.success) {
                 if(response.result?.cascadeSteps && response.result.cascadeSteps.length > 0) {
                     //debugger;
                 }
             } else {
-                debug.error('GameController: Spin failed:', response.error);
+                console.error('GameController: Spin failed:', response.error);
                 return false;
             }
             
@@ -89,7 +89,7 @@ export class GameController {
                 await this.processSpinResult(response.result);
                 return true;
             } else {
-                debug.error('GameController: Spin failed:', response.error);
+                console.error('GameController: Spin failed:', response.error);
                 // Refund bet on failure
                 this.updateGameState({
                     balance: this.gameState.balance + bet,
@@ -98,7 +98,7 @@ export class GameController {
                 return false;
             }
         } catch (error) {
-            debug.error('GameController: Error during spin:', error);
+            console.error('GameController: Error during spin:', error);
             // Refund bet on error
             this.updateGameState({
                 balance: this.gameState.balance + bet,
@@ -109,7 +109,7 @@ export class GameController {
     }
 
     private async processSpinResult(result: SpinResultData): Promise<void> {
-        debug.log('GameController: Processing spin result:', result);
+        console.log('GameController: Processing spin result:', result);
         
         // Update game state with spin ID
         this.updateGameState({
@@ -125,8 +125,8 @@ export class GameController {
         for (let i = 0; i < result.cascadeSteps.length; i++) {
             const step = result.cascadeSteps[i];
             
-            debug.log(`GameController: Processing cascade step ${step.step}`);
-            debug.log(`GameController: Grid after step ${step.step}:`, step.gridAfter);
+            console.log(`GameController: Processing cascade step ${step.step}`);
+            console.log(`GameController: Grid after step ${step.step}:`, step.gridAfter);
             
             // Update current step
             this.updateGameState({
@@ -150,7 +150,7 @@ export class GameController {
             currentStep: 0
         });
 
-        debug.log('GameController: Spin sequence complete. Total win:', result.totalWin);
+        console.log('GameController: Spin sequence complete. Total win:', result.totalWin);
     }
 
     // State management
@@ -161,7 +161,7 @@ export class GameController {
     private updateGameState(updates: Partial<GameState>): void {
         this.gameState = { ...this.gameState, ...updates };
         
-        debug.log('GameController: State updated:', this.gameState);
+        console.log('GameController: State updated:', this.gameState);
         
         if (this.onStateChangeCallback) {
             this.onStateChangeCallback(this.getGameState());

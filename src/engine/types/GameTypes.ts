@@ -1,12 +1,3 @@
-// Game data types for server-client communication
-
-export interface SymbolData {
-    symbolId: number;           // Symbol index (0-9)
-}
-
-export interface GridData {
-    symbols: SymbolData[];      // Flat array of 15 symbols [0-14], where index = column * 3 + row
-}
 
 export interface SpinData {
     symbolsToDrop: DropData[];
@@ -29,9 +20,8 @@ export const GridUtils = {
 };
 
 export interface MatchData {
-    indices: number[];          // Array indices of symbols that matched
-    matchType: 'horizontal' | 'vertical' | 'cluster';
-    winAmount?: number;         // Optional win amount
+    indices: number[];
+    symbolId: number;
 }
 
 export enum ISpinState {
@@ -67,12 +57,32 @@ export interface DropData {
 }
 
 export interface SpinResultData {
-    spinId: string;             // Unique spin identifier
-    initialGrid: GridData;
-    cascadeSteps: CascadeStepData[];
+    spinId: string;  
     totalWin: number;
-    finalGrid: GridData; // Final state after all cascades
-    previousGrid: GridData;
+    steps: StepData[]
+}
+
+export interface StepData {
+    gridBefore: GridData;
+    gridAfter: GridData;
+    wins: WinData[];
+}
+
+export interface WinData {
+    matches: MatchData[];
+    winAmount: number;
+}
+
+export interface InitialGridData {
+    symbols: SymbolData[][];
+}
+
+export interface GridData {
+    symbols: SymbolData[][];
+}
+
+export interface SymbolData {
+    symbolId: number;
 }
 
 // Server request/response types

@@ -10,6 +10,7 @@ import {
     GridUtils,
     SpinData,
     SpinResultData,
+    GridData,
 } from '../types/GameTypes';
 import { IReelMode } from '../reels/ReelController';
 import { debug } from '../utils/debug';
@@ -63,7 +64,8 @@ export abstract class SpinContainer extends Container {
 
         this.initializeGrid();
     }
-
+    public abstract displayInitialGrid(initialGrid: GridData): void;
+    
     protected async initializeGrid(): Promise<void> {
         this.symbols = [];
         for (let col = 0; col < this.columns; col++) {
@@ -119,7 +121,7 @@ export abstract class SpinContainer extends Container {
         if (this.currentMode === mode) return;
 
         this.currentMode = mode;
-        debug.log(`SpinContainer ${this.config.reelIndex}: Switched to ${mode} mode`);
+        console.log(`SpinContainer ${this.config.reelIndex}: Switched to ${mode} mode`);
     }
 
     public getMode(): IReelMode {
@@ -218,7 +220,7 @@ export abstract class SpinContainer extends Container {
             this.symbols[reelIndex][i] = symbol;
         }
 
-        debug.log(`SpinContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} using pixel coordinates`);
+        console.log(`SpinContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} using pixel coordinates`);
     }
 
     // Symbol creation
@@ -246,7 +248,7 @@ export abstract class SpinContainer extends Container {
 
         this.isSpinning = true;
         this.spinStartTime = Date.now();
-        this.targetSymbols = [...spinData.finalGrid.symbols.map((symbol: SymbolData) => symbol.symbolId)];
+        this.targetSymbols = [...spinData.steps[spinData.steps.length - 1].gridAfter.symbols.flat().map((symbol: SymbolData) => symbol.symbolId)];""
         this.onSpinCompleteCallback = onComplete;
 
         return true;

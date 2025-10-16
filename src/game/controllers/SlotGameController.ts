@@ -97,12 +97,12 @@ export class SlotGameController {
         const staticContainer = this.staticContainer;
 
         if (!spinContainer) {
-            debug.error('ReelsController: No SpinContainer available');
+            console.error('ReelsController: No SpinContainer available');
             return;
         }
 
         if (!staticContainer) {
-            debug.error('ReelsController: No StaticContainer available');
+            console.error('ReelsController: No StaticContainer available');
             return;
         }
 
@@ -122,81 +122,6 @@ export class SlotGameController {
 
     public onCascadeStep(callback: (step: CascadeStepData) => void): void {
         this.onCascadeStepCallback = callback;
-    }
-
-    // Main spin method that coordinates Nexus and Game Logic
-    public async startSpin(request: SlotSpinRequest): Promise<SlotSpinResponse> {
-        try {
-            debug.log('SlotGameController: Starting spin', request);
-
-            // 1. Validate request with game rules
-            if (!this.isValidBetAmount(request.betAmount)) {
-                return {
-                    success: false,
-                    error: 'Invalid bet amount'
-                };
-            }
-
-            // 2. Create transaction through Nexus (handles balance validation and deduction)
-            const nexusRequest: NexusSpinRequest = {
-                playerId: request.playerId,
-                betAmount: request.betAmount,
-                gameMode: request.gameMode
-            };
-
-            const transaction = this.nexusInstance.createSpinTransaction(nexusRequest);
-            if (!transaction) {
-                return {
-                    success: false,
-                    error: 'Failed to create transaction (insufficient balance or player not found)'
-                };
-            }
-
-            // 3. Process game logic directly
-            const gameResponse = await this.processGameSpin({
-                betAmount: request.betAmount,
-                gameMode: request.gameMode
-            });
-
-            if (!gameResponse.success || !gameResponse.result) {
-                // Game failed, refund transaction
-                this.nexusInstance.failSpinTransaction(transaction.transactionId);
-
-                return {
-                    success: false,
-                    error: gameResponse.error || 'Game processing failed',
-                    transaction
-                };
-            }
-
-            // 4. Complete transaction with win amount
-            const winAmount = gameResponse.result.totalWin;
-            this.nexusInstance.completeSpinTransaction(transaction.transactionId, winAmount);
-
-            // 5. Get updated player state using PlayerController
-            const updatedPlayerState = this.playerController.getPlayerState(request.playerId);
-
-            // 6. Notify about player state change
-            if (updatedPlayerState && this.onPlayerStateChangeCallback) {
-                this.onPlayerStateChangeCallback(updatedPlayerState);
-            }
-
-            debug.log('SlotGameController: Spin completed successfully');
-
-            return {
-                success: true,
-                transaction: this.nexusInstance.getTransaction(transaction.transactionId)!,
-                gameResult: gameResponse.result,
-                playerState: updatedPlayerState!
-            };
-
-        } catch (error) {
-            debug.error('SlotGameController: Error during spin:', error);
-            return {
-                success: false,
-                error: 'Unexpected error during spin processing'
-            };
-        }
     }
 
     // Utility methods using PlayerController directly
@@ -229,48 +154,6 @@ export class SlotGameController {
         };
     }
 
-    // Game logic methods
-    private async processGameSpin(request: { betAmount: number, gameMode?: string }): Promise<{ success: boolean, error?: string, result?: SpinResultData }> {
-        try {
-            debug.log('SlotGameController: Processing game spin', request);
-
-            const response = await this.gameServer.processSpin(request);
-
-            if (response.success && response.result) {
-                // Notify about spin result (initial grid)
-                if (this.onSpinResultCallback) {
-                    this.onSpinResultCallback(response.result);
-                }
-
-                // Process each cascade step
-                for (const step of response.result.cascadeSteps) {
-                    debug.log(`SlotGameController: Processing cascade step ${step.step}`);
-                    debug.log(`SlotGameController: Grid after step ${step.step}:`, step.gridAfter);
-
-                    // Notify about cascade step
-                    if (this.onCascadeStepCallback) {
-                        this.onCascadeStepCallback(step);
-                    }
-
-                    // Small delay between steps for visual clarity (optional)
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                }
-
-                debug.log('SlotGameController: Game sequence complete. Total win:', response.result.totalWin);
-                return response;
-            } else {
-                debug.error('SlotGameController: Game spin failed:', response.error);
-                return response;
-            }
-        } catch (error) {
-            debug.error('SlotGameController: Error during game spin:', error);
-            return {
-                success: false,
-                error: 'Failed to process game spin'
-            };
-        }
-    }
-
     private isValidBetAmount(betAmount: number): boolean {
         // This checks game rules, not player balance
         const minBet = 0.01;
@@ -290,7 +173,7 @@ export class SlotGameController {
 
     // Convenience method for executing spins
     public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
-        const response = await this.requestSpinFromServer({
+        const response = await this.gameServer.processSpinRequest({
             betAmount,  
             gameMode
         });
@@ -301,160 +184,6 @@ export class SlotGameController {
         }
     }
 
-    // Simulate server communication (replace with actual implementation)
-    protected async requestSpinFromServer(request: SpinRequestData): Promise<SpinResponseData> {
-        // Simulate network delay
-        await Utils.delay(100);
-
-        // Mock response - replace with actual server call
-        const createRandomGrid = (maxSymbolId: number) => {
-            return Array(GameRulesConfig.GRID.rowCount * GameRulesConfig.GRID.reelCount)
-                .fill(0)
-                .map(() => ({ symbolId: Math.floor(Math.random() * maxSymbolId) }));
-        };
-
-        // Create realistic cascade steps with dropping symbols
-        const createCascadeSteps = (initialGrid: GridData): CascadeStepData[] => {
-            const steps: CascadeStepData[] = [];
-            const totalSymbols = GameRulesConfig.GRID.totalSymbols;
-            const gridSize = GameRulesConfig.GRID.rowCount * GameRulesConfig.GRID.reelCount;
-
-            // Generate 1-3 cascade steps
-            const numSteps = Math.floor(Math.random() * 3) + 1;
-
-            for (let step = 1; step <= numSteps; step++) {
-                // Find some random matches (simulate winning combinations)
-                const matches: MatchData[] = [];
-                const indicesToRemove: number[] = [];
-
-                // Create 1-2 random horizontal matches
-                const numMatches = Math.floor(Math.random() * 2) + 1;
-                for (let m = 0; m < numMatches; m++) {
-                    const startCol = Math.floor(Math.random() * (GameRulesConfig.GRID.reelCount - 2)); // Ensure 3+ symbols
-                    const row = Math.floor(Math.random() * GameRulesConfig.GRID.rowCount);
-                    const matchLength = Math.floor(Math.random() * 3) + 3; // 3-5 symbols
-
-                    const matchIndices: number[] = [];
-                    for (let i = 0; i < matchLength && startCol + i < GameRulesConfig.GRID.reelCount; i++) {
-                        const index = GridUtils.positionToIndex(startCol + i, row);
-                        if (GridUtils.isValidIndex(index)) {
-                            matchIndices.push(index);
-                            indicesToRemove.push(index);
-                        }
-                    }
-
-                    if (matchIndices.length >= 3) {
-                        matches.push({
-                            indices: matchIndices,
-                            matchType: 'horizontal',
-                            winAmount: matchIndices.length * request.betAmount * 0.5
-                        });
-                    }
-                }
-
-                // Create drop data for symbols falling down
-                const symbolsToDrop: DropData[] = [];
-                const newSymbols: SymbolData[] = [];
-                const newSymbolIndices: number[] = [];
-
-                // For each column, simulate symbols dropping
-                for (let col = 0; col < GameRulesConfig.GRID.reelCount; col++) {
-                    const columnIndices = indicesToRemove.filter(idx => {
-                        const { column } = GridUtils.indexToPosition(idx);
-                        return column === col;
-                    });
-
-                    if (columnIndices.length > 0) {
-                        // Calculate how many symbols need to drop
-                        const removedCount = columnIndices.length;
-
-                        // Create new symbols at the top
-                        for (let i = 0; i < removedCount; i++) {
-                            const newSymbolId = Math.floor(Math.random() * totalSymbols);
-                            newSymbols.push({ symbolId: newSymbolId });
-
-                            // Place new symbol at the top of the column
-                            const topRow = 0;
-                            const newIndex = GridUtils.positionToIndex(col, topRow);
-                            newSymbolIndices.push(newIndex);
-                        }
-
-                        // Create drop data for existing symbols
-                        const remainingIndices = [];
-                        for (let row = 0; row < GameRulesConfig.GRID.rowCount; row++) {
-                            const index = GridUtils.positionToIndex(col, row);
-                            if (!indicesToRemove.includes(index)) {
-                                remainingIndices.push(index);
-                            }
-                        }
-
-                        // Move remaining symbols down
-                        for (let i = 0; i < remainingIndices.length; i++) {
-                            const fromIndex = remainingIndices[i];
-                            const toRow = i + removedCount;
-                            if (toRow < GameRulesConfig.GRID.rowCount) {
-                                const toIndex = GridUtils.positionToIndex(col, toRow);
-                                symbolsToDrop.push({
-                                    symbolId: Math.floor(Math.random() * totalSymbols), // In real implementation, get actual symbol ID
-                                    fromIndex: fromIndex,
-                                    toIndex: toIndex
-                                });
-                            }
-                        }
-                    }
-                }
-
-                // Create grid after this step by applying the changes
-                const gridAfter = this.calculateGridAfterStep(initialGrid.symbols, step, matches, indicesToRemove, symbolsToDrop, newSymbols, newSymbolIndices);
-
-                steps.push({
-                    step: step,
-                    matches: matches,
-                    indicesToRemove: indicesToRemove,
-                    symbolsToDrop: symbolsToDrop,
-                    newSymbols: newSymbols,
-                    newSymbolIndices: newSymbolIndices,
-                    gridAfter: gridAfter
-                });
-            }
-
-            return steps;
-        };
-
-        // Use server-generated initial grid
-        const initialGrid: GridData = {
-            symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols)
-        };
-
-        // Generate realistic cascade steps
-        const cascadeSteps = createCascadeSteps(initialGrid);
-
-        // Calculate total win from all matches
-        const totalWin = cascadeSteps.reduce((total, step) => {
-            return total + step.matches.reduce((stepTotal, match) => {
-                return stepTotal + (match.winAmount || 0);
-            }, 0);
-        }, 0);
-
-        // Use the gridAfter from the last cascade step as the final grid
-        const finalGrid: GridData = cascadeSteps.length > 0
-            ? cascadeSteps[cascadeSteps.length - 1].gridAfter
-            : { symbols: createRandomGrid(GameRulesConfig.GRID.totalSymbols) };
-
-        const mockResponse: SpinResponseData = {
-            success: true,
-            result: {
-                spinId: `spin_${Date.now()}`,
-                initialGrid: initialGrid,
-                cascadeSteps: cascadeSteps,
-                totalWin: totalWin || request.betAmount * 0.5, // Fallback to small win
-                finalGrid: finalGrid,
-                previousGrid: initialGrid
-            }
-        };
-
-        return mockResponse;
-    }
     // For demo purposes - method to add balance using PlayerController
     public addPlayerBalance(playerId: string, amount: number): boolean {
         const player = this.playerController.getPlayerState(playerId);
@@ -483,7 +212,7 @@ export class SlotGameController {
         newSymbolIndices: number[]
     ): GridData {
         // Start with a copy of the initial symbols
-        const gridAfter = {
+        /*const gridAfter = {
             symbols: [...initialSymbols]
         };
 
@@ -516,6 +245,7 @@ export class SlotGameController {
             }
         }
 
-        return gridAfter;
+        return gridAfter;*/ 
+        return { symbols: [] };
     }
 } 

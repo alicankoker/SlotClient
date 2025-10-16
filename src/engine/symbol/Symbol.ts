@@ -19,7 +19,7 @@ export class Symbol extends Sprite {
   private config: SymbolConfig;
 
   constructor(config: SymbolConfig) {
-    debug.log(
+    console.log(
       `Symbol: Creating symbol with ID ${config.symbolId}, position:`,
       config.position
     );
@@ -34,7 +34,7 @@ export class Symbol extends Sprite {
     this.scale.set(config.scale || 1);
     this.position.set(config.position.x, config.position.y);
 
-    debug.log(
+    console.log(
       `Symbol: Created sprite with texture:`,
       !!texture,
       "size:",
@@ -46,7 +46,7 @@ export class Symbol extends Sprite {
     this._symbolId = config.symbolId;
     this.config = config;
 
-    debug.log(
+    console.log(
       `Symbol: Initialized symbol at:`,
       this.x,
       this.y,
@@ -59,7 +59,7 @@ export class Symbol extends Sprite {
 
   // Static method to get texture for a symbol ID
   public static getTextureForSymbol(symbolId: number): any {
-    debug.log(
+    console.log(
       `Symbol.getTextureForSymbol: Requesting texture for symbolId ${symbolId}`
     );
 
@@ -68,44 +68,44 @@ export class Symbol extends Sprite {
     const spritesheet = Assets.cache.get("symbols");
 
     if (!spritesheet) {
-      debug.error(
+      console.error(
         "Symbol.getTextureForSymbol: Spritesheet not found in cache!"
       );
-      debug.log("Cache lookup failed for: /assets/symbols/symbols.json");
+      console.log("Cache lookup failed for: /assets/symbols/symbols.json");
       throw new Error("Spritesheet not available");
     }
 
-    debug.log(
+    console.log(
       "Symbol.getTextureForSymbol: Spritesheet found, checking textures..."
     );
-    debug.log("Available textures:", Object.keys(spritesheet.textures || {}));
+    console.log("Available textures:", Object.keys(spritesheet.textures || {}));
 
     const symbolAssetName = AssetsConfig.getSymbolAsset(symbolId);
-    debug.log(
+    console.log(
       `Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`
     );
 
     const texture = spritesheet.textures[symbolAssetName + extension];
 
     if (!texture) {
-      debug.error(
+      console.error(
         "Texture not found for symbol:",
         symbolAssetName,
         "with ID:",
         symbolId
       );
-      debug.log("Available texture names:", Object.keys(spritesheet.textures));
+      console.log("Available texture names:", Object.keys(spritesheet.textures));
       // Fallback to first available texture
       const firstTextureName = Object.keys(spritesheet.textures)[0];
       if (firstTextureName) {
-        debug.log("Using fallback texture:", firstTextureName);
+        console.log("Using fallback texture:", firstTextureName);
         return spritesheet.textures[firstTextureName];
       } else {
         throw new Error("No textures available in spritesheet");
       }
     }
 
-    debug.log(
+    console.log(
       `Symbol.getTextureForSymbol: Successfully found texture for ${symbolAssetName}`
     );
     return texture;
@@ -123,7 +123,7 @@ export class Symbol extends Sprite {
 
   // Method to update symbol ID and texture
   public setSymbolId(newSymbolId: number): void {
-    debug.log(`Symbol: Updating symbol ID from ${this._symbolId} to ${newSymbolId}`);
+    console.log(`Symbol: Updating symbol ID from ${this._symbolId} to ${newSymbolId}`);
     this._symbolId = newSymbolId;
     this.config.symbolId = newSymbolId;
     

@@ -35,15 +35,10 @@ export class GameDataManager {
     setSpinData(response: SpinResponseData): void {
         // Store the previous spin result as the "before" state
         if (this.gameState.currentSpinData?.result) {
-            this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.finalGrid;
+            this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[0].gridBefore;
         }
         
         this.gameState.lastSpinResult = this.gameState.currentSpinData?.result;
-        this.gameState.currentSpinId = response.result?.spinId;
-        this.gameState.currentGrid = response.result?.initialGrid;
-        this.gameState.currentCascadeSteps = response.result?.cascadeSteps;
-        this.gameState.isSpinning = true;
-        this.gameState.lastSpinResult = response.result;
         this.gameState.currentSpinData = response;
     }
 
@@ -94,61 +89,62 @@ export class GameDataManager {
     // Setters
     public setCurrentSpinId(spinId: string): void {
         this.gameState.currentSpinId = spinId;
-        debug.log('GameDataManager: Current spin ID set to', spinId);
+        console.log('GameDataManager: Current spin ID set to', spinId);
     }
 
     public setCurrentGrid(grid: GridData): void {
         this.gameState.currentGrid = grid;
-        debug.log('GameDataManager: Current grid updated');
+        console.log('GameDataManager: Current grid updated');
     }
 
     public setSymbolsBeforeSpin(grid: GridData): void {
         this.gameState.symbolsBeforeSpin = grid;
-        debug.log('GameDataManager: Symbols before spin set');
+        console.log('GameDataManager: Symbols before spin set');
     }
 
     // Method to capture current static container symbols before starting a new spin
     public captureCurrentStaticSymbols(): void {
+        const totalSteps = this.gameState.currentSpinData?.result?.steps.length || 0;
         // This should be called before starting a new spin to capture what's currently on StaticContainer
-        if (this.gameState.currentSpinData?.result?.finalGrid) {
+        if (this.gameState.currentSpinData?.result?.steps[totalSteps ? totalSteps - 1 : 0]) {
             // Use the final grid from the previous spin
-            this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.finalGrid;
-            debug.log('GameDataManager: Captured previous spin final symbols as symbolsBeforeSpin');
+            this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[totalSteps ? totalSteps - 1 : 0].gridAfter;
+            console.log('GameDataManager: Captured previous spin final symbols as symbolsBeforeSpin');
         } else {
             // First spin - no previous data, this will be set by the game initialization
-            debug.log('GameDataManager: First spin - no previous symbols to capture');
+            console.log('GameDataManager: First spin - no previous symbols to capture');
         }
     }
 
     // Method to set initial symbols for first spin (from game initialization)
     public setInitialSymbols(initialGrid: GridData): void {
         this.gameState.symbolsBeforeSpin = initialGrid;
-        debug.log('GameDataManager: Set initial symbols for first spin');
+        console.log('GameDataManager: Set initial symbols for first spin');
     }
 
     public setCurrentCascadeSteps(steps: CascadeStepData[]): void {
         this.gameState.currentCascadeSteps = steps;
-        debug.log('GameDataManager: Cascade steps updated', steps.length);
+        console.log('GameDataManager: Cascade steps updated', steps.length);
     }
 
     public setIsSpinning(isSpinning: boolean): void {
         this.gameState.isSpinning = isSpinning;
-        debug.log('GameDataManager: Spin state set to', isSpinning);
+        console.log('GameDataManager: Spin state set to', isSpinning);
     }
 
     public setLastSpinResult(result: SpinResultData): void {
         this.gameState.lastSpinResult = result;
-        debug.log('GameDataManager: Last spin result updated');
+        console.log('GameDataManager: Last spin result updated');
     }
 
     public setPlayerBalance(balance: number): void {
         this.gameState.playerBalance = balance;
-        debug.log('GameDataManager: Player balance set to', balance);
+        console.log('GameDataManager: Player balance set to', balance);
     }
 
     public setCurrentBet(bet: number): void {
         this.gameState.currentBet = bet;
-        debug.log('GameDataManager: Current bet set to', bet);
+        console.log('GameDataManager: Current bet set to', bet);
     }
 
     // Update multiple properties at once
@@ -165,7 +161,7 @@ export class GameDataManager {
         this.gameState.currentGrid = undefined;
         this.gameState.currentCascadeSteps = undefined;
         this.gameState.isSpinning = false;
-        debug.log('GameDataManager: Spin data reset');
+        console.log('GameDataManager: Spin data reset');
     }
 
     // Clear all data
@@ -175,6 +171,6 @@ export class GameDataManager {
             playerBalance: 1000,
             currentBet: 10
         };
-        debug.log('GameDataManager: All data cleared');
+        console.log('GameDataManager: All data cleared');
     }
 }

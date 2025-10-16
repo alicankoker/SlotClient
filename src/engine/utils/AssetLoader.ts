@@ -40,7 +40,7 @@ export class AssetLoader implements IAssetLoader {
           label,
           percent: this.smooth.percent,
         });
-        debug.log(
+        console.log(
           "AssetLoader",
           `Loading ${label}: ${this.smooth.percent.toFixed(2)}%`
         );
@@ -94,7 +94,7 @@ export class AssetLoader implements IAssetLoader {
 
     this.emitSmooth(100, "completed");
 
-    debug.log("AssetLoader", "bundles loaded");
+    console.log("AssetLoader", "bundles loaded");
 
     const soundBundle = bundles.find((bundle) => bundle.name === "audio");
     if (!soundBundle) {
@@ -115,13 +115,13 @@ export class AssetLoader implements IAssetLoader {
       ]);
     });
 
-    debug.log("AssetLoader", "'audio' bundles added to SoundManager");
+    console.log("AssetLoader", "'audio' bundles added to SoundManager");
   }
 
   public getAsset(key: string): Texture | undefined {
     const asset = Assets.get(key) as Texture | undefined;
     if (!asset) {
-      debug.error("AssetLoader", `Asset ${key} not found!`);
+      console.error("AssetLoader", `Asset ${key} not found!`);
     }
     return asset;
   }

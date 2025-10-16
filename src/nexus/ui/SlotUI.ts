@@ -11,35 +11,35 @@ export class SlotUI {
         window.addEventListener('keydown', (event) => {
             switch (event.key.toLowerCase()) {
                 case ' ':
-                    debug.log('🎲 Manual spin triggered');
+                    console.log('🎲 Manual spin triggered');
                     Communication.getInstance().requestSpin();
                     break;
                 case 'a':
-                    debug.log('🔄 Auto-play triggered');
+                    console.log('🔄 Auto-play triggered');
                     // Auto-play would need to be implemented differently now
                     break;
                 case 'w':
-                    debug.log('Show random win animation');
+                    console.log('Show random win animation');
                     
                     break;
                 case 's':
-                    debug.log('Skip win animations');
+                    console.log('Skip win animations');
                     
                     break;
                 case 'x':
-                    debug.log('⏹️ Stop auto-play');
+                    console.log('⏹️ Stop auto-play');
                     // Stop functionality would need to be implemented
                     break;
                 case '1':
-                    debug.log('⚡ Fast mode enabled');
+                    console.log('⚡ Fast mode enabled');
                     // Fast mode would be handled differently
                     break;
                 case '2':
-                    debug.log('🚀 Instant mode enabled');
+                    console.log('🚀 Instant mode enabled');
                     // Instant mode would be handled differently
                     break;
                 case '3':
-                    debug.log('🐌 Slow mode enabled');
+                    console.log('🐌 Slow mode enabled');
                     // Slow mode would be handled differently
                     break;
             }

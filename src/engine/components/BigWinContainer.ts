@@ -41,7 +41,7 @@ export abstract class BigWinContainer extends Container {
 
         window.addEventListener("click", this._onSkip, { once: true });
 
-        debug.log("BigWin", "Big Win animation started.");
+        console.log("BigWin", "Big Win animation started.");
 
         gsap.to(this, {
             alpha: 1,
@@ -165,7 +165,7 @@ export abstract class BigWinContainer extends Container {
                     this._duration = GameConfig.BIG_WIN.duration;
                     this._tweenObj = { value: 0 };
 
-                    debug.log("BigWin", "Big Win animation stopped.");
+                    console.log("BigWin", "Big Win animation stopped.");
 
                     resolve();
                 }

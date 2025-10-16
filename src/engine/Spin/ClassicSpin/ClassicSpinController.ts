@@ -1,7 +1,7 @@
 import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
 import { GameDataManager } from "../../data/GameDataManager";
-import { BigWinType, ISpinState, SpinResponseData } from "../../types/GameTypes";
+import { BigWinType, GridData, ISpinState, SpinResponseData } from "../../types/GameTypes";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
 import { SpinController, SpinControllerConfig } from "../SpinController";
@@ -41,7 +41,7 @@ export class ClassicSpinController extends SpinController {
                 return response;
             }
 
-            //await this.transferSymbolsToSpinContainer(response.result.initialGrid);
+            await this.transferSymbolsToSpinContainer(response.result.steps[0].gridBefore);
             
             this._soundManager.play('spin', true, 0.75); // Play spin sound effect
 
@@ -92,5 +92,44 @@ export class ClassicSpinController extends SpinController {
             return { success: false, error: errorMessage };
         }
     }
+
+
+    // Symbol transfer methods
+    protected async transferSymbolsToSpinContainer(initialGrid: GridData): Promise<void> {
+        console.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
+        
+        const reelsContainer = this.reelsController.getReelsContainer();
+        if (!reelsContainer) {
+            console.error('SpinController: No reels container available for symbol transfer');
+            return;
+        }
+
+        const staticContainer = reelsContainer?.getStaticContainer();
+        const spinContainer = this.container;
+        
+        if (!staticContainer || !spinContainer) {
+            console.error('SpinController: Missing containers for symbol transfer');
+            return;
+        }
+
+        // Hide static container symbols and clear them
+        staticContainer.visible = false;
+        if ('clearSymbols' in staticContainer) {
+            (staticContainer as any).clearSymbols();
+        }
+
+        console.log('SpinController: StaticContainer hidden and cleared');
+        staticContainer.visible = false;
+
+        // Show spin container and display initial grid
+        spinContainer.visible = true;
+        console.log('SpinController: SpinContainer shown');
+        
+        if (spinContainer instanceof SpinContainer) {
+            (spinContainer as any).displayInitialGrid(initialGrid);
+            console.log('SpinController: Initial grid displayed on SpinContainer');
+        }
+    }
+
 
 }

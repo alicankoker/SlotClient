@@ -5,6 +5,8 @@ import { IReelMode } from "../../reels/ReelController";
 import { GridSymbol } from "../../symbol/GridSymbol";
 import { Sprite } from "pixi.js";
 import { debug } from "../../utils/debug";
+import { GridData, SymbolData } from "../../types/GameTypes";
+import { GameConfig } from "../../../config/GameConfig";
 
 export class ClassicSpinContainer extends SpinContainer {
     protected currentSpeed: number = SpinConfig.SPIN_SPEED;
@@ -23,7 +25,7 @@ export class ClassicSpinContainer extends SpinContainer {
             this.currentSpeed -= SpinConfig.REEL_SPEED_UP_COEFFICIENT;
         }
         this.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
-            debug.log(`${this.currentSpeed}`);
+            console.log(`${this.currentSpeed}`);
             reelSymbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
                 if (symbol) {
                     if (symbol.position.y > this.bottomSymbolYPos) {
@@ -34,5 +36,36 @@ export class ClassicSpinContainer extends SpinContainer {
                 }
             });
         });
+    }
+
+    public displayInitialGrid(initialGrid: GridData): void {
+        console.log('ClassicSpinContainer: Displaying initial grid');
+        if(this.symbols.length === 0) {
+            this.initializeGrid();
+        }
+
+        for(let col = 0; col < this.columns; col++) {
+            for(let row = 0; row < this.totalRows; row++) {
+                this.symbols[col][row] = this.createGridSymbol({ symbolId: initialGrid.symbols[col][row].symbolId }, col, row);
+            }
+        }
+    }
+    
+    protected createGridSymbol(symbolData: SymbolData, column: number, row: number): GridSymbol | null {
+        const symbolX = this.calculateSymbolX(column);
+        const symbolY = this.calculateSymbolY(row);
+
+        const gridSymbol = new GridSymbol({
+            symbolId: symbolData.symbolId,
+            position: { x: symbolX, y: symbolY },
+            scale: GameConfig.REFERENCE_SYMBOL.scale, // Use reference scale
+            gridX: column,
+            gridY: row
+        });
+
+        // Add to display
+        this.addChild(gridSymbol);
+
+        return gridSymbol;
     }
 }

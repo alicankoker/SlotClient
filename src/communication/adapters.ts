@@ -7,7 +7,7 @@ export class LocalAdapter implements CommunicationAdapter {
         const { GameServer } = await import('../server/GameServer');
         const gameServer = GameServer.getInstance();
         
-        const response = await gameServer.processSpin({
+        const response = await gameServer.processSpinRequest({
             betAmount: request.betAmount
         });
 

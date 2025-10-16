@@ -58,7 +58,7 @@ export class ReelsController {
     public async setMode(mode: ISpinState): Promise<void> {
         if (this.currentMode === mode) return;
 
-        debug.log(`ReelsController: Switching from ${this.currentMode} to ${mode}`);
+        console.log(`ReelsController: Switching from ${this.currentMode} to ${mode}`);
         this.currentMode = mode;
 
         // Update container mode
@@ -211,7 +211,7 @@ export class ReelsController {
 
         this.isSpinning = false;
 
-        debug.log('ReelsController: All reels completed spinning');
+        console.log('ReelsController: All reels completed spinning');
     }
 
     public stopSpin(): void {
@@ -325,7 +325,7 @@ export class ReelsController {
         if (this.isSpinning && !anySpinning) {
             // All reels have finished spinning
             this.isSpinning = false;
-            debug.log('ReelsController: All reels have finished spinning');
+            console.log('ReelsController: All reels have finished spinning');
         }
     }
 
@@ -397,7 +397,7 @@ export class ReelsController {
             controller.setSpinMode(mode);
         });
 
-        debug.log(`ReelsController: Spin mode set to ${mode}`);
+        console.log(`ReelsController: Spin mode set to ${mode}`);
     }
 
     // Cleanup

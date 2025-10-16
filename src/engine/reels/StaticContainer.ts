@@ -76,7 +76,7 @@ export class StaticContainer extends Container {
     }
 
     private createSymbolsFromIds(symbolIds: number[], reelIndex: number): void {
-        debug.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
+        console.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
 
         // Initialize symbols array for this reel
         if (!this._symbols.has(reelIndex)) {
@@ -97,7 +97,7 @@ export class StaticContainer extends Container {
             // Get symbol ID (use provided IDs or generate random for testing)
             const symbolId = i < symbolIds.length ? symbolIds[i] : Math.floor(Math.random() * 10);
 
-            debug.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            console.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
 
             // Create symbol with container positioning to avoid conflicts with ReelsContainer offset
             const symbol = new SpineSymbol({
@@ -113,10 +113,10 @@ export class StaticContainer extends Container {
             this.addChild(symbol);
             reelSymbols.push(symbol);
 
-            debug.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            console.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
         }
 
-        debug.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
+        console.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
     }
 
     /**
@@ -169,7 +169,7 @@ export class StaticContainer extends Container {
         // Play win animations based on the provided data
         for (const winData of winDatas) {
             if (this._animationToken !== token) return;
-            debug.log(`StaticContainer: Playing win animation for win data:`, winData);
+            console.log(`StaticContainer: Playing win animation for win data:`, winData);
 
             this._isLooping === false && this._soundManager.play('win', false, 0.75); // Play win sound effect
 

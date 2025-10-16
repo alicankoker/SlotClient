@@ -8,7 +8,7 @@ export class SymbolUtils {
     const spritesheet = Assets.cache.get("/assets/symbols/symbols.json");
 
     if (!spritesheet) {
-      debug.error("Spritesheet not found in cache!");
+      console.error("Spritesheet not found in cache!");
       throw new Error("Spritesheet not available");
     }
 
@@ -16,7 +16,7 @@ export class SymbolUtils {
     const texture = spritesheet.textures[symbolAssetName];
 
     if (!texture) {
-      debug.error(
+      console.error(
         "Texture not found for symbol:",
         symbolAssetName,
         "with ID:",
@@ -34,7 +34,7 @@ export class SymbolUtils {
     const spritesheet = Assets.cache.get("/assets/symbols/symbols.json");
 
     if (!spritesheet) {
-      debug.error("Spritesheet not found in cache!");
+      console.error("Spritesheet not found in cache!");
       throw new Error("Spritesheet not available");
     }
 
@@ -42,7 +42,7 @@ export class SymbolUtils {
     const texture = spritesheet.textures[symbolAssetName];
 
     if (!texture) {
-      debug.error(
+      console.error(
         "Texture not found for symbol:",
         symbolAssetName,
         "with ID:",

@@ -84,7 +84,7 @@ export class ReelsContainer extends Container {
         this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', true);
         this.addChild(this._reelFrame);
 
-        debug.log('ReelsContainer: Reel background created with size:', this._reelBackground.width, 'x', this._reelBackground.height);
+        console.log('ReelsContainer: Reel background created with size:', this._reelBackground.width, 'x', this._reelBackground.height);
     }
 
     private setupResizeHandler(): void {
@@ -187,17 +187,17 @@ export class ReelsContainer extends Container {
         if (this.spinContainer) {
             this.spinContainer.setMode(mode);
             this.spinContainer.visible = mode !== IReelMode.STATIC;
-            debug.log('ReelsContainer: Spin container visible set to:', this.spinContainer.visible);
+            console.log('ReelsContainer: Spin container visible set to:', this.spinContainer.visible);
         }
 
         if (this.staticContainer) {
             this.staticContainer.visible = mode === IReelMode.STATIC;
-            debug.log('ReelsContainer: Static container visible set to:', this.staticContainer.visible);
+            console.log('ReelsContainer: Static container visible set to:', this.staticContainer.visible);
         }
 
         if (this.winLinesContainer) {
             this.winLinesContainer.visible = mode === IReelMode.STATIC;
-            debug.log('ReelsContainer: Win lines container visible set to:', this.winLinesContainer.visible);
+            console.log('ReelsContainer: Win lines container visible set to:', this.winLinesContainer.visible);
         }
     }
 
