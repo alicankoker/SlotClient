@@ -18,6 +18,7 @@ import { CascadeSpinContainer } from '../../engine/Spin/cascade/CascadeSpinConta
 import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { Utils } from '../../engine/utils/Utils';
 import { GameDataManager } from '../../engine/data/GameDataManager';
+import { Graphics } from 'pixi.js';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -47,6 +48,7 @@ export class SlotGameController {
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
     private onSpinResultCallback?: (result: SpinResultData) => void;
     private onCascadeStepCallback?: (step: CascadeStepData) => void;
+    reelAreaMask: any;
 
     constructor(app: Application) {
         this.app = app;
@@ -68,15 +70,20 @@ export class SlotGameController {
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0,
             symbolHeight: GameConfig.REFERENCE_SYMBOL.height,
-            symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows
-        });
+            symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
+        }, initialGridData);
 
         // Set initial visibility - StaticContainer visible, SpinContainer hidden
         this.staticContainer.visible = true;
         this.spinContainer.visible = false;
 
+        this.createReelAreaMask();
+
         this.reelsContainer.addChild(this.staticContainer);
         this.reelsContainer.addChild(this.spinContainer);
+        this.reelsContainer.addChild(this.reelAreaMask);
+        this.spinContainer.mask = this.reelAreaMask;
+        this.staticContainer.mask = this.reelAreaMask;
         this.app.stage.addChild(this.reelsContainer);
 
         this.spinController = new ClassicSpinController(this.spinContainer as SpinContainer, {
@@ -90,12 +97,27 @@ export class SlotGameController {
         return SlotGameController.slotGameInstance;
     }
 
+    private createReelAreaMask(): void {
+        this.reelAreaMask = new Graphics();
+        this.reelAreaMask.fill(0xffffff);
+        const symWidth = GameConfig.REFERENCE_SYMBOL.width
+        const symHeight = GameConfig.REFERENCE_SYMBOL.height
+        const spacingX = GameConfig.REFERENCE_SPACING.horizontal
+        const spacingY = GameConfig.REFERENCE_SPACING.vertical
+        this.reelAreaMask.rect(0, 0, (symWidth * 6) + (spacingX * 5), (symHeight * 5) + (spacingY * 4));
+        const firstSymbolPosition = {x: this.spinContainer.calculateSymbolX(0), y: this.spinContainer.calculateSymbolY(1)};
+        this.reelAreaMask.position.set(firstSymbolPosition.x - symWidth / 2 - spacingX / 2, firstSymbolPosition.y - symHeight / 2 - spacingY / 2 );
+        this.reelAreaMask.fill(0xffffff);
+        this.reelAreaMask.closePath();
+        this.spinContainer.addChild(this.reelAreaMask);
+        this.spinContainer.addChild(this.reelAreaMask);
+    }
 
     private connectControllers(): void {
         // Get the single containers that handle all reels
         const spinContainer = this.spinContainer;
-        const staticContainer = this.staticContainer;
 
+        const staticContainer = this.staticContainer;
         if (!spinContainer) {
             console.error('ReelsController: No SpinContainer available');
             return;
@@ -106,9 +128,9 @@ export class SlotGameController {
             return;
         }
 
-        this.reelsController.reelControllers.forEach(controller => {
+        /*this.reelsController.reelControllers.forEach(controller => {
             controller.setViews(staticContainer, spinContainer);
-        });
+        });*/
     }
 
     // Event handlers for the unified controller
@@ -174,7 +196,7 @@ export class SlotGameController {
     // Convenience method for executing spins
     public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
         const response = await this.gameServer.processSpinRequest({
-            betAmount,  
+            betAmount,
             gameMode
         });
 
@@ -203,12 +225,12 @@ export class SlotGameController {
 
     // Helper method to calculate grid after applying cascade step changes
     private calculateGridAfterStep(
-        initialSymbols: SymbolData[], 
-        step: number, 
-        matches: MatchData[], 
-        indicesToRemove: number[], 
-        symbolsToDrop: DropData[], 
-        newSymbols: SymbolData[], 
+        initialSymbols: SymbolData[],
+        step: number,
+        matches: MatchData[],
+        indicesToRemove: number[],
+        symbolsToDrop: DropData[],
+        newSymbols: SymbolData[],
         newSymbolIndices: number[]
     ): GridData {
         // Start with a copy of the initial symbols
@@ -245,7 +267,7 @@ export class SlotGameController {
             }
         }
 
-        return gridAfter;*/ 
+        return gridAfter;*/
         return { symbols: [] };
     }
 } 

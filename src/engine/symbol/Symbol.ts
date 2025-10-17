@@ -19,10 +19,10 @@ export class Symbol extends Sprite {
   private config: SymbolConfig;
 
   constructor(config: SymbolConfig) {
-    console.log(
+    /*console.log(
       `Symbol: Creating symbol with ID ${config.symbolId}, position:`,
       config.position
-    );
+    );*/ 
 
     // Get the texture for this symbol
     const texture = Symbol.getTextureForSymbol(config.symbolId);
@@ -34,19 +34,19 @@ export class Symbol extends Sprite {
     this.scale.set(config.scale || 1);
     this.position.set(config.position.x, config.position.y);
 
-    console.log(
+    /*console.log(
       `Symbol: Created sprite with texture:`,
       !!texture,
       "size:",
       texture?.width,
       "x",
       texture?.height
-    );
+    );*/
 
     this._symbolId = config.symbolId;
     this.config = config;
 
-    console.log(
+    /*console.log(
       `Symbol: Initialized symbol at:`,
       this.x,
       this.y,
@@ -54,14 +54,14 @@ export class Symbol extends Sprite {
       this.scale.x,
       "visible:",
       this.visible
-    );
+    );*/
   }
 
   // Static method to get texture for a symbol ID
   public static getTextureForSymbol(symbolId: number): any {
-    console.log(
+    /*console.log(
       `Symbol.getTextureForSymbol: Requesting texture for symbolId ${symbolId}`
-    );
+    );*/
 
     const extension = '.png'
 
@@ -71,43 +71,43 @@ export class Symbol extends Sprite {
       console.error(
         "Symbol.getTextureForSymbol: Spritesheet not found in cache!"
       );
-      console.log("Cache lookup failed for: /assets/symbols/symbols.json");
+      //console.log("Cache lookup failed for: /assets/symbols/symbols.json");
       throw new Error("Spritesheet not available");
     }
 
-    console.log(
+    /*console.log(
       "Symbol.getTextureForSymbol: Spritesheet found, checking textures..."
-    );
-    console.log("Available textures:", Object.keys(spritesheet.textures || {}));
+    );*/
+    //console.log("Available textures:", Object.keys(spritesheet.textures || {}));
 
     const symbolAssetName = AssetsConfig.getSymbolAsset(symbolId);
-    console.log(
+    /*console.log(
       `Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`
-    );
+    );*/
 
     const texture = spritesheet.textures[symbolAssetName + extension];
 
     if (!texture) {
-      console.error(
+      /*console.error(
         "Texture not found for symbol:",
         symbolAssetName,
         "with ID:",
         symbolId
       );
-      console.log("Available texture names:", Object.keys(spritesheet.textures));
+      console.log("Available texture names:", Object.keys(spritesheet.textures));*/
       // Fallback to first available texture
       const firstTextureName = Object.keys(spritesheet.textures)[0];
       if (firstTextureName) {
-        console.log("Using fallback texture:", firstTextureName);
+        //console.log("Using fallback texture:", firstTextureName);
         return spritesheet.textures[firstTextureName];
       } else {
         throw new Error("No textures available in spritesheet");
       }
     }
 
-    console.log(
+    /*console.log(
       `Symbol.getTextureForSymbol: Successfully found texture for ${symbolAssetName}`
-    );
+    );*/
     return texture;
   }
 
@@ -123,7 +123,7 @@ export class Symbol extends Sprite {
 
   // Method to update symbol ID and texture
   public setSymbolId(newSymbolId: number): void {
-    console.log(`Symbol: Updating symbol ID from ${this._symbolId} to ${newSymbolId}`);
+    //console.log(`Symbol: Updating symbol ID from ${this._symbolId} to ${newSymbolId}`);
     this._symbolId = newSymbolId;
     this.config.symbolId = newSymbolId;
     
@@ -195,8 +195,7 @@ export class Symbol extends Sprite {
         // Easing function (ease-out)
         const easedProgress = 1 - Math.pow(1 - progress, 3);
 
-        const currentScale =
-          startScale + (targetScale - startScale) * easedProgress;
+        //const currentScale = startScale + (targetScale - startScale) * easedProgress;
         //this.updateScale(currentScale);
 
         if (progress < 1) {

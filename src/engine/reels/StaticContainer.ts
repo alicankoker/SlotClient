@@ -3,7 +3,7 @@ import { GameConfig } from '../../config/GameConfig';
 import { SpineSymbol } from '../symbol/SpineSymbol';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { debug } from '../utils/debug';
-import { WinConfig } from '../types/GameTypes';
+import { GridData, WinConfig } from '../types/GameTypes';
 import { gsap } from 'gsap';
 import { WinLinesContainer } from '../components/WinLinesContainer';
 import SoundManager from '../controllers/SoundManager';
@@ -30,10 +30,10 @@ export class StaticContainer extends Container {
     private _isSkipped: boolean = false;
     private _allowLoop: boolean = GameConfig.WIN_ANIMATION.winLoop ?? true;
     private _animationToken: number = 0;
-
+    private _initialGrid: GridData;
     private _pendingResolvers: (() => void)[] = [];
 
-    constructor(app: Application, config: StaticContainerConfig) {
+    constructor(app: Application, config: StaticContainerConfig, initialGrid: GridData) {
         super();
 
         this.label = 'StaticContainer';
@@ -41,13 +41,20 @@ export class StaticContainer extends Container {
         this._soundManager = SoundManager.getInstance();
         this._winLinesContainer = WinLinesContainer.getInstance();
         this._config = config;
-
+        this._initialGrid = initialGrid;
         this._winText = new Text({ text: '', style: GameConfig.style });
         this._winText.label = 'WinText';
         this._winText.anchor.set(0.5);
         this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 130);
         this._winText.visible = false;
         this.addChild(this._winText);
+
+        const symbolIds = initialGrid.symbols.map(column => column.map(symbol => symbol.symbolId));
+        console.log('StaticContainer: Symbol IDs: ', symbolIds);
+         
+        symbolIds.forEach((column, columnIndex) => {
+            this.createSymbolsFromIds(column, columnIndex);
+        });
     }
 
     /**
@@ -76,7 +83,7 @@ export class StaticContainer extends Container {
     }
 
     private createSymbolsFromIds(symbolIds: number[], reelIndex: number): void {
-        console.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
+        //console.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
 
         // Initialize symbols array for this reel
         if (!this._symbols.has(reelIndex)) {
@@ -85,7 +92,7 @@ export class StaticContainer extends Container {
         const reelSymbols = this._symbols.get(reelIndex)!;
 
         // Create symbols with buffer for smooth scrolling (like original Reel.ts)
-        const totalSymbols = this._config.symbolsVisible;
+        const totalSymbols = this._config.symbolsVisible + GameConfig.GRID_LAYOUT.rowsAboveMask + GameConfig.GRID_LAYOUT.rowsBelowMask;
         const symbolsToCreate = Math.max(totalSymbols, symbolIds.length);
 
         const reelX = this.calculateSymbolX(reelIndex);
@@ -97,7 +104,7 @@ export class StaticContainer extends Container {
             // Get symbol ID (use provided IDs or generate random for testing)
             const symbolId = i < symbolIds.length ? symbolIds[i] : Math.floor(Math.random() * 10);
 
-            console.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            //console.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
 
             // Create symbol with container positioning to avoid conflicts with ReelsContainer offset
             const symbol = new SpineSymbol({
@@ -113,10 +120,10 @@ export class StaticContainer extends Container {
             this.addChild(symbol);
             reelSymbols.push(symbol);
 
-            console.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            //console.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
         }
 
-        console.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
+        //console.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
     }
 
     /**
@@ -169,7 +176,7 @@ export class StaticContainer extends Container {
         // Play win animations based on the provided data
         for (const winData of winDatas) {
             if (this._animationToken !== token) return;
-            console.log(`StaticContainer: Playing win animation for win data:`, winData);
+            //console.log(`StaticContainer: Playing win animation for win data:`, winData);
 
             this._isLooping === false && this._soundManager.play('win', false, 0.75); // Play win sound effect
 
@@ -496,7 +503,7 @@ export class StaticContainer extends Container {
 
     public clone(reelIndex?: number): StaticContainer {
         const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
-        const clonedContainer = new StaticContainer(this._app, this._config);
+        const clonedContainer = new StaticContainer(this._app, this._config, this._initialGrid);
 
         // Copy current symbol IDs
         const symbolIds = this._symbols.get(targetReelIndex)?.map(symbol => symbol.symbolId) || [];
@@ -522,7 +529,7 @@ export class StaticContainer extends Container {
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
-        const symbolY = (((row - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
+        const symbolY = (((row - 1 - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
 
         return symbolY;
     }

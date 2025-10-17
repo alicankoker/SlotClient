@@ -66,7 +66,7 @@ export class CascadeSpinContainer extends SpinContainer {
 
         this.isSpinning = true;
         this.spinStartTime = Date.now();
-        this.targetSymbols = [...spinData.finalGrid.symbols.map((symbol: SymbolData) => symbol.symbolId)];
+        this.targetSymbols = [...spinData.steps[spinData.steps.length - 1].gridAfter.symbols.flat().map((symbol: SymbolData) => symbol.symbolId)];
         this.onSpinCompleteCallback = onComplete;
 
         console.log('CascadeSpinContainer: Starting spin with symbols array:', this.symbols);
@@ -145,7 +145,7 @@ export class CascadeSpinContainer extends SpinContainer {
     protected updateGridFromData(gridData: GridData): void {
         console.log(`CascadeSpinContainer: Updating grid with ${gridData.symbols.length} symbols from server`);
 
-        gridData.symbols.forEach((symbolData: SymbolData, index: number) => {
+        gridData.symbols.flat().forEach((symbolData: SymbolData, index: number) => {
             const { column, row } = GridUtils.indexToPosition(index);
 
             try {
@@ -325,7 +325,7 @@ export class CascadeSpinContainer extends SpinContainer {
                 this.symbols[this.config.reelIndex][gridIndex] = newSymbol;
 
                 // Create drop-in animation
-                const animation = new Promise<void>((resolve) => {
+                /*const animation = new Promise<void>((resolve) => {
                     gsap.to(newSymbol, {
                         y: targetY,
                         alpha: 1,
@@ -335,7 +335,7 @@ export class CascadeSpinContainer extends SpinContainer {
                     });
                 });
 
-                animations.push(animation);
+                animations.push(animation);*/
             }
         });
 

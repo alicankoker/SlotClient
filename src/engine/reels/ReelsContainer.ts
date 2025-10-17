@@ -21,9 +21,6 @@ export class ReelsContainer extends Container {
     private app: Application;
     private resizeSubscription?: SignalSubscription;
 
-    // Mask for the entire reel area
-    private reelAreaMask: Graphics;
-
     // ONE SpinContainer and ONE StaticContainer for entire game
     private spinContainer!: SpinContainer;
     private staticContainer?: StaticContainer;
@@ -51,7 +48,6 @@ export class ReelsContainer extends Container {
         this.createReelBackground();
 
         // Create mask for the entire reel area
-        this.reelAreaMask = new Graphics();
 
         this.initializeContainers();
 
@@ -105,10 +101,6 @@ export class ReelsContainer extends Container {
         //this.createStaticContainer(symbolHeight);
 
         this.createWinLinesContainer();
-
-        if (this.spinContainer) {
-            this.spinContainer.mask = this.reelAreaMask;
-        }
     }
 
     private createSpinContainer(symbolHeight: number): void {
@@ -291,11 +283,6 @@ export class ReelsContainer extends Container {
         }
 
         this.clearAllContainers();
-
-        // Clean up the reel area mask
-        if (this.reelAreaMask) {
-            this.reelAreaMask.destroy();
-        }
 
         super.destroy();
     }

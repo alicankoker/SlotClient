@@ -19,7 +19,7 @@ import { Reelsets } from './Games/ClassicSpinGame/Reelsets';
 export class GameServer {
     private static instance: GameServer;
     private spinCounter: number = 0;
-    private readonly totalSymbols: number = 13; // Number of available symbols (0-12)
+    private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
     private readonly gameID: number = 0;
 
     private initData: InitialGridData = { symbols: [] };
@@ -53,7 +53,7 @@ export class GameServer {
     }
 
     public generateInitialGridData(): GridData {
-        this.initData = this.generateNewGridData();
+        this.initData = this.generateNewGridData();;
         return this.initData;
     }
 
@@ -192,21 +192,27 @@ export class GameServer {
             symbols.push([]);
             const reelset = Reelsets.Reelsets[col];
             const randomIndex = Math.floor(Math.random() * reelset.length);
-            if(randomIndex + totalRows > reelset.length) {
+            if(randomIndex + totalRows <= reelset.length) {
                 for(let row = 0; row < totalRows; row++) {
-                    symbols[col].push({ symbolId: reelset[randomIndex + row] });
+                    const sym = { symbolId: reelset[row] }
+                    if(sym.symbolId === undefined || sym.symbolId > 9) debugger;
+                    symbols[col].push(sym as SymbolData);
                 }
             } else {
-                const remaining = reelset.length - randomIndex;
-                for(let row = randomIndex; row < totalRows; row++) {
-                    symbols[col].push({ symbolId: reelset[randomIndex + row] });
+                const remaining = totalRows - (reelset.length - randomIndex);
+                for(let row = randomIndex; row < reelset.length; row++) {
+                    const sym = { symbolId: reelset[randomIndex] }
+                    if(sym.symbolId === undefined || sym.symbolId > 9) debugger;
+                    symbols[col].push(sym as SymbolData);
                 }
                 for(let row = 0; row < remaining; row++) {
-                    symbols[col].push({ symbolId: reelset[row] });
+                    const sym = { symbolId: reelset[row] }
+                    if(sym.symbolId === undefined || sym.symbolId > 9) debugger;
+                    symbols[col].push(sym as SymbolData);
                 }
             }
         }
-        return { symbols: [] };
+        return { symbols: symbols as SymbolData[][] };
     }
 
     private calculateDrops(grid: GridData, indicesToRemove: number[]): DropData[] {

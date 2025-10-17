@@ -38,7 +38,7 @@ export class GameDataManager {
             this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[0].gridBefore;
         }
         
-        this.gameState.lastSpinResult = this.gameState.currentSpinData?.result;
+        this.gameState.lastSpinResult = response.result;
         this.gameState.currentSpinData = response;
     }
 

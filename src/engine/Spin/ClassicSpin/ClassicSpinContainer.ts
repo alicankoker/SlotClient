@@ -25,7 +25,7 @@ export class ClassicSpinContainer extends SpinContainer {
             this.currentSpeed -= SpinConfig.REEL_SPEED_UP_COEFFICIENT;
         }
         this.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
-            console.log(`${this.currentSpeed}`);
+            //console.log(`${this.currentSpeed}`);
             reelSymbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
                 if (symbol) {
                     if (symbol.position.y > this.bottomSymbolYPos) {
@@ -39,14 +39,14 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     public displayInitialGrid(initialGrid: GridData): void {
-        console.log('ClassicSpinContainer: Displaying initial grid');
+        //console.log('ClassicSpinContainer: Displaying initial grid: ', initialGrid.symbols);
         if(this.symbols.length === 0) {
             this.initializeGrid();
         }
 
         for(let col = 0; col < this.columns; col++) {
             for(let row = 0; row < this.totalRows; row++) {
-                this.symbols[col][row] = this.createGridSymbol({ symbolId: initialGrid.symbols[col][row].symbolId }, col, row);
+                (this.symbols[col][row] as GridSymbol).setSymbolId(initialGrid.symbols[col][row].symbolId);
             }
         }
     }
@@ -54,6 +54,7 @@ export class ClassicSpinContainer extends SpinContainer {
     protected createGridSymbol(symbolData: SymbolData, column: number, row: number): GridSymbol | null {
         const symbolX = this.calculateSymbolX(column);
         const symbolY = this.calculateSymbolY(row);
+        if(GameConfig.REFERENCE_SYMBOL.scale <0) debugger;
 
         const gridSymbol = new GridSymbol({
             symbolId: symbolData.symbolId,

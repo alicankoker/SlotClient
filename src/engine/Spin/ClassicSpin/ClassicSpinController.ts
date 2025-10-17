@@ -34,7 +34,7 @@ export class ClassicSpinController extends SpinController {
             }
 
             // Simulate server request (replace with actual server call)
-            const response = GameDataManager.getInstance().getSpinData();
+            const response: SpinResponseData = GameDataManager.getInstance().getSpinData();
 
             if (!response.success || !response.result) {
                 this.handleError(response.error || 'Unknown server error');
@@ -126,6 +126,7 @@ export class ClassicSpinController extends SpinController {
         console.log('SpinController: SpinContainer shown');
         
         if (spinContainer instanceof SpinContainer) {
+            console.log('SpinController: Displaying initial grid on SpinContainer: ', initialGrid.symbols);
             (spinContainer as any).displayInitialGrid(initialGrid);
             console.log('SpinController: Initial grid displayed on SpinContainer');
         }

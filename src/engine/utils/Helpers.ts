@@ -66,7 +66,7 @@ export class Helpers {
 
         const spacingY = gapY ?? GameConfig.REFERENCE_SPACING.vertical;
 
-        const symbolY = (((row - Math.floor(maxRow / 2)) * (symbolHeight + spacingY)) + referenceY) + ((maxRow % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
+        const symbolY = (((row - 1 - Math.floor(maxRow / 2)) * (symbolHeight + spacingY)) + referenceY) + ((maxRow % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
 
         return symbolY;
     }

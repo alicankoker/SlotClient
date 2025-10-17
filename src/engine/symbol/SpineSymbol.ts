@@ -19,7 +19,7 @@ export class SpineSymbol extends Spine {
     private config: SymbolConfig;
 
     constructor(config: SymbolConfig) {
-        console.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
+        //console.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
 
         const skeleton = Helpers.getSpineSkeletonData("symbol");
 
@@ -43,7 +43,7 @@ export class SpineSymbol extends Spine {
         this._symbolId = config.symbolId;
         this.config = config;
 
-        console.log(`Symbol: Initialized symbol at:`, this.x, this.y, 'scale:', this.scale.x, 'visible:', this.visible);
+        //console.log(`Symbol: Initialized symbol at:`, this.x, this.y, 'scale:', this.scale.x, 'visible:', this.visible);
     }
 
     // Getter for symbolId (for backward compatibility)

@@ -92,7 +92,7 @@ export abstract class SpinContainer extends Container {
     }
 
     // Position calculation utilities
-    protected calculateSymbolX(column: number = 0): number {
+    public calculateSymbolX(column: number = 0): number {
         const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
 
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
@@ -102,12 +102,12 @@ export abstract class SpinContainer extends Container {
         return reelX; // Center in container
     }
 
-    protected calculateSymbolY(row: number): number {
+    public calculateSymbolY(row: number): number {
         const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
-        const symbolY = (((row - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
+        const symbolY = (((row - 1 - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
 
         return symbolY;
     }
@@ -167,7 +167,6 @@ export abstract class SpinContainer extends Container {
         const symbolX = this.calculateSymbolX(reelIndex);
 
         for (let i = 0; i < symbolsToCreate; i++) {
-            const symbolY = this.calculateSymbolY(i);
 
             // Get symbol ID 
             const symbolId = i < symbols.length ? symbols[i] : 0;
