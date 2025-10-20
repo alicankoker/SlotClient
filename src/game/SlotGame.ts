@@ -82,7 +82,7 @@ export class SlotGame {
             symbol.y = 30;
         }
     }
-
+    //TODO: Needs to be moved to UI
     private createSpinButton(): void {
         // Create spin button background
         const buttonGraphics = new Graphics();
@@ -114,7 +114,8 @@ export class SlotGame {
         this.spinButton.cursor = 'pointer';
         this.spinButton.on('pointerdown', this.onSpinClick.bind(this));
     }
-
+    
+    //TODO: Needs to be moved to UI
     private createUI(): void {
         // Create balance display
         const balanceStyle = new TextStyle({
@@ -149,6 +150,7 @@ export class SlotGame {
         this.app.stage.addChild(winText);
     }
 
+    //TODO: Needs to be moved to Nexus
     private onSpinClick(): void {
 
         

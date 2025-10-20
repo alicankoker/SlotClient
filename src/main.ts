@@ -113,18 +113,6 @@ export class DoodleV8Main {
       // Step 5: Create scene/sprites
       this.createScene();
 
-      this._spinModeText = new Text({
-        text: ``,
-        style: GameConfig.style.clone(),
-      });
-      this._spinModeText.anchor.set(0.5, 0.5);
-      this._spinModeText.position.set(
-        GameConfig.REFERENCE_RESOLUTION.width / 2,
-        GameConfig.REFERENCE_RESOLUTION.height / 2
-      );
-      this._spinModeText.visible = false; // Hide by default
-      this.app.stage.addChild(this._spinModeText);
-
       // localStorage.getItem('featureScreenDontShow') === 'true' && eventBus.emit("showUI");
 
       // Step 6: Start game systems (controllers handle the game loop)
@@ -439,6 +427,7 @@ export class DoodleV8Main {
     this.bigWinContainer = BigWin.getInstance();
     this.app.stage.addChild(this.bigWinContainer);
 
+    //TO-DO: this needs to be moved to Nexus
     const defaultPlayer = this.slotGameController?.getDefaultPlayer();
 
     // Set initial mode to static

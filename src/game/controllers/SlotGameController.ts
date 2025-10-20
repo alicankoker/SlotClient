@@ -127,10 +127,6 @@ export class SlotGameController {
             console.error('ReelsController: No StaticContainer available');
             return;
         }
-
-        /*this.reelsController.reelControllers.forEach(controller => {
-            controller.setViews(staticContainer, spinContainer);
-        });*/
     }
 
     // Event handlers for the unified controller
@@ -160,12 +156,14 @@ export class SlotGameController {
         return this.gameServer.generateInitialGridData();
     }
 
+    //TODO: Needs to be moved to Nexus
     public canPlayerSpin(playerId: string, betAmount: number): boolean {
         // Check both game rules and player balance using PlayerController
         return this.isValidBetAmount(betAmount) &&
             this.playerController.canPlayerAffordBet(playerId, betAmount);
     }
-
+    
+    //TODO: Needs to be moved to Nexus
     public getGameRules(): any {
         return {
             minBet: 0.01,
@@ -175,7 +173,8 @@ export class SlotGameController {
             minMatchLength: 3
         };
     }
-
+    
+    //TODO: Needs to be moved to Nexus
     private isValidBetAmount(betAmount: number): boolean {
         // This checks game rules, not player balance
         const minBet = 0.01;
@@ -183,12 +182,14 @@ export class SlotGameController {
         return betAmount >= minBet && betAmount <= maxBet;
     }
 
+    //TODO: Needs to be moved to Nexus
     public calculateTheoreticalWin(betAmount: number): number {
         // This could be used for RTP calculations or bet validation
         // For now, just return a simple calculation
         return betAmount * 0.96; // 96% RTP example
     }
 
+    //TODO: Needs to be moved to Nexus
     public getPlayerTransactions(playerId: string, limit: number = 10): any[] {
         return this.nexusInstance.getPlayerTransactions(playerId, limit);
     }
@@ -206,6 +207,7 @@ export class SlotGameController {
         }
     }
 
+    //TODO: Needs to be moved to Nexus
     // For demo purposes - method to add balance using PlayerController
     public addPlayerBalance(playerId: string, amount: number): boolean {
         const player = this.playerController.getPlayerState(playerId);
@@ -223,51 +225,4 @@ export class SlotGameController {
         return success;
     }
 
-    // Helper method to calculate grid after applying cascade step changes
-    private calculateGridAfterStep(
-        initialSymbols: SymbolData[],
-        step: number,
-        matches: MatchData[],
-        indicesToRemove: number[],
-        symbolsToDrop: DropData[],
-        newSymbols: SymbolData[],
-        newSymbolIndices: number[]
-    ): GridData {
-        // Start with a copy of the initial symbols
-        /*const gridAfter = {
-            symbols: [...initialSymbols]
-        };
-
-        // Remove matched symbols
-        indicesToRemove.forEach(index => {
-            if (index >= 0 && index < gridAfter.symbols.length) {
-                gridAfter.symbols[index] = { symbolId: -1 }; // Mark as removed
-            }
-        });
-
-        // Apply symbol drops
-        symbolsToDrop.forEach(drop => {
-            if (drop.toIndex >= 0 && drop.toIndex < gridAfter.symbols.length) {
-                gridAfter.symbols[drop.toIndex] = { symbolId: drop.symbolId };
-            }
-        });
-
-        // Add new symbols
-        newSymbols.forEach((symbol, i) => {
-            const index = newSymbolIndices[i];
-            if (index >= 0 && index < gridAfter.symbols.length) {
-                gridAfter.symbols[index] = { symbolId: symbol.symbolId };
-            }
-        });
-
-        // Fill any remaining empty slots with random symbols
-        for (let i = 0; i < gridAfter.symbols.length; i++) {
-            if (gridAfter.symbols[i].symbolId === -1) {
-                gridAfter.symbols[i] = { symbolId: Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols) };
-            }
-        }
-
-        return gridAfter;*/
-        return { symbols: [] };
-    }
 } 

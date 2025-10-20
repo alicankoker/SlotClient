@@ -1,6 +1,7 @@
 import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
 import { GameDataManager } from "../../data/GameDataManager";
+import { IReelMode } from "../../reels/ReelController";
 import { BigWinType, GridData, ISpinState, SpinResponseData } from "../../types/GameTypes";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
@@ -45,8 +46,13 @@ export class ClassicSpinController extends SpinController {
             
             this._soundManager.play('spin', true, 0.75); // Play spin sound effect
 
+            this.startSpinAnimation(response.result);
+
+            Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION)
+
             if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
                 await Utils.delay(SpinConfig.SPIN_DURATION, signal);
+                this.container.setMode(IReelMode.SLOWING)
 
                 this._isForceStopped === false && this.reelsController.slowDown();
 
@@ -55,10 +61,6 @@ export class ClassicSpinController extends SpinController {
                 await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
             }
             
-            //this.reelsController.stopSpin();
-            //this.setState(ISpinState.COMPLETED);
-            //this.reelsController.getReelsContainer()?.getSpinContainer()?.stopSpin();
-
             this._soundManager.stop('spin');
             this._soundManager.play('stop', false, 0.75); // Play stop sound effect
 
@@ -69,7 +71,7 @@ export class ClassicSpinController extends SpinController {
             //await this.reelsController.setMode(ISpinState.IDLE);
             this.setState(ISpinState.IDLE);
 
-            if (this.reelsController.checkWinCondition()) {
+            /*if (this.reelsController.checkWinCondition()) {
                 if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
                     this.stopAutoPlay();
                 }
@@ -78,7 +80,7 @@ export class ClassicSpinController extends SpinController {
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
-            }
+            }*/
 
             /*if (this._isAutoPlaying) {
                 this.continueAutoPlay();
@@ -123,7 +125,6 @@ export class ClassicSpinController extends SpinController {
 
         // Show spin container and display initial grid
         spinContainer.visible = true;
-        console.log('SpinController: SpinContainer shown');
         
         if (spinContainer instanceof SpinContainer) {
             console.log('SpinController: Displaying initial grid on SpinContainer: ', initialGrid.symbols);
