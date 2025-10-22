@@ -1,104 +1,111 @@
 // AssetsConfig no longer needed after PureGameController merge
-import { GameConfig } from '../config/GameConfig';
+import { GameConfig } from "../config/GameConfig";
 import {
-    SpinRequestData,
-    SpinResponseData,
-    SpinResultData,
-    GridData,
-    CascadeStepData,
-    SymbolData,
-    MatchData,
-    DropData,
-    GridUtils,
-    InitialGridData,
-    StepData
-} from '../engine/types/GameTypes';
-import { debug } from '../engine/utils/debug';
-import { Reelsets } from './Games/ClassicSpinGame/Reelsets';
+  CascadeStepData,
+  DropData,
+  GridData,
+  GridUtils,
+  InitialGridData,
+  MatchData,
+  SpinRequestData,
+  SpinResponseData,
+  SpinResultData,
+  StepData,
+  SymbolData,
+} from "../engine/types/ICommunication";
+import { debug } from "../engine/utils/debug";
+import { Reelsets } from "./Games/ClassicSpinGame/Reelsets";
 
 export class GameServer {
-    private static instance: GameServer;
-    private spinCounter: number = 0;
-    private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
-    private readonly gameID: number = 0;
+  private static instance: GameServer;
+  private spinCounter: number = 0;
+  private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
+  private readonly gameID: number = 0;
 
-    private initData: InitialGridData = { symbols: [] };
-    private firstSpin: boolean = true;
-    private previousGrid: GridData = { symbols: [] };
-    private latestSpinData: StepData = {
-        gridBefore: { symbols: [] },
-        gridAfter: { symbols: [] },
-        wins: []
+  private initData: InitialGridData = { symbols: [] };
+  private firstSpin: boolean = true;
+  private previousGrid: GridData = { symbols: [] };
+  private latestSpinData: StepData = {
+    gridBefore: { symbols: [] },
+    gridAfter: { symbols: [] },
+    wins: [],
+  };
+  private latestSpinResult: SpinResultData = {
+    spinId: "",
+    steps: [],
+    totalWin: 0,
+  };
+
+  private latestSpinRequest: SpinRequestData = {
+    betAmount: 0,
+    gameMode: "manual",
+  };
+
+  private constructor() {
+    // No longer need symbolNames array
+  }
+
+  public static getInstance(): GameServer {
+    if (!GameServer.instance) {
+      GameServer.instance = new GameServer();
+    }
+    return GameServer.instance;
+  }
+
+  public generateInitialGridData(): GridData {
+    this.initData = this.generateNewGridData();
+    return this.initData;
+  }
+
+  public async processSpinRequest(
+    request: SpinRequestData
+  ): Promise<SpinResponseData> {
+    try {
+      console.log("GameServer: Processing spin request", request);
+
+      // Simulate server processing delay
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const spinId = `spin_${++this.spinCounter}_${Date.now()}`;
+      const result = this.generateSpinResult(spinId, request);
+
+      console.log("GameServer: Spin result generated", result);
+
+      return {
+        success: true,
+        result,
+      };
+    } catch (error) {
+      console.error("GameServer: Error processing spin", error);
+      return {
+        success: false,
+        error: "Failed to process spin",
+      };
+    }
+  }
+
+  private generateSpinResult(
+    spinId: string,
+    request: SpinRequestData
+  ): SpinResultData {
+    const spinData: SpinResultData = {
+      spinId,
+      steps: [],
+      totalWin: 0,
     };
-    private latestSpinResult: SpinResultData = {
-        spinId: '',
-        steps: [],
-        totalWin: 0
+    this.previousGrid = this.firstSpin
+      ? this.initData
+      : this.latestSpinData.gridAfter;
+    this.firstSpin = false;
+    this.latestSpinData = {
+      gridBefore: this.firstSpin ? this.initData : this.previousGrid,
+      gridAfter: this.generateNewGridData(),
+      wins: [],
     };
-
-    private latestSpinRequest: SpinRequestData = {
-        betAmount: 0,
-        gameMode: 'manual'
-    };
-
-    private constructor() {
-        // No longer need symbolNames array
-    }
-
-    public static getInstance(): GameServer {
-        if (!GameServer.instance) {
-            GameServer.instance = new GameServer();
-        }
-        return GameServer.instance;
-    }
-
-    public generateInitialGridData(): GridData {
-        this.initData = this.generateNewGridData();;
-        return this.initData;
-    }
-
-    public async processSpinRequest(request: SpinRequestData): Promise<SpinResponseData> {
-        try {
-            console.log('GameServer: Processing spin request', request);
-
-            // Simulate server processing delay
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            const spinId = `spin_${++this.spinCounter}_${Date.now()}`;
-            const result = this.generateSpinResult(spinId, request);
-
-            console.log('GameServer: Spin result generated', result);
-
-            return {
-                success: true,
-                result
-            };
-        } catch (error) {
-            console.error('GameServer: Error processing spin', error);
-            return {
-                success: false,
-                error: 'Failed to process spin'
-            };
-        }
-    }
-
-    private generateSpinResult(spinId: string, request: SpinRequestData): SpinResultData {
-        const spinData: SpinResultData = {
-            spinId,
-            steps: [],
-            totalWin: 0
-        }
-        this.previousGrid = this.firstSpin ? this.initData : this.latestSpinData.gridAfter;
-        this.firstSpin = false;
-        this.latestSpinData = {
-            gridBefore: this.firstSpin ? this.initData : this.previousGrid,
-            gridAfter: this.generateNewGridData(),
-            wins: []
-        }
-        spinData.steps.push(this.latestSpinData);
-        return spinData;
-    }
-    /*private generateSpinResult(spinId: string, request: SpinRequestData): SpinResultData {
+    spinData.steps.push(this.latestSpinData);
+    return spinData;
+  }
+  /*private generateSpinResult(spinId: string, request: SpinRequestData): SpinResultData {
         // Process cascades
         const cascadeSteps: CascadeStepData[] = [];
         let stepNumber = 0;
@@ -185,38 +192,44 @@ export class GameServer {
         };
     }*/
 
-    private generateNewGridData(): GridData {
-        const symbols: SymbolData[][] = [];
-        const totalRows = GameConfig.GRID_LAYOUT.visibleRows + GameConfig.GRID_LAYOUT.rowsAboveMask + GameConfig.GRID_LAYOUT.rowsBelowMask;;
-        for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
-            symbols.push([]);
-            const reelset = Reelsets.Reelsets[col];
-            const randomIndex = Math.floor(Math.random() * reelset.length);
-            if(randomIndex + totalRows <= reelset.length) {
-                for(let row = 0; row < totalRows; row++) {
-                    const sym = { symbolId: reelset[row] }
-                    if(sym.symbolId === undefined || sym.symbolId > 9) debugger;
-                    symbols[col].push(sym as SymbolData);
-                }
-            } else {
-                const remaining = totalRows - (reelset.length - randomIndex);
-                for(let row = randomIndex; row < reelset.length; row++) {
-                    const sym = { symbolId: reelset[randomIndex] }
-                    if(sym.symbolId === undefined || sym.symbolId > 9) debugger;
-                    symbols[col].push(sym as SymbolData);
-                }
-                for(let row = 0; row < remaining; row++) {
-                    const sym = { symbolId: reelset[row] }
-                    if(sym.symbolId === undefined || sym.symbolId > 9) debugger;
-                    symbols[col].push(sym as SymbolData);
-                }
-            }
+  private generateNewGridData(): GridData {
+    const symbols: SymbolData[][] = [];
+    const totalRows =
+      GameConfig.GRID_LAYOUT.visibleRows +
+      GameConfig.GRID_LAYOUT.rowsAboveMask +
+      GameConfig.GRID_LAYOUT.rowsBelowMask;
+    for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
+      symbols.push([]);
+      const reelset = Reelsets.Reelsets[col];
+      const randomIndex = Math.floor(Math.random() * reelset.length);
+      if (randomIndex + totalRows <= reelset.length) {
+        for (let row = 0; row < totalRows; row++) {
+          const sym = { symbolId: reelset[row] };
+          if (sym.symbolId === undefined || sym.symbolId > 9) debugger;
+          symbols[col].push(sym as SymbolData);
         }
-        return { symbols: symbols as SymbolData[][] };
+      } else {
+        const remaining = totalRows - (reelset.length - randomIndex);
+        for (let row = randomIndex; row < reelset.length; row++) {
+          const sym = { symbolId: reelset[randomIndex] };
+          if (sym.symbolId === undefined || sym.symbolId > 9) debugger;
+          symbols[col].push(sym as SymbolData);
+        }
+        for (let row = 0; row < remaining; row++) {
+          const sym = { symbolId: reelset[row] };
+          if (sym.symbolId === undefined || sym.symbolId > 9) debugger;
+          symbols[col].push(sym as SymbolData);
+        }
+      }
     }
+    return { symbols: symbols as SymbolData[][] };
+  }
 
-    private calculateDrops(grid: GridData, indicesToRemove: number[]): DropData[] {
-        /*const drops: DropData[] = [];
+  private calculateDrops(
+    grid: GridData,
+    indicesToRemove: number[]
+  ): DropData[] {
+    /*const drops: DropData[] = [];
         const symbols = [...grid.symbols]; // Copy array
         const removeSet = new Set(indicesToRemove);
 
@@ -252,41 +265,46 @@ export class GameServer {
         }
 
         return drops;*/
-        return [];
-    }
+    return [];
+  }
 
-    private generateNewSymbols(_grid: GridData, indicesToRemove: number[]): { newSymbols: SymbolData[], newSymbolIndices: number[] } {
-        const newSymbols: SymbolData[] = [];
-        const newSymbolIndices: number[] = [];
-        const removeSet = new Set(indicesToRemove);
+  private generateNewSymbols(
+    _grid: GridData,
+    indicesToRemove: number[]
+  ): { newSymbols: SymbolData[]; newSymbolIndices: number[] } {
+    const newSymbols: SymbolData[] = [];
+    const newSymbolIndices: number[] = [];
+    const removeSet = new Set(indicesToRemove);
 
-        // For each column, count how many symbols were removed
-        for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
-            let removedCount = 0;
-            for (let row = 0; row < GameConfig.GRID_LAYOUT.visibleRows; row++) {
-                const index = GridUtils.positionToIndex(col, row);
-                if (removeSet.has(index)) {
-                    removedCount++;
-                }
-            }
-
-            // Generate new symbols for this column - they fill from the top
-            for (let i = 0; i < removedCount; i++) {
-                const newIndex = GridUtils.positionToIndex(col, i);
-                newSymbols.push({
-                    symbolId: this.getRandomSymbol()
-                });
-                newSymbolIndices.push(newIndex);
-            }
+    // For each column, count how many symbols were removed
+    for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
+      let removedCount = 0;
+      for (let row = 0; row < GameConfig.GRID_LAYOUT.visibleRows; row++) {
+        const index = GridUtils.positionToIndex(col, row);
+        if (removeSet.has(index)) {
+          removedCount++;
         }
+      }
 
-        console.log(`Generated ${newSymbols.length} new symbols for ${indicesToRemove.length} removed symbols`);
-        return { newSymbols, newSymbolIndices };
+      // Generate new symbols for this column - they fill from the top
+      for (let i = 0; i < removedCount; i++) {
+        const newIndex = GridUtils.positionToIndex(col, i);
+        newSymbols.push({
+          symbolId: this.getRandomSymbol(),
+        });
+        newSymbolIndices.push(newIndex);
+      }
     }
 
-    private applyCascade(grid: GridData, cascadeStep: CascadeStepData): GridData {
-        // Start with a copy of the current grid
-        /*const symbols = [...grid.symbols];
+    console.log(
+      `Generated ${newSymbols.length} new symbols for ${indicesToRemove.length} removed symbols`
+    );
+    return { newSymbols, newSymbolIndices };
+  }
+
+  private applyCascade(grid: GridData, cascadeStep: CascadeStepData): GridData {
+    // Start with a copy of the current grid
+    /*const symbols = [...grid.symbols];
 
         // Remove matched symbols
         cascadeStep.indicesToRemove.forEach(index => {
@@ -328,27 +346,27 @@ export class GameServer {
         }
 
         return { symbols: finalSymbols };*/
-        return { symbols: [] };
-    }
+    return { symbols: [] };
+  }
 
-    private calculateWin(matches: MatchData[], betAmount: number): number {
-        // Simple win calculation - in real game this would be more complex
-        let totalWin = 0;
-        matches.forEach(match => {
-            const baseWin = match.indices.length * betAmount * 0.1;
-            totalWin += baseWin;
-        });
-        return Math.round(totalWin * 100) / 100; // Round to 2 decimal places
-    }
+  private calculateWin(matches: MatchData[], betAmount: number): number {
+    // Simple win calculation - in real game this would be more complex
+    let totalWin = 0;
+    matches.forEach((match) => {
+      const baseWin = match.indices.length * betAmount * 0.1;
+      totalWin += baseWin;
+    });
+    return Math.round(totalWin * 100) / 100; // Round to 2 decimal places
+  }
 
-    private getRandomSymbol(): number {
-        // Generate a random symbol ID from 0 to 10
-        return Math.floor(Math.random() * this.totalSymbols);
-    }
+  private getRandomSymbol(): number {
+    // Generate a random symbol ID from 0 to 10
+    return Math.floor(Math.random() * this.totalSymbols);
+  }
 
-    private cloneGrid(grid: GridData): GridData {
-        return {
-            symbols: grid.symbols.map(symbol => ({ ...symbol }))
-        };
-    }
-} 
+  private cloneGrid(grid: GridData): GridData {
+    return {
+      symbols: grid.symbols.map((symbol) => ({ ...symbol })),
+    };
+  }
+}

@@ -12,38 +12,41 @@ import {
   Text,
   TextStyle,
   Texture,
-  TextureSource
+  TextureSource,
 } from "pixi.js";
 import { SlotGameController } from "./game/controllers/SlotGameController";
 import { SpinController } from "./engine/Spin/SpinController";
 import { ReelsController } from "./engine/reels/ReelsController";
 import { ResponsiveManager } from "./engine/utils/ResponsiveManager";
-import {
-  SpinResponseData,
-  CascadeStepData,
-  GridData,
-  ISpinState,
-  BigWinType,
-  SpinMode,
-} from "./engine/types/GameTypes";
 import { AssetSizeManager } from "./engine/multiResolutionSupport/AssetSizeManager";
-import '@esotericsoftware/spine-pixi-v8';
-import { BackgroundContainer } from './engine/components/BackgroundContainer';
-import { AssetLoader } from './engine/utils/AssetLoader';
-import { AssetsConfig } from './config/AssetsConfig';
-import { GameConfig } from './config/GameConfig';
-import { Loader } from './engine/utils/Loader';
-import { debug } from './engine/utils/debug';
-import { WinLinesContainer } from './engine/components/WinLinesContainer';
-import { BigWin } from './engine/components/BigWin';
-import { gsap } from 'gsap';
-import { FeatureScreen } from './engine/components/FeatureScreen';
-import { Storage } from './engine/utils/Storage';
-import { eventBus } from './communication/EventManagers/WindowEventManager';
-import { GameRulesConfig } from './config/GameRulesConfig';
-import { GameEventTypes, CommunicationEventTypes, SpinEventTypes } from "./communication";
+import "@esotericsoftware/spine-pixi-v8";
+import { BackgroundContainer } from "./engine/components/BackgroundContainer";
+import { AssetLoader } from "./engine/utils/AssetLoader";
+import { AssetsConfig } from "./config/AssetsConfig";
+import { GameConfig } from "./config/GameConfig";
+import { Loader } from "./engine/utils/Loader";
+import { debug } from "./engine/utils/debug";
+import { WinLinesContainer } from "./engine/components/WinLinesContainer";
+import { BigWin } from "./engine/components/BigWin";
+import { gsap } from "gsap";
+import { FeatureScreen } from "./engine/components/FeatureScreen";
+import { Storage } from "./engine/utils/Storage";
+import { eventBus } from "./communication/EventManagers/WindowEventManager";
+import { GameRulesConfig } from "./config/GameRulesConfig";
+import {
+  GameEventTypes,
+  CommunicationEventTypes,
+  SpinEventTypes,
+} from "./communication";
 import { EVENT_CHANNELS } from "./communication/Channels/EventChannels";
 import { GameDataManager } from "./engine/data/GameDataManager";
+import {
+  CascadeStepData,
+  GridData,
+  SpinResponseData,
+} from "./engine/types/ICommunication";
+import { BigWinType } from "./engine/types/IWinEvents";
+import { ISpinState, SpinMode } from "./engine/types/ISpinConfig";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -59,7 +62,6 @@ export class DoodleV8Main {
   public async init(): Promise<void> {
     try {
       console.log("🎰 DoodleV8 initializing...");
-
 
       // Step 1: Initialize PIXI Application with modern config
       await this.initializePixiApp();
@@ -79,9 +81,9 @@ export class DoodleV8Main {
 
       // Initialize GameDataManager first
       const gameDataManager = GameDataManager.getInstance();
-      
+
       // Initialize SlotGameController first (needed for grid generation)
-      this.slotGameController = new SlotGameController(this.app)
+      this.slotGameController = new SlotGameController(this.app);
 
       let initData: GridData;
       try {
@@ -90,7 +92,7 @@ export class DoodleV8Main {
         console.error("❌ Failed to generate initial grid:", error);
         throw error;
       }
-      
+
       const storage = Storage.getInstance();
       storage.setItem("player_balance", 1000);
 
@@ -125,9 +127,11 @@ export class DoodleV8Main {
             console.log("🎲 Manual spin triggered");
             if (this.slotGameController?.spinController) {
               if (
-                this.slotGameController.spinController.getIsSpinning() === false &&
+                this.slotGameController.spinController.getIsSpinning() ===
+                  false &&
                 this.bigWinContainer.isBigWinActive === false &&
-                this.slotGameController.spinController.getIsAutoPlaying() === false
+                this.slotGameController.spinController.getIsAutoPlaying() ===
+                  false
               ) {
                 eventBus.emit(SpinEventTypes.REQUEST, "manual_spin");
                 this.slotGameController.executeGameSpin(10, "manual");
@@ -152,8 +156,10 @@ export class DoodleV8Main {
             if (
               GameConfig.AUTO_PLAY.enabled &&
               this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getIsSpinning() === false &&
-              this.slotGameController.spinController.getIsAutoPlaying() === false &&
+              this.slotGameController.spinController.getIsSpinning() ===
+                false &&
+              this.slotGameController.spinController.getIsAutoPlaying() ===
+                false &&
               this.bigWinContainer.isBigWinActive === false
             ) {
               /*this.slotGameController.spinController.startAutoPlay(
@@ -186,7 +192,8 @@ export class DoodleV8Main {
             console.log("⏹️ Skip win animations");
             if (
               this.slotGameController?.reelsController &&
-              this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true
+              this.slotGameController.reelsController.getStaticContainer()
+                ?.isPlaying === true
             ) {
               this.slotGameController.reelsController.skipWinAnimations();
             }
@@ -205,7 +212,8 @@ export class DoodleV8Main {
             console.log(" Normal mode activated");
             if (
               this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL
+              this.slotGameController.spinController.getSpinMode() !==
+                GameConfig.SPIN_MODES.NORMAL
             ) {
               this.slotGameController.spinController.setSpinMode(
                 GameConfig.SPIN_MODES.NORMAL as SpinMode
@@ -259,7 +267,8 @@ export class DoodleV8Main {
             console.log("⚡ Fast mode activated");
             if (
               this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST
+              this.slotGameController.spinController.getSpinMode() !==
+                GameConfig.SPIN_MODES.FAST
             ) {
               this.slotGameController.spinController.setSpinMode(
                 GameConfig.SPIN_MODES.FAST as SpinMode
@@ -370,10 +379,8 @@ export class DoodleV8Main {
   private initializeControllers(initData: GridData): void {
     // Step 3: Initialize controllers with new architecture
     // slotGameController already initialized in init() method
-
     // Create ReelsController first
     //this.reelsController = new ReelsController(this.app, initData);
-
   }
 
   private setupControllersCallbacks(): void {
@@ -389,13 +396,17 @@ export class DoodleV8Main {
       }
     );
 
-    this.slotGameController.spinController.setOnCascadeStepCallback((step: CascadeStepData) => {
-      console.log("💥 Cascade step:", step.step);
-    });
+    this.slotGameController.spinController.setOnCascadeStepCallback(
+      (step: CascadeStepData) => {
+        console.log("💥 Cascade step:", step.step);
+      }
+    );
 
-    this.slotGameController.spinController.setOnErrorCallback((error: string) => {
-      console.error("❌ Spin error:", error);
-    });
+    this.slotGameController.spinController.setOnErrorCallback(
+      (error: string) => {
+        console.error("❌ Spin error:", error);
+      }
+    );
   }
 
   private async startLoader(): Promise<void> {
