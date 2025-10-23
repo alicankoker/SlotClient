@@ -1,20 +1,14 @@
-import { Container, Application, Graphics, Sprite, Texture, Point, Text } from 'pixi.js';
+import { Container, Application, Graphics, Sprite, Text } from 'pixi.js';
 import { SpinContainer, SpinContainerConfig } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
 import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
-import {
-    InitialGridData,
-    CascadeStepData
-} from '../types/GameTypes';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { IReelMode } from './ReelController';
 import { debug } from '../utils/debug';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
-import { WinLinesContainer } from '../components/WinLinesContainer';
-import { AtlasAttachmentLoader, SkeletonJson, Spine } from '@esotericsoftware/spine-pixi-v8';
-import { AssetsConfig } from '../../config/AssetsConfig';
-import { Helpers } from '../utils/Helpers';
+import { WinLines } from '../components/WinLines';
+import { ResponsiveConfig } from '../utils/ResponsiveManager';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -26,14 +20,17 @@ export class ReelsContainer extends Container {
     // ONE SpinContainer and ONE StaticContainer for entire game
     private spinContainer?: SpinContainer;
     private staticContainer?: StaticContainer;
-    private winLinesContainer?: WinLinesContainer;
+    private winLines?: WinLines;
+    private frameElementsContainer?: Container;
 
     // Position storage
     private reelXPositions: number[] = [];
     private symbolXPositions: number[][] = []; // [reelIndex][symbolPosition] = x
 
-    private _reelBackground: Sprite = new Sprite();
-    private _reelFrame!: Spine;
+    private _reelBackground!: Sprite;
+    private _reelFrame!: Sprite;
+    private _headerBackground!: Sprite;
+    private _logo!: Sprite;
     private _autoPlayCount: number = 0;
     private _autoPlayCountText: Text;
 
@@ -47,7 +44,7 @@ export class ReelsContainer extends Container {
         this.numberOfReels = GameConfig.GRID_LAYOUT.columns;
         this.symbolsPerReel = GameConfig.GRID_LAYOUT.visibleRows;
 
-        this.createReelBackground();
+        this.createReelFrame();
 
         // Create mask for the entire reel area
         this.reelAreaMask = new Graphics();
@@ -63,33 +60,22 @@ export class ReelsContainer extends Container {
         this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
         this._autoPlayCountText.visible = false;
         this.addChild(this._autoPlayCountText);
+
+        this.setupResizeHandler();
     }
 
-    private createReelBackground(): void {
+    private createReelFrame(): void {
         // Create a background for the reels
-        const texture = Texture.from("frame_background_base");
-        this._reelBackground = new Sprite(texture);
+        this._reelBackground = Sprite.from('frame_background_base');
+        this._reelBackground.label = 'ReelFrameBackground';
         this._reelBackground.anchor.set(0.5, 0.5);
-        this._reelBackground.width = (GameConfig.REFERENCE_SYMBOL.width * (GameRulesConfig.GRID.reelCount + 1)) - (GameConfig.REFERENCE_SYMBOL.width / 4);
-        this._reelBackground.height = (GameConfig.REFERENCE_SYMBOL.height * GameRulesConfig.GRID.rowCount) - (GameConfig.REFERENCE_SYMBOL.height / 4);
-        this._reelBackground.x = GameConfig.REFERENCE_RESOLUTION.width / 2;
-        this._reelBackground.y = GameConfig.REFERENCE_RESOLUTION.height / 2;
+        this._reelBackground.position.set(980, 550);
         this.addChild(this._reelBackground);
-
-        const skeleton = Helpers.getSpineSkeletonData("background");
-
-        this._reelFrame = new Spine(skeleton);
-        this._reelFrame.position.set(968, 554);
-        this._reelFrame.scale.set(0.76, 0.82);
-        this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', true);
-        this.addChild(this._reelFrame);
-
-        debug.log('ReelsContainer: Reel background created with size:', this._reelBackground.width, 'x', this._reelBackground.height);
     }
 
     private setupResizeHandler(): void {
-        this.resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, () => {
-            //this.onResize();
+        this.resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
+            this.onResize(responsiveConfig);
         });
     }
 
@@ -101,10 +87,12 @@ export class ReelsContainer extends Container {
         // Create ONE SpinContainer for entire game
         this.createSpinContainer(symbolHeight);
 
+        this.createFrameElements();
+
         // Create ONE StaticContainer for entire game
         this.createStaticContainer(symbolHeight);
 
-        this.createWinLinesContainer();
+        this.createWinLines();
 
         if (this.spinContainer) {
             this.spinContainer.mask = this.reelAreaMask;
@@ -147,18 +135,66 @@ export class ReelsContainer extends Container {
         this.addChild(this.staticContainer);
     }
 
-    private createWinLinesContainer(): void {
-        this.winLinesContainer = WinLinesContainer.getInstance();
-        this.winLinesContainer.visible = false;
-        this.addChild(this.winLinesContainer);
+    private createWinLines(): void {
+        this.winLines = WinLines.getInstance();
+        this.addChild(this.winLines);
+    }
+
+    private createFrameElements(): void {
+        this.frameElementsContainer = new Container();
+        this.frameElementsContainer.label = 'FrameElementsContainer';
+        this.addChild(this.frameElementsContainer);
+
+        for (let cIndex = 0; cIndex < 6; cIndex++) {
+            const floorChain = Sprite.from('reel_chain');
+            floorChain.label = `FloorChain_${cIndex}`;
+            floorChain.anchor.set(0.5, 0.5);
+            floorChain.position.set(360 + (cIndex * 240), 305);
+            this.frameElementsContainer.addChild(floorChain);
+        }
+
+        for (let fIndex = 0; fIndex < 2; fIndex++) {
+            const floor = Sprite.from('floor');
+            floor.label = `FloorBase_${fIndex}`;
+            floor.anchor.set(0.5, 0.5);
+            floor.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (240 * fIndex) + 435);
+            this.frameElementsContainer.addChild(floor);
+
+            for (let cIndex = 0; cIndex < 6; cIndex++) {
+                const floorChain = Sprite.from('reel_chain');
+                floorChain.label = `FloorChain_${cIndex}`;
+                floorChain.anchor.set(0.5, 0.5);
+                floorChain.position.set(360 + (cIndex * 240), 555 + (fIndex * 240));
+                this.frameElementsContainer.addChild(floorChain);
+            }
+        }
+
+        this._reelFrame = Sprite.from('frame_base');
+        this._reelFrame.label = 'ReelFrame';
+        this._reelFrame.anchor.set(0.5, 0.5);
+        this._reelFrame.position.set(960, 520);
+        this.frameElementsContainer.addChild(this._reelFrame);
+
+        this._headerBackground = Sprite.from('header_background');
+        this._headerBackground.label = 'HeaderBackground';
+        this._headerBackground.anchor.set(0.5, 0.5);
+        this._headerBackground.scale.set(0.5, 0.5);
+        this._headerBackground.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 130);
+        this.frameElementsContainer.addChild(this._headerBackground);
+
+        this._logo = Sprite.from('game_logo');
+        this._logo.label = 'GameLogo';
+        this._logo.anchor.set(0.5, 0.5);
+        this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 120);
+        this.frameElementsContainer.addChild(this._logo);
     }
 
     private createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
-        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 10;
+        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount));
         // Height: cover visible rows with proper spacing
-        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount) - 5);
+        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount));
 
         // Center the mask
         const maskX = (GameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
@@ -175,11 +211,11 @@ export class ReelsContainer extends Container {
     }
 
     public playFrameAnimation(): void {
-        this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame', true);
+        // this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame', true);
     }
 
     public stopFrameAnimation(): void {
-        this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', false);
+        // this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', false);
     }
 
     // Container access methods
@@ -191,8 +227,8 @@ export class ReelsContainer extends Container {
         return this.staticContainer;
     }
 
-    public getWinLinesContainer(): WinLinesContainer | undefined {
-        return this.winLinesContainer;
+    public getWinLines(): WinLines | undefined {
+        return this.winLines;
     }
 
     public getAllStaticContainers(): StaticContainer[] {
@@ -225,9 +261,9 @@ export class ReelsContainer extends Container {
             debug.log('ReelsContainer: Static container visible set to:', this.staticContainer.visible);
         }
 
-        if (this.winLinesContainer) {
-            this.winLinesContainer.visible = mode === IReelMode.STATIC;
-            debug.log('ReelsContainer: Win lines container visible set to:', this.winLinesContainer.visible);
+        if (mode === IReelMode.SPINNING && this.winLines) {
+            this.winLines.hideAllLines();
+            debug.log('ReelsContainer: Win lines container visible set to:', this.winLines.visible);
         }
     }
 
@@ -312,6 +348,17 @@ export class ReelsContainer extends Container {
             this.removeChild(this.staticContainer);
             this.staticContainer.destroy();
             this.staticContainer = undefined; // Clear the reference
+        }
+    }
+
+    private onResize(responsiveConfig: ResponsiveConfig): void {
+        switch (responsiveConfig.orientation) {
+            case GameConfig.ORIENTATION.landscape:
+                this.position.set(0, 0);
+                break;
+            case GameConfig.ORIENTATION.portrait:
+                this.position.set(0, -270);
+                break;
         }
     }
 

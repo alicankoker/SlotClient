@@ -10,6 +10,7 @@ const PATHS = {
   ART: "assets/art/",
   RAW: "assets/raw/",
   SOUNDS: "assets/sounds/",
+  ROOT: "assets/",
 };
 
 const RESOURCE_GROUP_PREFIX = "pixiResources";
@@ -30,7 +31,7 @@ export class AssetsConfig {
         assets: [
           {
             alias: ["symbols"],
-            src: `${PATHS.ART}${AssetsConfig.RES}/symbols.json`,
+            src: `${PATHS.ROOT}/symbols/symbols.json`,
           },
         ],
       },
@@ -40,151 +41,200 @@ export class AssetsConfig {
   public static readonly IMAGES: BundleFile = {
     bundles: [
       {
-        name: "preload",
+        name: 'preload',
         assets: [
           {
-            alias: "background_landscape_1440",
-            src: `${PATHS.ART}Background_Base_Landscape_1440.png`,
+            alias: 'background_base',
+            src: '/assets/Asset 2.png'
           },
           {
-            alias: "game_logo_vertical",
-            src: `${PATHS.RAW}Logo_Base_Game_Vertical.png`,
+            alias: 'game_logo',
+            src: '/assets/raw/Logo_Base_Game_Vertical.png'
           },
           {
-            alias: "loading_bar_fill",
-            src: `${PATHS.RAW}Loading_Bar_Fill.png`,
+            alias: 'loading_bar_fill',
+            src: '/assets/raw/Loading_Bar_Fill.png'
           },
           {
-            alias: "loading_bar_frame",
-            src: `${PATHS.RAW}Loading_Bar_Frame.png`,
+            alias: 'loading_bar_frame',
+            src: '/assets/raw/Loading_Bar_Frame.png'
           },
           {
-            alias: "Nunito Black",
-            src: `${PATHS.ART}fonts/Nunito-Black.ttf`,
-          },
-        ],
+            alias: 'Nunito Black',
+            src: '/assets/fonts/Nunito-Black.ttf'
+          }
+        ]
       },
       {
-        name: "environment",
+        name: 'environment',
         assets: [
           {
-            alias: "bet_area",
-            src: `${PATHS.RAW}Bet_Amount_Area.png`,
+            alias: 'bet_area',
+            src: '/assets/raw/Bet_Amount_Area.png'
           },
           {
-            alias: "frame_background_base",
-            src: `${PATHS.RAW}Frame_Background_Base_Game.png`,
+            alias: 'frame_background_base',
+            src: '/assets/raw/Base_Frame_Background_UI.png'
           },
           {
-            alias: "game_logo_1000",
-            src: `${PATHS.RAW}Logo_1000_Game.png`,
+            alias: 'header_background',
+            src: '/assets/raw/Base_Header_Background_UI.png'
           },
           {
-            alias: "game_logo_super_scatter",
-            src: `${PATHS.RAW}Logo_Super_Scatter_Game.png`,
+            alias: 'reel_chain',
+            src: '/assets/raw/Base_Frame_Chain_UI.png'
           },
           {
-            alias: "game_logo_vertical",
-            src: `${PATHS.RAW}Logo_Base_Game_Vertical.png`,
+            alias: 'line_chain',
+            src: '/assets/raw/Base_Line_Chain_UI.png'
           },
           {
-            alias: "slider_button_frame",
-            src: `${PATHS.RAW}Slider_Button_Frame_Splash_Scene.png`,
+            alias: 'floor',
+            src: '/assets/raw/Base_Frame_Symbol_Holder_UI.png'
           },
           {
-            alias: "slider_button",
-            src: `${PATHS.RAW}Slider_Button_Splash_Scene.png`,
+            alias: 'floor2',
+            src: '/assets/raw/Base_Frame_Symbol_Holder_UI2.png'
           },
           {
-            alias: "spin_button",
-            src: `${PATHS.RAW}Spin_Button.png`,
+            alias: 'line_holder',
+            src: '/assets/raw/Base_Line_Holder_UI.png'
           },
           {
-            alias: "spin_button_icon",
-            src: `${PATHS.RAW}Spin_Button_Icon.png`,
+            alias: 'frame_base',
+            src: '/assets/raw/Base_Frame_UI.png'
           },
           {
-            alias: "volatility_arrow",
-            src: `${PATHS.RAW}Volatility_Arrow.png`,
+            alias: 'game_logo_1000',
+            src: '/assets/raw/Logo_1000_Game.png'
           },
-        ],
+          {
+            alias: 'game_logo_super_scatter',
+            src: '/assets/raw/Logo_Super_Scatter_Game.png'
+          },
+          {
+            alias: 'game_logo',
+            src: '/assets/raw/Base_Logo_UI.png'
+          },
+          {
+            alias: 'freespin_logo',
+            src: '/assets/raw/Freespin_Logo_UI.png'
+          },
+          {
+            alias: 'slider_button_frame',
+            src: '/assets/raw/Slider_Button_Frame_Splash_Scene.png'
+          },
+          {
+            alias: 'slider_button',
+            src: '/assets/raw/Slider_Button_Splash_Scene.png'
+          },
+          {
+            alias: 'spin_button',
+            src: '/assets/raw/Spin_Button.png'
+          },
+          {
+            alias: 'spin_button_icon',
+            src: '/assets/raw/Spin_Button_Icon.png'
+          },
+          {
+            alias: 'volatility_arrow',
+            src: '/assets/raw/Volatility_Arrow.png'
+          }
+        ]
       },
       {
-        name: "background",
+        name: 'background',
         assets: [
           {
-            alias: ["background_landscape_1440"],
-            src: `${PATHS.ART}Background_Base_Landscape_1440.png`,
+            alias: ['background_base'],
+            src: '/assets/Background_Base.png'
           },
           {
-            alias: ["background_portrait_1440"],
-            src: `${PATHS.ART}Background_Base_Portrait_1440.png`,
+            alias: ['background_freespin'],
+            src: '/assets/Background_Freespin.png'
           },
-        ],
-      },
-    ],
+          {
+            alias: ['background_bonus'],
+            src: '/assets/Background_Bonus.png'
+          }
+        ]
+      }
+    ]
   };
 
   public static readonly SPINE_SYMBOLS: BundleFile = {
     bundles: [
       {
-        name: "icons",
+        name: 'icons',
         assets: [
           {
-            alias: ["icons_atlas"],
-            src: `${PATHS.ART}/icons/icons.atlas`,
+            alias: ['icons_atlas'],
+            src: '/assets/symbols/icons.atlas'
           },
           {
-            alias: ["icons_data"],
-            src: `${PATHS.ART}/icons/icons.json`,
-          },
-        ],
-      },
-    ],
-  };
-  
+            alias: ['icons_data'],
+            src: '/assets/symbols/icons.json'
+          }
+        ]
+      }
+    ]
+  }
+
   public static readonly ANIMATIONS: BundleFile = {
     bundles: [
       {
-        name: "background_animations",
+        name: 'bonus',
         assets: [
           {
-            alias: ["background_atlas"],
-            src: `${PATHS.ART}animations/background.atlas`,
+            alias: ['bonus_atlas'],
+            src: '/assets/animations/bonus.atlas'
           },
           {
-            alias: ["background_data"],
-            src: `${PATHS.ART}animations/background.json`,
-          },
-        ],
+            alias: ['bonus_data'],
+            src: '/assets/animations/bonus.json'
+          }
+        ]
       },
       {
-        name: "wins",
+        name: 'elements',
         assets: [
           {
-            alias: ["wins_atlas"],
-            src: `${PATHS.ART}animations/wins.atlas`,
+            alias: ['elements_atlas'],
+            src: '/assets/animations/elements.atlas'
           },
           {
-            alias: ["wins_data"],
-            src: `${PATHS.ART}animations/wins.json`,
-          },
-        ],
+            alias: ['elements_data'],
+            src: '/assets/animations/elements.json'
+          }
+        ]
       },
       {
-        name: "elements",
+        name: 'freespin',
         assets: [
           {
-            alias: ["elements_atlas"],
-            src: `${PATHS.ART}animations/elements.atlas`,
+            alias: ['freespin_atlas'],
+            src: '/assets/animations/freespin.atlas'
           },
           {
-            alias: ["elements_data"],
-            src: `${PATHS.ART}animations/elements.json`,
-          },
-        ],
+            alias: ['freespin_data'],
+            src: '/assets/animations/freespin.json'
+          }
+        ]
       },
-    ],
+      {
+        name: 'wins',
+        assets: [
+          {
+            alias: ['wins_atlas'],
+            src: '/assets/animations/wins.atlas'
+          },
+          {
+            alias: ['wins_data'],
+            src: '/assets/animations/wins.json'
+          }
+        ]
+      }
+    ]
   };
 
   public static readonly AUDIO: BundleFile = {
@@ -238,22 +288,20 @@ export class AssetsConfig {
 
   // abi bunların 3'ünü de tek bir constdan çekebilirdim ama ne olur ne olmaz diye 3'e ayırdım,
   // isimleri değişebilir hala değişiklikler yapılıyor assetlerde
-  public static readonly SYMBOL_ASSET_DATA: {
-    [key: number]: { idle: string; blurred: string; prefix: string };
-  } = {
-    0: { idle: "Symbol1", blurred: "Symbol1_Blurred", prefix: "Symbol1" },
-    1: { idle: "Symbol2", blurred: "Symbol2_Blurred", prefix: "Symbol2" },
-    2: { idle: "Symbol3", blurred: "Symbol3_Blurred", prefix: "Symbol3" },
-    3: { idle: "Symbol4", blurred: "Symbol4_Blurred", prefix: "Symbol4" },
-    4: { idle: "Symbol5", blurred: "Symbol5_Blurred", prefix: "Symbol5" },
-    5: { idle: "Symbol6", blurred: "Symbol6_Blurred", prefix: "Symbol6" },
-    6: { idle: "Symbol7", blurred: "Symbol7_Blurred", prefix: "Symbol7" },
-    7: { idle: "Symbol8", blurred: "Symbol8_Blurred", prefix: "Symbol8" },
-    8: { idle: "Symbol9", blurred: "Symbol9_Blurred", prefix: "Symbol9" },
-    9: { idle: "Symbol10", blurred: "Symbol10_Blurred", prefix: "Symbol10" },
-    10: { idle: "Symbol11", blurred: "Symbol11_Blurred", prefix: "Symbol11" },
-    11: { idle: "Symbol12", blurred: "Symbol12_Blurred", prefix: "Symbol12" },
-    12: { idle: "Symbol13", blurred: "Symbol13_Blurred", prefix: "Symbol13" },
+  public static readonly SYMBOL_ASSET_DATA: { [key: number]: { idle: string, blurred: string, prefix: string } } = {
+    0: { idle: 'Symbol_1', blurred: 'Symbol_1_Blur', prefix: 'Symbol1' },
+    1: { idle: 'Symbol_2', blurred: 'Symbol_2_Blur', prefix: 'Symbol2' },
+    2: { idle: 'Symbol_3', blurred: 'Symbol_3_Blur', prefix: 'Symbol3' },
+    3: { idle: 'Symbol_4', blurred: 'Symbol_4_Blur', prefix: 'Symbol4' },
+    4: { idle: 'Symbol_5', blurred: 'Symbol_5_Blur', prefix: 'Symbol5' },
+    5: { idle: 'Symbol_6', blurred: 'Symbol_6_Blur', prefix: 'Symbol6' },
+    6: { idle: 'Symbol_7', blurred: 'Symbol_7_Blur', prefix: 'Symbol7' },
+    7: { idle: 'Symbol_8', blurred: 'Symbol_8_Blur', prefix: 'Symbol8' },
+    8: { idle: 'Symbol_9', blurred: 'Symbol_9_Blur', prefix: 'Symbol9' },
+    9: { idle: 'Symbol_10', blurred: 'Symbol_10_Blur', prefix: 'Symbol10' },
+    10: { idle: 'Symbol_11', blurred: 'Symbol_11_Blur', prefix: 'Symbol11' },
+    11: { idle: 'Symbol_12', blurred: 'Symbol_12_Blur', prefix: 'Symbol12' },
+    12: { idle: 'Symbol_13', blurred: 'Symbol_13_Blur', prefix: 'Symbol13' }
   };
 
   // spine symbol indexes to asset name mapping
@@ -262,10 +310,7 @@ export class AssetsConfig {
     skeleton: "icons_data",
   } as const;
 
-  public static readonly BACKGROUND_SPINE_ASSET: SpineAssetData = {
-    atlas: "background_atlas",
-    skeleton: "background_data",
-  } as const;
+  public static readonly BONUS_SPINE_ASSET: SpineAssetData = { atlas: 'bonus_atlas', skeleton: 'bonus_data' } as const;
 
   public static readonly ELEMENTS_SPINE_ASSET: SpineAssetData = {
     atlas: "elements_atlas",
@@ -317,10 +362,8 @@ export class AssetsConfig {
   public static getSymbolAsset(symbolIndex: number): string {
     const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
     if (!assetName) {
-      debug.warn(
-        `No asset found for symbol index ${symbolIndex}, using default`
-      );
-      return "Symbol1";
+      debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
+      return 'Symbol_1';
     }
     return assetName.idle;
   }
@@ -328,10 +371,8 @@ export class AssetsConfig {
   public static getBlurredSymbolAsset(symbolIndex: number): string {
     const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
     if (!assetName) {
-      debug.warn(
-        `No asset found for symbol index ${symbolIndex}, using default`
-      );
-      return "Symbol1_Blurred";
+      debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
+      return 'Symbol_1_Blur';
     }
     return assetName.blurred;
   }
@@ -344,7 +385,7 @@ export class AssetsConfig {
         ({ atlas, skeleton } = this.SYMBOL_SPINE_ASSET);
         break;
       case "background":
-        ({ atlas, skeleton } = this.BACKGROUND_SPINE_ASSET);
+        ({ atlas, skeleton } = this.BONUS_SPINE_ASSET);
         break;
       case "elements":
         ({ atlas, skeleton } = this.ELEMENTS_SPINE_ASSET);

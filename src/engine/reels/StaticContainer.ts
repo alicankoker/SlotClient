@@ -5,7 +5,7 @@ import { GridSymbol } from '../symbol/GridSymbol';
 import { debug } from '../utils/debug';
 import { WinConfig } from '../types/GameTypes';
 import { gsap } from 'gsap';
-import { WinLinesContainer } from '../components/WinLinesContainer';
+import { WinLines } from '../components/WinLines';
 import SoundManager from '../controllers/SoundManager';
 import { Helpers } from '../utils/Helpers';
 
@@ -20,7 +20,7 @@ export interface StaticContainerConfig {
 export class StaticContainer extends Container {
     private _app: Application;
     private _soundManager: SoundManager;
-    private _winLinesContainer: WinLinesContainer;
+    private _winLines: WinLines;
     private _config: StaticContainerConfig;
     private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
     private _winDatas: WinConfig[] = [];
@@ -36,9 +36,11 @@ export class StaticContainer extends Container {
     constructor(app: Application, config: StaticContainerConfig) {
         super();
 
+        this.position.set(0, 15); // Offset to avoid clipping issues
+
         this._app = app;
         this._soundManager = SoundManager.getInstance();
-        this._winLinesContainer = WinLinesContainer.getInstance();
+        this._winLines = WinLines.getInstance();
         this._config = config;
 
         this._winText = new Text({ text: '', style: GameConfig.style });
@@ -185,7 +187,7 @@ export class StaticContainer extends Container {
             }
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility && !this._isSkipped) {
-                this._winLinesContainer.showLine(winData.line);
+                this._winLines.showLine(winData.line);
             }
 
             // play all symbol animations on this win
@@ -218,7 +220,7 @@ export class StaticContainer extends Container {
                     });
 
                     if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-                        this._winLinesContainer.hideLine(winData.line);
+                        this._winLines.hideLine(winData.line);
                     }
                 }
             });
@@ -273,7 +275,7 @@ export class StaticContainer extends Container {
         this._pendingResolvers = [];
 
         if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-            this._winLinesContainer.hideAllLines();
+            this._winLines.hideAllLines();
         }
 
         this._symbols.forEach((reelSymbols) => {
@@ -292,7 +294,7 @@ export class StaticContainer extends Container {
     public playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
         return new Promise((resolve) => {
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-                this._winLinesContainer.showLines(lines);
+                this._winLines.showLines(lines);
             }
 
             if (GameConfig.WIN_ANIMATION.winTextVisibility) {
@@ -309,7 +311,7 @@ export class StaticContainer extends Container {
                                 this._winText.visible = false;
 
                                 if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-                                    this._winLinesContainer.hideAllLines();
+                                    this._winLines.hideAllLines();
                                 }
 
                                 resolve();
@@ -335,7 +337,7 @@ export class StaticContainer extends Container {
         this._winText.visible = false;
 
         if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-            this._winLinesContainer.hideAllLines();
+            this._winLines.hideAllLines();
         }
 
         this._pendingResolvers.forEach(resolve => resolve());

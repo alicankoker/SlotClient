@@ -130,10 +130,10 @@ export class ReelsController {
         const winData2 = this.setWinDisplayData();
         const winData3 = this.setWinDisplayData();
         const staticContainer = this.reelsContainer.getStaticContainer();
-        const winLinesContainer = this.reelsContainer.getWinLinesContainer();
+        const winLines = this.reelsContainer.getWinLines();
 
-        if (winLinesContainer && GameConfig.WIN_ANIMATION.winlineVisibility) {
-            winLinesContainer.visible = true;
+        if (winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
+            winLines.visible = true;
         }
 
         // Play the win animations. If skipped, play the skipped animation, otherwise play the full animation.
