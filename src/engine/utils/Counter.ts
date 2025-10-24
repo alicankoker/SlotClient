@@ -29,8 +29,7 @@ export class Counter {
     constructor({ text }: CounterProps) {
         this._amountText = text;
     }
-
-
+    
     /**
      * @description Play the counter animation.
      * @param parameters The animation parameters such as current, target, duration and ease.

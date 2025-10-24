@@ -161,9 +161,9 @@ export const SIGNAL_EVENTS = {
     ASSETS_LOADED: 'system:assets:loaded',
     FULLSCREEN_CHANGE: 'system:fullscreen:change',
 
-    // Big Win signals
-    BIG_WIN_STARTED: 'bigwin:started',
-    BIG_WIN_STOPPED: 'bigwin:stopped'
+    // Win Event signals
+    WIN_EVENT_STARTED: 'winevent:started',
+    WIN_EVENT_STOPPED: 'winevent:stopped'
 } as const;
 
 // Export singleton instance for convenience

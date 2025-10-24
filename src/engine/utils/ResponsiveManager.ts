@@ -44,13 +44,6 @@ export class ResponsiveManager {
         return ResponsiveManager._instance;
     }
 
-    public static instance(): ResponsiveManager {
-        if (!ResponsiveManager._instance) {
-            throw new Error("ResponsiveManager not initialized. Call getInstance(app) first.");
-        }
-        return ResponsiveManager._instance;
-    }
-
     private init(): void {
         window.addEventListener("resize", this.debouncedResize.bind(this));
         // resize game
@@ -166,10 +159,6 @@ export class ResponsiveManager {
         }
 
         return { x: left, y: top };
-    }
-
-    public get orientation(): string {
-        return this._orientation;
     }
 
     public destroy(): void {

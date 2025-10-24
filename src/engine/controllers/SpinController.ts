@@ -2,7 +2,7 @@
 import { GameConfig } from '../../config/GameConfig';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { SpinConfig } from '../../config/SpinConfig';
-import { BigWin } from '../components/BigWin';
+import { WinEvent } from '../components/WinEvent';
 import { ReelsController } from '../reels/ReelsController';
 import {
     SpinRequestData,
@@ -10,7 +10,7 @@ import {
     InitialGridData,
     CascadeStepData,
     ISpinState,
-    BigWinType,
+    WinEventType,
     SpinMode
 } from '../types/GameTypes';
 import { debug } from '../utils/debug';
@@ -25,7 +25,7 @@ export interface SpinControllerConfig {
 export class SpinController {
     private reelsController: ReelsController;
     private _soundManager: SoundManager;
-    private _bigWinContainer: BigWin;
+    private _winEvent: WinEvent;
 
     // State management
     private currentState: ISpinState = ISpinState.IDLE;
@@ -53,7 +53,7 @@ export class SpinController {
     constructor(config: SpinControllerConfig) {
         this.reelsController = config.reelsController;
         this._soundManager = SoundManager.getInstance();
-        this._bigWinContainer = BigWin.getInstance();
+        this._winEvent = WinEvent.getInstance();
     }
 
     // Main spin orchestration methods
@@ -130,7 +130,7 @@ export class SpinController {
                     this.stopAutoPlay();
                 }
 
-                GameConfig.BIG_WIN.enabled && await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
+                GameConfig.WIN_EVENT.enabled && await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);

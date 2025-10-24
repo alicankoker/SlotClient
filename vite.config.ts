@@ -4,17 +4,25 @@ export default defineConfig({
   root: '.',
   build: {
     outDir: 'dist',
-    sourcemap: true,
-    target: 'es2020'
+    sourcemap: false,
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        manualChunks: () => 'index',
+        entryFileNames: 'index.js',
+        chunkFileNames: 'index.js',
+        assetFileNames: 'assets/[name].[ext]',
+      },
+    },
   },
   server: {
     port: 3000,
-    open: true
+    open: true,
   },
   resolve: {
     alias: {
-      '@': '/src'
-    }
+      '@': '/src',
+    },
   },
-  assetsInclude: ['**/*.skel', '**/*.atlas', '**/*.ttf']
-}); 
+  assetsInclude: ['**/*.skel', '**/*.atlas', '**/*.ttf'],
+});

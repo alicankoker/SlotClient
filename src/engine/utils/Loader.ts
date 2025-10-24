@@ -48,14 +48,12 @@ export class Loader extends Container {
     }
 
     public async create(): Promise<void> {
-        const backgroundTextureLandscape = await Assets.load('background_landscape_1440');
-        const backgroundTexturePortrait = await Assets.load('background_portrait_1440');
-        const logoTexture = await Assets.load('game_logo_vertical');
+        const backgroundTexture = await Assets.load('background_base');
+        const logoTexture = await Assets.load('game_logo');
         const frameTexture = await Assets.load('loading_bar_frame');
         const fillTexture = await Assets.load('loading_bar_fill');
 
-        const texture = ResponsiveManager.instance().orientation === GameConfig.ORIENTATION.landscape ? backgroundTextureLandscape : backgroundTexturePortrait;
-        const background = Sprite.from(texture || backgroundTextureLandscape);
+        const background = Sprite.from(backgroundTexture);
         background.anchor.set(0.5, 0.5);
         background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(background);
