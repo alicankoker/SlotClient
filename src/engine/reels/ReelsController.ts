@@ -87,7 +87,15 @@ export class ReelsController {
             return controller.setModeBySpinState(mode);
         }));
 
-        this.getMode() === ISpinState.IDLE && await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
+        if (mode === ISpinState.IDLE) {
+            this.reelsContainer.setChainAnimation('Base_chain_hold', false);
+            this.reelsContainer.chainSpeed = 1;
+            await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
+        }
+
+        if (mode === ISpinState.SPINNING) {
+            this.reelsContainer.setChainAnimation('Base_chain', true);
+        }
     }
 
     /**
@@ -207,6 +215,7 @@ export class ReelsController {
         if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
             await this.delay(SpinConfig.SPIN_DURATION);
 
+            this.setMode(ISpinState.SLOWING);
             await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
         }
 
@@ -301,6 +310,11 @@ export class ReelsController {
         this.reelControllers.forEach(controller => {
             controller.update(deltaTime);
         });
+
+
+        if (this.currentMode === ISpinState.SLOWING && this.isSpinning && this.reelsContainer.chainSpeed > 0.2) {
+            this.reelsContainer.chainSpeed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT / 10;
+        }
 
         // Update spinning state based on individual reel states
         this.updateSpinningState();

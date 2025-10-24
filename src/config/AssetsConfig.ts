@@ -233,6 +233,19 @@ export class AssetsConfig {
             src: '/assets/animations/wins.json'
           }
         ]
+      },
+      {
+        name: 'chain',
+        assets: [
+          {
+            alias: ['chain_atlas'],
+            src: '/assets/animations/chain.atlas'
+          },
+          {
+            alias: ['chain_data'],
+            src: '/assets/animations/chain.json'
+          }
+        ]
       }
     ]
   };
@@ -322,6 +335,11 @@ export class AssetsConfig {
     skeleton: "wins_data",
   } as const;
 
+  public static readonly CHAIN_SPINE_ASSET: SpineAssetData = {
+    atlas: "chain_atlas",
+    skeleton: "chain_data",
+  } as const;
+
   public static getAllAssets(resolution: string): BundleFile {
     this.RES = RESOLUTIONS.find((r) => r.size === resolution)?.variation!;
     this.setResolution();
@@ -392,6 +410,9 @@ export class AssetsConfig {
         break;
       case "wins":
         ({ atlas, skeleton } = this.WINS_SPINE_ASSET);
+        break;
+      case "chain":
+        ({ atlas, skeleton } = this.CHAIN_SPINE_ASSET);
         break;
     }
 

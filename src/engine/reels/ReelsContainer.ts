@@ -9,6 +9,8 @@ import { debug } from '../utils/debug';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { WinLines } from '../components/WinLines';
 import { ResponsiveConfig } from '../utils/ResponsiveManager';
+import { AssetsConfig } from '../../config/AssetsConfig';
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
 export class ReelsContainer extends Container {
     private app: Application;
@@ -22,6 +24,7 @@ export class ReelsContainer extends Container {
     private staticContainer?: StaticContainer;
     private winLines?: WinLines;
     private frameElementsContainer?: Container;
+    private chains: Spine[] = [];
 
     // Position storage
     private reelXPositions: number[] = [];
@@ -145,12 +148,17 @@ export class ReelsContainer extends Container {
         this.frameElementsContainer.label = 'FrameElementsContainer';
         this.addChild(this.frameElementsContainer);
 
+        const { atlas, skeleton } = AssetsConfig.BONUS_SPINE_ASSET;
+
         for (let cIndex = 0; cIndex < 6; cIndex++) {
-            const floorChain = Sprite.from('reel_chain');
+            const floorChain = Spine.from({ atlas, skeleton });
             floorChain.label = `FloorChain_${cIndex}`;
-            floorChain.anchor.set(0.5, 0.5);
-            floorChain.position.set(360 + (cIndex * 240), 305);
+            floorChain.scale.set(1, 0.8);
+            floorChain.position.set(360 + (cIndex * 242), 305);
+            floorChain.state.setAnimation(0, 'Base_chain_hold', false);
             this.frameElementsContainer.addChild(floorChain);
+
+            this.chains.push(floorChain);
         }
 
         for (let fIndex = 0; fIndex < 2; fIndex++) {
@@ -161,11 +169,14 @@ export class ReelsContainer extends Container {
             this.frameElementsContainer.addChild(floor);
 
             for (let cIndex = 0; cIndex < 6; cIndex++) {
-                const floorChain = Sprite.from('reel_chain');
+                const floorChain = Spine.from({ atlas, skeleton });
                 floorChain.label = `FloorChain_${cIndex}`;
-                floorChain.anchor.set(0.5, 0.5);
-                floorChain.position.set(360 + (cIndex * 240), 555 + (fIndex * 240));
+                floorChain.scale.set(1, 0.8);
+                floorChain.position.set(360 + (cIndex * 242), 570 + (fIndex * 240));
+                floorChain.state.setAnimation(0, 'Base_chain_hold', false);
                 this.frameElementsContainer.addChild(floorChain);
+
+                this.chains.push(floorChain);
             }
         }
 
@@ -192,7 +203,7 @@ export class ReelsContainer extends Container {
     private createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
-        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount));
+        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 25;
         // Height: cover visible rows with proper spacing
         const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount));
 
@@ -375,5 +386,28 @@ export class ReelsContainer extends Container {
         }
 
         super.destroy();
+    }
+
+    public get chainSpeed(): number {
+        return this.chains.length > 0 ? this.chains[0].state.timeScale : 0;
+    }
+
+    /**
+     * @description Set the speed of all chain animations.
+     * @param speed The speed multiplier between 0 and 1 for the chain animations.
+     */
+    public set chainSpeed(speed: number) {
+        this.chains.forEach(chain => {
+            chain.state.timeScale = speed;
+        });
+    }
+
+    public setChainAnimation(animationName: string, loop: boolean): void {
+        this.chains.forEach(chain => {
+            chain.state.setAnimation(0, animationName, loop);
+        });
+    }
+
+    public setAdrenalineMode(enabled: boolean, reelIndex: number): void {
     }
 } 

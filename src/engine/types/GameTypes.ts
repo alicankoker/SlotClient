@@ -109,7 +109,7 @@ export interface SpineAssetData {
     skeleton: string; // Skeleton file path
 }
 
-export type SpineAsset = "symbol" | "background" | "elements" | "wins";
+export type SpineAsset = "symbol" | "background" | "elements" | "wins" | "chain";
 
 // Orientation configuration interface
 export interface OrientationConfig {

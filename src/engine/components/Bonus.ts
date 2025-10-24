@@ -23,6 +23,7 @@ export class Bonus extends BonusContainer {
         this._controller = this.createController();
 
         this.createScene();
+        this.eventListeners();
     }
 
     public static getInstance(): Bonus {
@@ -94,11 +95,7 @@ export class Bonus extends BonusContainer {
         this.addChild(this._sign);
     }
 
-    protected beforeSelect(): void {
-        // Logic before selecting a bonus (e.g., setup animation)
-    }
-
-    protected onBonusSelected(): void {
+    private eventListeners(): void {
         for (let index = 0; index < this._dynamites.length; index++) {
             this._dynamites[index].on('pointerenter', () => {
                 this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_selected`, true);
@@ -129,6 +126,13 @@ export class Bonus extends BonusContainer {
                 this._dynamites[index].state.addListener(listener);
             });
         }
+    }
+
+    protected beforeSelect(): void {
+        // Logic before selecting a bonus (e.g., setup animation)
+    }
+
+    protected onBonusSelected(): void {
     }
 
     protected afterSelect(): void {
