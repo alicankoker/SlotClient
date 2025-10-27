@@ -77,9 +77,7 @@ export class GameController {
 
             const response = await this.gameServer.processSpinRequest(request);
             if(response.success) {
-                if(response.result?.cascadeSteps && response.result.cascadeSteps.length > 0) {
-                    //debugger;
-                }
+                console.log('GameController: Spin response:', response.result);
             } else {
                 console.error('GameController: Spin failed:', response.error);
                 return false;

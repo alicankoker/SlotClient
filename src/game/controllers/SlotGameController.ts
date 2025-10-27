@@ -196,6 +196,8 @@ export class SlotGameController {
 
     // Convenience method for executing spins
     public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
+        //const response = await this.gameServer.requestSpin(betAmount);
+        
         const response = await this.gameServer.processSpinRequest({
             betAmount,
             gameMode

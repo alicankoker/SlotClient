@@ -1,4 +1,6 @@
 // AssetsConfig no longer needed after PureGameController merge
+import { ConnectionManager } from '../communication/Connection/ConnectionManager';
+import { EventManager } from '../communication/EventManagers/EventManager';
 import { GameConfig } from '../config/GameConfig';
 import {
     SpinRequestData,
@@ -21,6 +23,7 @@ export class GameServer {
     private spinCounter: number = 0;
     private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
     private readonly gameID: number = 0;
+    private connectionManager: ConnectionManager;
 
     private initData: InitialGridData = { symbols: [] };
     private firstSpin: boolean = true;
@@ -43,6 +46,7 @@ export class GameServer {
 
     private constructor() {
         // No longer need symbolNames array
+        this.connectionManager = new ConnectionManager(EventManager.getInstance());
     }
 
     public static getInstance(): GameServer {
@@ -57,6 +61,11 @@ export class GameServer {
         return this.initData;
     }
 
+
+    public async requestSpin(betAmount: number): Promise<any> {
+        return this.connectionManager.requestSpin(betAmount, 1, 'diamond_diggers');
+    }
+    
     public async processSpinRequest(request: SpinRequestData): Promise<SpinResponseData> {
         try {
             console.log('GameServer: Processing spin request', request);

@@ -57,6 +57,11 @@ export class ClassicSpinController extends SpinController {
                 this._isForceStopped === false && this.reelsController.slowDown();
 
                 await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
+
+                this.container.setMode(IReelMode.LANDING);
+
+                await Utils.delay(SpinConfig.REEL_STOPPING_DURATION, signal);
+                
             } else {
                 await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
             }
