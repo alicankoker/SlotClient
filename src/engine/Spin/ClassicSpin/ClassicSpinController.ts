@@ -2,81 +2,79 @@ import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
 import { GameDataManager } from "../../data/GameDataManager";
 import { IReelMode } from "../../reels/ReelController";
-import { BigWinType, GridData, ISpinState, SpinResponseData } from "../../types/GameTypes";
+import { GridData, SpinResponseData } from "../../types/ICommunication";
+import { ISpinState } from "../../types/ISpinConfig";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
 import { SpinController, SpinControllerConfig } from "../SpinController";
 
 export class ClassicSpinController extends SpinController {
-    constructor(container: SpinContainer, config: SpinControllerConfig) {
-        super(container, config);
+  constructor(container: SpinContainer, config: SpinControllerConfig) {
+    super(container, config);
+  }
+
+  // Main spin orchestration methods
+  public async executeSpin(): Promise<SpinResponseData> {
+    if (this.currentState !== "idle") {
+      const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
+      console.warn(error);
+      this.handleError(error);
+      return { success: false, error };
     }
 
+    this._abortController = new AbortController();
+    const signal = this._abortController.signal;
 
-    // Main spin orchestration methods
-    public async executeSpin(): Promise<SpinResponseData> {
-        if (this.currentState !== 'idle') {
-            const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
-            console.warn(error);
-            this.handleError(error);
-            return { success: false, error };
-        }
+    this._isForceStopped = false;
 
-        this._abortController = new AbortController();
-        const signal = this._abortController.signal;
+    try {
+      this.setState(ISpinState.SPINNING);
 
-        this._isForceStopped = false;
+      if (this.onSpinStartCallback) {
+        this.onSpinStartCallback();
+      }
 
-        try {
-            this.setState(ISpinState.SPINNING);
+      // Simulate server request (replace with actual server call)
+      const response: SpinResponseData =
+        GameDataManager.getInstance().getSpinData();
 
-            if (this.onSpinStartCallback) {
-                this.onSpinStartCallback();
-            }
+      if (!response.success || !response.result) {
+        this.handleError(response.error || "Unknown server error");
+        return response;
+      }
 
-            // Simulate server request (replace with actual server call)
-            const response: SpinResponseData = GameDataManager.getInstance().getSpinData();
+      await this.transferSymbolsToSpinContainer(
+        response.result.steps[0].gridBefore
+      );
 
-            if (!response.success || !response.result) {
-                this.handleError(response.error || 'Unknown server error');
-                return response;
-            }
+      this._soundManager.play("spin", true, 0.75); // Play spin sound effect
 
-            await this.transferSymbolsToSpinContainer(response.result.steps[0].gridBefore);
-            
-            this._soundManager.play('spin', true, 0.75); // Play spin sound effect
+      this.startSpinAnimation(response.result);
 
-            this.startSpinAnimation(response.result);
+      Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
 
-            Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION)
+      if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+        await Utils.delay(SpinConfig.SPIN_DURATION, signal);
+        this.container.setMode(IReelMode.SLOWING);
 
-            if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
-                await Utils.delay(SpinConfig.SPIN_DURATION, signal);
-                this.container.setMode(IReelMode.SLOWING)
+        this._isForceStopped === false && this.reelsController.slowDown();
 
-                this._isForceStopped === false && this.reelsController.slowDown();
+        await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
+      } else {
+        await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
+      }
 
-                await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
+      this._soundManager.stop("spin");
+      this._soundManager.play("stop", false, 0.75); // Play stop sound effect
 
-                this.container.setMode(IReelMode.LANDING);
+      if (this.onSpinCompleteCallback) {
+        this.onSpinCompleteCallback(response);
+      }
 
-                await Utils.delay(SpinConfig.REEL_STOPPING_DURATION, signal);
-                
-            } else {
-                await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
-            }
-            
-            this._soundManager.stop('spin');
-            this._soundManager.play('stop', false, 0.75); // Play stop sound effect
+      //await this.reelsController.setMode(ISpinState.IDLE);
+      this.setState(ISpinState.IDLE);
 
-            if (this.onSpinCompleteCallback) {
-                this.onSpinCompleteCallback(response);
-            }
-
-            //await this.reelsController.setMode(ISpinState.IDLE);
-            this.setState(ISpinState.IDLE);
-
-            /*if (this.reelsController.checkWinCondition()) {
+      /*if (this.reelsController.checkWinCondition()) {
                 if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
                     this.stopAutoPlay();
                 }
@@ -87,56 +85,63 @@ export class ClassicSpinController extends SpinController {
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
             }*/
 
-            /*if (this._isAutoPlaying) {
+      /*if (this._isAutoPlaying) {
                 this.continueAutoPlay();
             }*/
 
-            return response;
-        } catch (error) {
-            console.error('SpinController: Spin execution error', error);
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            this.handleError(errorMessage);
-            return { success: false, error: errorMessage };
-        }
+      return response;
+    } catch (error) {
+      console.error("SpinController: Spin execution error", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      this.handleError(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }
+
+  // Symbol transfer methods
+  protected async transferSymbolsToSpinContainer(
+    initialGrid: GridData
+  ): Promise<void> {
+    console.log(
+      "SpinController: Transferring symbols from StaticContainer to SpinContainer"
+    );
+
+    const reelsContainer = this.reelsController.getReelsContainer();
+    if (!reelsContainer) {
+      console.error(
+        "SpinController: No reels container available for symbol transfer"
+      );
+      return;
     }
 
+    const staticContainer = reelsContainer?.getStaticContainer();
+    const spinContainer = this.container;
 
-    // Symbol transfer methods
-    protected async transferSymbolsToSpinContainer(initialGrid: GridData): Promise<void> {
-        console.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
-        
-        const reelsContainer = this.reelsController.getReelsContainer();
-        if (!reelsContainer) {
-            console.error('SpinController: No reels container available for symbol transfer');
-            return;
-        }
-
-        const staticContainer = reelsContainer?.getStaticContainer();
-        const spinContainer = this.container;
-        
-        if (!staticContainer || !spinContainer) {
-            console.error('SpinController: Missing containers for symbol transfer');
-            return;
-        }
-
-        // Hide static container symbols and clear them
-        staticContainer.visible = false;
-        if ('clearSymbols' in staticContainer) {
-            (staticContainer as any).clearSymbols();
-        }
-
-        console.log('SpinController: StaticContainer hidden and cleared');
-        staticContainer.visible = false;
-
-        // Show spin container and display initial grid
-        spinContainer.visible = true;
-        
-        if (spinContainer instanceof SpinContainer) {
-            console.log('SpinController: Displaying initial grid on SpinContainer: ', initialGrid.symbols);
-            (spinContainer as any).displayInitialGrid(initialGrid);
-            console.log('SpinController: Initial grid displayed on SpinContainer');
-        }
+    if (!staticContainer || !spinContainer) {
+      console.error("SpinController: Missing containers for symbol transfer");
+      return;
     }
 
+    // Hide static container symbols and clear them
+    staticContainer.visible = false;
+    if ("clearSymbols" in staticContainer) {
+      (staticContainer as any).clearSymbols();
+    }
 
+    console.log("SpinController: StaticContainer hidden and cleared");
+    staticContainer.visible = false;
+
+    // Show spin container and display initial grid
+    spinContainer.visible = true;
+
+    if (spinContainer instanceof SpinContainer) {
+      console.log(
+        "SpinController: Displaying initial grid on SpinContainer: ",
+        initialGrid.symbols
+      );
+      (spinContainer as any).displayInitialGrid(initialGrid);
+      console.log("SpinController: Initial grid displayed on SpinContainer");
+    }
+  }
 }

@@ -29,3 +29,24 @@ export interface IAssetLoader {
   getAsset(key: string): Texture | undefined;
   removeAsset(key: string): void;
 }
+
+export interface LoaderDurations {
+  minDisplayTime: number; // Minimum display time for loader
+  transitionTo100: number; // Time to transition from 0% to 100%
+  holdAfter100: number; // Time to hold at 100%
+  fadeOut: number; // Time to fade out
+}
+
+// Spine data interface
+export interface SpineData {
+  atlasData: any; // Atlas file data
+  skeletonData: any; // Skeleton file data
+}
+
+// Spine asset data interface
+export interface SpineAssetData {
+  atlas: string; // Atlas file path
+  skeleton: string; // Skeleton file path
+}
+
+export type SpineAsset = "symbol" | "background" | "elements" | "wins";
