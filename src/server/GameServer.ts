@@ -1,11 +1,5 @@
 // AssetsConfig no longer needed after PureGameController merge
-<<<<<<< HEAD
-import { ConnectionManager } from '../communication/Connection/ConnectionManager';
-import { EventManager } from '../communication/EventManagers/EventManager';
-import { GameConfig } from '../config/GameConfig';
-=======
 import { GameConfig } from "../config/GameConfig";
->>>>>>> 403d74b82e2849917a3e358ecfadef8059a744c5
 import {
   CascadeStepData,
   DropData,
@@ -23,18 +17,10 @@ import { debug } from "../engine/utils/debug";
 import { Reelsets } from "./Games/ClassicSpinGame/Reelsets";
 
 export class GameServer {
-<<<<<<< HEAD
-    private static instance: GameServer;
-    private spinCounter: number = 0;
-    private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
-    private readonly gameID: number = 0;
-    private connectionManager: ConnectionManager;
-=======
   private static instance: GameServer;
   private spinCounter: number = 0;
   private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
   private readonly gameID: number = 0;
->>>>>>> 403d74b82e2849917a3e358ecfadef8059a744c5
 
   private initData: InitialGridData = { symbols: [] };
   private firstSpin: boolean = true;
