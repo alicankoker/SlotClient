@@ -1,7 +1,7 @@
 import { Nexus } from '../../nexus/Nexus';
 import { PlayerController } from '../../nexus/player/PlayerController';
 import { GameServer } from '../../server/GameServer';
-import { SpinResultData, CascadeStepData, GridData, SpinResponseData, GridUtils, MatchData, DropData, SymbolData, SpinRequestData } from '../../engine/types/GameTypes';
+import { SpinResultData, CascadeStepData, GridData, SpinResponseData, GridUtils, MatchData, DropData, SymbolData, SpinRequestData } from '../../engine/types/ICommunication';
 import { INexusPlayerData, NexusSpinRequest, SpinTransaction } from '../../nexus/NexusInterfaces';
 import { debug } from '../../engine/utils/debug';
 import { SpinController } from '../../engine/Spin/SpinController';

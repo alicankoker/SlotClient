@@ -1,19 +1,14 @@
 import { SpinContainer } from '../Spin/SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
-import {
-    GridData,
-    CascadeStepData,
-    GridUtils,
-    ISpinState,
-    SpinMode
-} from '../types/GameTypes';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { Sprite } from 'pixi.js';
 import { Helpers } from '../utils/Helpers';
 import { SpinConfig } from '../../config/SpinConfig';
 import { debug } from '../utils/debug';
 import { GameRulesConfig } from '../../config/GameRulesConfig';
+import { ISpinState, SpinMode } from '../types/ISpinConfig';
+import { GridData } from '../types/ICommunication';
 
 export enum IReelMode {
     STATIC = 'static',

@@ -1,11 +1,13 @@
 import { debug } from "../../utils/debug";
 import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
-import { BigWinType, GridData, ISpinState, SpinRequestData, SpinResponseData, SpinResultData } from "../../types/GameTypes";
 import { SpinContainer } from "../SpinContainer";
 import { SpinController, SpinControllerConfig } from "../SpinController";
 import { GameDataManager } from "../../data/GameDataManager";
 import { Utils } from "../../utils/Utils";
+import { GridData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
+import { ISpinState } from "../../types/ISpinConfig";
+import { BigWinType } from "../../types/IWinEvents";
 
 export class CascadeSpinController extends SpinController {
     constructor(container: SpinContainer, config: SpinControllerConfig) {

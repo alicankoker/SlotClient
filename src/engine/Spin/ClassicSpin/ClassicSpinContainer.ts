@@ -5,9 +5,9 @@ import { IReelMode } from "../../reels/ReelController";
 import { GridSymbol } from "../../symbol/GridSymbol";
 import { Sprite } from "pixi.js";
 import { debug } from "../../utils/debug";
-import { GridData, SymbolData } from "../../types/GameTypes";
 import { GameConfig } from "../../../config/GameConfig";
 import { Utils } from "../../utils/Utils";
+import { GridData, SymbolData } from "../../types/ICommunication";
 
 export class ClassicSpinContainer extends SpinContainer {
     protected currentSpeed: number = SpinConfig.SPIN_SPEED;
