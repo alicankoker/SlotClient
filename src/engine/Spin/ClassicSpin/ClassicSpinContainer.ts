@@ -35,13 +35,17 @@ export class ClassicSpinContainer extends SpinContainer {
         else if (this.currentMode === IReelMode.LANDING) {
             this.updateLandingProgress(deltaMs);
         }
+        else if (this.currentMode === IReelMode.STOPPING) {
+            this.isSpinning = false;
+            this.currentSpeed = 0;
+        }
     }
 
     updateLandingProgress(deltaTime: number): void {
 
     }
 
-    updateSpinProgress(deltaTime: number): void {
+    async updateSpinProgress(deltaTime: number): Promise<void> {
         const coeff = .1;
         // Only update while actively spinning/speeding/slowing
         if (this.currentMode === IReelMode.SLOWING && this.currentSpeed > SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
@@ -56,27 +60,29 @@ export class ClassicSpinContainer extends SpinContainer {
             this.currentSpeed = 0;
         }
 
-        this.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
-            //console.log(`${this.currentSpeed}`);
-            //this.sortSymbolsAtIterationEnd(symbol as GridSymbol, reelSymbols);
-            //const reelSymbols = this.symbols[0];
-            for(let i = 0; i < reelSymbols.length; i++) {
-                const symbol = reelSymbols[i];
-                if (!symbol) return;
-                //console.log('symbolIndex: ', i, 'gridY: ', (symbol as GridSymbol).gridY);
-                let cycleEnded = reelSymbols[5]?.position.y! >= this.bottomSymbolYPos;
-                if (cycleEnded) {
-                    this.resetSymbolPositionsInCycle(reelSymbols);
-                    cycleEnded = false;
-                    reelSymbols.unshift(reelSymbols.pop()!);
-                    break;
-                } else {
-                    symbol.position.y += this.currentSpeed;
-                }
+        for(let i = 0; i < this.symbols.length; i++){
+            await Utils.delay(50 * i);
+            this.spinByReel(this.symbols[i]);
+        }
+    }
 
-                console.log('symbol.position.y: ', reelSymbols[6]?.position.y);
+    protected spinByReel(reelSymbols: (GridSymbol | Sprite | null)[]): void {
+        for (let i = 0; i < reelSymbols.length; i++) {
+            const symbol = reelSymbols[i];
+            if (!symbol) return;
+            //console.log('symbolIndex: ', i, 'gridY: ', (symbol as GridSymbol).gridY);
+            let cycleEnded = reelSymbols[5]?.position.y! >= this.bottomSymbolYPos;
+            if (cycleEnded) {
+                this.resetSymbolPositionsInCycle(reelSymbols);
+                cycleEnded = false;
+                reelSymbols.unshift(reelSymbols.pop()!);
+                break;
+            } else {
+                symbol.position.y += this.currentSpeed;
             }
-        });
+
+            console.log('symbol.position.y: ', reelSymbols[6]?.position.y);
+        }
     }
 
     protected resetSymbolPositionsInCycle(symbols: (GridSymbol | Sprite | null)[]): void {
@@ -96,6 +102,13 @@ export class ClassicSpinContainer extends SpinContainer {
         symbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
             (symbol as GridSymbol).gridY = symbolIndex;
         });
+    }
+
+    public stopSpin(): void {
+        super.stopSpin();
+        this.currentSpeed = 0;
+
+        //TO-DO: Run win sequences
     }
 
     // Mode management

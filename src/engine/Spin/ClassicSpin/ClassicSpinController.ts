@@ -64,6 +64,8 @@ export class ClassicSpinController extends SpinController {
         await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
       }
 
+      this.container.stopSpin();
+
       this._soundManager.stop("spin");
       this._soundManager.play("stop", false, 0.75); // Play stop sound effect
 
