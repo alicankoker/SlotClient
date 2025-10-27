@@ -54,6 +54,8 @@ export class SpinContainer extends Container {
     constructor(app: Application, config: SpinContainerConfig) {
         super();
 
+        this.position.set(0, 15); // Offset to avoid clipping issues
+
         this.app = app;
         this.config = config;
 

@@ -96,26 +96,6 @@ export class Helpers {
     }
 
     /**
-     * @description Get the Spine skeleton data for a specific asset.
-     * @param asset The Spine asset to retrieve the skeleton data for.
-     * @returns The SkeletonData for the specified asset.
-     */
-    public static getSpineSkeletonData(asset: SpineAsset): SkeletonData {
-        // Get the texture for this asset
-        const { atlasData, skeletonData } = AssetsConfig.getSpineAsset(asset);
-
-        if (!atlasData || !skeletonData) {
-            throw new Error(`Texture not found for ${asset}`);
-        }
-
-        const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
-        const json = new SkeletonJson(attachmentLoader);
-        const skeleton = json.readSkeletonData(skeletonData);
-
-        return skeleton;
-    }
-
-    /**
      * @description Convert an amount or array of amounts to a decimal string representation.
      * @param amount The amount to convert.
      * @param denomination The denomination to divide the amount by (default is 100).

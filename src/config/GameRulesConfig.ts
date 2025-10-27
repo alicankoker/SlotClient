@@ -27,9 +27,9 @@ export interface CascadeConfig {
 export class GameRulesConfig {
     // Grid layout configuration
     public static readonly GRID: GridConfig = {
-        reelCount: 6,               // 5x3 grid
-        rowCount: 5,                // 3 visible rows per reel
-        totalSymbols: 13,           // Symbol IDs 0-12
+        reelCount: 5,               // 5x3 grid
+        rowCount: 3,                // 3 visible rows per reel
+        totalSymbols: 10,           // Symbol IDs 0-9
         bufferRows: {
             above: 2,               // 2 buffer rows above for smooth scrolling
             below: 2                // 2 buffer rows below for smooth scrolling
@@ -52,7 +52,7 @@ export class GameRulesConfig {
     };
 
     // Reference symbol dimensions at base resolution
-    private static sh = GameConfig.REFERENCE_SYMBOL.height;
+    private static sh = GameConfig.REFERENCE_SYMBOL.height + GameConfig.REFERENCE_SPACING.vertical;
     private static sw = GameConfig.REFERENCE_SYMBOL.width + GameConfig.REFERENCE_SPACING.horizontal;
 
     // Winning line symbol coordinates
@@ -66,8 +66,8 @@ export class GameRulesConfig {
 
     // Winning lines configuration for producing random win lines. it will be removed
     public static readonly WINNING_LINES: { [key: number]: number[] } = {
-        1: [0, 0, 0, 0, 0],
-        2: [1, 1, 1, 1, 1],
+        1: [1, 1, 1, 1, 1],
+        2: [0, 0, 0, 0, 0],
         3: [2, 2, 2, 2, 2],
 
         4: [2, 1, 0, 1, 2],
@@ -106,12 +106,12 @@ export class GameRulesConfig {
 
     // winning lines configuration
     public static readonly LINES: { [key: number]: number[] } = {
-        1: [1, 5],
-        2: [6, 10],
+        1: [6, 10],
+        2: [1, 5],
         3: [11, 15],
 
-        4: [11, 3, 15],
-        5: [1, 13, 5],
+        4: [1, 13, 5],
+        5: [11, 3, 15],
 
         6: [6, 2, 4, 10],
         7: [6, 12, 14, 10],
@@ -142,6 +142,38 @@ export class GameRulesConfig {
 
         24: [1, 12, 3, 14, 5],
         25: [11, 2, 13, 4, 15]
+    };
+
+    public static readonly REFERENCE_NUMBER_POSITION = { x: -this.sw * 2.675, y: -(this.sh + this.sh / 2.5) };
+
+    public static readonly LINE_NUMBER_POSITION: { [key: number]: { x: number, y: number } } = {
+        //left side
+        4: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y },
+        2: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 60},
+        24: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 120 },
+        20: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 180 },
+        16: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 240 },
+        10: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 300 },
+        1: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 360 },
+        11: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 420 },
+        17: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 480 },
+        13: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 540 },
+        21: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 600 },
+        3: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 660 },
+        5: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 720 },
+        //right side
+        14: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y },
+        18: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 60},
+        12: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 120 },
+        9: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 180 },
+        22: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 240 },
+        6: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 300 },
+        7: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 360 },
+        23: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 420 },
+        8: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 480 },
+        19: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 540 },
+        15: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 600 },
+        25: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 660 }
     };
 
     /**
