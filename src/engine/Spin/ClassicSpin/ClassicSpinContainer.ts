@@ -71,7 +71,7 @@ export class ClassicSpinContainer extends SpinContainer {
             const symbol = reelSymbols[i];
             if (!symbol) return;
             //console.log('symbolIndex: ', i, 'gridY: ', (symbol as GridSymbol).gridY);
-            let cycleEnded = reelSymbols[5]?.position.y! >= this.bottomSymbolYPos;
+            let cycleEnded = reelSymbols[reelSymbols.length - 1]?.position.y! >= this.bottomSymbolYPos;
             if (cycleEnded) {
                 this.resetSymbolPositionsInCycle(reelSymbols);
                 cycleEnded = false;
@@ -81,7 +81,7 @@ export class ClassicSpinContainer extends SpinContainer {
                 symbol.position.y += this.currentSpeed;
             }
 
-            console.log('symbol.position.y: ', reelSymbols[6]?.position.y);
+            console.log('symbol.position.y: ', reelSymbols[reelSymbols.length - 1]?.position.y);
         }
     }
 
@@ -149,8 +149,13 @@ export class ClassicSpinContainer extends SpinContainer {
 
         for (let col = 0; col < this.columns; col++) {
             for (let row = 0; row < this.totalRows; row++) {
-                console.log(initialGrid.symbols[col][row]);
-                (this.symbols[col][row] as GridSymbol).setSymbolId(initialGrid.symbols[col][row].symbolId);
+                try {
+                    console.log(initialGrid.symbols[col][row]);
+                    (this.symbols[col][row] as GridSymbol).setSymbolId(initialGrid.symbols[col][row].symbolId);
+                } catch (error) {
+                    debugger;
+                    console.log(initialGrid.symbols[col][row]);
+                }
             }
         }
     }

@@ -62,8 +62,7 @@ export abstract class SpinContainer extends Container {
       config.rowsAboveMask || GameConfig.GRID_LAYOUT.rowsAboveMask;
     this.rowsBelowMask =
       config.rowsBelowMask || GameConfig.GRID_LAYOUT.rowsBelowMask;
-    this.totalRows =
-      config.symbolsVisible + this.rowsAboveMask + this.rowsBelowMask;
+    this.totalRows = GameConfig.GRID_LAYOUT.totalRows();
 
     this.initializeGrid();
   }

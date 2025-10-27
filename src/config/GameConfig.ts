@@ -27,9 +27,9 @@ export interface UIConfig {
 }
 export const spinContainerConfig: SpinContainerConfig = {
     reelIndex: 0, // Single container manages all reels, but still needs this for compatibility
-    numberOfReels: 6, // Will handle all reels (6 columns)
+    numberOfReels: 5, // Will handle all reels (6 columns)
     symbolHeight: 150,
-    symbolsVisible: 5,
+    symbolsVisible: 3,
     rowsAboveMask: 1,
     rowsBelowMask: 1,
     spinSpeed: 10,
