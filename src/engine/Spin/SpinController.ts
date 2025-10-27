@@ -1,8 +1,7 @@
 // SpinContainer import removed - not directly used in this controller
 import { GameConfig } from "../../config/GameConfig";
-import { GameRulesConfig } from "../../config/GameRulesConfig";
 import { SpinConfig } from "../../config/SpinConfig";
-import { BigWin } from "../components/BigWin";
+import { WinEvent } from "../components/WinEvent";
 import { ReelsController } from "../reels/ReelsController";
 import { debug } from "../utils/debug";
 import SoundManager from "../controllers/SoundManager";
@@ -19,7 +18,7 @@ import {
   SpinResultData,
   SymbolData,
 } from "../types/ICommunication";
-import { BigWinType } from "../types/IWinEvents";
+import { WinEventType } from "../types/IWinEvents";
 
 export interface SpinControllerConfig {
   reelsController: ReelsController;
@@ -30,7 +29,7 @@ export interface SpinControllerConfig {
 export abstract class SpinController {
   protected reelsController: ReelsController;
   protected _soundManager: SoundManager;
-  protected _bigWinContainer: BigWin;
+  protected _winEvent: WinEvent;
 
   // State management
   protected currentState: ISpinState = ISpinState.IDLE;
@@ -60,7 +59,7 @@ export abstract class SpinController {
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
-    this._bigWinContainer = BigWin.getInstance();
+    this._winEvent = WinEvent.getInstance();
   }
 
   // Main spin orchestration methods
@@ -89,23 +88,22 @@ export abstract class SpinController {
 
       if (!response.success || !response.result) {
         this.handleError(response.error || "Unknown server error");
-        return response;
+        return response as SpinResponseData;
       }
 
       this.currentSpinId = response.result.spinId;
-      //this.currentCascadeSteps = response.result.steps;
-      this.finalGridData =
-        response.result.steps[response.result.steps.length - 1].gridAfter; // Store final grid
+      // this.currentCascadeSteps = response.result.steps;
+      // this.finalGridData = response.result.steps[response.result.steps.length - 1].gridAfter; // Store final grid
 
       // Step 1: Transfer symbols from StaticContainer to SpinContainer
-      await this.transferSymbolsToSpinContainer(
-        response.result.steps[0].gridBefore
-      );
+      // await this.transferSymbolsToSpinContainer(
+      //   response.result.steps[0].gridBefore
+      // );
 
       this._soundManager.play("spin", true, 0.75); // Play spin sound effect
 
       // Step 2: Start spinning animation
-      this.startSpinAnimation(response.result);
+      // this.startSpinAnimation(response.result);
 
       if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
@@ -121,9 +119,9 @@ export abstract class SpinController {
       await this.processCascadeSequence();
 
       // Step 4: Transfer final symbols back to StaticContainer
-      await this.transferSymbolsToStaticContainer(
-        response.result.steps[response.result.steps.length - 1].gridAfter
-      );
+      // await this.transferSymbolsToStaticContainer(
+      //   response.result.steps[response.result.steps.length - 1].gridAfter
+      // );
 
       this.reelsController.stopSpin();
       this.setState(ISpinState.COMPLETED);
@@ -132,9 +130,9 @@ export abstract class SpinController {
       this._soundManager.stop("spin");
       this._soundManager.play("stop", false, 0.75); // Play stop sound effect
 
-      if (this.onSpinCompleteCallback) {
-        this.onSpinCompleteCallback(response);
-      }
+      // if (this.onSpinCompleteCallback) {
+      //   this.onSpinCompleteCallback(response);
+      // }
 
       await this.reelsController.setMode(ISpinState.IDLE);
       this.setState(ISpinState.IDLE);
@@ -144,8 +142,7 @@ export abstract class SpinController {
           this.stopAutoPlay();
         }
 
-        GameConfig.BIG_WIN.enabled &&
-          (await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE)); // Example big win amount and type
+        GameConfig.WIN_EVENT.enabled && (await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE)); // Example big win amount and type
 
         const isSkipped =
           this._isAutoPlaying &&
@@ -159,7 +156,7 @@ export abstract class SpinController {
                 this.continueAutoPlay();
             }*/
 
-      return response;
+      return response as SpinResponseData;
     } catch (error) {
       console.error("SpinController: Spin execution error", error);
       const errorMessage =

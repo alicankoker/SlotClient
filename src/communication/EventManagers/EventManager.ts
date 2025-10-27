@@ -470,7 +470,7 @@ export class GameEventEmitter {
         }, { playerId, sessionId });
     }
 
-    public emitBigWinTriggered(winAmount: number, playerId: string, sessionId?: string): string {
+    public emitWinEventTriggered(winAmount: number, playerId: string, sessionId?: string): string {
         return this.eventManager.emit(GameEvents.BIG_WIN_TRIGGERED, {
             winAmount
         }, { playerId, sessionId });

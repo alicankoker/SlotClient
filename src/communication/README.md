@@ -63,7 +63,7 @@ const gameEmitter = new GameEventEmitter(eventManager);
 // Emit various game events
 gameEmitter.emitSpinStarted(betAmount, playerId, sessionId);
 gameEmitter.emitWinDetected(winAmount, matches, playerId, sessionId);
-gameEmitter.emitBigWinTriggered(winAmount, playerId, sessionId);
+gameEmitter.emitWinEventTriggered(winAmount, playerId, sessionId);
 gameEmitter.emitBalanceChanged(oldBalance, newBalance, playerId, sessionId);
 ```
 
@@ -285,7 +285,7 @@ See `EventManagerExample.ts` for comprehensive usage examples including:
 - `emitReelStarted(reelIndex: number, playerId: string, sessionId?: string): string`
 - `emitReelStopped(reelIndex: number, finalSymbols: number[], playerId: string, sessionId?: string): string`
 - `emitWinDetected(winAmount: number, matches: any[], playerId: string, sessionId?: string): string`
-- `emitBigWinTriggered(winAmount: number, playerId: string, sessionId?: string): string`
+- `emitWinEventTriggered(winAmount: number, playerId: string, sessionId?: string): string`
 - `emitBalanceChanged(oldBalance: number, newBalance: number, playerId: string, sessionId?: string): string`
 - `emitButtonClicked(buttonId: string, playerId: string, sessionId?: string): string`
 - `emitError(error: string, details?: any, playerId?: string, sessionId?: string): string`

@@ -35,8 +35,7 @@ export class ClassicSpinController extends SpinController {
       }
 
       // Simulate server request (replace with actual server call)
-      const response: SpinResponseData =
-        GameDataManager.getInstance().getSpinData();
+      const response: SpinResponseData = GameDataManager.getInstance().getSpinData() as SpinResponseData;
 
       if (!response.success || !response.result) {
         this.handleError(response.error || "Unknown server error");
@@ -81,7 +80,7 @@ export class ClassicSpinController extends SpinController {
                     this.stopAutoPlay();
                 }
 
-                GameConfig.BIG_WIN.enabled && await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
+                GameConfig.WIN_EVENT.enabled && await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);

@@ -1,9 +1,7 @@
 import { Sprite, Assets } from "pixi.js";
 import { AssetsConfig } from "../../config/AssetsConfig";
-import { GameConfig } from "../../config/GameConfig";
 import { SymbolConfig as SymbolConfigClass } from "../../config/SymbolConfig";
 import { AnimationConfig } from "../../config/AnimationConfig";
-import { debug } from "../utils/debug";
 
 export interface SymbolConfig {
   symbolId: number; // Symbol index (0-9) - provided by server/game logic

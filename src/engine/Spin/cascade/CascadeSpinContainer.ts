@@ -1,11 +1,11 @@
 import { Application, Graphics } from "pixi.js";
 import { SpinContainer, SpinContainerConfig } from "../SpinContainer";
-import { CascadeStepData, DropData, GridUtils, GridData, SpinData, SpinResultData, SymbolData } from "../../types/GameTypes";
 import { debug } from "../../utils/debug";
 import { GameRulesConfig } from "../../../config/GameRulesConfig";
 import { GameConfig } from "../../../config/GameConfig";
 import { gsap } from "gsap";
 import { GridSymbol } from "../../symbol/GridSymbol";
+import { GridData, CascadeStepData, SpinResultData, SymbolData, GridUtils, DropData } from "../../types/ICommunication";
 
 export class CascadeSpinContainer extends SpinContainer {
     private reelAreaMask: Graphics = new Graphics();

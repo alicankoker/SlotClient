@@ -48,7 +48,6 @@ export class SlotGameController {
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
     private onSpinResultCallback?: (result: SpinResultData) => void;
     private onCascadeStepCallback?: (step: CascadeStepData) => void;
-    reelAreaMask: any;
 
     constructor(app: Application) {
         this.app = app;
@@ -77,13 +76,10 @@ export class SlotGameController {
         this.staticContainer.visible = true;
         this.spinContainer.visible = false;
 
-        this.createReelAreaMask();
-
         this.reelsContainer.addChild(this.staticContainer);
         this.reelsContainer.addChild(this.spinContainer);
-        this.reelsContainer.addChild(this.reelAreaMask);
-        this.spinContainer.mask = this.reelAreaMask;
-        this.staticContainer.mask = this.reelAreaMask;
+        this.spinContainer.mask = this.reelsContainer.getMask();
+        this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
 
         this.spinController = new ClassicSpinController(this.spinContainer as SpinContainer, {
@@ -95,22 +91,6 @@ export class SlotGameController {
 
     public static getInstance(): SlotGameController {
         return SlotGameController.slotGameInstance;
-    }
-
-    private createReelAreaMask(): void {
-        this.reelAreaMask = new Graphics();
-        this.reelAreaMask.fill(0xffffff);
-        const symWidth = GameConfig.REFERENCE_SYMBOL.width
-        const symHeight = GameConfig.REFERENCE_SYMBOL.height
-        const spacingX = GameConfig.REFERENCE_SPACING.horizontal
-        const spacingY = GameConfig.REFERENCE_SPACING.vertical
-        this.reelAreaMask.rect(0, 0, (symWidth * 6) + (spacingX * 5), (symHeight * 5) + (spacingY * 4));
-        const firstSymbolPosition = {x: this.spinContainer.calculateSymbolX(0), y: this.spinContainer.calculateSymbolY(1)};
-        this.reelAreaMask.position.set(firstSymbolPosition.x - symWidth / 2 - spacingX / 2, firstSymbolPosition.y - symHeight / 2 - spacingY / 2 );
-        this.reelAreaMask.fill(0xffffff);
-        this.reelAreaMask.closePath();
-        this.spinContainer.addChild(this.reelAreaMask);
-        this.spinContainer.addChild(this.reelAreaMask);
     }
 
     private connectControllers(): void {

@@ -1,5 +1,5 @@
 import { FillGradient, TextStyle } from "pixi.js";
-import { AutoPlayConfig, BigWinConfig, ForceStopConfig, LoaderDurations, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
+import { AutoPlayConfig, WinEventConfig, ForceStopConfig, LoaderDurations, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
 import { GameRulesConfig } from "./GameRulesConfig";
 import { SpinContainerConfig } from "../engine/Spin/SpinContainer";
 
@@ -41,13 +41,13 @@ export class GameConfig {
     public static readonly REFERENCE_SYMBOL: SymbolConfig = {
         width: 150,
         height: 150,
-        scale: 0.8
+        scale: 0.90
     };
 
     // Reference spacing at base resolution
     public static readonly REFERENCE_SPACING = {
-        horizontal: 18,  // 10 pixels horizontal spacing at reference resolution
-        vertical: -10      // 10 pixels vertical spacing at reference resolution
+        horizontal: 90,  // 10 pixels horizontal spacing at reference resolution
+        vertical: 90      // 10 pixels vertical spacing at reference resolution
     };
 
     // Reference UI sizes at base resolution
@@ -65,8 +65,8 @@ export class GameConfig {
 
     // Game mechanics
     public static readonly GAME_RULES = {
-        reelCount: 6,
-        rowCount: 5,
+        reelCount: 5,
+        rowCount: 3,
         minBet: 1,
         maxBet: 100,
         defaultBet: 10,
@@ -75,8 +75,8 @@ export class GameConfig {
 
     // Grid layout configuration
     public static readonly GRID_LAYOUT = {
-        columns: 6,                    // Number of columns
-        visibleRows: 5,                // Number of visible rows (inside mask)
+        columns: 5,                    // Number of columns
+        visibleRows: 3,                // Number of visible rows (inside mask)
         rowsAboveMask: 1,              // Number of rows above visible area
         rowsBelowMask: 1,              // Number of rows below visible area
         totalRows: function () {
@@ -94,12 +94,12 @@ export class GameConfig {
 
     // Win animation configuration
     public static readonly WIN_ANIMATION: WinAnimationConfig = {
-        enabled: false,
+        enabled: true,
         winTextVisibility: true,
         winLoop: true,
         delayBeforeLoop: 2000,
         delayBetweenLoops: 1000,
-        winlineVisibility: false
+        winlineVisibility: true
     };
 
     // Auto play configuration
@@ -116,7 +116,7 @@ export class GameConfig {
         enabled: true
     }
 
-    public static readonly BIG_WIN: BigWinConfig = {
+    public static readonly WIN_EVENT: WinEventConfig = {
         enabled: true,
         duration: 3,
         canSkip: true
@@ -140,11 +140,11 @@ export class GameConfig {
 
     public static readonly SAFE_AREA = {
         landscape: {
-            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
-            height: this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
+            width: 1920, //this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
+            height: 900 //this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
         },
         portrait: {
-            width: this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
+            width: (this.REFERENCE_SYMBOL.width + this.REFERENCE_SPACING.horizontal) * (this.GAME_RULES.reelCount + 0.75), // set based on reel count
             height: 1920 // based on REFERENCE_RESOLUTION portrait heights
         }
     };

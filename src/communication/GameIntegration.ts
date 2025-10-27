@@ -55,7 +55,7 @@ export class EventEnabledSpinController {
         });
 
         this.eventManager.on(GameEvents.BIG_WIN_TRIGGERED, (event) => {
-            this.onBigWinTriggered(event);
+            this.onWinEventTriggered(event);
         });
     }
 
@@ -79,7 +79,7 @@ export class EventEnabledSpinController {
         // Add any game-specific logic here
     }
 
-    private onBigWinTriggered(event: any): void {
+    private onWinEventTriggered(event: any): void {
         console.log('Game Logic: Big win triggered!', event.data.winAmount);
         // Add any game-specific logic here
     }
@@ -111,7 +111,7 @@ export class EventEnabledSpinController {
                 this.gameEmitter.emitWinDetected(result.totalWin, result.matches, playerId, sessionId);
                 
                 if (result.totalWin > 1000) {
-                    this.gameEmitter.emitBigWinTriggered(result.totalWin, playerId, sessionId);
+                    this.gameEmitter.emitWinEventTriggered(result.totalWin, playerId, sessionId);
                 }
             }
 

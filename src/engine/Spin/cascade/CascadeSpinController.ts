@@ -1,4 +1,3 @@
-import { debug } from "../../utils/debug";
 import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
 import { SpinContainer } from "../SpinContainer";
@@ -7,7 +6,7 @@ import { GameDataManager } from "../../data/GameDataManager";
 import { Utils } from "../../utils/Utils";
 import { GridData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
-import { BigWinType } from "../../types/IWinEvents";
+import { WinEventType } from "../../types/IWinEvents";
 
 export class CascadeSpinController extends SpinController {
     constructor(container: SpinContainer, config: SpinControllerConfig) {
@@ -41,7 +40,7 @@ export class CascadeSpinController extends SpinController {
 
             if (!response.success || !response.result) {
                 this.handleError(response.error || 'Unknown server error');
-                return response;
+                return response as SpinResponseData;
             }
 
             /*this.currentSpinId = response.result.spinId;
@@ -59,7 +58,7 @@ export class CascadeSpinController extends SpinController {
             //this._soundManager.play('spin', true, 0.75); // Play spin sound effect
 
             // Step 2: Start spinning animation
-            await this.startSpinAnimation(response.result);
+            // await this.startSpinAnimation(response.result);
 
             await Utils.delay(3500);
 
@@ -82,9 +81,9 @@ export class CascadeSpinController extends SpinController {
             this._soundManager.stop('spin');
             this._soundManager.play('stop', false, 0.75); // Play stop sound effect
 
-            if (this.onSpinCompleteCallback) {
-                this.onSpinCompleteCallback(response);
-            }
+            // if (this.onSpinCompleteCallback) {
+            //     this.onSpinCompleteCallback(response);
+            // }
 
             await this.reelsController.setMode(ISpinState.IDLE);
             this.setState(ISpinState.IDLE);
@@ -94,7 +93,7 @@ export class CascadeSpinController extends SpinController {
                     this.stopAutoPlay();
                 }
 
-                GameConfig.BIG_WIN.enabled && await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
+                GameConfig.WIN_EVENT.enabled && await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
                 const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
@@ -104,7 +103,7 @@ export class CascadeSpinController extends SpinController {
                 this.continueAutoPlay();
             }*/
 
-            return response;
+            return response as SpinResponseData;
         } catch (error) {
             console.error('SpinController: Spin execution error', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -112,7 +111,7 @@ export class CascadeSpinController extends SpinController {
             return { success: false, error: errorMessage };
         }
     }
-    
+
     // Symbol transfer methods
     protected async transferSymbolsToSpinContainer(initialGrid: GridData): Promise<void> {
         console.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');

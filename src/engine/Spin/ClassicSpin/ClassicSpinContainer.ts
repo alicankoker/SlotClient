@@ -149,6 +149,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
         for (let col = 0; col < this.columns; col++) {
             for (let row = 0; row < this.totalRows; row++) {
+                console.log(initialGrid.symbols[col][row]);
                 (this.symbols[col][row] as GridSymbol).setSymbolId(initialGrid.symbols[col][row].symbolId);
             }
         }

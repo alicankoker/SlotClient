@@ -155,7 +155,7 @@ export class AdvancedEventExample {
         // Simulate various game events
         this.gameEmitter.emitBalanceChanged(1000, 950, 'player1', 'session123');
         this.gameEmitter.emitSpinStarted(50, 'player1', 'session123');
-        this.gameEmitter.emitBigWinTriggered(500, 'player1', 'session123');
+        this.gameEmitter.emitWinEventTriggered(500, 'player1', 'session123');
         this.gameEmitter.emitBalanceChanged(950, 1450, 'player1', 'session123');
     }
 }
