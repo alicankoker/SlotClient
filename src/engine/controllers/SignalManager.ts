@@ -155,6 +155,7 @@ export const SIGNAL_EVENTS = {
     WIN_CALCULATED: 'win:calculated',
     WIN_ANIMATION_START: 'win:animation:start',
     WIN_ANIMATION_COMPLETE: 'win:animation:complete',
+    WIN_ANIMATION_PLAY: 'win:animation:play',
     
     // System signals
     SCREEN_RESIZE: 'system:resize',

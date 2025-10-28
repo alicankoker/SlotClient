@@ -129,7 +129,6 @@ export class ReelsContainer extends Container {
 
   private createWinLines(): void {
     this.winLines = WinLines.getInstance();
-    this.addChild(this.winLines);
   }
 
   private createFrameElements(): void {

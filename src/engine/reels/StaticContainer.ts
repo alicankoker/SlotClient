@@ -9,6 +9,7 @@ import SoundManager from '../controllers/SoundManager';
 import { Helpers } from '../utils/Helpers';
 import { WinConfig } from '../types/IWinPresentation';
 import { GridData } from '../types/ICommunication';
+import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -184,18 +185,8 @@ export class StaticContainer extends Container {
             //debug.log(`StaticContainer: Playing win animation for win data:`, winData);
 
             this._isLooping === false && this._soundManager.play('win', false, 0.75); // Play win sound effect
-
-            if (GameConfig.WIN_ANIMATION.winTextVisibility) {
-                // Play win text animation
-                gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
-                    x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                        if (this._animationToken !== token) return;
-
-                        this._winText.text = `You won ${Helpers.convertToDecimal(winData.amount)}€${winData.multiplier > 1 ? ` with X${winData.multiplier} multipliers` : ''}!`;
-                        this._winText.visible = true;
-                    }
-                });
-            }
+            
+            signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, winData.amount);
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility && !this._isSkipped) {
                 this._winLines.showLine(winData.line);
@@ -238,17 +229,8 @@ export class StaticContainer extends Container {
         }
 
         if (this._animationToken !== token) return;
-
-        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
-            gsap.to(this._winText.scale, {
-                x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', onComplete: () => {
-                    if (this._animationToken !== token) return;
-
-                    this._winText.text = ``;
-                    this._winText.visible = false;
-                }
-            });
-        }
+        
+        signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE);
 
         this._isPlaying = false;
     }

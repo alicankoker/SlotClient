@@ -19,6 +19,7 @@ import { WinEvent } from "./engine/components/WinEvent";
 import { Background } from "./engine/components/Background";
 import { WinEventType } from "./engine/types/IWinEvents";
 import { WinLines } from "./engine/components/WinLines";
+import { AnimationContainer } from "./engine/components/AnimationContainer";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -86,14 +87,7 @@ export class DoodleV8Main {
       // Step 5: Create scene/sprites
       this.createScene();
 
-      this._spinModeText = new Text({
-        text: ``,
-        style: GameConfig.style.clone(),
-      });
-      this._spinModeText.anchor.set(0.5, 0.5);
-      this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-      this._spinModeText.visible = false; // Hide by default
-      this.app.stage.addChild(this._spinModeText);
+      this._spinModeText = AnimationContainer.getInstance().getSpinModeText();
 
       // const bonusScene = Bonus.getInstance();
       // this.app.stage.addChild(bonusScene);
@@ -412,11 +406,7 @@ export class DoodleV8Main {
     //this.app.stage.addChild(this.slotGameController!.reelsController.getReelsContainer());
     this.slotGameController!.initialize();
 
-    const winLines = WinLines.getInstance();
-    this.app.stage.addChild(winLines);
-
-    this.winEvent = WinEvent.getInstance();
-    this.app.stage.addChild(this.winEvent);
+    this.winEvent = AnimationContainer.getInstance().getWinEvent();
 
     //TO-DO: this needs to be moved to Nexus
     const defaultPlayer = this.slotGameController?.getDefaultPlayer();

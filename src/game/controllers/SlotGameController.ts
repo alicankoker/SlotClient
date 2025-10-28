@@ -20,6 +20,7 @@ import { Utils } from '../../engine/utils/Utils';
 import { GameDataManager } from '../../engine/data/GameDataManager';
 import { Graphics } from 'pixi.js';
 import { ISpinState } from '../../engine/types/ISpinConfig';
+import { AnimationContainer } from '../../engine/components/AnimationContainer';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -46,6 +47,7 @@ export class SlotGameController {
     public staticContainer!: StaticContainer;
     public reelsContainer!: ReelsContainer;
     public reelsController!: ReelsController;
+    private animationContainer!: AnimationContainer;
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
     private onSpinResultCallback?: (result: SpinResultData) => void;
     private onCascadeStepCallback?: (step: CascadeStepData) => void;
@@ -73,6 +75,8 @@ export class SlotGameController {
             symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData);
 
+            this.animationContainer = AnimationContainer.getInstance();
+
         // Set initial visibility - StaticContainer visible, SpinContainer hidden
         this.staticContainer.visible = true;
         this.spinContainer.visible = false;
@@ -82,6 +86,7 @@ export class SlotGameController {
         this.spinContainer.mask = this.reelsContainer.getMask();
         this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
+        this.app.stage.addChild(this.animationContainer);
 
         this.spinController = new ClassicSpinController(this.spinContainer as SpinContainer, {
             reelsController: this.reelsController
