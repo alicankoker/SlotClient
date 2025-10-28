@@ -83,7 +83,7 @@ export class Symbol extends Sprite {
       `Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`
     );*/
 
-    const texture = spritesheet.textures[symbolAssetName + extension];
+    const texture = spritesheet.textures[symbolAssetName];
 
     if (!texture) {
       /*console.error(
