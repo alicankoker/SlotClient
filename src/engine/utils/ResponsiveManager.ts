@@ -123,7 +123,7 @@ export class ResponsiveManager {
             scale: scale
         };
 
-        console.log("ResponsiveManager", "Viewport resized: isMobile:", responsiveConfig.isMobile, "viewportWidth:", responsiveConfig.viewportWidth, "viewportHeight:", responsiveConfig.viewportHeight, "orientation:", responsiveConfig.orientation, "scale:", responsiveConfig.scale);
+        debug.log("ResponsiveManager", "Viewport resized: isMobile:", responsiveConfig.isMobile, "viewportWidth:", responsiveConfig.viewportWidth, "viewportHeight:", responsiveConfig.viewportHeight, "orientation:", responsiveConfig.orientation, "scale:", responsiveConfig.scale);
         signals.emit(SIGNAL_EVENTS.SCREEN_RESIZE, responsiveConfig);
     }
 

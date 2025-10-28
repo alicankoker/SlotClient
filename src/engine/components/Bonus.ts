@@ -5,6 +5,7 @@ import { AssetsConfig } from "../../config/AssetsConfig";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { BonusController } from "../bonus/BonusController";
 import { BonusContainer } from "../bonus/BonusContainer";
+import { debug } from "../utils/debug";
 
 export class Bonus extends BonusContainer {
     private static _instance: Bonus;
@@ -174,15 +175,15 @@ export class Bonus extends BonusContainer {
 
     //#region Controller Methods
     private handleDataReceived(data: any): void {
-        console.log("Bonus data:", data);
+        debug.log("Bonus data:", data);
     }
 
     private handleResetBonus(): void {
-        console.log("Resetting bonus.");
+        debug.log("Resetting bonus.");
     }
 
     private handleBonusCompleted(): void {
-        console.log("Bonus completed.");
+        debug.log("Bonus completed.");
     }
     //#endregion
 

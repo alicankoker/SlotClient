@@ -1,6 +1,7 @@
 // EventAdapters - Different communication adapters for EventManager
 // These allow the EventManager to work with various communication backends
 
+import { debug } from '../engine/utils/debug';
 import { EventManager, GameEvent, EventData, EventContext } from './EventManagers/EventManager';
 
 export interface EventAdapter {
@@ -28,13 +29,13 @@ export class LocalEventAdapter implements EventAdapter {
 
     async connect(): Promise<void> {
         this.connected = true;
-        console.log('LocalEventAdapter: Connected to local event system');
+        debug.log('LocalEventAdapter: Connected to local event system');
     }
 
     async disconnect(): Promise<void> {
         this.connected = false;
         this.subscriptions.clear();
-        console.log('LocalEventAdapter: Disconnected from local event system');
+        debug.log('LocalEventAdapter: Disconnected from local event system');
     }
 
     isConnected(): boolean {
@@ -43,7 +44,7 @@ export class LocalEventAdapter implements EventAdapter {
 
     async emit(event: GameEvent): Promise<boolean> {
         if (!this.connected) {
-            console.warn('LocalEventAdapter: Not connected, cannot emit event');
+            debug.warn('LocalEventAdapter: Not connected, cannot emit event');
             return false;
         }
 
@@ -51,7 +52,7 @@ export class LocalEventAdapter implements EventAdapter {
             this.eventManager.emit(event.type, event.data, event.context);
             return true;
         } catch (error) {
-            console.error('LocalEventAdapter: Error emitting event:', error);
+            debug.error('LocalEventAdapter: Error emitting event:', error);
             return false;
         }
     }
@@ -84,7 +85,7 @@ export class HttpEventAdapter implements EventAdapter {
 
     async connect(): Promise<void> {
         this.connected = true;
-        console.log('HttpEventAdapter: Connected to HTTP event system');
+        debug.log('HttpEventAdapter: Connected to HTTP event system');
     }
 
     async disconnect(): Promise<void> {
@@ -93,7 +94,7 @@ export class HttpEventAdapter implements EventAdapter {
             clearInterval(this.pollingInterval);
         }
         this.subscriptions.clear();
-        console.log('HttpEventAdapter: Disconnected from HTTP event system');
+        debug.log('HttpEventAdapter: Disconnected from HTTP event system');
     }
 
     isConnected(): boolean {
@@ -114,7 +115,7 @@ export class HttpEventAdapter implements EventAdapter {
 
     async emit(event: GameEvent): Promise<boolean> {
         if (!this.connected) {
-            console.warn('HttpEventAdapter: Not connected, cannot emit event');
+            debug.warn('HttpEventAdapter: Not connected, cannot emit event');
             return false;
         }
 
@@ -131,7 +132,7 @@ export class HttpEventAdapter implements EventAdapter {
 
             return true;
         } catch (error) {
-            console.error('HttpEventAdapter: Error emitting event:', error);
+            debug.error('HttpEventAdapter: Error emitting event:', error);
             return false;
         }
     }
@@ -173,7 +174,7 @@ export class HttpEventAdapter implements EventAdapter {
                     });
                 }
             } catch (error) {
-                console.error('HttpEventAdapter: Error polling events:', error);
+                debug.error('HttpEventAdapter: Error polling events:', error);
             }
         }, 1000); // Poll every second
     }
@@ -201,12 +202,12 @@ export class WebSocketEventAdapter implements EventAdapter {
                 this.ws.onopen = () => {
                     this.connected = true;
                     this.reconnectAttempts = 0;
-                    console.log('WebSocketEventAdapter: Connected to WebSocket event system');
+                    debug.log('WebSocketEventAdapter: Connected to WebSocket event system');
                     resolve();
                 };
                 
                 this.ws.onerror = (error) => {
-                    console.error('WebSocketEventAdapter: Connection error:', error);
+                    debug.error('WebSocketEventAdapter: Connection error:', error);
                     reject(error);
                 };
                 
@@ -222,7 +223,7 @@ export class WebSocketEventAdapter implements EventAdapter {
                             callback(gameEvent);
                         });
                     } catch (error) {
-                        console.error('WebSocketEventAdapter: Error parsing event:', error);
+                        debug.error('WebSocketEventAdapter: Error parsing event:', error);
                     }
                 };
             } catch (error) {
@@ -238,7 +239,7 @@ export class WebSocketEventAdapter implements EventAdapter {
             this.ws = null;
         }
         this.subscriptions.clear();
-        console.log('WebSocketEventAdapter: Disconnected from WebSocket event system');
+        debug.log('WebSocketEventAdapter: Disconnected from WebSocket event system');
     }
 
     isConnected(): boolean {
@@ -247,7 +248,7 @@ export class WebSocketEventAdapter implements EventAdapter {
 
     async emit(event: GameEvent): Promise<boolean> {
         if (!this.isConnected()) {
-            console.warn('WebSocketEventAdapter: Not connected, cannot emit event');
+            debug.warn('WebSocketEventAdapter: Not connected, cannot emit event');
             return false;
         }
 
@@ -255,7 +256,7 @@ export class WebSocketEventAdapter implements EventAdapter {
             this.ws!.send(JSON.stringify(event));
             return true;
         } catch (error) {
-            console.error('WebSocketEventAdapter: Error emitting event:', error);
+            debug.error('WebSocketEventAdapter: Error emitting event:', error);
             return false;
         }
     }
@@ -272,18 +273,18 @@ export class WebSocketEventAdapter implements EventAdapter {
 
     private handleReconnect(): void {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.error('WebSocketEventAdapter: Max reconnection attempts reached');
+            debug.error('WebSocketEventAdapter: Max reconnection attempts reached');
             return;
         }
 
         this.reconnectAttempts++;
         const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
         
-        console.log(`WebSocketEventAdapter: Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
+        debug.log(`WebSocketEventAdapter: Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
         
         setTimeout(() => {
             this.connect().catch(error => {
-                console.error('WebSocketEventAdapter: Reconnection failed:', error);
+                debug.error('WebSocketEventAdapter: Reconnection failed:', error);
             });
         }, delay);
     }
@@ -329,12 +330,12 @@ export class WebWorkerEventAdapter implements EventAdapter {
                 };
 
                 this.worker.onerror = (error) => {
-                    console.error('WebWorkerEventAdapter: Worker error:', error);
+                    debug.error('WebWorkerEventAdapter: Worker error:', error);
                     reject(error);
                 };
 
                 this.connected = true;
-                console.log('WebWorkerEventAdapter: Connected to WebWorker event system');
+                debug.log('WebWorkerEventAdapter: Connected to WebWorker event system');
                 resolve();
             } catch (error) {
                 reject(error);
@@ -350,7 +351,7 @@ export class WebWorkerEventAdapter implements EventAdapter {
         }
         this.subscriptions.clear();
         this.pendingMessages.clear();
-        console.log('WebWorkerEventAdapter: Disconnected from WebWorker event system');
+        debug.log('WebWorkerEventAdapter: Disconnected from WebWorker event system');
     }
 
     isConnected(): boolean {
@@ -376,7 +377,7 @@ export class WebWorkerEventAdapter implements EventAdapter {
 
     async emit(event: GameEvent): Promise<boolean> {
         if (!this.isConnected()) {
-            console.warn('WebWorkerEventAdapter: Not connected, cannot emit event');
+            debug.warn('WebWorkerEventAdapter: Not connected, cannot emit event');
             return false;
         }
 
@@ -384,7 +385,7 @@ export class WebWorkerEventAdapter implements EventAdapter {
             await this.postMessage('emit', event);
             return true;
         } catch (error) {
-            console.error('WebWorkerEventAdapter: Error emitting event:', error);
+            debug.error('WebWorkerEventAdapter: Error emitting event:', error);
             return false;
         }
     }

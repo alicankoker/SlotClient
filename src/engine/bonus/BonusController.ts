@@ -1,3 +1,4 @@
+import { debug } from "../utils/debug";
 import { BonusContainer } from "./BonusContainer";
 
 export abstract class BonusController<T extends BonusContainer> {
@@ -28,7 +29,7 @@ export abstract class BonusController<T extends BonusContainer> {
      * @param data The received bonus data
      */
     public onDataReceived(data: any): void {
-        console.log("Bonus data received:", data);
+        debug.log("Bonus data received:", data);
         this.data = data;
     }
 

@@ -38,7 +38,7 @@ export class CascadeSpinContainer extends SpinContainer {
 
     // Cascading functionality
     public displayInitialGrid(gridData: GridData): void {
-        console.log(`SpinContainer ${this.config.reelIndex}: Displaying initial grid`);
+        debug.log(`SpinContainer ${this.config.reelIndex}: Displaying initial grid`);
         this.clearSymbols();
         this.updateGridFromData(gridData);
         //this.updateScale();
@@ -46,7 +46,7 @@ export class CascadeSpinContainer extends SpinContainer {
     }
 
     public async processCascadeStep(stepData: CascadeStepData): Promise<void> {
-        console.log(`CascadeSpinContainer: Processing cascade step ${stepData.step}`);
+        debug.log(`CascadeSpinContainer: Processing cascade step ${stepData.step}`);
 
         // Step 1: Remove matched symbols with animation
         await this.removeSymbolsWithAnimation(stepData.indicesToRemove);
@@ -57,7 +57,7 @@ export class CascadeSpinContainer extends SpinContainer {
         // Step 3: Add new symbols from the top
         await this.addNewSymbolsWithAnimation(stepData.newSymbols, stepData.newSymbolIndices);
 
-        console.log(`CascadeSpinContainer: Completed cascade step ${stepData.step}`);
+        debug.log(`CascadeSpinContainer: Completed cascade step ${stepData.step}`);
     }
 
     // Spinning functionality
@@ -69,7 +69,7 @@ export class CascadeSpinContainer extends SpinContainer {
         this.targetSymbols = [...spinData.steps[spinData.steps.length - 1].gridAfter.symbols.flat().map((symbol: SymbolData) => symbol.symbolId)];
         this.onSpinCompleteCallback = onComplete;
 
-        console.log('CascadeSpinContainer: Starting spin with symbols array:', this.symbols);
+        debug.log('CascadeSpinContainer: Starting spin with symbols array:', this.symbols);
         
         // Ensure symbols array is properly initialized
         if (!this.symbols || this.symbols.length === 0) {
@@ -107,7 +107,7 @@ export class CascadeSpinContainer extends SpinContainer {
                             });
                         }
                     } catch (error) {
-                        console.error(`CascadeSpinContainer: Error animating symbol at row ${rowIndex}, col ${colIndex}:`, error);
+                        debug.error(`CascadeSpinContainer: Error animating symbol at row ${rowIndex}, col ${colIndex}:`, error);
                     }
                 });
             }
@@ -126,7 +126,7 @@ export class CascadeSpinContainer extends SpinContainer {
 
     // Spin animation methods
     public startSpinAnimation(spinData: SpinResultData): void {
-        console.log('CascadeSpinContainer: Starting spin animation with', this.symbols.length, 'columns');
+        debug.log('CascadeSpinContainer: Starting spin animation with', this.symbols.length, 'columns');
         this.isSpinning = true;
 
         // Animate all symbols moving down continuously
@@ -134,7 +134,7 @@ export class CascadeSpinContainer extends SpinContainer {
     }
 
     public stopSpinAnimation(): void {
-        console.log('CascadeSpinContainer: Stopping spin animation');
+        debug.log('CascadeSpinContainer: Stopping spin animation');
         this.isSpinning = false;
 
         // Stop all spinning animations
@@ -143,7 +143,7 @@ export class CascadeSpinContainer extends SpinContainer {
 
 
     protected updateGridFromData(gridData: GridData): void {
-        console.log(`CascadeSpinContainer: Updating grid with ${gridData.symbols.length} symbols from server`);
+        debug.log(`CascadeSpinContainer: Updating grid with ${gridData.symbols.length} symbols from server`);
 
         gridData.symbols.flat().forEach((symbolData: SymbolData, index: number) => {
             const { column, row } = GridUtils.indexToPosition(index);
@@ -162,15 +162,15 @@ export class CascadeSpinContainer extends SpinContainer {
                             this.symbols[column] = [];
                         }
                         this.symbols[column][gridIndex] = newSymbol;
-                        console.log(`CascadeSpinContainer: Created symbol ID ${symbolData.symbolId} at column ${column}, row ${row}, gridIndex ${gridIndex}`);
+                        debug.log(`CascadeSpinContainer: Created symbol ID ${symbolData.symbolId} at column ${column}, row ${row}, gridIndex ${gridIndex}`);
                     }
                 }
             } catch (error) {
-                console.error(`CascadeSpinContainer: Error updating symbol ${symbolData.symbolId} at column ${column}, row ${row}`, error);
+                debug.error(`CascadeSpinContainer: Error updating symbol ${symbolData.symbolId} at column ${column}, row ${row}`, error);
             }
         });
 
-        console.log(`CascadeSpinContainer: Grid updated with server data`);
+        debug.log(`CascadeSpinContainer: Grid updated with server data`);
     }
 
     protected applyDropsFromData(dropsData: DropData[]): void {
@@ -218,7 +218,7 @@ export class CascadeSpinContainer extends SpinContainer {
     private async removeSymbolsWithAnimation(indicesToRemove: number[]): Promise<void> {
         if (indicesToRemove.length === 0) return;
 
-        console.log(`CascadeSpinContainer: Removing ${indicesToRemove.length} symbols with animation`);
+        debug.log(`CascadeSpinContainer: Removing ${indicesToRemove.length} symbols with animation`);
 
         const animations: Promise<void>[] = [];
 
@@ -256,7 +256,7 @@ export class CascadeSpinContainer extends SpinContainer {
     private async dropSymbolsWithAnimation(dropsData: DropData[]): Promise<void> {
         if (dropsData.length === 0) return;
 
-        console.log(`CascadeSpinContainer: Dropping ${dropsData.length} symbols with animation`);
+        debug.log(`CascadeSpinContainer: Dropping ${dropsData.length} symbols with animation`);
 
         const animations: Promise<void>[] = [];
 
@@ -301,7 +301,7 @@ export class CascadeSpinContainer extends SpinContainer {
     private async addNewSymbolsWithAnimation(newSymbols: SymbolData[], newSymbolIndices: number[]): Promise<void> {
         if (newSymbols.length === 0) return;
 
-        console.log(`CascadeSpinContainer: Adding ${newSymbols.length} new symbols with animation`);
+        debug.log(`CascadeSpinContainer: Adding ${newSymbols.length} new symbols with animation`);
 
         const animations: Promise<void>[] = [];
 
@@ -361,6 +361,6 @@ export class CascadeSpinContainer extends SpinContainer {
         this.mask = this.reelAreaMask;
         this.addChild(this.reelAreaMask);
 
-        console.log(`ReelsContainer: Created reel area mask at (${maskX}, ${maskY}) with size ${totalWidth}x${totalHeight}`);
+        debug.log(`ReelsContainer: Created reel area mask at (${maskX}, ${maskY}) with size ${totalWidth}x${totalHeight}`);
     }
 }

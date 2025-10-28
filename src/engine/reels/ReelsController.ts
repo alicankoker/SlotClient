@@ -58,9 +58,7 @@ export class ReelsController {
   public async setMode(mode: ISpinState): Promise<void> {
     if (this.currentMode === mode) return;
 
-    console.log(
-      `ReelsController: Switching from ${this.currentMode} to ${mode}`
-    );
+    debug.log(`ReelsController: Switching from ${this.currentMode} to ${mode}`);
     this.currentMode = mode;
 
     // Update container mode
@@ -75,16 +73,16 @@ export class ReelsController {
       })
     );
 
-        if (mode === ISpinState.IDLE) {
-            this.reelsContainer.setChainAnimation('Base_chain_hold', false);
-            this.reelsContainer.chainSpeed = 1;
-            await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
-        }
-
-        if (mode === ISpinState.SPINNING) {
-            this.reelsContainer.setChainAnimation('Base_chain', true);
-        }
+    if (mode === ISpinState.IDLE) {
+      this.reelsContainer.setChainAnimation('Base_chain_hold', false);
+      this.reelsContainer.chainSpeed = 1;
+      await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
     }
+
+    if (mode === ISpinState.SPINNING) {
+      this.reelsContainer.setChainAnimation('Base_chain', true);
+    }
+  }
 
   /**
    * @description Check the win condition for the current spin. Currently, it always returns true. It must be implemented.
@@ -119,21 +117,21 @@ export class ReelsController {
     };
   }
 
-    /**
-     * @description Play a random win animation.
-     * @param isSkipped Whether the animation is skipped.
-     */
-    public async playRandomWinAnimation(isSkipped: boolean = false): Promise<void> {
-        // set win display datas
-        const winData = this.setWinDisplayData();
-        const winData2 = this.setWinDisplayData();
-        const winData3 = this.setWinDisplayData();
-        const staticContainer = this.reelsContainer.getStaticContainer();
-        const winLines = this.reelsContainer.getWinLines();
+  /**
+   * @description Play a random win animation.
+   * @param isSkipped Whether the animation is skipped.
+   */
+  public async playRandomWinAnimation(isSkipped: boolean = false): Promise<void> {
+    // set win display datas
+    const winData = this.setWinDisplayData();
+    const winData2 = this.setWinDisplayData();
+    const winData3 = this.setWinDisplayData();
+    const staticContainer = this.reelsContainer.getStaticContainer();
+    const winLines = this.reelsContainer.getWinLines();
 
-        if (winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
-            winLines.visible = true;
-        }
+    if (winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
+      winLines.visible = true;
+    }
 
     // Play the win animations. If skipped, play the skipped animation, otherwise play the full animation.
     if (isSkipped) {
@@ -223,13 +221,13 @@ export class ReelsController {
     if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
       await this.delay(SpinConfig.SPIN_DURATION);
 
-            this.setMode(ISpinState.SLOWING);
-            await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
-        }
+      this.setMode(ISpinState.SLOWING);
+      await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION);
+    }
 
     this.isSpinning = false;
 
-    console.log("ReelsController: All reels completed spinning");
+    debug.log("ReelsController: All reels completed spinning");
   }
 
   public stopSpin(): void {
@@ -333,12 +331,12 @@ export class ReelsController {
         });*/
 
 
-        if (this.currentMode === ISpinState.SLOWING && this.isSpinning && this.reelsContainer.chainSpeed > 0.2) {
-            this.reelsContainer.chainSpeed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT / 10;
-        }
+    if (this.currentMode === ISpinState.SLOWING && this.isSpinning && this.reelsContainer.chainSpeed > 0.2) {
+      this.reelsContainer.chainSpeed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT / 10;
+    }
 
-        // Update spinning state based on individual reel states
-        this.updateSpinningState();
+    // Update spinning state based on individual reel states
+    this.updateSpinningState();
 
     // Update any timing-related logic
     this.updateTimingLogic(deltaTime);
@@ -354,7 +352,7 @@ export class ReelsController {
     if (this.isSpinning && !anySpinning) {
       // All reels have finished spinning
       this.isSpinning = false;
-      console.log("ReelsController: All reels have finished spinning");
+      debug.log("ReelsController: All reels have finished spinning");
     }
   }
 
@@ -429,7 +427,7 @@ export class ReelsController {
       controller.setSpinMode(mode);
     });
 
-    console.log(`ReelsController: Spin mode set to ${mode}`);
+    debug.log(`ReelsController: Spin mode set to ${mode}`);
   }
 
   // Cleanup

@@ -17,6 +17,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
     constructor(app: Application, config: SpinContainerConfig) {
         super(app, config);
+        this.position.set(0, 15);
         this.app.ticker.add(this.tickHandler, this);
         const totalSymbolsOnReel = config.symbolsVisible! + config.rowsAboveMask! + config.rowsBelowMask!;
         this.bottomSymbolYPos = this.symbols[0][totalSymbolsOnReel - 1]?.position.y!;
@@ -60,7 +61,7 @@ export class ClassicSpinContainer extends SpinContainer {
             this.currentSpeed = 0;
         }
 
-        for(let i = 0; i < this.symbols.length; i++){
+        for (let i = 0; i < this.symbols.length; i++) {
             await Utils.delay(50 * i);
             this.spinByReel(this.symbols[i]);
         }
@@ -70,7 +71,7 @@ export class ClassicSpinContainer extends SpinContainer {
         for (let i = 0; i < reelSymbols.length; i++) {
             const symbol = reelSymbols[i];
             if (!symbol) return;
-            //console.log('symbolIndex: ', i, 'gridY: ', (symbol as GridSymbol).gridY);
+            //debug.log('symbolIndex: ', i, 'gridY: ', (symbol as GridSymbol).gridY);
             let cycleEnded = reelSymbols[reelSymbols.length - 1]?.position.y! >= this.bottomSymbolYPos;
             if (cycleEnded) {
                 this.resetSymbolPositionsInCycle(reelSymbols);
@@ -81,7 +82,7 @@ export class ClassicSpinContainer extends SpinContainer {
                 symbol.position.y += this.currentSpeed;
             }
 
-            console.log('symbol.position.y: ', reelSymbols[reelSymbols.length - 1]?.position.y);
+            debug.log('symbol.position.y: ', reelSymbols[reelSymbols.length - 1]?.position.y);
         }
     }
 
@@ -142,20 +143,20 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     public displayInitialGrid(initialGrid: GridData): void {
-        //console.log('ClassicSpinContainer: Displaying initial grid: ', initialGrid.symbols);
+        //debug.log('ClassicSpinContainer: Displaying initial grid: ', initialGrid.symbols);
         if (this.symbols.length === 0) {
             this.initializeGrid();
         }
 
         for (let col = 0; col < this.columns; col++) {
+            const columnData = initialGrid.symbols[col];
             for (let row = 0; row < this.totalRows; row++) {
-                try {
-                    console.log(initialGrid.symbols[col][row]);
-                    (this.symbols[col][row] as GridSymbol).setSymbolId(initialGrid.symbols[col][row].symbolId);
-                } catch (error) {
-                    debugger;
-                    console.log(initialGrid.symbols[col][row]);
+                const cell = columnData?.[row];
+                if (!cell) {
+                    debug.warn(`Missing cell at [${col}, ${row}]`);
+                    continue;
                 }
+                (this.symbols[col][row] as GridSymbol).setSymbolId(cell.symbolId);
             }
         }
     }

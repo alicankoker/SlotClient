@@ -48,20 +48,12 @@ export class Helpers {
    * @param gapX The gap between symbols in the X direction.
    * @returns The calculated X position of the symbol.
    */
-  public static calculateSymbolX(
-    column: number = 0,
-    maxColumn: number,
-    referenceX: number,
-    gapX?: number
-  ): number {
+  public static calculateSymbolX(column: number = 0, maxColumn: number, referenceX: number, gapX?: number): number {
     const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
 
     const spacingX = gapX ?? GameConfig.REFERENCE_SPACING.horizontal;
 
-    const reelX =
-      (column - Math.floor(maxColumn / 2)) * (symbolWidth + spacingX) +
-      referenceX +
-      (maxColumn % 2 == 0 ? (symbolWidth + spacingX) / 2 : 0);
+    const reelX = (((column - Math.floor(maxColumn / 2)) * (symbolWidth + spacingX)) + referenceX) + ((maxColumn % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0);
 
     return reelX;
   }
@@ -74,20 +66,12 @@ export class Helpers {
    * @param gapY The gap between symbols in the Y direction.
    * @returns The calculated Y position of the symbol.
    */
-  public static calculateSymbolY(
-    row: number,
-    maxRow: number,
-    referenceY: number,
-    gapY?: number
-  ): number {
+  public static calculateSymbolY(row: number, maxRow: number, referenceY: number, gapY?: number): number {
     const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
 
     const spacingY = gapY ?? GameConfig.REFERENCE_SPACING.vertical;
 
-    const symbolY =
-      (row - 1 - Math.floor(maxRow / 2)) * (symbolHeight + spacingY) +
-      referenceY +
-      (maxRow % 2 == 0 ? (symbolHeight + spacingY) / 2 : 0);
+    const symbolY = (((row - Math.floor(maxRow / 2)) * (symbolHeight + spacingY)) + referenceY) + ((maxRow % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
 
     return symbolY;
   }
@@ -102,14 +86,7 @@ export class Helpers {
    * @param gapY The gap between symbols in the Y direction.
    * @returns An array of positions for the symbols in the grid.
    */
-  public static createGrid(
-    maxColumn: number,
-    maxRow: number,
-    referenceX: number,
-    referenceY: number,
-    gapX?: number,
-    gapY?: number
-  ): { x: number; y: number }[] {
+  public static createGrid(maxColumn: number, maxRow: number, referenceX: number, referenceY: number, gapX?: number, gapY?: number): { x: number; y: number }[] {
     const grid: { x: number; y: number }[] = [];
 
     for (let col = 0; col < maxColumn; col++) {
@@ -124,37 +101,13 @@ export class Helpers {
   }
 
   /**
-   * @description Get the Spine skeleton data for a specific asset.
-   * @param asset The Spine asset to retrieve the skeleton data for.
-   * @returns The SkeletonData for the specified asset.
-   */
-  public static getSpineSkeletonData(asset: SpineAsset): SkeletonData {
-    // Get the texture for this asset
-    const { atlasData, skeletonData } = AssetsConfig.getSpineAsset(asset);
-
-    if (!atlasData || !skeletonData) {
-      throw new Error(`Texture not found for ${asset}`);
-    }
-
-    const attachmentLoader = new AtlasAttachmentLoader(atlasData as any);
-    const json = new SkeletonJson(attachmentLoader);
-    const skeleton = json.readSkeletonData(skeletonData);
-
-    return skeleton;
-  }
-
-  /**
    * @description Convert an amount or array of amounts to a decimal string representation.
    * @param amount The amount to convert.
    * @param denomination The denomination to divide the amount by (default is 100).
    * @param digit The number of decimal places to include in the result (default is 2).
    * @returns {string} The converted amount or array of amounts as a string.
    */
-  public static convertToDecimal(
-    amount: number | number[],
-    denomination: number = 100,
-    digit: number = 2
-  ): string | string[] {
+  public static convertToDecimal(amount: number | number[], denomination: number = 100, digit: number = 2): string | string[] {
     let convertedAmountArray: number[] = [];
     let convertedAmount: number;
 
@@ -192,13 +145,9 @@ export class Helpers {
    * @param segments How many segments to divide the arc into (default is 360)
    * @returns Array of points representing the arc path
    */
-  public static generateArcPath(
-    radius: number,
-    degree: number,
-    segments: number = 360
-  ): Point[] {
+  public static generateArcPath(radius: number, degree: number, segments: number = 360): Point[] {
     const points: Point[] = [];
-    const radStep = (degree * Math.PI) / 180 / segments; // Convert degree to radians and divide by segments
+    const radStep = (degree * Math.PI / 180) / segments; // Convert degree to radians and divide by segments
 
     for (let i = 0; i <= segments; i++) {
       const angle = radStep * i;
@@ -220,13 +169,7 @@ export class Helpers {
    * @param segmentsPerWave How many segments to divide into (default is one wavelength)
    * @returns Array of points representing the wave path
    */
-  public static generateWavePath(
-    axis: "x" | "y",
-    amplitude: number,
-    wavelength: number,
-    waves: number = 1,
-    segmentsPerWave: number = wavelength
-  ): Point[] {
+  public static generateWavePath(axis: 'x' | 'y', amplitude: number, wavelength: number, waves: number = 1, segmentsPerWave: number = wavelength): Point[] {
     const points: Point[] = [];
     const totalLength = wavelength * waves;
     const segments = Math.round(segmentsPerWave * waves);
@@ -235,7 +178,7 @@ export class Helpers {
     for (let i = 0; i <= segments; i++) {
       const x = i * step;
       const y = Math.sin((2 * Math.PI * x) / wavelength) * amplitude;
-      points.push(new Point(axis === "x" ? x : y, axis === "x" ? y : x));
+      points.push(new Point(axis === 'x' ? x : y, axis === 'x' ? y : x));
     }
 
     return points;

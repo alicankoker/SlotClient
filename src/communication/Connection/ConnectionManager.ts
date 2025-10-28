@@ -2,6 +2,7 @@
 
 import { EventManager } from "../EventManagers/EventManager";
 import { GameEvents, CommunicationEvents } from "../Channels/EventChannels";
+import { debug } from "../../engine/utils/debug";
 
 export interface ConnectionConfig {
     host: string;
@@ -59,12 +60,12 @@ export class ConnectionManager {
         // For HTTP, we just test the connection
         try {
             await this.testConnection();
-            console.log('[ConnectionManager] HTTP connection ready');
+            debug.log('[ConnectionManager] HTTP connection ready');
             this.eventManager.emit('connection:opened', { 
                 url: `${this.config.protocol}://${this.config.host}:${this.config.port}${this.config.basePath}` 
             });
         } catch (error) {
-            console.error('[ConnectionManager] Failed to connect:', error);
+            debug.error('[ConnectionManager] Failed to connect:', error);
             this.eventManager.emit('connection:error', { error });
             throw error;
         }
@@ -84,7 +85,7 @@ export class ConnectionManager {
         });
 
         try {
-            console.log(`[ConnectionManager] Requesting spin: ${url}?${params}`);
+            debug.log(`[ConnectionManager] Requesting spin: ${url}?${params}`);
             this.eventManager.emit(GameEvents.SPIN_STARTED, { bet, lines, gameId });
 
             const response = await this.makeRequest(`${url}?${params}`, {
@@ -106,7 +107,7 @@ export class ConnectionManager {
             return spinResponse;
 
         } catch (error) {
-            console.error('[ConnectionManager] Spin request failed:', error);
+            debug.error('[ConnectionManager] Spin request failed:', error);
             this.eventManager.emit(GameEvents.SPIN_FAILED, { error: error instanceof Error ? error.message : String(error), bet, lines });
             throw error;
         }
@@ -117,7 +118,7 @@ export class ConnectionManager {
         const params = new URLSearchParams({ playerId });
 
         try {
-            console.log(`[ConnectionManager] Requesting balance: ${url}?${params}`);
+            debug.log(`[ConnectionManager] Requesting balance: ${url}?${params}`);
             
             const response = await this.makeRequest(`${url}?${params}`, {
                 method: 'GET',
@@ -131,7 +132,7 @@ export class ConnectionManager {
             return balance;
 
         } catch (error) {
-            console.error('[ConnectionManager] Balance request failed:', error);
+            debug.error('[ConnectionManager] Balance request failed:', error);
             throw error;
         }
     }
@@ -141,7 +142,7 @@ export class ConnectionManager {
         const params = new URLSearchParams({ playerId });
 
         try {
-            console.log(`[ConnectionManager] Requesting game state: ${url}?${params}`);
+            debug.log(`[ConnectionManager] Requesting game state: ${url}?${params}`);
             
             const response = await this.makeRequest(`${url}?${params}`, {
                 method: 'GET',
@@ -153,7 +154,7 @@ export class ConnectionManager {
             return response.data;
 
         } catch (error) {
-            console.error('[ConnectionManager] Game state request failed:', error);
+            debug.error('[ConnectionManager] Game state request failed:', error);
             throw error;
         }
     }
@@ -180,7 +181,7 @@ export class ConnectionManager {
 
         for (let attempt = 1; attempt <= this.config.retryAttempts!; attempt++) {
             try {
-                console.log(`[ConnectionManager] Making request (attempt ${attempt}): ${url}`);
+                debug.log(`[ConnectionManager] Making request (attempt ${attempt}): ${url}`);
                 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
@@ -204,11 +205,11 @@ export class ConnectionManager {
                     timestamp: Date.now()
                 };
 
-                console.log(`[ConnectionManager] Request successful:`, apiResponse);
+                debug.log(`[ConnectionManager] Request successful:`, apiResponse);
                 return apiResponse;
 
             } catch (error) {
-                console.error(`[ConnectionManager] Request failed (attempt ${attempt}):`, error);
+                debug.error(`[ConnectionManager] Request failed (attempt ${attempt}):`, error);
                 
                 if (attempt === this.config.retryAttempts) {
                     this.eventManager.emit('connection:error', { 

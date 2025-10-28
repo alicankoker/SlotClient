@@ -1,5 +1,6 @@
 import { CommunicationBridge } from './index';
 import { LocalAdapter, HttpAdapter, WebSocketAdapter, WebWorkerAdapter } from './adapters';
+import { debug } from '../engine/utils/debug';
 
 export enum CommunicationMode {
     LOCAL = 'local',
@@ -43,7 +44,7 @@ export class CommunicationManager {
 
         switch (config.mode) {
             case CommunicationMode.LOCAL:
-                console.log('🏠 Using local communication adapter');
+                debug.log('🏠 Using local communication adapter');
                 this.bridge.setAdapter(new LocalAdapter());
                 break;
 
@@ -51,7 +52,7 @@ export class CommunicationManager {
                 if (!config.httpConfig) {
                     throw new Error('HTTP config required for HTTP mode');
                 }
-                console.log('🌐 Using HTTP communication adapter:', config.httpConfig.baseUrl);
+                debug.log('🌐 Using HTTP communication adapter:', config.httpConfig.baseUrl);
                 this.bridge.setAdapter(new HttpAdapter(
                     config.httpConfig.baseUrl,
                     config.httpConfig.apiKey
@@ -62,7 +63,7 @@ export class CommunicationManager {
                 if (!config.websocketConfig) {
                     throw new Error('WebSocket config required for WebSocket mode');
                 }
-                console.log('⚡ Using WebSocket communication adapter:', config.websocketConfig.url);
+                debug.log('⚡ Using WebSocket communication adapter:', config.websocketConfig.url);
                 this.bridge.setAdapter(new WebSocketAdapter(config.websocketConfig.url));
                 break;
 
@@ -70,7 +71,7 @@ export class CommunicationManager {
                 if (!config.webworkerConfig) {
                     throw new Error('WebWorker config required for WebWorker mode');
                 }
-                console.log('🔧 Using WebWorker communication adapter:', config.webworkerConfig.scriptPath);
+                debug.log('🔧 Using WebWorker communication adapter:', config.webworkerConfig.scriptPath);
                 this.bridge.setAdapter(new WebWorkerAdapter(config.webworkerConfig.scriptPath));
                 break;
 

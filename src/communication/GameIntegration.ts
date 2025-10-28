@@ -4,6 +4,7 @@
 import { EventManager, GameEventEmitter } from './EventManagers/EventManager';
 import { GameEvents } from './Channels/EventChannels';
 import { EventAdapterFactory, EventBridge } from './EventAdapters';
+import { debug } from '../engine/utils/debug';
 
 // Example integration with SpinController
 export class EventEnabledSpinController {
@@ -21,7 +22,7 @@ export class EventEnabledSpinController {
                 {
                     name: 'game-logging',
                     execute: (event, next) => {
-                        console.log(`[GameEvent] ${event.type}:`, event.data);
+                        debug.log(`[GameEvent] ${event.type}:`, event.data);
                         next();
                     }
                 }
@@ -61,26 +62,26 @@ export class EventEnabledSpinController {
 
     private trackEventForAnalytics(event: any): void {
         // In a real implementation, this would send to your analytics service
-        console.log('Analytics: Tracking event', event.type, event.data);
+        debug.log('Analytics: Tracking event', event.type, event.data);
     }
 
     private onSpinStarted(event: any): void {
-        console.log('Game Logic: Spin started for player', event.context.playerId);
+        debug.log('Game Logic: Spin started for player', event.context.playerId);
         // Add any game-specific logic here
     }
 
     private onSpinCompleted(event: any): void {
-        console.log('Game Logic: Spin completed with result', event.data.result);
+        debug.log('Game Logic: Spin completed with result', event.data.result);
         // Add any game-specific logic here
     }
 
     private onWinDetected(event: any): void {
-        console.log('Game Logic: Win detected', event.data.winAmount);
+        debug.log('Game Logic: Win detected', event.data.winAmount);
         // Add any game-specific logic here
     }
 
     private onWinEventTriggered(event: any): void {
-        console.log('Game Logic: Big win triggered!', event.data.winAmount);
+        debug.log('Game Logic: Big win triggered!', event.data.winAmount);
         // Add any game-specific logic here
     }
 
@@ -145,21 +146,21 @@ export class EventEnabledSpinController {
         const localAdapter = EventAdapterFactory.createLocalAdapter(this.eventManager);
         this.bridge.setAdapter(localAdapter);
         await this.bridge.connect();
-        console.log('Local event adapter connected');
+        debug.log('Local event adapter connected');
     }
 
     public async setupHttpAdapter(baseUrl: string, apiKey?: string): Promise<void> {
         const httpAdapter = EventAdapterFactory.createHttpAdapter({ baseUrl, apiKey });
         this.bridge.setAdapter(httpAdapter);
         await this.bridge.connect();
-        console.log('HTTP event adapter connected');
+        debug.log('HTTP event adapter connected');
     }
 
     public async setupWebSocketAdapter(url: string): Promise<void> {
         const wsAdapter = EventAdapterFactory.createWebSocketAdapter({ url });
         this.bridge.setAdapter(wsAdapter);
         await this.bridge.connect();
-        console.log('WebSocket event adapter connected');
+        debug.log('WebSocket event adapter connected');
     }
 
     // Get event history for debugging/analytics
@@ -196,11 +197,11 @@ export class EventEnabledUI {
     public setupPanelListeners(): void {
         // Example: Track panel open/close events
         this.eventManager.on(GameEvents.UI_PANEL_OPENED, (event) => {
-            console.log('Panel opened:', event.data.panelId);
+            debug.log('Panel opened:', event.data.panelId);
         });
 
         this.eventManager.on(GameEvents.UI_PANEL_CLOSED, (event) => {
-            console.log('Panel closed:', event.data.panelId);
+            debug.log('Panel closed:', event.data.panelId);
         });
     }
 
@@ -267,7 +268,7 @@ export class GameEventIntegration {
         // Setup local adapter by default
         await this.spinController.setupLocalAdapter();
         
-        console.log('Game event integration initialized');
+        debug.log('Game event integration initialized');
     }
 
     public async setupHttpCommunication(baseUrl: string, apiKey?: string): Promise<void> {

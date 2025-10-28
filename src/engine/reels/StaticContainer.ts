@@ -54,9 +54,10 @@ export class StaticContainer extends Container {
         this._winText.visible = false;
         this.addChild(this._winText);
 
-        const symbolIds = initialGrid.symbols.map((column: any[]) => column.map((symbol: { symbolId: any; }) => symbol.symbolId));
-        console.log('StaticContainer: Symbol IDs: ', symbolIds);
-         
+        const staticGrid = initialGrid.symbols.map((column: any[]) => column.slice(1, -1));
+
+        const symbolIds = staticGrid.map((column: any[]) => column.map((symbol: { symbolId: any }) => symbol.symbolId));
+
         symbolIds.forEach((column: number[], columnIndex: number) => {
             this.createSymbolsFromIds(column, columnIndex);
         });
@@ -68,9 +69,8 @@ export class StaticContainer extends Container {
      * @param reelIndex - The index of the reel to set (optional).
      * @return void
      */
-    public setSymbols(symbolIds: number[], reelIndex?: number): void {
-        const targetReelIndex = reelIndex !== undefined ? reelIndex : this._config.reelIndex;
-        this.createSymbolsFromIds(symbolIds, targetReelIndex);
+    public setSymbols(symbolIds: number[], reelIndex: number): void {
+        this.createSymbolsFromIds(symbolIds, reelIndex);
     }
 
     /**
@@ -79,7 +79,7 @@ export class StaticContainer extends Container {
      * @param reelIndex - The index of the reel to update (optional).
      * @returns void
      */
-    public updateSymbols(symbolIds: number[]): Promise<void[]> { // TODO bazen sembollerin landing animasyonu promise atmıyor
+    public updateSymbols(symbolIds: number[]): Promise<void[]> {
         return Promise.all(Array.from(this._symbols.values()).flat().map(async (symbol, index) => {
             if (symbolIds[index] !== undefined) {
                 return symbol.setSymbol(symbolIds[index]);
@@ -88,17 +88,15 @@ export class StaticContainer extends Container {
     }
 
     private createSymbolsFromIds(symbolIds: number[], reelIndex: number): void {
-        //console.log(`StaticContainer: Creating symbols for reel ${reelIndex} from IDs:`, symbolIds);
-
         // Initialize symbols array for this reel
         if (!this._symbols.has(reelIndex)) {
             this._symbols.set(reelIndex, []);
         }
-        const reelSymbols = this._symbols.get(reelIndex)!;
+
+        const reelSymbols = this._symbols.get(reelIndex);
 
         // Create symbols with buffer for smooth scrolling (like original Reel.ts)
-        const totalSymbols = this._config.symbolsVisible + GameConfig.GRID_LAYOUT.rowsAboveMask + GameConfig.GRID_LAYOUT.rowsBelowMask;
-        const symbolsToCreate = Math.max(totalSymbols, symbolIds.length);
+        const symbolsToCreate = this._config.symbolsVisible;
 
         const reelX = this.calculateSymbolX(reelIndex);
 
@@ -109,7 +107,7 @@ export class StaticContainer extends Container {
             // Get symbol ID (use provided IDs or generate random for testing)
             const symbolId = i < symbolIds.length ? symbolIds[i] : Math.floor(Math.random() * 10);
 
-            //console.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            //debug.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
 
             // Create symbol with container positioning to avoid conflicts with ReelsContainer offset
             const symbol = new SpineSymbol({
@@ -123,12 +121,14 @@ export class StaticContainer extends Container {
 
             // Add to symbols container and array
             this.addChild(symbol);
-            reelSymbols.push(symbol);
+            reelSymbols!.push(symbol);
 
-            //console.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
+            //debug.log(`StaticContainer: Symbol ${i} for reel ${reelIndex} added at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
         }
 
-        //console.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
+        this._symbols.set(reelIndex, reelSymbols!);
+
+        //debug.log(`StaticContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex}`);
     }
 
     /**
@@ -181,7 +181,7 @@ export class StaticContainer extends Container {
         // Play win animations based on the provided data
         for (const winData of winDatas) {
             if (this._animationToken !== token) return;
-            //console.log(`StaticContainer: Playing win animation for win data:`, winData);
+            //debug.log(`StaticContainer: Playing win animation for win data:`, winData);
 
             this._isLooping === false && this._soundManager.play('win', false, 0.75); // Play win sound effect
 
@@ -434,7 +434,7 @@ export class StaticContainer extends Container {
         if (!reelSymbols) return [];
         // Return only the visible symbols (exclude the buffer symbols)
         if (reelSymbols.length === this._config.symbolsVisible + 2) {
-            return reelSymbols.slice(1, this._config.symbolsVisible + 1);
+            return reelSymbols.slice(0, this._config.symbolsVisible + 1);
         }
         return reelSymbols;
     }
@@ -519,12 +519,11 @@ export class StaticContainer extends Container {
 
     // Position calculation utilities
     protected calculateSymbolX(column: number = 0): number {
-        const c = column++
         const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
 
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
 
-        const reelX = (((c - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2)) + ((GameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
+        const reelX = (((column - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2)) + ((GameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
 
         return reelX; // Center in container
     }
@@ -534,7 +533,7 @@ export class StaticContainer extends Container {
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
-        const symbolY = (((row - 1 - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
+        const symbolY = (((row - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
 
         return symbolY;
     }
@@ -570,7 +569,7 @@ export class StaticContainer extends Container {
 
     public destroy(): void {
         // Clean up symbols (they handle their own responsive cleanup)
-        this.clearSymbols();
+        // this.clearSymbols();
 
         // Destroy the container
         super.destroy({ children: true });

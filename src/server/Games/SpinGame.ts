@@ -1,4 +1,4 @@
-import { SpinResponseData } from "../../engine/types/GameTypes";
+import { SpinResponseData } from "../../engine/types/ICommunication";
 
 export class SpinGame {
     public static readonly gameID: number = 0;

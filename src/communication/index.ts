@@ -1,3 +1,5 @@
+import { debug } from '../engine/utils/debug';
+
 // Communication interfaces for external systems
 export interface SpinRequest {
     playerId: string;
@@ -116,7 +118,7 @@ export class CommunicationBridge {
         try {
             return await this.adapter.requestBalance(playerId);
         } catch (error) {
-            console.error('Balance request failed:', error);
+            debug.error('Balance request failed:', error);
             return { balance: 0, success: false };
         }
     }
@@ -147,7 +149,7 @@ export default class Communication {
         };
 
         this.bridge.requestSpin(request).then(response => {
-            console.log('Spin response:', response);
+            debug.log('Spin response:', response);
             // Handle response in your game logic
         });
     }

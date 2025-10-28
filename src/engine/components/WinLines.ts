@@ -65,7 +65,7 @@ export class WinLines extends WinLinesContainer {
             this.addChild(chain);
         }
 
-        for (const key of Object.keys(GameRulesConfig.LINE_NUMBER_POSITION)) { //TODO line numbers here
+        for (const key of Object.keys(GameRulesConfig.LINE_NUMBER_POSITION)) {
             const position = GameRulesConfig.LINE_NUMBER_POSITION[Number(key)];
             const texture = Sprite.from(`line_holder`);
             texture.label = `LineHolderTexture_${key}`;

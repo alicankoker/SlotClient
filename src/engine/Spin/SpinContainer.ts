@@ -15,6 +15,7 @@ import {
   SpinResultData,
   SymbolData,
 } from "../types/ICommunication";
+import { debug } from "../utils/debug";
 
 export interface SpinContainerConfig {
   reelIndex: number; // TODO: Remove when refactoring to single container
@@ -95,7 +96,7 @@ export abstract class SpinContainer extends Container {
     });
   }
 
-  protected onResize(): void {}
+  protected onResize(): void { }
 
   // Position calculation utilities
   public calculateSymbolX(column: number = 0): number {
@@ -105,7 +106,7 @@ export abstract class SpinContainer extends Container {
 
     const reelX =
       (column - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) *
-        (symbolWidth + spacingX) +
+      (symbolWidth + spacingX) +
       GameConfig.REFERENCE_RESOLUTION.width / 2 +
       (GameConfig.GRID_LAYOUT.columns % 2 == 0
         ? (symbolWidth + spacingX) / 2
@@ -121,7 +122,7 @@ export abstract class SpinContainer extends Container {
 
     const symbolY =
       (row - 1 - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) *
-        (symbolHeight + spacingY) +
+      (symbolHeight + spacingY) +
       GameConfig.REFERENCE_RESOLUTION.height / 2 +
       (GameConfig.GRID_LAYOUT.visibleRows % 2 == 0
         ? (symbolHeight + spacingY) / 2
@@ -139,9 +140,7 @@ export abstract class SpinContainer extends Container {
     if (this.currentMode === mode) return;
 
     this.currentMode = mode;
-    console.log(
-      `SpinContainer ${this.config.reelIndex}: Switched to ${mode} mode`
-    );
+    debug.log(`SpinContainer ${this.config.reelIndex}: Switched to ${mode} mode`);
   }
 
   public getMode(): IReelMode {
@@ -244,9 +243,7 @@ export abstract class SpinContainer extends Container {
       this.symbols[reelIndex][i] = symbol;
     }
 
-    console.log(
-      `SpinContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} using pixel coordinates`
-    );
+    debug.log(`SpinContainer: Created ${symbolsToCreate} symbols for reel ${reelIndex} using pixel coordinates`);
   }
 
   // Symbol creation

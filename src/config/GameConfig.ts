@@ -1,7 +1,11 @@
 import { FillGradient, TextStyle } from "pixi.js";
-import { AutoPlayConfig, WinEventConfig, ForceStopConfig, LoaderDurations, OrientationConfig, WinAnimationConfig } from "../engine/types/GameTypes";
-import { GameRulesConfig } from "./GameRulesConfig";
 import { SpinContainerConfig } from "../engine/Spin/SpinContainer";
+import { LoaderDurations } from "../engine/types/IAssetLoader";
+import { AutoPlayConfig } from "../engine/types/IAutoPlay";
+import { OrientationConfig } from "../engine/types/IGameStates";
+import { ForceStopConfig } from "../engine/types/ISpinConfig";
+import { WinEventConfig } from "../engine/types/IWinEvents";
+import { WinAnimationConfig } from "../engine/types/IWinPresentation";
 
 export interface ResolutionConfig {
     width: number;

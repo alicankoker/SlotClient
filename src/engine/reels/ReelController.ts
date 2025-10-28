@@ -66,11 +66,11 @@ export class ReelController {
         this.staticContainer = staticContainer;
         this.spinContainer = spinContainer;
 
-        console.log(`ReelController ${this.reelIndex}: Views set. Current symbols:`, this.currentSymbols);
+        debug.log(`ReelController ${this.reelIndex}: Views set. Current symbols:`, this.currentSymbols);
         this.updateViewVisibility();
         this.syncSymbolsToViews();
 
-        console.log(`ReelController ${this.reelIndex}: Views synced. StaticContainer symbol count:`, this.staticContainer.getSymbolCount(this.reelIndex));
+        debug.log(`ReelController ${this.reelIndex}: Views synced. StaticContainer symbol count:`, this.staticContainer.getSymbolCount(this.reelIndex));
     }
 
     private updateViewVisibility(): void {
@@ -86,11 +86,11 @@ export class ReelController {
     private syncSymbolsToViews(): void {
 
         if (this.staticContainer && this.currentMode === IReelMode.STATIC) {
-            console.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
+            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
             this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
-            console.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
+            debug.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
         }else if (this.spinContainer && !this.isSpinning) {
-            console.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
+            debug.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
             //burada semboller set ediliyor
             this.spinContainer.setSymbols(this.currentSymbols, this.reelIndex);
         }
@@ -104,7 +104,7 @@ export class ReelController {
     // Mode management
     public async setMode(mode: IReelMode): Promise<void> {
         if (this.currentMode === mode) return;
-        console.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
+        debug.log(`ReelController ${this.reelIndex}: Switching from ${this.currentMode} to ${mode}`);
         this.currentMode = mode;
         this.updateViewVisibility();
     }
@@ -265,7 +265,7 @@ export class ReelController {
 
         this._spinMode = mode;
 
-        console.log(`ReelController ${this.reelIndex}: Spin mode set to ${mode}`);
+        debug.log(`ReelController ${this.reelIndex}: Spin mode set to ${mode}`);
     }
 
     // Cleanup

@@ -1,3 +1,4 @@
+import { debug } from '../engine/utils/debug';
 import { CommunicationAdapter, SpinRequest, SpinResponse } from './index';
 
 // 1. LOCAL ADAPTER - Uses your existing GameServer
@@ -83,7 +84,7 @@ export class HttpAdapter implements CommunicationAdapter {
 
             return await response.json();
         } catch (error) {
-            console.error('Balance request failed:', error);
+            debug.error('Balance request failed:', error);
             return { balance: 0, success: false };
         }
     }
@@ -125,7 +126,7 @@ export class WebSocketAdapter implements CommunicationAdapter {
                     const message = JSON.parse(event.data);
                     this.handleMessage(message);
                 } catch (error) {
-                    console.error('Failed to parse WebSocket message:', error);
+                    debug.error('Failed to parse WebSocket message:', error);
                 }
             };
         });
@@ -213,7 +214,7 @@ export class WebWorkerAdapter implements CommunicationAdapter {
         };
 
         this.worker.onerror = (error) => {
-            console.error('Web Worker error:', error);
+            debug.error('Web Worker error:', error);
         };
     }
 

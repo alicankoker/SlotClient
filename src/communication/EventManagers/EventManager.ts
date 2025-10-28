@@ -1,6 +1,7 @@
 // EventManager - A comprehensive event system for the slot game
 // This can serve as a separate API for event handling and communication
 
+import { debug } from '../../engine/utils/debug';
 import { GameEvents } from '../Channels/EventChannels';
 
 export interface EventData {
@@ -239,7 +240,7 @@ export class EventManager {
                     this.subscriptions.delete(subscription.id);
                 }
             } catch (error) {
-                console.error(`Error in event callback for ${event.type}:`, error);
+                debug.error(`Error in event callback for ${event.type}:`, error);
             }
         }
     }
@@ -258,7 +259,7 @@ export class EventManager {
                     this.subscriptions.delete(subscription.id);
                 }
             } catch (error) {
-                console.error(`Error in async event callback for ${event.type}:`, error);
+                debug.error(`Error in async event callback for ${event.type}:`, error);
             }
         }
     }
@@ -302,7 +303,7 @@ export class EventManager {
 
     public replayEvents(options?: EventReplayOptions): void {
         if (!this.config.enableReplay) {
-            console.warn('Event replay is disabled');
+            debug.warn('Event replay is disabled');
             return;
         }
 
@@ -314,7 +315,7 @@ export class EventManager {
 
     public async replayEventsAsync(options?: EventReplayOptions): Promise<void> {
         if (!this.config.enableReplay) {
-            console.warn('Event replay is disabled');
+            debug.warn('Event replay is disabled');
             return;
         }
 
@@ -387,7 +388,7 @@ export class EventManager {
 export const LoggingMiddleware: EventMiddleware = {
     name: 'logging',
     execute: (event, next) => {
-        console.log(`[EventManager] ${event.type}:`, event.data);
+        debug.log(`[EventManager] ${event.type}:`, event.data);
         next();
     }
 };

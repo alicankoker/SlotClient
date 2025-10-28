@@ -19,6 +19,7 @@ import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { Utils } from '../../engine/utils/Utils';
 import { GameDataManager } from '../../engine/data/GameDataManager';
 import { Graphics } from 'pixi.js';
+import { ISpinState } from '../../engine/types/ISpinConfig';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -62,7 +63,7 @@ export class SlotGameController {
 
         // Create ReelsController with the ReelsContainer
         const initialGridData = this.gameServer.generateInitialGridData();
-        console.log('SlotGameController: Initial grid data for ReelsController:', initialGridData);
+        debug.log('SlotGameController: Initial grid data for ReelsController:', initialGridData);
         this.reelsController = new ReelsController(this.app, initialGridData, this.reelsContainer);
 
         this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig);
@@ -99,12 +100,12 @@ export class SlotGameController {
 
         const staticContainer = this.staticContainer;
         if (!spinContainer) {
-            console.error('ReelsController: No SpinContainer available');
+            debug.error('ReelsController: No SpinContainer available');
             return;
         }
 
         if (!staticContainer) {
-            console.error('ReelsController: No StaticContainer available');
+            debug.error('ReelsController: No StaticContainer available');
             return;
         }
     }
@@ -207,4 +208,16 @@ export class SlotGameController {
         return success;
     }
 
+    public updateView(state: ISpinState): void {
+        switch (state) {
+            case ISpinState.SPINNING:
+                this.spinContainer.visible = true;
+                this.staticContainer.visible = false;
+                break;        
+            case ISpinState.IDLE:
+                this.spinContainer.visible = false;
+                this.staticContainer.visible = true;
+                break;
+        }
+    }
 } 

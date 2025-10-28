@@ -7,6 +7,7 @@ import { Utils } from "../../utils/Utils";
 import { GridData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
 import { WinEventType } from "../../types/IWinEvents";
+import { debug } from "../../utils/debug";
 
 export class CascadeSpinController extends SpinController {
     constructor(container: SpinContainer, config: SpinControllerConfig) {
@@ -18,7 +19,7 @@ export class CascadeSpinController extends SpinController {
     public async executeSpin(): Promise<SpinResponseData> {
         if (this.currentState !== 'idle') {
             const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
-            console.warn(error);
+            debug.warn(error);
             this.handleError(error);
             return { success: false, error };
         }
@@ -47,14 +48,14 @@ export class CascadeSpinController extends SpinController {
             this.currentCascadeSteps = response.result.cascadeSteps;
             this.finalGridData = response.result.finalGrid; // Store final grid
 
-            console.log('CascadeSpinController: Initial symbols from server:', response.result.initialGrid.symbols);
+            debug.log('CascadeSpinController: Initial symbols from server:', response.result.initialGrid.symbols);
 
             // Step 1: Transfer symbols from StaticContainer to SpinContainer
             await this.transferSymbolsToSpinContainer(response.result.previousGrid);
 
             await Utils.delay(500);
 
-            console.log(response.result.initialGrid);*/
+            debug.log(response.result.initialGrid);*/
             //this._soundManager.play('spin', true, 0.75); // Play spin sound effect
 
             // Step 2: Start spinning animation
@@ -105,7 +106,7 @@ export class CascadeSpinController extends SpinController {
 
             return response as SpinResponseData;
         } catch (error) {
-            console.error('SpinController: Spin execution error', error);
+            debug.error('SpinController: Spin execution error', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             this.handleError(errorMessage);
             return { success: false, error: errorMessage };
@@ -114,7 +115,7 @@ export class CascadeSpinController extends SpinController {
 
     // Symbol transfer methods
     protected async transferSymbolsToSpinContainer(initialGrid: GridData): Promise<void> {
-        console.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
+        debug.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
 
 
         const reelsContainer = this.reelsController.getReelsContainer();
@@ -122,24 +123,21 @@ export class CascadeSpinController extends SpinController {
         const spinContainer = this.container;
 
         if (!staticContainer || !spinContainer) {
-            console.error('SpinController: Missing containers for symbol transfer');
+            debug.error('SpinController: Missing containers for symbol transfer');
             return;
         }
 
         // Hide static container symbols and clear them
         staticContainer.visible = false;
-        if ('clearSymbols' in staticContainer) {
-            (staticContainer as any).clearSymbols();
-        }
-        console.log('SpinController: StaticContainer hidden and cleared');
+        debug.log('SpinController: StaticContainer hidden and cleared');
 
         // Show spin container and display initial grid
         spinContainer.visible = true;
-        console.log('SpinController: SpinContainer shown');
+        debug.log('SpinController: SpinContainer shown');
 
         if ('displayInitialGrid' in spinContainer) {
             (spinContainer as any).displayInitialGrid(initialGrid);
-            console.log('SpinController: Initial grid displayed on SpinContainer');
+            debug.log('SpinController: Initial grid displayed on SpinContainer');
         }
     }
 

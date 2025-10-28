@@ -19,6 +19,7 @@ import {
   SymbolData,
 } from "../types/ICommunication";
 import { WinEventType } from "../types/IWinEvents";
+import { GameRulesConfig } from "../../config/GameRulesConfig";
 
 export interface SpinControllerConfig {
   reelsController: ReelsController;
@@ -158,7 +159,7 @@ export abstract class SpinController {
 
       return response as SpinResponseData;
     } catch (error) {
-      console.error("SpinController: Spin execution error", error);
+      debug.error("SpinController: Spin execution error", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       this.handleError(errorMessage);
@@ -194,7 +195,7 @@ export abstract class SpinController {
 
         void this.continueAutoPlay();
 
-        console.log("Auto play started with count:", this._autoPlayCount);
+        debug.log("Auto play started with count:", this._autoPlayCount);
     }*/
 
   //TO-DO: This needs to be moved to somewhere else
@@ -230,7 +231,7 @@ export abstract class SpinController {
                 if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
             }
 
-            console.log("Continuing auto play, remaining count:", this._autoPlayCount);
+            debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
         }, this._autoPlayDuration);
 
         return true;
@@ -265,12 +266,12 @@ export abstract class SpinController {
       this._autoPlayTimeoutID = null;
     }
 
-    console.log("Auto play stopped");
+    debug.log("Auto play stopped");
   }
 
   // Process initial grid display
   /*protected async processInitialGrid(gridData: InitialGridData): Promise<void> {
-        console.log('SpinController: Processing initial grid');
+        debug.log('SpinController: Processing initial grid');
         
         // Set reels to cascading mode and display initial grid
         this.reelsController.setMode('cascading');
@@ -281,7 +282,7 @@ export abstract class SpinController {
 
   // Process cascade sequence
   /*protected async processCascadeSequence(): Promise<void> {
-        console.log(`SpinController: Processing ${this.currentCascadeSteps.length} cascade steps`);
+        debug.log(`SpinController: Processing ${this.currentCascadeSteps.length} cascade steps`);
         
         for (let i = 0; i < this.currentCascadeSteps.length; i++) {
             this.currentStepIndex = i;
@@ -301,9 +302,7 @@ export abstract class SpinController {
     }*/
 
   // Convert grid format to reel format for ReelsController.startSpin()
-  protected convertGridToReelFormat(
-    gridSymbols: Array<{ symbolId: number }>
-  ): number[][] {
+  protected convertGridToReelFormat(gridSymbols: Array<{ symbolId: number }>): number[][] {
     const reelsCount = 5; // GameConfig.GRID_LAYOUT.columns
     const symbolsPerReel = 3; // GameConfig.GRID_LAYOUT.visibleRows
     const finalSymbols: number[][] = [];
@@ -323,15 +322,12 @@ export abstract class SpinController {
       }
     }
 
-    console.log(
-      "SpinController: Converted final grid to reel format:",
-      finalSymbols
-    );
+    debug.log("SpinController: Converted final grid to reel format:", finalSymbols);
     return finalSymbols;
   }
 
   // Process individual cascade step
-  /*    console.log(`SpinController: Processing cascade step ${stepData.step}`);
+  /*    debug.log(`SpinController: Processing cascade step ${stepData.step}`);
         
         await this.reelsController.processCascadeStep(stepData);
     }*/
@@ -390,7 +386,7 @@ export abstract class SpinController {
       return;
     }
 
-    console.log("SpinController: Force stopping spin");
+    debug.log("SpinController: Force stopping spin");
 
     this._isForceStopped = true;
 
@@ -406,7 +402,7 @@ export abstract class SpinController {
   protected setState(newState: ISpinState): void {
     if (this.currentState === newState) return;
 
-    console.log(`SpinController: State ${this.currentState} -> ${newState}`);
+    debug.log(`SpinController: State ${this.currentState} -> ${newState}`);
     this.currentState = newState;
   }
 
@@ -428,7 +424,7 @@ export abstract class SpinController {
 
   // Error handling
   protected handleError(error: string): void {
-    console.error(`SpinController Error: ${error}`);
+    debug.error(`SpinController Error: ${error}`);
     this.setState(ISpinState.IDLE);
 
     if (this.onErrorCallback) {
@@ -502,7 +498,7 @@ export abstract class SpinController {
     this._spinMode = mode;
     this.reelsController.setSpinMode(mode);
 
-    console.log(`SpinController: Spin mode set to ${mode}`);
+    debug.log(`SpinController: Spin mode set to ${mode}`);
 
     if (this._spinMode === GameConfig.SPIN_MODES.FAST && this.getIsSpinning()) {
       this.forceStop();
@@ -513,13 +509,13 @@ export abstract class SpinController {
   protected async transferSymbolsToSpinContainer(
     initialGrid: GridData
   ): Promise<void> {
-    console.log(
+    debug.log(
       "SpinController: Transferring symbols from StaticContainer to SpinContainer"
     );
 
     const reelsContainer = this.reelsController.getReelsContainer();
     if (!reelsContainer) {
-      console.error(
+      debug.error(
         "SpinController: No reels container available for symbol transfer"
       );
       return;
@@ -529,49 +525,39 @@ export abstract class SpinController {
     const spinContainer = this.container;
 
     if (!staticContainer || !spinContainer) {
-      console.error("SpinController: Missing containers for symbol transfer");
+      debug.error("SpinController: Missing containers for symbol transfer");
       return;
     }
 
-    // Hide static container symbols and clear them
+    // Hide static container symbols
     staticContainer.visible = false;
-    if ("clearSymbols" in staticContainer) {
-      (staticContainer as any).clearSymbols();
-    }
 
-    console.log("SpinController: StaticContainer hidden and cleared");
+    debug.log("SpinController: StaticContainer hidden and cleared");
     staticContainer.visible = false;
 
     // Show spin container and display initial grid
     spinContainer.visible = true;
-    console.log("SpinController: SpinContainer shown");
+    debug.log("SpinController: SpinContainer shown");
 
     if (spinContainer instanceof SpinContainer) {
       (spinContainer as any).displayInitialGrid(initialGrid);
-      console.log("SpinController: Initial grid displayed on SpinContainer");
+      debug.log("SpinController: Initial grid displayed on SpinContainer");
     }
   }
 
-  protected async transferSymbolsToStaticContainer(
-    finalGrid: GridData
-  ): Promise<void> {
-    console.log(
-      "SpinController: Transferring final symbols from SpinContainer to StaticContainer"
-    );
-
+  protected async transferSymbolsToStaticContainer(finalGrid: GridData): Promise<void> {
+    debug.log("SpinController: Transferring final symbols from SpinContainer to StaticContainer");
     const reelsContainer = this.reelsController.getReelsContainer();
     if (!reelsContainer) {
-      console.error(
-        "SpinController: No reels container available for symbol transfer"
-      );
+      debug.error("SpinController: No reels container available for symbol transfer");
       return;
     }
 
     const staticContainer = reelsContainer.getStaticContainer();
-    const spinContainer = reelsContainer.getSpinContainer();
+    const spinContainer = this.container;
 
     if (!staticContainer || !spinContainer) {
-      console.error("SpinController: Missing containers for symbol transfer");
+      debug.error("SpinController: Missing containers for symbol transfer");
       return;
     }
 
@@ -582,18 +568,18 @@ export abstract class SpinController {
     staticContainer.visible = true;
 
     // Convert final grid to the format expected by StaticContainer
-    const finalSymbols = this.convertGridToReelFormat(finalGrid.symbols.flat());
-    await staticContainer.updateSymbols(finalSymbols[0]); // Assuming single reel for now
+    const finalSymbols: number[] = finalGrid.symbols.map((column: { symbolId: number }[]) => column.slice(1, -1).map(cell => cell.symbolId)).flat();
+    await staticContainer.updateSymbols(finalSymbols); // Assuming single reel for now
   }
 
   // Cascade processing methods
   protected async processCascadeSequence(): Promise<void> {
     if (!this.currentCascadeSteps || this.currentCascadeSteps.length === 0) {
-      console.log("SpinController: No cascade steps to process");
+      debug.log("SpinController: No cascade steps to process");
       return;
     }
 
-    console.log(
+    debug.log(
       `SpinController: Processing ${this.currentCascadeSteps.length} cascade steps`
     );
 
@@ -611,14 +597,14 @@ export abstract class SpinController {
   }
 
   protected async processCascadeStep(step: CascadeStepData): Promise<void> {
-    console.log(`SpinController: Processing cascade step ${step.step}`);
+    debug.log(`SpinController: Processing cascade step ${step.step}`);
 
     // Get the spin container (assuming it's a CascadeSpinContainer)
     const spinContainer = this.reelsController
       .getReelsContainer()
       ?.getSpinContainer();
     if (!spinContainer) {
-      console.error(
+      debug.error(
         "SpinController: No spin container available for cascade processing"
       );
       return;

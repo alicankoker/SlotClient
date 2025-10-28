@@ -32,14 +32,14 @@ export class DoodleV8Main {
 
   public async init(): Promise<void> {
     try {
-      console.log("🎰 DoodleV8 initializing...");
+      debug.log("🎰 DoodleV8 initializing...");
 
       // Step 1: Initialize PIXI Application with modern config
       await this.initializePixiApp();
       // Initialize AssetLoader singleton instance
       this.assetLoader = AssetLoader.getInstance();
       this.assetResolutionChooser = AssetSizeManager.getInstance();
-      console.log("Asset Size: ", this.assetResolutionChooser.assetSize);
+      debug.log("Asset Size: ", this.assetResolutionChooser.assetSize);
 
       // Step 2: Initialize responsive system
       this.initializeResponsiveSystem();
@@ -60,7 +60,7 @@ export class DoodleV8Main {
       try {
         initData = await this.slotGameController.generateInitialGrid();
       } catch (error) {
-        console.error("❌ Failed to generate initial grid:", error);
+        debug.error("❌ Failed to generate initial grid:", error);
         throw error;
       }
 
@@ -107,7 +107,7 @@ export class DoodleV8Main {
       window.addEventListener("keydown", (event) => {
         switch (event.key.toLowerCase()) {
           case " ":
-            console.log("🎲 Manual spin triggered");
+            debug.log("🎲 Manual spin triggered");
             if (this.slotGameController?.spinController) {
               if (
                 this.slotGameController.spinController.getIsSpinning() === false &&
@@ -117,13 +117,12 @@ export class DoodleV8Main {
                 eventBus.emit(SpinEventTypes.REQUEST, "manual_spin");
                 this.slotGameController.executeGameSpin(10, "manual");
               } else {
-                GameConfig.FORCE_STOP.enabled &&
-                  this.slotGameController.spinController.forceStop();
+                GameConfig.FORCE_STOP.enabled && this.slotGameController.spinController.forceStop();
               }
             }
             break;
           case "f":
-            console.log("🔄 Force stop triggered");
+            debug.log("🔄 Force stop triggered");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getIsSpinning() &&
@@ -133,7 +132,7 @@ export class DoodleV8Main {
             }
             break;
           case "a":
-            console.log("🔄 Auto-play triggered");
+            debug.log("🔄 Auto-play triggered");
             if (
               GameConfig.AUTO_PLAY.enabled &&
               this.slotGameController?.spinController &&
@@ -147,7 +146,7 @@ export class DoodleV8Main {
             }
             break;
           case "q":
-            console.log("🛑 Stop auto-play");
+            debug.log("🛑 Stop auto-play");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getIsAutoPlaying() &&
@@ -157,7 +156,7 @@ export class DoodleV8Main {
             }
             break;
           case "w":
-            console.log("🎉 Show random win animation");
+            debug.log("🎉 Show random win animation");
             if (
               this.slotGameController?.reelsController &&
               !this.slotGameController.reelsController.getIsSpinning() &&
@@ -168,7 +167,7 @@ export class DoodleV8Main {
             }
             break;
           case "s":
-            console.log("⏹️ Skip win animations");
+            debug.log("⏹️ Skip win animations");
             if (
               this.slotGameController?.reelsController &&
               this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true
@@ -177,7 +176,7 @@ export class DoodleV8Main {
             }
             break;
           case "b":
-            console.log("🎉 Show big win animation");
+            debug.log("🎉 Show big win animation");
             if (
               this.winEvent &&
               GameConfig.WIN_EVENT.enabled &&
@@ -187,7 +186,7 @@ export class DoodleV8Main {
             }
             break;
           case "1":
-            console.log(" Normal mode activated");
+            debug.log(" Normal mode activated");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getSpinMode() !==
@@ -242,7 +241,7 @@ export class DoodleV8Main {
             }
             break;
           case "2":
-            console.log("⚡ Fast mode activated");
+            debug.log("⚡ Fast mode activated");
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getSpinMode() !==
@@ -365,24 +364,24 @@ export class DoodleV8Main {
     if (!this.slotGameController?.spinController) return;
 
     this.slotGameController.spinController.setOnSpinStartCallback(() => {
-      console.log("🎲 Spin started!");
+      debug.log("🎲 Spin started!");
     });
 
     this.slotGameController.spinController.setOnSpinCompleteCallback(
       (result: SpinResponseData) => {
-        console.log("✅ Spin completed!", result);
+        debug.log("✅ Spin completed!", result);
       }
     );
 
     this.slotGameController.spinController.setOnCascadeStepCallback(
       (step: CascadeStepData) => {
-        console.log("💥 Cascade step:", step.step);
+        debug.log("💥 Cascade step:", step.step);
       }
     );
 
     this.slotGameController.spinController.setOnErrorCallback(
       (error: string) => {
-        console.error("❌ Spin error:", error);
+        debug.error("❌ Spin error:", error);
       }
     );
   }
@@ -430,5 +429,5 @@ export class DoodleV8Main {
 // Initialize and start the game
 const game = new DoodleV8Main();
 game.init().catch((error) => {
-  console.error("Failed to start game:", error);
+  debug.error("Failed to start game:", error);
 });

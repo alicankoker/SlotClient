@@ -79,7 +79,7 @@ export class SignalManager {
                 try {
                     callback(data);
                 } catch (error) {
-                    console.error(`Error in signal listener for '${signalName}':`, error);
+                    debug.error(`Error in signal listener for '${signalName}':`, error);
                 }
             });
         }

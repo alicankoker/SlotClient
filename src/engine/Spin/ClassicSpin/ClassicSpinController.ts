@@ -4,6 +4,7 @@ import { GameDataManager } from "../../data/GameDataManager";
 import { IReelMode } from "../../reels/ReelController";
 import { GridData, SpinResponseData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
+import { debug } from "../../utils/debug";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
 import { SpinController, SpinControllerConfig } from "../SpinController";
@@ -17,7 +18,7 @@ export class ClassicSpinController extends SpinController {
   public async executeSpin(): Promise<SpinResponseData> {
     if (this.currentState !== "idle") {
       const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
-      console.warn(error);
+      debug.warn(error);
       this.handleError(error);
       return { success: false, error };
     }
@@ -28,6 +29,8 @@ export class ClassicSpinController extends SpinController {
     this._isForceStopped = false;
 
     try {
+      this.reelsController.resetWinAnimations();
+      
       this.setState(ISpinState.SPINNING);
 
       if (this.onSpinStartCallback) {
@@ -42,10 +45,14 @@ export class ClassicSpinController extends SpinController {
         this.handleError(response.error || "Unknown server error");
         return response;
       }
+      const initialGrid = response.result.steps[0].gridBefore;
+      await this.transferSymbolsToSpinContainer(initialGrid);
 
-      await this.transferSymbolsToSpinContainer(
-        response.result.steps[0].gridBefore
-      );
+      const finalGrid = response.result.steps[0].gridAfter;
+      this.onSpinCompleteCallback = async () => {
+        await this.transferSymbolsToStaticContainer(finalGrid);
+        await this.reelsController.playRandomWinAnimation();
+      }
 
       this._soundManager.play("spin", true, 0.75); // Play spin sound effect
 
@@ -94,7 +101,7 @@ export class ClassicSpinController extends SpinController {
 
       return response;
     } catch (error) {
-      console.error("SpinController: Spin execution error", error);
+      debug.error("SpinController: Spin execution error", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       this.handleError(errorMessage);
@@ -106,13 +113,11 @@ export class ClassicSpinController extends SpinController {
   protected async transferSymbolsToSpinContainer(
     initialGrid: GridData
   ): Promise<void> {
-    console.log(
-      "SpinController: Transferring symbols from StaticContainer to SpinContainer"
-    );
+    debug.log("SpinController: Transferring symbols from StaticContainer to SpinContainer");
 
     const reelsContainer = this.reelsController.getReelsContainer();
     if (!reelsContainer) {
-      console.error(
+      debug.error(
         "SpinController: No reels container available for symbol transfer"
       );
       return;
@@ -122,29 +127,23 @@ export class ClassicSpinController extends SpinController {
     const spinContainer = this.container;
 
     if (!staticContainer || !spinContainer) {
-      console.error("SpinController: Missing containers for symbol transfer");
+      debug.error("SpinController: Missing containers for symbol transfer");
       return;
     }
 
     // Hide static container symbols and clear them
     staticContainer.visible = false;
-    if ("clearSymbols" in staticContainer) {
-      (staticContainer as any).clearSymbols();
-    }
 
-    console.log("SpinController: StaticContainer hidden and cleared");
+    debug.log("SpinController: StaticContainer hidden and cleared");
     staticContainer.visible = false;
 
     // Show spin container and display initial grid
     spinContainer.visible = true;
 
     if (spinContainer instanceof SpinContainer) {
-      console.log(
-        "SpinController: Displaying initial grid on SpinContainer: ",
-        initialGrid.symbols
-      );
+      debug.log("SpinController: Displaying initial grid on SpinContainer: ", initialGrid.symbols);
       (spinContainer as any).displayInitialGrid(initialGrid);
-      console.log("SpinController: Initial grid displayed on SpinContainer");
+      debug.log("SpinController: Initial grid displayed on SpinContainer");
     }
   }
 }

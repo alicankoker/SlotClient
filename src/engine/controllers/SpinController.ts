@@ -136,7 +136,7 @@ export class SpinController {
 
             return response;
         } catch (error) {
-            console.error('SpinController: Spin execution error', error);
+            debug.error('SpinController: Spin execution error', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             this.handleError(errorMessage);
             return { success: false, error: errorMessage };

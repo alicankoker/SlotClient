@@ -128,7 +128,7 @@ export class Loader extends Container {
     }
 
     private onLoaded(label: string, percent: number) {
-        console.log("Loader", `${label} is loading...`);
+        debug.log("Loader", `${label} is loading...`);
         this.tweenToPercent(percent);
         this.progressStatus.text = `Loading ${label}...`;
 

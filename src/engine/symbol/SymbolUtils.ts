@@ -8,7 +8,7 @@ export class SymbolUtils {
     const spritesheet = Assets.cache.get("/assets/symbols/symbols.json");
 
     if (!spritesheet) {
-      console.error("Spritesheet not found in cache!");
+      debug.error("Spritesheet not found in cache!");
       throw new Error("Spritesheet not available");
     }
 
@@ -16,12 +16,7 @@ export class SymbolUtils {
     const texture = spritesheet.textures[symbolAssetName];
 
     if (!texture) {
-      console.error(
-        "Texture not found for symbol:",
-        symbolAssetName,
-        "with ID:",
-        symbolId
-      );
+      debug.error("Texture not found for symbol:", symbolAssetName, "with ID:", symbolId);
       // Fallback to first symbol
       const fallbackName = AssetsConfig.getSymbolAsset(0);
       return spritesheet.textures[fallbackName];
@@ -34,7 +29,7 @@ export class SymbolUtils {
     const spritesheet = Assets.cache.get("/assets/symbols/symbols.json");
 
     if (!spritesheet) {
-      console.error("Spritesheet not found in cache!");
+      debug.error("Spritesheet not found in cache!");
       throw new Error("Spritesheet not available");
     }
 
@@ -42,12 +37,7 @@ export class SymbolUtils {
     const texture = spritesheet.textures[symbolAssetName];
 
     if (!texture) {
-      console.error(
-        "Texture not found for symbol:",
-        symbolAssetName,
-        "with ID:",
-        symbolId
-      );
+      debug.error("Texture not found for symbol:", symbolAssetName, "with ID:", symbolId);
       // Fallback to first symbol
       const fallbackName = AssetsConfig.getBlurredSymbolAsset(0);
       return spritesheet.textures[fallbackName];

@@ -253,18 +253,12 @@ export class ReelsContainer extends Container {
     if (this.spinContainer) {
       this.spinContainer.setMode(mode);
       this.spinContainer.visible = mode !== IReelMode.STATIC;
-      console.log(
-        "ReelsContainer: Spin container visible set to:",
-        this.spinContainer.visible
-      );
+      debug.log("ReelsContainer: Spin container visible set to:", this.spinContainer.visible);
     }
 
     if (this.staticContainer) {
       this.staticContainer.visible = mode === IReelMode.STATIC;
-      console.log(
-        "ReelsContainer: Static container visible set to:",
-        this.staticContainer.visible
-      );
+      debug.log("ReelsContainer: Static container visible set to:", this.staticContainer.visible);
     }
 
     if (mode === IReelMode.SPINNING && this.winLines) {

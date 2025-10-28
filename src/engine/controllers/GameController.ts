@@ -1,12 +1,8 @@
 import { GameServer } from '../../server/GameServer';
 import { GameConfig } from '../../config/GameConfig';
-import { 
-    SpinRequestData, 
-    SpinResultData, 
-    CascadeStepData,
-    GameState 
-} from '../types/GameTypes';
 import { debug } from '../utils/debug';
+import { SpinResultData, CascadeStepData, SpinRequestData } from '../types/ICommunication';
+import { GameState } from '../types/IGameStates';
 
 export class GameController {
     private static instance: GameController;
@@ -69,7 +65,7 @@ export class GameController {
         });
 
         try {
-            console.log('GameController: Starting spin with bet:', bet);
+            debug.log('GameController: Starting spin with bet:', bet);
             
             const request: SpinRequestData = {
                 betAmount: bet
@@ -77,9 +73,9 @@ export class GameController {
 
             const response = await this.gameServer.processSpinRequest(request);
             if(response.success) {
-                console.log('GameController: Spin response:', response.result);
+                debug.log('GameController: Spin response:', response.result);
             } else {
-                console.error('GameController: Spin failed:', response.error);
+                debug.error('GameController: Spin failed:', response.error);
                 return false;
             }
             
@@ -87,7 +83,7 @@ export class GameController {
                 await this.processSpinResult(response.result);
                 return true;
             } else {
-                console.error('GameController: Spin failed:', response.error);
+                debug.error('GameController: Spin failed:', response.error);
                 // Refund bet on failure
                 this.updateGameState({
                     balance: this.gameState.balance + bet,
@@ -96,7 +92,7 @@ export class GameController {
                 return false;
             }
         } catch (error) {
-            console.error('GameController: Error during spin:', error);
+            debug.error('GameController: Error during spin:', error);
             // Refund bet on error
             this.updateGameState({
                 balance: this.gameState.balance + bet,
@@ -107,7 +103,7 @@ export class GameController {
     }
 
     private async processSpinResult(result: SpinResultData): Promise<void> {
-        console.log('GameController: Processing spin result:', result);
+        debug.log('GameController: Processing spin result:', result);
         
         // Update game state with spin ID
         this.updateGameState({
@@ -120,11 +116,11 @@ export class GameController {
         }
 
         // Process each cascade step immediately (no animation delays)
-        for (let i = 0; i < result.cascadeSteps.length; i++) {
+        /*for (let i = 0; i < result.cascadeSteps.length; i++) {
             const step = result.cascadeSteps[i];
             
-            console.log(`GameController: Processing cascade step ${step.step}`);
-            console.log(`GameController: Grid after step ${step.step}:`, step.gridAfter);
+            debug.log(`GameController: Processing cascade step ${step.step}`);
+            debug.log(`GameController: Grid after step ${step.step}:`, step.gridAfter);
             
             // Update current step
             this.updateGameState({
@@ -138,7 +134,7 @@ export class GameController {
 
             // Small delay between steps for visual clarity (optional)
             await new Promise(resolve => setTimeout(resolve, 100)); // Very short delay
-        }
+        }*/
 
         // Add winnings to balance
         this.updateGameState({
@@ -148,7 +144,7 @@ export class GameController {
             currentStep: 0
         });
 
-        console.log('GameController: Spin sequence complete. Total win:', result.totalWin);
+        debug.log('GameController: Spin sequence complete. Total win:', result.totalWin);
     }
 
     // State management
@@ -159,7 +155,7 @@ export class GameController {
     private updateGameState(updates: Partial<GameState>): void {
         this.gameState = { ...this.gameState, ...updates };
         
-        console.log('GameController: State updated:', this.gameState);
+        debug.log('GameController: State updated:', this.gameState);
         
         if (this.onStateChangeCallback) {
             this.onStateChangeCallback(this.getGameState());

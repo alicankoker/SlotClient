@@ -13,7 +13,7 @@ export class PlayerController {
     private initializeDefaultPlayer(): void {
         const defaultPlayer = NexusPlayer.createDefaultPlayer();
         this.players.set(defaultPlayer.playerId, defaultPlayer);
-        console.log('PlayerController: Initialized default player:', defaultPlayer.getPlayerState());
+        debug.log('PlayerController: Initialized default player:', defaultPlayer.getPlayerState());
     }
 
     // Core player management methods
@@ -24,14 +24,14 @@ export class PlayerController {
     public addPlayer(playerData: INexusPlayerData): NexusPlayer {
         const player = new NexusPlayer(playerData);
         this.players.set(player.playerId, player);
-        console.log('PlayerController: Added new player:', player.getPlayerState());
+        debug.log('PlayerController: Added new player:', player.getPlayerState());
         return player;
     }
 
     public removePlayer(playerId: string): boolean {
         const removed = this.players.delete(playerId);
         if (removed) {
-            console.log('PlayerController: Removed player:', playerId);
+            debug.log('PlayerController: Removed player:', playerId);
         }
         return removed;
     }
@@ -57,7 +57,7 @@ export class PlayerController {
     public updatePlayerBalance(playerId: string, newBalance: number): boolean {
         const player = this.getPlayer(playerId);
         if (!player) {
-            console.error('PlayerController: Player not found:', playerId);
+            debug.error('PlayerController: Player not found:', playerId);
             return false;
         }
         return player.updateBalance(newBalance);
@@ -66,7 +66,7 @@ export class PlayerController {
     public canPlayerAffordBet(playerId: string, betAmount: number): boolean {
         const player = this.getPlayer(playerId);
         if (!player) {
-            console.error('PlayerController: Player not found:', playerId);
+            debug.error('PlayerController: Player not found:', playerId);
             return false;
         }
         return player.canAffordBet(betAmount);
@@ -75,7 +75,7 @@ export class PlayerController {
     public deductPlayerBet(playerId: string, betAmount: number): boolean {
         const player = this.getPlayer(playerId);
         if (!player) {
-            console.error('PlayerController: Player not found:', playerId);
+            debug.error('PlayerController: Player not found:', playerId);
             return false;
         }
         return player.deductBet(betAmount);
@@ -84,7 +84,7 @@ export class PlayerController {
     public addPlayerWinnings(playerId: string, winAmount: number): boolean {
         const player = this.getPlayer(playerId);
         if (!player) {
-            console.error('PlayerController: Player not found:', playerId);
+            debug.error('PlayerController: Player not found:', playerId);
             return false;
         }
         return player.addWinnings(winAmount);
@@ -94,7 +94,7 @@ export class PlayerController {
     public validatePlayerSession(playerId: string, sessionId: string): boolean {
         const player = this.getPlayer(playerId);
         if (!player) {
-            console.error('PlayerController: Player not found for session validation:', playerId);
+            debug.error('PlayerController: Player not found for session validation:', playerId);
             return false;
         }
         return player.validateSession(sessionId);
@@ -103,7 +103,7 @@ export class PlayerController {
     public updatePlayerActivity(playerId: string): boolean {
         const player = this.getPlayer(playerId);
         if (!player) {
-            console.error('PlayerController: Player not found for activity update:', playerId);
+            debug.error('PlayerController: Player not found for activity update:', playerId);
             return false;
         }
         player.updateActivity();
@@ -113,7 +113,7 @@ export class PlayerController {
     public createPlayerSession(playerId: string): string | null {
         const player = this.getPlayer(playerId);
         if (!player) {
-            console.error('PlayerController: Player not found for session creation:', playerId);
+            debug.error('PlayerController: Player not found for session creation:', playerId);
             return null;
         }
         return player.createNewSession();
@@ -152,7 +152,7 @@ export class PlayerController {
         }
 
         if (removedCount > 0) {
-            console.log(`PlayerController: Removed ${removedCount} inactive players`);
+            debug.log(`PlayerController: Removed ${removedCount} inactive players`);
         }
 
         return removedCount;

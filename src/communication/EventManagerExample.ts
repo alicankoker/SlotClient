@@ -16,6 +16,7 @@ import {
     HttpEventAdapter,
     WebSocketEventAdapter
 } from './EventAdapters';
+import { debug } from '../engine/utils/debug';
 
 // Example 1: Basic EventManager usage
 export class BasicEventExample {
@@ -41,23 +42,23 @@ export class BasicEventExample {
     private setupEventListeners(): void {
         // Listen to spin events
         this.eventManager.on(GameEvents.SPIN_STARTED, (event) => {
-            console.log('Spin started for player:', event.context.playerId);
+            debug.log('Spin started for player:', event.context.playerId);
         });
 
         this.eventManager.on(GameEvents.SPIN_COMPLETED, (event) => {
-            console.log('Spin completed with result:', event.data.result);
+            debug.log('Spin completed with result:', event.data.result);
         });
 
         // Listen to win events with filtering
         this.eventManager.on(GameEvents.WIN_DETECTED, (event) => {
-            console.log('Win detected:', event.data.winAmount);
+            debug.log('Win detected:', event.data.winAmount);
         }, {
             filter: (event) => event.data.winAmount > 100 // Only big wins
         });
 
         // One-time listener
         this.eventManager.once(GameEvents.BIG_WIN_TRIGGERED, (event) => {
-            console.log('First big win!', event.data.winAmount);
+            debug.log('First big win!', event.data.winAmount);
         });
     }
 
@@ -115,7 +116,7 @@ export class AdvancedEventExample {
                 try {
                     next();
                 } catch (error) {
-                    console.error('Error in event processing:', error);
+                    debug.error('Error in event processing:', error);
                     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                     this.eventManager.emit(GameEvents.SYSTEM_ERROR, {
                         error: errorMessage,
@@ -128,26 +129,26 @@ export class AdvancedEventExample {
 
     private trackEvent(event: any): void {
         // In a real implementation, this would send to analytics service
-        console.log('Analytics: Tracking event', event.type);
+        debug.log('Analytics: Tracking event', event.type);
     }
 
     private setupAdvancedListeners(): void {
         // Player-specific event filtering
         this.eventManager.on('*', (event) => {
-            console.log('All events:', event.type);
+            debug.log('All events:', event.type);
         }, {
             filter: (event) => event.context.playerId === 'player1'
         });
 
         // High-priority system events
         this.eventManager.on(GameEvents.SYSTEM_ERROR, (event) => {
-            console.error('System error occurred:', event.data);
+            debug.error('System error occurred:', event.data);
         }, { priority: 10 });
 
         // Balance change tracking
         this.eventManager.on(GameEvents.PLAYER_BALANCE_CHANGED, (event) => {
             const { oldBalance, newBalance, change } = event.data;
-            console.log(`Balance changed: ${oldBalance} -> ${newBalance} (${change > 0 ? '+' : ''}${change})`);
+            debug.log(`Balance changed: ${oldBalance} -> ${newBalance} (${change > 0 ? '+' : ''}${change})`);
         });
     }
 
@@ -177,7 +178,7 @@ export class AdapterEventExample {
         const localAdapter = EventAdapterFactory.createLocalAdapter(this.eventManager);
         this.bridge.setAdapter(localAdapter);
         await this.bridge.connect();
-        console.log('Local adapter connected');
+        debug.log('Local adapter connected');
     }
 
     // HTTP adapter example
@@ -185,7 +186,7 @@ export class AdapterEventExample {
         const httpAdapter = EventAdapterFactory.createHttpAdapter({ baseUrl, apiKey });
         this.bridge.setAdapter(httpAdapter);
         await this.bridge.connect();
-        console.log('HTTP adapter connected');
+        debug.log('HTTP adapter connected');
     }
 
     // WebSocket adapter example
@@ -193,7 +194,7 @@ export class AdapterEventExample {
         const wsAdapter = EventAdapterFactory.createWebSocketAdapter({ url });
         this.bridge.setAdapter(wsAdapter);
         await this.bridge.connect();
-        console.log('WebSocket adapter connected');
+        debug.log('WebSocket adapter connected');
     }
 
     public simulateEvents(): void {
@@ -222,7 +223,7 @@ export class EventReplayExample {
     private setupReplayListeners(): void {
         // Listen to all events for replay
         this.eventManager.on('*', (event) => {
-            console.log('Replay event:', event.type, event.data);
+            debug.log('Replay event:', event.type, event.data);
         });
     }
 
@@ -236,7 +237,7 @@ export class EventReplayExample {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Replay events for player1
-        console.log('Replaying events for player1...');
+        debug.log('Replaying events for player1...');
         this.eventManager.replayEvents({
             playerId: 'player1'
         });
@@ -245,7 +246,7 @@ export class EventReplayExample {
         const history = this.eventManager.getEventHistory({
             eventTypes: [GameEvents.SPIN_STARTED, GameEvents.SPIN_COMPLETED]
         });
-        console.log('Event history:', history);
+        debug.log('Event history:', history);
     }
 }
 
@@ -268,17 +269,17 @@ export class GameIntegrationExample {
         // This would integrate with your existing SpinController, etc.
         this.eventManager.on(GameEvents.SPIN_STARTED, (event) => {
             // Trigger your existing spin logic
-            console.log('Integrating with SpinController...');
+            debug.log('Integrating with SpinController...');
         });
 
         this.eventManager.on(GameEvents.REEL_STARTED, (event) => {
             // Trigger reel animations
-            console.log('Starting reel animation for reel:', event.data.reelIndex);
+            debug.log('Starting reel animation for reel:', event.data.reelIndex);
         });
 
         this.eventManager.on(GameEvents.REEL_STOPPED, (event) => {
             // Handle reel stop
-            console.log('Reel stopped with symbols:', event.data.finalSymbols);
+            debug.log('Reel stopped with symbols:', event.data.finalSymbols);
         });
     }
 
@@ -301,7 +302,7 @@ export class GameIntegrationExample {
 
 // Usage examples
 export function runEventManagerExamples(): void {
-    console.log('=== EventManager Examples ===');
+    debug.log('=== EventManager Examples ===');
 
     // Basic example
     const basicExample = new BasicEventExample();

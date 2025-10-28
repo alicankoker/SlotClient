@@ -37,21 +37,21 @@ export class NexusPlayer {
     // Update player balance
     public updateBalance(newBalance: number): boolean {
         if (newBalance < 0) {
-            console.error('NexusPlayer: Cannot set negative balance:', newBalance);
+            debug.error('NexusPlayer: Cannot set negative balance:', newBalance);
             return false;
         }
 
         this.playerData.balance = newBalance;
         this.playerData.lastActivity = Date.now();
         
-        console.log(`NexusPlayer: Updated balance for ${this.playerId}: ${this.balance}`);
+        debug.log(`NexusPlayer: Updated balance for ${this.playerId}: ${this.balance}`);
         return true;
     }
 
     // Check if player can afford a bet
     public canAffordBet(betAmount: number): boolean {
         if (betAmount <= 0) {
-            console.error('NexusPlayer: Invalid bet amount:', betAmount);
+            debug.error('NexusPlayer: Invalid bet amount:', betAmount);
             return false;
         }
 
@@ -71,7 +71,7 @@ export class NexusPlayer {
     // Add winnings to balance
     public addWinnings(winAmount: number): boolean {
         if (winAmount < 0) {
-            console.error('NexusPlayer: Cannot add negative winnings:', winAmount);
+            debug.error('NexusPlayer: Cannot add negative winnings:', winAmount);
             return false;
         }
 

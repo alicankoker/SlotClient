@@ -1,4 +1,4 @@
-import { SpinResultData, GridData, CascadeStepData, SpinResponseData } from '../types/GameTypes';
+import { GridData, CascadeStepData, SpinResultData, SpinResponseData } from '../types/ICommunication';
 import { debug } from '../utils/debug';
 
 export interface GameState {
@@ -89,17 +89,17 @@ export class GameDataManager {
     // Setters
     public setCurrentSpinId(spinId: string): void {
         this.gameState.currentSpinId = spinId;
-        console.log('GameDataManager: Current spin ID set to', spinId);
+        debug.log('GameDataManager: Current spin ID set to', spinId);
     }
 
     public setCurrentGrid(grid: GridData): void {
         this.gameState.currentGrid = grid;
-        console.log('GameDataManager: Current grid updated');
+        debug.log('GameDataManager: Current grid updated');
     }
 
     public setSymbolsBeforeSpin(grid: GridData): void {
         this.gameState.symbolsBeforeSpin = grid;
-        console.log('GameDataManager: Symbols before spin set');
+        debug.log('GameDataManager: Symbols before spin set');
     }
 
     // Method to capture current static container symbols before starting a new spin
@@ -109,42 +109,42 @@ export class GameDataManager {
         if (this.gameState.currentSpinData?.result?.steps[totalSteps ? totalSteps - 1 : 0]) {
             // Use the final grid from the previous spin
             this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[totalSteps ? totalSteps - 1 : 0].gridAfter;
-            console.log('GameDataManager: Captured previous spin final symbols as symbolsBeforeSpin');
+            debug.log('GameDataManager: Captured previous spin final symbols as symbolsBeforeSpin');
         } else {
             // First spin - no previous data, this will be set by the game initialization
-            console.log('GameDataManager: First spin - no previous symbols to capture');
+            debug.log('GameDataManager: First spin - no previous symbols to capture');
         }
     }
 
     // Method to set initial symbols for first spin (from game initialization)
     public setInitialSymbols(initialGrid: GridData): void {
         this.gameState.symbolsBeforeSpin = initialGrid;
-        console.log('GameDataManager: Set initial symbols for first spin');
+        debug.log('GameDataManager: Set initial symbols for first spin');
     }
 
     public setCurrentCascadeSteps(steps: CascadeStepData[]): void {
         this.gameState.currentCascadeSteps = steps;
-        console.log('GameDataManager: Cascade steps updated', steps.length);
+        debug.log('GameDataManager: Cascade steps updated', steps.length);
     }
 
     public setIsSpinning(isSpinning: boolean): void {
         this.gameState.isSpinning = isSpinning;
-        console.log('GameDataManager: Spin state set to', isSpinning);
+        debug.log('GameDataManager: Spin state set to', isSpinning);
     }
 
     public setLastSpinResult(result: SpinResultData): void {
         this.gameState.lastSpinResult = result;
-        console.log('GameDataManager: Last spin result updated');
+        debug.log('GameDataManager: Last spin result updated');
     }
 
     public setPlayerBalance(balance: number): void {
         this.gameState.playerBalance = balance;
-        console.log('GameDataManager: Player balance set to', balance);
+        debug.log('GameDataManager: Player balance set to', balance);
     }
 
     public setCurrentBet(bet: number): void {
         this.gameState.currentBet = bet;
-        console.log('GameDataManager: Current bet set to', bet);
+        debug.log('GameDataManager: Current bet set to', bet);
     }
 
     // Update multiple properties at once
@@ -161,7 +161,7 @@ export class GameDataManager {
         this.gameState.currentGrid = undefined;
         this.gameState.currentCascadeSteps = undefined;
         this.gameState.isSpinning = false;
-        console.log('GameDataManager: Spin data reset');
+        debug.log('GameDataManager: Spin data reset');
     }
 
     // Clear all data
@@ -171,6 +171,6 @@ export class GameDataManager {
             playerBalance: 1000,
             currentBet: 10
         };
-        console.log('GameDataManager: All data cleared');
+        debug.log('GameDataManager: All data cleared');
     }
 }
