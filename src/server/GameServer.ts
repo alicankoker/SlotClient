@@ -14,6 +14,7 @@ import {
   SymbolData,
 } from "../engine/types/ICommunication";
 import { debug } from "../engine/utils/debug";
+import { Utils } from "../engine/utils/Utils";
 import { Reelsets } from "./Games/ClassicSpinGame/Reelsets";
 
 export class GameServer {
@@ -201,9 +202,12 @@ export class GameServer {
     for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
       symbols.push([]);
       const reelset = Reelsets.Reelsets[col];
-      const randomIndex = Math.floor(Math.random() * reelset.length);
+      const randomIndex = Utils.getRandomInt(0, reelset.length - 1);
+      console.log(
+        "randomIndex", randomIndex
+      )
       if (randomIndex + totalRows <= reelset.length) {
-        for (let row = 0; row < totalRows; row++) {
+        for (let row = randomIndex; row < randomIndex + totalRows; row++) {
           const sym = { symbolId: reelset[row] };
           if (sym.symbolId === undefined || sym.symbolId > 9) debugger;
           symbols[col].push(sym as SymbolData);
@@ -222,6 +226,9 @@ export class GameServer {
         }
       }
     }
+    console.log(
+      "symbols", symbols
+    )
     return { symbols: symbols as SymbolData[][] };
   }
 
