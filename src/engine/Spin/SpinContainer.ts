@@ -270,23 +270,8 @@ export abstract class SpinContainer extends Container {
   }
 
   // Spinning functionality
-  public startSpin(spinData: SpinResultData, onComplete?: () => void): boolean {
-    if (this.isSpinning) return false;
-
-    this.setMode(IReelMode.SPEEDING);
-    this.isSpinning = true;
-    this.spinStartTime = Date.now();
-    this.targetSymbols = [
-      ...spinData.steps[spinData.steps.length - 1].gridAfter.symbols
-        .flat()
-        .map((symbol: SymbolData) => symbol.symbolId),
-    ];
-    ("");
-    this.onSpinCompleteCallback = onComplete;
-
-    return true;
-  }
-
+  public abstract startSpin(spinData: SpinResultData): Promise<void>;
+  
   public stopSpin(): void {
     this.isSpinning = false;
 

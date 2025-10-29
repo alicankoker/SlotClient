@@ -2,12 +2,13 @@ import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
 import { GameDataManager } from "../../data/GameDataManager";
 import { IReelMode } from "../../reels/ReelController";
-import { GridData, SpinResponseData } from "../../types/ICommunication";
+import { GridData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
 import { debug } from "../../utils/debug";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
 import { SpinController, SpinControllerConfig } from "../SpinController";
+import { ClassicSpinContainer } from "./ClassicSpinContainer";
 
 export class ClassicSpinController extends SpinController {
   constructor(container: SpinContainer, config: SpinControllerConfig) {
@@ -109,6 +110,9 @@ export class ClassicSpinController extends SpinController {
     }
   }
 
+  public startSpinAnimation(spinData: SpinResultData): void {
+    (this.container as ClassicSpinContainer).startSpin(spinData);
+  }
   // Symbol transfer methods
   protected async transferSymbolsToSpinContainer(
     initialGrid: GridData

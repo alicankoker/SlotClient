@@ -5,11 +5,11 @@ import { SpinResultData, CascadeStepData, GridData, SpinResponseData, GridUtils,
 import { INexusPlayerData, NexusSpinRequest, SpinTransaction } from '../../nexus/NexusInterfaces';
 import { debug } from '../../engine/utils/debug';
 import { SpinController } from '../../engine/Spin/SpinController';
-import { ClassicSpinContainer } from '../../engine/Spin/ClassicSpin/ClassicSpinContainer';
+import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinContainer';
 import { SpinContainer } from '../../engine/Spin/SpinContainer';
 import { ReelsController } from '../../engine/reels/ReelsController';
 import { Application } from 'pixi.js/lib/app/Application';
-import { ClassicSpinController } from '../../engine/Spin/ClassicSpin/ClassicSpinController';
+import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
 import { CascadeSpinController } from '../../engine/Spin/cascade/CascadeSpinController';
 import { GameConfig, spinContainerConfig } from '../../config/GameConfig';
 import { StaticContainer } from '../../engine/reels/StaticContainer';
@@ -68,7 +68,7 @@ export class SlotGameController {
         debug.log('SlotGameController: Initial grid data for ReelsController:', initialGridData);
         this.reelsController = new ReelsController(this.app, initialGridData, this.reelsContainer);
 
-        this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig);
+        this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig) as ClassicSpinContainer;
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0,
             symbolHeight: GameConfig.REFERENCE_SYMBOL.height,
