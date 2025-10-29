@@ -140,7 +140,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
     public stopSpin(): void {
         super.stopSpin();
-        this.reelsSpinStates.forEach(state => state.speed = 0);
+        this.reelsSpinStates.forEach(state => {state.speed = 0; state.state = IReelSpinState.STOPPED;});
 
         //TO-DO: Run win sequences
     }
@@ -189,7 +189,10 @@ export class ClassicSpinContainer extends SpinContainer {
                     debug.warn(`Missing cell at [${col}, ${row}]`);
                     continue;
                 }
-                (this.symbols[col][row] as GridSymbol).setSymbolId(cell.symbolId);
+                const symbol = this.symbols[col][row] as GridSymbol;
+                symbol.setSymbolId(cell.symbolId);
+
+                symbol.position.y = this.defaultSymbolYPositions[row];
             }
         }
     }

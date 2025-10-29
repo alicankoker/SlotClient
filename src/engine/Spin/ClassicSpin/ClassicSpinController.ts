@@ -31,7 +31,7 @@ export class ClassicSpinController extends SpinController {
 
     try {
       this.reelsController.resetWinAnimations();
-      
+
       this.setState(ISpinState.SPINNING);
 
       if (this.onSpinStartCallback) {
