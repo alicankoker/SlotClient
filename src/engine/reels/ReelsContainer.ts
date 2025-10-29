@@ -134,7 +134,6 @@ export class ReelsContainer extends Container {
   private createFrameElements(): void {
     this.frameElementsContainer = new Container();
     this.frameElementsContainer.label = 'FrameElementsContainer';
-    this.addChild(this.frameElementsContainer);
 
     const { atlas, skeleton } = AssetsConfig.BONUS_SPINE_ASSET;
 
@@ -402,5 +401,9 @@ export class ReelsContainer extends Container {
 
   public getMask(): Graphics {
     return this.reelAreaMask;
+  }
+
+  public getElementsContainer(): Container | undefined {
+    return this.frameElementsContainer;
   }
 } 

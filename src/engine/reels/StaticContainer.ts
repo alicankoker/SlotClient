@@ -10,6 +10,7 @@ import { Helpers } from '../utils/Helpers';
 import { WinConfig } from '../types/IWinPresentation';
 import { GridData } from '../types/ICommunication';
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
+import { AnimationContainer } from '../components/AnimationContainer';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -140,12 +141,16 @@ export class StaticContainer extends Container {
     public async setAnimation(winDatas: WinConfig[]): Promise<void> {
         this.resetWinAnimations();
 
+        const totalWinAmount = winDatas.reduce((sum, winData) => sum + winData.amount, 0);
+
         const token = ++this._animationToken;
         this._winDatas = winDatas;
 
         this._isPlaying = true;
         this._isSkipped = false;
         this._isLooping = false;
+
+        await AnimationContainer.getInstance().playTotalWinAnimation(totalWinAmount);
 
         await this.playWinAnimations(winDatas, token);
 
@@ -185,7 +190,7 @@ export class StaticContainer extends Container {
             //debug.log(`StaticContainer: Playing win animation for win data:`, winData);
 
             this._isLooping === false && this._soundManager.play('win', false, 0.75); // Play win sound effect
-            
+
             signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, winData.amount);
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility && !this._isSkipped) {
@@ -229,7 +234,7 @@ export class StaticContainer extends Container {
         }
 
         if (this._animationToken !== token) return;
-        
+
         signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE);
 
         this._isPlaying = false;
@@ -284,35 +289,19 @@ export class StaticContainer extends Container {
      * @param lines The winning lines.
      * @returns A promise that resolves when the animation is complete.
      */
-    public playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
-        return new Promise((resolve) => {
+    public async playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
+        return new Promise(async (resolve) => {
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.showLines(lines);
             }
 
-            if (GameConfig.WIN_ANIMATION.winTextVisibility) {
-                // Play win text animation
-                gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
-                    x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                        this._winText.text = `You won ${Helpers.convertToDecimal(amount)}€ on lines ${lines.join(', ')}!`;
-                        this._winText.visible = true;
-                    },
-                    onComplete: () => {
-                        gsap.to(this._winText.scale, {
-                            x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', delay: 1, onComplete: () => {
-                                this._winText.text = ``;
-                                this._winText.visible = false;
+            await AnimationContainer.getInstance().playTotalWinAnimation(amount);
 
-                                if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-                                    this._winLines.hideAllLines();
-                                }
-
-                                resolve();
-                            }
-                        });
-                    }
-                });
+            if (GameConfig.WIN_ANIMATION.winlineVisibility) {
+                this._winLines.hideAllLines();
             }
+
+            resolve();
         });
     }
 

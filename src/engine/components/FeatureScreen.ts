@@ -502,8 +502,6 @@ export class FeatureScreen extends FeatureScreenContainer {
             this._dontShow ? "true" : "false"
         );
 
-        eventBus.emit("showUI");
-
         this.destroy();
 
         if (this._resolveClose) {

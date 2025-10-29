@@ -5,6 +5,10 @@ type eventType = {
   setBatchComponentState: TSetBatchComponentStateEventMap;
   showUI: null;
   hideUI: null;
+  startAutoPlay: {
+    numberOfAutoSpins: number;
+    selectedSpinType: 'turbo' | 'quick' | 'skip';
+  };
 };
 
 class EventManager<Events extends eventType> {

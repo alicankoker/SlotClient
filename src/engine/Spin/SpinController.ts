@@ -177,69 +177,69 @@ export abstract class SpinController {
    * @param count The number of spins to auto play.
    * @returns A promise that resolves when auto play starts.
    */
-  /*public async startAutoPlay(count: number): Promise<void> {
-        if (this._isAutoPlaying || this.getIsSpinning()) {
-            return;
-        }
+  public async startAutoPlay(count: number): Promise<void> {
+    if (this._isAutoPlaying || this.getIsSpinning()) {
+      return;
+    }
 
-        this._autoPlayCount = count;
-        this._autoPlayed = 0;
-        this._isAutoPlaying = true;
+    this._autoPlayCount = count;
+    this._autoPlayed = 0;
+    this._isAutoPlaying = true;
 
-        const text = `Starting Auto Play: ${this._autoPlayCount}`;
-        this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
-        this.reelsController.getReelsContainer().getAutoPlayCountText().visible = true;
+    const text = `Starting Auto Play: ${this._autoPlayCount}`;
+    this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
+    this.reelsController.getReelsContainer().getAutoPlayCountText().visible = true;
 
-        const staticContainer = this.reelsController.getStaticContainer();
-        if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
+    const staticContainer = this.reelsController.getStaticContainer();
+    if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
 
-        void this.continueAutoPlay();
+    void this.continueAutoPlay();
 
-        debug.log("Auto play started with count:", this._autoPlayCount);
-    }*/
+    debug.log("Auto play started with count:", this._autoPlayCount);
+  }
 
   //TO-DO: This needs to be moved to somewhere else
   /**
    * @description Continue auto play if conditions are met.
    * @returns True if auto play continues, false otherwise.
    */
-  /*public async continueAutoPlay(): Promise<boolean> {
-        if (!this._isAutoPlaying || this.getIsSpinning() || this._autoPlayCount <= 0) {
-            this.stopAutoPlay();
-            return false;
-        }
-
-        // Set up the auto play timeout
-        this._autoPlayTimeoutID = setTimeout(async () => {
-            const response = this.executeSpin({ betAmount: 1 }); // Replace with actual bet amount
-
-            // Check if the spin was successful. If not, stop auto play.
-            if (!response) {
-                this.stopAutoPlay();
-                return false;
-            }
-
-            this._autoPlayCount -= 1;
-            this._autoPlayed += 1;
-
-            const text = `Auto Plays Left: ${this._autoPlayCount}`;
-            this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
-
-            if (this._autoPlayCount <= 0) {
-                const staticContainer = this.reelsController.getStaticContainer();
-                // Re-enable looped win animation after last auto play spin
-                if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
-            }
-
-            debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
-        }, this._autoPlayDuration);
-
-        return true;
+  public async continueAutoPlay(): Promise<boolean> {
+    if (!this._isAutoPlaying || this.getIsSpinning() || this._autoPlayCount <= 0) {
+      this.stopAutoPlay();
+      return false;
     }
 
-    /**
-     * @description Stop auto play.
-     */
+    // Set up the auto play timeout
+    this._autoPlayTimeoutID = setTimeout(async () => {
+      const response = await this.executeSpin(); // Replace with actual bet amount
+
+      // Check if the spin was successful. If not, stop auto play.
+      if (!response) {
+        this.stopAutoPlay();
+        return false;
+      }
+
+      this._autoPlayCount -= 1;
+      this._autoPlayed += 1;
+
+      const text = `Auto Plays Left: ${this._autoPlayCount}`;
+      this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
+
+      if (this._autoPlayCount <= 0) {
+        const staticContainer = this.reelsController.getStaticContainer();
+        // Re-enable looped win animation after last auto play spin
+        if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
+      }
+
+      debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
+    }, this._autoPlayDuration);
+
+    return true;
+  }
+
+  /**
+   * @description Stop auto play.
+   */
   public stopAutoPlay(): void {
     if (!this._isAutoPlaying) {
       return;

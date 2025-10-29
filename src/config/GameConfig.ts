@@ -121,7 +121,7 @@ export class GameConfig {
     }
 
     public static readonly WIN_EVENT: WinEventConfig = {
-        enabled: true,
+        enabled: false,
         duration: 3,
         canSkip: true
     };
@@ -145,10 +145,10 @@ export class GameConfig {
     public static readonly SAFE_AREA = {
         landscape: {
             width: 1920, //this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
-            height: 900 //this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
+            height: 1100 //this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
         },
         portrait: {
-            width: (this.REFERENCE_SYMBOL.width + this.REFERENCE_SPACING.horizontal) * (this.GAME_RULES.reelCount + 0.75), // set based on reel count
+            width: (this.REFERENCE_SYMBOL.width + this.REFERENCE_SPACING.horizontal) * (this.GAME_RULES.reelCount + 0.65), // set based on reel count
             height: 1920 // based on REFERENCE_RESOLUTION portrait heights
         }
     };

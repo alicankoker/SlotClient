@@ -39,7 +39,7 @@ export class WinLines extends WinLinesContainer {
                 winLine.lineTo(line[i].x, line[i].y);
                 winLine.stroke({
                     color: 0xFFFFFF,
-                    width: 5,
+                    width: 10,
                     join: 'round',
                     cap: 'round'
                 });

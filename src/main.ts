@@ -18,8 +18,8 @@ import { ISpinState, SpinMode } from "./engine/types/ISpinConfig";
 import { WinEvent } from "./engine/components/WinEvent";
 import { Background } from "./engine/components/Background";
 import { WinEventType } from "./engine/types/IWinEvents";
-import { WinLines } from "./engine/components/WinLines";
 import { AnimationContainer } from "./engine/components/AnimationContainer";
+import { FeatureScreen } from "./engine/components/FeatureScreen";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -68,16 +68,14 @@ export class DoodleV8Main {
       const storage = Storage.getInstance();
       storage.setItem("player_balance", 1000);
 
-      // if (localStorage.getItem('featureScreenDontShow') !== 'true') {
-      //     const featureScreen = new FeatureScreen(this.app);
-      //     this.app.stage.addChild(featureScreen);
+      if (localStorage.getItem('featureScreenDontShow') !== 'true') {
+        const featureScreen = new FeatureScreen(this.app);
+        this.app.stage.addChild(featureScreen);
 
-      //     this.responsiveManager.onResize();
+        this.responsiveManager.onResize();
 
-      //     await featureScreen.waitForClose();
-      // } else {
-      //     eventBus.emit("showUI");
-      // }
+        await featureScreen.waitForClose();
+      }
 
       // Step 4: Initialize controllers (now that assets are loaded)
       this.initializeControllers(initData as GridData);
@@ -98,22 +96,46 @@ export class DoodleV8Main {
 
       //TO-DO: this needs to be moved to a separate place
       // Add keyboard handlers
+
+      const spin = () => {
+        debug.log("🎲 Manual spin triggered");
+        if (this.slotGameController?.spinController) {
+          if (
+            this.slotGameController.spinController.getIsSpinning() === false &&
+            this.winEvent.isWinEventActive === false &&
+            this.slotGameController.spinController.getIsAutoPlaying() === false
+          ) {
+            this.slotGameController.executeGameSpin(10, "manual");
+          } else {
+            GameConfig.FORCE_STOP.enabled && this.slotGameController.spinController.forceStop();
+          }
+        }
+      }
+
+      const autoPlay = (numberOfAutoSpins: number) => {
+        debug.log("🔄 Auto-play triggered");
+        if (
+          this.slotGameController?.spinController &&
+          this.slotGameController.spinController.getIsSpinning() === false &&
+          this.slotGameController.spinController.getIsAutoPlaying() === false &&
+          this.winEvent.isWinEventActive === false
+        ) {
+          // usage: window.dispatchEvent(new CustomEvent("startAutoPlay", { detail: {numberOfAutoSpins: 5, selectedSpinType: "skip"} }));
+          this.slotGameController.spinController.startAutoPlay(numberOfAutoSpins);
+        }
+      };
+
+      eventBus.on("spin", () => {
+        spin()
+      });
+      eventBus.on("startAutoPlay", (payload) => {
+        autoPlay(payload.numberOfAutoSpins);
+      });
+
       window.addEventListener("keydown", (event) => {
         switch (event.key.toLowerCase()) {
           case " ":
-            debug.log("🎲 Manual spin triggered");
-            if (this.slotGameController?.spinController) {
-              if (
-                this.slotGameController.spinController.getIsSpinning() === false &&
-                this.winEvent.isWinEventActive === false &&
-                this.slotGameController.spinController.getIsAutoPlaying() === false
-              ) {
-                eventBus.emit(SpinEventTypes.REQUEST, "manual_spin");
-                this.slotGameController.executeGameSpin(10, "manual");
-              } else {
-                GameConfig.FORCE_STOP.enabled && this.slotGameController.spinController.forceStop();
-              }
-            }
+            spin()
             break;
           case "f":
             debug.log("🔄 Force stop triggered");
@@ -126,18 +148,7 @@ export class DoodleV8Main {
             }
             break;
           case "a":
-            debug.log("🔄 Auto-play triggered");
-            if (
-              GameConfig.AUTO_PLAY.enabled &&
-              this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getIsSpinning() === false &&
-              this.slotGameController.spinController.getIsAutoPlaying() === false &&
-              this.winEvent.isWinEventActive === false
-            ) {
-              /*this.slotGameController.spinController.startAutoPlay(
-                GameConfig.AUTO_PLAY.count || 5
-              ); // Start 5 auto spins*/
-            }
+            autoPlay(5); // Example: start 10 auto-spins
             break;
           case "q":
             debug.log("🛑 Stop auto-play");
@@ -384,6 +395,7 @@ export class DoodleV8Main {
     const loader = Loader.getInstance(this.app);
     await loader.create();
     loader.mount();
+    eventBus.emit("closeWrapperLoading");
     // set custom loader timings (milliseconds)
     loader.setTimings(GameConfig.LOADER_DEFAULT_TIMINGS);
     await loader.progress; // Wait for the loader to complete
@@ -413,6 +425,8 @@ export class DoodleV8Main {
 
     // Set initial mode to static
     this.slotGameController!.reelsController!.setMode(ISpinState.IDLE);
+
+    eventBus.emit("showUI");
   }
 }
 

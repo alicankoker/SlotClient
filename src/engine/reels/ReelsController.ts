@@ -11,6 +11,7 @@ import { SpinContainer } from "./SpinContainer";
 import { ISpinState, SpinMode } from "../types/ISpinConfig";
 import { GridData } from "../types/ICommunication";
 import { WinConfig } from "../types/IWinPresentation";
+import { AnimationContainer } from "../components/AnimationContainer";
 
 export class ReelsController {
   private app: Application;
@@ -166,6 +167,10 @@ export class ReelsController {
     }
 
     this.reelsContainer.stopFrameAnimation();
+
+    const animationContainer = AnimationContainer.getInstance();
+
+    animationContainer.stopWinTextAnimation();
 
     const staticContainer = this.reelsContainer.getStaticContainer();
 

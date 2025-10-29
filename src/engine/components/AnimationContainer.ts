@@ -5,6 +5,8 @@ import { GameConfig } from "../../config/GameConfig";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { Helpers } from "../utils/Helpers";
 import { gsap } from "gsap";
+import { AssetsConfig } from "../../config/AssetsConfig";
+import { Spine } from "@esotericsoftware/spine-pixi-v8";
 
 export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
@@ -15,6 +17,7 @@ export class AnimationContainer extends Container {
     private _autoPlayCountText: Text;
     private _winText: Text;
     private _spinModeText!: Text;
+    private _transition!: Spine;
 
     private constructor() {
         super();
@@ -31,7 +34,7 @@ export class AnimationContainer extends Container {
         this.addChild(this._autoPlayCountText);
 
         this._winText = new Text({ text: '', style: GameConfig.style.clone() });
-        this._winText.style.fontSize = 100;
+        this._winText.style.fontSize = 150;
         this._winText.label = 'WinText';
         this._winText.anchor.set(0.5);
         this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
@@ -48,6 +51,15 @@ export class AnimationContainer extends Container {
         this._winEvent = WinEvent.getInstance();
         this.addChild(this._winEvent);
 
+        const { atlas, skeleton } = AssetsConfig.TRANSITION_SPINE_ASSET;
+
+        this._transition = Spine.from({ atlas, skeleton });
+        this._transition.label = 'TransitionSpine';
+        this._transition.scale.set(15, 10);
+        this._transition.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._transition.visible = false;
+        this.addChild(this._transition);
+
         this.eventListeners();
     }
 
@@ -60,21 +72,44 @@ export class AnimationContainer extends Container {
 
     private eventListeners(): void {
         signals.on(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, (winAmount: number | undefined) => {
-            console.log("ReelsContainer: Received WIN_ANIMATION_PLAY signal");
             if (winAmount !== undefined) {
-                this.playWinAnimation(winAmount);
+                this.playWinTextAnimation(winAmount);
             }
         });
 
         signals.on(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE, () => {
-            console.log("ReelsContainer: Received WIN_ANIMATION_COMPLETE signal");
-            this.stopWinAnimation();
+            this.stopWinTextAnimation();
         });
     }
 
-    private playWinAnimation(winAmount: number): void {
+    public playTotalWinAnimation(totalWinAmount: number): Promise<void> {
+        return new Promise((resolve) => {
+            if (!GameConfig.WIN_ANIMATION.winTextVisibility) {
+                resolve();
+                return;
+            }
+            // Play total win text animation
+            gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
+                x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
+                    this._winText.text = `${Helpers.convertToDecimal(totalWinAmount)}€`;
+                    this._winText.visible = true;
+                },
+                onComplete: () => {
+                    gsap.to(this._winText.scale, {
+                        x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', delay: 1, onComplete: () => {
+                            this._winText.text = ``;
+                            this._winText.visible = false;
+                            resolve();
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    public playWinTextAnimation(winAmount: number): void {
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
-            // Play win text animation
+            // Play single win text animation
             gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
                     this._winText.text = `${Helpers.convertToDecimal(winAmount)}€`;
@@ -84,7 +119,7 @@ export class AnimationContainer extends Container {
         }
     }
 
-    private stopWinAnimation(): void {
+    public stopWinTextAnimation(): void {
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
             gsap.to(this._winText.scale, {
                 x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', onComplete: () => {
@@ -97,6 +132,30 @@ export class AnimationContainer extends Container {
 
     public playWinEventAnimation(): void {
         this._winEvent.playWinEventAnimation();
+    }
+
+    public async startTransitionAnimation(callback?: ((resolve?: () => void) => Promise<void> | void)): Promise<void> {
+        this._transition.visible = true;
+        await this.playAnimation("intro", false);
+
+        if (callback) {
+            if (callback.length > 0) {
+                await new Promise<void>((resolve) => callback(resolve));
+            } else {
+                await callback();
+            }
+        }
+
+        await this.playAnimation("outro", false);
+    }
+
+    private playAnimation(name: string, loop: boolean): Promise<void> {
+        return new Promise((resolve) => {
+            const entry = this._transition.state.setAnimation(0, name, loop);
+            entry.listener = {
+                complete: () => resolve()
+            };
+        });
     }
 
     public getWinLines(): WinLines {

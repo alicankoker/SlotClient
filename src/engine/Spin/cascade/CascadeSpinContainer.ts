@@ -60,8 +60,15 @@ export class CascadeSpinContainer extends SpinContainer {
         debug.log(`CascadeSpinContainer: Completed cascade step ${stepData.step}`);
     }
 
+    // temporary spinning functionality for abstract SpinContainer
+    public startSpin(spinData: SpinResultData): Promise<void> {
+        return new Promise<void>((resolve) => {
+            this.startSpinAnimation(spinData);
+        });
+    }
+
     // Spinning functionality
-    public startSpin(spinData: SpinResultData, onComplete?: () => void): boolean {
+    /*public startSpin(spinData: SpinResultData, onComplete?: () => void): boolean {
         if (this.isSpinning) return false;
 
         this.isSpinning = true;
@@ -114,7 +121,7 @@ export class CascadeSpinContainer extends SpinContainer {
         });
 
         return true;
-    }
+    }*/
 
     public stopSpin(): void {
         this.isSpinning = false;

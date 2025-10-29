@@ -1,26 +1,21 @@
 import { Nexus } from '../../nexus/Nexus';
 import { PlayerController } from '../../nexus/player/PlayerController';
 import { GameServer } from '../../server/GameServer';
-import { SpinResultData, CascadeStepData, GridData, SpinResponseData, GridUtils, MatchData, DropData, SymbolData, SpinRequestData } from '../../engine/types/ICommunication';
-import { INexusPlayerData, NexusSpinRequest, SpinTransaction } from '../../nexus/NexusInterfaces';
+import { SpinResultData, CascadeStepData, GridData } from '../../engine/types/ICommunication';
+import { INexusPlayerData, SpinTransaction } from '../../nexus/NexusInterfaces';
 import { debug } from '../../engine/utils/debug';
 import { SpinController } from '../../engine/Spin/SpinController';
-import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinContainer';
 import { SpinContainer } from '../../engine/Spin/SpinContainer';
 import { ReelsController } from '../../engine/reels/ReelsController';
 import { Application } from 'pixi.js/lib/app/Application';
-import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
-import { CascadeSpinController } from '../../engine/Spin/cascade/CascadeSpinController';
 import { GameConfig, spinContainerConfig } from '../../config/GameConfig';
 import { StaticContainer } from '../../engine/reels/StaticContainer';
 import { ReelsContainer } from '../../engine/reels/ReelsContainer';
-import { CascadeSpinContainer } from '../../engine/Spin/cascade/CascadeSpinContainer';
-import { GameRulesConfig } from '../../config/GameRulesConfig';
-import { Utils } from '../../engine/utils/Utils';
 import { GameDataManager } from '../../engine/data/GameDataManager';
-import { Graphics } from 'pixi.js';
 import { ISpinState } from '../../engine/types/ISpinConfig';
 import { AnimationContainer } from '../../engine/components/AnimationContainer';
+import { ClassicSpinController } from '../../engine/Spin/ClassicSpin/ClassicSpinController';
+import { ClassicSpinContainer } from '../../engine/Spin/ClassicSpin/ClassicSpinContainer';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -75,14 +70,15 @@ export class SlotGameController {
             symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData);
 
-            this.animationContainer = AnimationContainer.getInstance();
+        this.animationContainer = AnimationContainer.getInstance();
 
         // Set initial visibility - StaticContainer visible, SpinContainer hidden
         this.staticContainer.visible = true;
         this.spinContainer.visible = false;
 
-        this.reelsContainer.addChild(this.staticContainer);
         this.reelsContainer.addChild(this.spinContainer);
+        this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
+        this.reelsContainer.addChild(this.staticContainer);
         this.spinContainer.mask = this.reelsContainer.getMask();
         this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
@@ -148,7 +144,7 @@ export class SlotGameController {
         return this.isValidBetAmount(betAmount) &&
             this.playerController.canPlayerAffordBet(playerId, betAmount);
     }
-    
+
     //TODO: Needs to be moved to Nexus
     public getGameRules(): any {
         return {
@@ -159,7 +155,7 @@ export class SlotGameController {
             minMatchLength: 3
         };
     }
-    
+
     //TODO: Needs to be moved to Nexus
     private isValidBetAmount(betAmount: number): boolean {
         // This checks game rules, not player balance
@@ -183,7 +179,7 @@ export class SlotGameController {
     // Convenience method for executing spins
     public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
         //const response = await this.gameServer.requestSpin(betAmount);
-        
+
         const response = await this.gameServer.processSpinRequest({
             betAmount,
             gameMode
@@ -218,7 +214,7 @@ export class SlotGameController {
             case ISpinState.SPINNING:
                 this.spinContainer.visible = true;
                 this.staticContainer.visible = false;
-                break;        
+                break;
             case ISpinState.IDLE:
                 this.spinContainer.visible = false;
                 this.staticContainer.visible = true;

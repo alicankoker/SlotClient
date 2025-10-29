@@ -20,6 +20,11 @@ export abstract class WinEventController<T extends WinEventContainer> {
         this.view.winEventType = Object.values(WinEventType).indexOf(type);
 
         window.addEventListener("click", this._onSkip, { once: true });
+        window.addEventListener("keydown", (e: KeyboardEvent) => {
+            if (e.code === "Space") {
+                this._onSkip();
+            }
+        }, { once: true });
 
         debug.log("WinEvent", "Win Event animation started.");
 
@@ -56,7 +61,7 @@ export abstract class WinEventController<T extends WinEventContainer> {
 
     protected async stopWinEventAnimation(): Promise<void> {
         window.removeEventListener("click", this._onSkip);
-        
+
         return new Promise((resolve) => {
             gsap.to(this.view, {
                 alpha: 0,

@@ -1,11 +1,14 @@
 import { Assets } from "pixi.js";
 import { BundleFile, SpineAsset, SpineAssetData, SpineData } from "../engine/types/IAssetLoader";
 import { debug } from "../engine/utils/debug";
+
+const PATH = document.body.dataset.path;
+
 const PATHS = {
-  ART: "assets/art/",
-  RAW: "assets/raw/",
-  SOUNDS: "assets/sounds/",
-  ROOT: "assets/",
+  ART: PATH + "/assets/art/",
+  RAW: PATH + "/assets/raw/",
+  SOUNDS: PATH + "/assets/sounds/",
+  ROOT: PATH + "/assets/",
 };
 
 const RESOURCE_GROUP_PREFIX = "pixiResources";
@@ -40,23 +43,23 @@ export class AssetsConfig {
         assets: [
           {
             alias: 'background_base',
-            src: '/assets/Asset 2.png'
+            src: PATH + '/assets/Asset 2.png'
           },
           {
             alias: 'game_logo',
-            src: '/assets/raw/Logo_Base_Game_Vertical.png'
+            src: PATH + '/assets/raw/Logo_Base_Game_Vertical.png'
           },
           {
             alias: 'loading_bar_fill',
-            src: '/assets/raw/Loading_Bar_Fill.png'
+            src: PATH + '/assets/raw/Loading_Bar_Fill.png'
           },
           {
             alias: 'loading_bar_frame',
-            src: '/assets/raw/Loading_Bar_Frame.png'
+            src: PATH + '/assets/raw/Loading_Bar_Frame.png'
           },
           {
             alias: 'Nunito Black',
-            src: '/assets/fonts/Nunito-Black.ttf'
+            src: PATH + '/assets/fonts/Nunito-Black.ttf'
           }
         ]
       },
@@ -65,75 +68,75 @@ export class AssetsConfig {
         assets: [
           {
             alias: 'bet_area',
-            src: '/assets/raw/Bet_Amount_Area.png'
+            src: PATH + '/assets/raw/Bet_Amount_Area.png'
           },
           {
             alias: 'frame_background_base',
-            src: '/assets/raw/Base_Frame_Background_UI.png'
+            src: PATH + '/assets/raw/Base_Frame_Background_UI.png'
           },
           {
             alias: 'header_background',
-            src: '/assets/raw/Base_Header_Background_UI.png'
+            src: PATH + '/assets/raw/Base_Header_Background_UI.png'
           },
           {
             alias: 'reel_chain',
-            src: '/assets/raw/Base_Frame_Chain_UI.png'
+            src: PATH + '/assets/raw/Base_Frame_Chain_UI.png'
           },
           {
             alias: 'line_chain',
-            src: '/assets/raw/Base_Line_Chain_UI.png'
+            src: PATH + '/assets/raw/Base_Line_Chain_UI.png'
           },
           {
             alias: 'floor',
-            src: '/assets/raw/Base_Frame_Symbol_Holder_UI.png'
+            src: PATH + '/assets/raw/Base_Frame_Symbol_Holder_UI.png'
           },
           {
             alias: 'floor2',
-            src: '/assets/raw/Base_Frame_Symbol_Holder_UI2.png'
+            src: PATH + '/assets/raw/Base_Frame_Symbol_Holder_UI2.png'
           },
           {
             alias: 'line_holder',
-            src: '/assets/raw/Base_Line_Holder_UI.png'
+            src: PATH + '/assets/raw/Base_Line_Holder_UI.png'
           },
           {
             alias: 'frame_base',
-            src: '/assets/raw/Base_Frame_UI.png'
+            src: PATH + '/assets/raw/Base_Frame_UI.png'
           },
           {
             alias: 'game_logo_1000',
-            src: '/assets/raw/Logo_1000_Game.png'
+            src: PATH + '/assets/raw/Logo_1000_Game.png'
           },
           {
             alias: 'game_logo_super_scatter',
-            src: '/assets/raw/Logo_Super_Scatter_Game.png'
+            src: PATH + '/assets/raw/Logo_Super_Scatter_Game.png'
           },
           {
             alias: 'game_logo',
-            src: '/assets/raw/Base_Logo_UI.png'
+            src: PATH + '/assets/raw/Base_Logo_UI.png'
           },
           {
             alias: 'freespin_logo',
-            src: '/assets/raw/Freespin_Logo_UI.png'
+            src: PATH + '/assets/raw/Freespin_Logo_UI.png'
           },
           {
             alias: 'slider_button_frame',
-            src: '/assets/raw/Slider_Button_Frame_Splash_Scene.png'
+            src: PATH + '/assets/raw/Slider_Button_Frame_Splash_Scene.png'
           },
           {
             alias: 'slider_button',
-            src: '/assets/raw/Slider_Button_Splash_Scene.png'
+            src: PATH + '/assets/raw/Slider_Button_Splash_Scene.png'
           },
           {
             alias: 'spin_button',
-            src: '/assets/raw/Spin_Button.png'
+            src: PATH + '/assets/raw/Spin_Button.png'
           },
           {
             alias: 'spin_button_icon',
-            src: '/assets/raw/Spin_Button_Icon.png'
+            src: PATH + '/assets/raw/Spin_Button_Icon.png'
           },
           {
             alias: 'volatility_arrow',
-            src: '/assets/raw/Volatility_Arrow.png'
+            src: PATH + '/assets/raw/Volatility_Arrow.png'
           }
         ]
       },
@@ -142,15 +145,15 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['background_base'],
-            src: '/assets/Background_Base.png'
+            src: PATH + '/assets/Background_Base.png'
           },
           {
             alias: ['background_freespin'],
-            src: '/assets/Background_Freespin.png'
+            src: PATH + '/assets/Background_Freespin.png'
           },
           {
             alias: ['background_bonus'],
-            src: '/assets/Background_Bonus.png'
+            src: PATH + '/assets/Background_Bonus.png'
           }
         ]
       }
@@ -164,11 +167,11 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['icons_atlas'],
-            src: '/assets/symbols/icons.atlas'
+            src: PATH + '/assets/symbols/icons.atlas'
           },
           {
             alias: ['icons_data'],
-            src: '/assets/symbols/icons.json'
+            src: PATH + '/assets/symbols/icons.json'
           }
         ]
       }
@@ -182,11 +185,11 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['bonus_atlas'],
-            src: '/assets/animations/bonus.atlas'
+            src: PATH + '/assets/animations/bonus.atlas'
           },
           {
             alias: ['bonus_data'],
-            src: '/assets/animations/bonus.json'
+            src: PATH + '/assets/animations/bonus.json'
           }
         ]
       },
@@ -195,11 +198,11 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['elements_atlas'],
-            src: '/assets/animations/elements.atlas'
+            src: PATH + '/assets/animations/elements.atlas'
           },
           {
             alias: ['elements_data'],
-            src: '/assets/animations/elements.json'
+            src: PATH + '/assets/animations/elements.json'
           }
         ]
       },
@@ -208,11 +211,11 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['freespin_atlas'],
-            src: '/assets/animations/freespin.atlas'
+            src: PATH + '/assets/animations/freespin.atlas'
           },
           {
             alias: ['freespin_data'],
-            src: '/assets/animations/freespin.json'
+            src: PATH + '/assets/animations/freespin.json'
           }
         ]
       },
@@ -221,11 +224,11 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['wins_atlas'],
-            src: '/assets/animations/wins.atlas'
+            src: PATH + '/assets/animations/wins.atlas'
           },
           {
             alias: ['wins_data'],
-            src: '/assets/animations/wins.json'
+            src: PATH + '/assets/animations/wins.json'
           }
         ]
       },
@@ -234,11 +237,24 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['chain_atlas'],
-            src: '/assets/animations/chain.atlas'
+            src: PATH + '/assets/animations/chain.atlas'
           },
           {
             alias: ['chain_data'],
-            src: '/assets/animations/chain.json'
+            src: PATH + '/assets/animations/chain.json'
+          }
+        ]
+      },
+      {
+        name: 'transition',
+        assets: [
+          {
+            alias: ['transition_atlas'],
+            src: PATH + '/assets/animations/transition.atlas'
+          },
+          {
+            alias: ['transition_data'],
+            src: PATH + '/assets/animations/transition.json'
           }
         ]
       }
@@ -335,6 +351,11 @@ export class AssetsConfig {
     skeleton: "chain_data",
   } as const;
 
+  public static readonly TRANSITION_SPINE_ASSET: SpineAssetData = {
+    atlas: "transition_atlas",
+    skeleton: "transition_data",
+  } as const;
+
   public static getAllAssets(resolution: string): BundleFile {
     this.RES = RESOLUTIONS.find((r) => r.size === resolution)?.variation!;
     this.setResolution();
@@ -407,6 +428,9 @@ export class AssetsConfig {
         ({ atlas, skeleton } = this.WINS_SPINE_ASSET);
         break;
       case "chain":
+        ({ atlas, skeleton } = this.CHAIN_SPINE_ASSET);
+        break;
+      case "transition":
         ({ atlas, skeleton } = this.CHAIN_SPINE_ASSET);
         break;
       default:
