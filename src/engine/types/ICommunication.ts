@@ -19,8 +19,12 @@ export const GridUtils = {
 };
 
 export interface MatchData {
-  indices: number[];
+  indices: [number, number][];
+  wilds: [number, number][];
   symbolId: number;
+  line: number[];
+  fsWon: boolean;
+  bonusWon: boolean;
 }
 
 // export enum ISpinState {

@@ -57,11 +57,11 @@ export class GameRulesConfig {
 
     // Winning line symbol coordinates
     public static readonly COORDINATES: { [key: number]: { x: number, y: number } } = {
-        1: { x: -this.sw * 2, y: -this.sh },        2: { x: -this.sw, y: -this.sh },        3: { x: 0, y: -this.sh },       4: { x: this.sw, y: -this.sh },         5: { x: this.sw * 2, y: -this.sh },
+        1: { x: -this.sw * 2, y: -this.sh }, 2: { x: -this.sw, y: -this.sh }, 3: { x: 0, y: -this.sh }, 4: { x: this.sw, y: -this.sh }, 5: { x: this.sw * 2, y: -this.sh },
 
-        6: { x: -this.sw * 2, y: 0 },               7: { x: -this.sw, y: 0 },               8: { x: 0, y: 0 },              9: { x: this.sw, y: 0 },                10: { x: this.sw * 2, y: 0 },
+        6: { x: -this.sw * 2, y: 0 }, 7: { x: -this.sw, y: 0 }, 8: { x: 0, y: 0 }, 9: { x: this.sw, y: 0 }, 10: { x: this.sw * 2, y: 0 },
 
-        11: { x: -this.sw * 2, y: this.sh },        12: { x: -this.sw, y: this.sh },        13: { x: 0, y: this.sh },       14: { x: this.sw, y: this.sh },         15: { x: this.sw * 2, y: this.sh }
+        11: { x: -this.sw * 2, y: this.sh }, 12: { x: -this.sw, y: this.sh }, 13: { x: 0, y: this.sh }, 14: { x: this.sw, y: this.sh }, 15: { x: this.sw * 2, y: this.sh }
     };
 
     // Winning lines configuration for producing random win lines. it will be removed
@@ -148,29 +148,29 @@ export class GameRulesConfig {
 
     public static readonly LINE_NUMBER_POSITION: { [key: number]: { x: number, y: number } } = {
         //left side
-        4: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y },
-        2: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 60},
+        4: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y },
+        2: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 60 },
         24: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 120 },
         20: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 180 },
         16: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 240 },
         10: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 300 },
-        1: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 360 },
+        1: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 360 },
         11: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 420 },
         17: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 480 },
         13: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 540 },
         21: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 600 },
-        3: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 660 },
-        5: { x: -this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 720 },
+        3: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 660 },
+        5: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 720 },
         //right side
         14: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y },
-        18: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 60},
+        18: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 60 },
         12: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 120 },
-        9: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 180 },
+        9: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 180 },
         22: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 240 },
-        6: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 300 },
-        7: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 360 },
+        6: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 300 },
+        7: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 360 },
         23: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 420 },
-        8: { x: this.sw * 2.675, y:  this.REFERENCE_NUMBER_POSITION.y + 480 },
+        8: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 480 },
         19: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 540 },
         15: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 600 },
         25: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 660 }

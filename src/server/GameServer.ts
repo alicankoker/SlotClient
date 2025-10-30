@@ -16,12 +16,14 @@ import {
 import { debug } from "../engine/utils/debug";
 import { Utils } from "../engine/utils/Utils";
 import { Reelsets } from "./Games/ClassicSpinGame/Reelsets";
+import { GameRulesConfig } from "../config/GameRulesConfig";
 
 export class GameServer {
   private static instance: GameServer;
   private spinCounter: number = 0;
   private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
   private readonly gameID: number = 0;
+  private lines = Object.values(GameRulesConfig.WINNING_LINES);
 
   private initData: InitialGridData = { symbols: [] };
   private firstSpin: boolean = true;
@@ -85,6 +87,49 @@ export class GameServer {
     }
   }
 
+  private analyzeGridWins(grid: GridData): MatchData[] {
+    const matches: MatchData[] = [];
+    const fsWon = this.checkFSWon(grid);
+    const bonusWon = this.checkBonusWon(grid);
+
+    this.lines.forEach(line => {
+      let count = 0;
+      let wildId = 9;
+      const indices: [number, number][] = [];
+      const wilds = this.checkForWilds(line, grid);
+      const initialWildCount = wilds.length;
+      line.forEach((indexValue, index) => {
+        if (index <= initialWildCount) return;
+        const symInd = indexValue + 1
+        const firstSymbol = grid.symbols[0][line[0]];
+        const currentSymbol = grid.symbols[index][symInd];
+        if (firstSymbol.symbolId === currentSymbol.symbolId) {
+          indices.push([index, indexValue]);
+          count++;
+        } else if (currentSymbol.symbolId === wildId) {
+          wilds.push([index, indexValue]);
+        }
+        else {
+          count = 0;
+        }
+        if (count + wilds.length >= 3) {
+          matches.push({ indices: indices, wilds: wilds, symbolId: firstSymbol.symbolId, line: line, fsWon: fsWon, bonusWon: bonusWon });
+        }
+      });
+    });
+    return matches;
+  }
+
+  private checkForWilds(lineData: number[], gridData: GridData): [number, number][] {
+    let wildPositions: [number, number][] = [];
+    lineData.forEach((lineIndex, index) => {
+      if (gridData.symbols[index][lineIndex].symbolId === 9) {
+        wildPositions.push([index, lineIndex]);
+      }
+    });
+    return wildPositions;
+  }
+
   private generateSpinResult(
     spinId: string,
     request: SpinRequestData
@@ -104,8 +149,40 @@ export class GameServer {
       wins: [],
     };
     spinData.steps.push(this.latestSpinData);
+    const wins = this.analyzeGridWins(this.latestSpinData.gridAfter);
+    this.latestSpinData.wins = wins.map(match => ({ matches: [match], winAmount: 0 }));
+    spinData.totalWin = wins.reduce((acc, match) => acc + this.calculateWin([match], request.betAmount), 0);
     return spinData;
   }
+
+  private checkFSWon(gridData: GridData): boolean {
+    let scatterCount = 0;
+    gridData.symbols.forEach(column => {
+      for (let row = 1; row < column.length - 1; row++) {
+        const symbol = column[row];
+        if (symbol.symbolId === 8) {
+          scatterCount++;
+        } else {
+          break;
+        }
+      }
+    });
+    return scatterCount >= 3;
+  }
+
+  private checkBonusWon(gridData: GridData): boolean {
+    let bonusCount = 0;
+    for (let col = 1; col < gridData.symbols.length - 1; col+=2) {
+      for (let row = 1; row < gridData.symbols[col].length - 1; row++) {  
+        const symbol = gridData.symbols[col][row];
+        if (symbol.symbolId === 10) {
+          bonusCount++;
+        }
+      }
+    }
+    return bonusCount >= 3;
+  }
+
   /*private generateSpinResult(spinId: string, request: SpinRequestData): SpinResultData {
         // Process cascades
         const cascadeSteps: CascadeStepData[] = [];
