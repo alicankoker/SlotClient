@@ -49,6 +49,14 @@ export class GameDataManager {
         };
     }
 
+    checkFreeSpins(): boolean {
+        const currentSpinData = this.gameState.currentSpinData;
+
+        //return (currentSpinData && currentSpinData.result && currentSpinData.result.fsWon) || false;
+
+        return true; // For testing purposes, always return true
+    }
+
     // Getters
     public getCurrentSpinId(): string | undefined {
         return this.gameState.currentSpinId;

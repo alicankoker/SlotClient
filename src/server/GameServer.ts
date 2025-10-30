@@ -37,6 +37,8 @@ export class GameServer {
     spinId: "",
     steps: [],
     totalWin: 0,
+    fsWon: false,
+    bonusWon: false,
   };
 
   private latestSpinRequest: SpinRequestData = {
@@ -89,8 +91,6 @@ export class GameServer {
 
   private analyzeGridWins(grid: GridData): MatchData[] {
     const matches: MatchData[] = [];
-    const fsWon = this.checkFSWon(grid);
-    const bonusWon = this.checkBonusWon(grid);
 
     this.lines.forEach(line => {
       let count = 0;
@@ -113,10 +113,11 @@ export class GameServer {
           count = 0;
         }
         if (count + wilds.length >= 3) {
-          matches.push({ indices: indices, wilds: wilds, symbolId: firstSymbol.symbolId, line: line, fsWon: fsWon, bonusWon: bonusWon });
+          matches.push({ indices: indices, wilds: wilds, symbolId: firstSymbol.symbolId, line: line, winAmount: 0 });
         }
       });
     });
+    console.log("analyzeGridWins matches:", matches);
     return matches;
   }
 
@@ -138,6 +139,8 @@ export class GameServer {
       spinId,
       steps: [],
       totalWin: 0,
+      fsWon: false,
+      bonusWon: false,
     };
     this.previousGrid = this.firstSpin
       ? this.initData
@@ -152,10 +155,14 @@ export class GameServer {
     const wins = this.analyzeGridWins(this.latestSpinData.gridAfter);
     this.latestSpinData.wins = wins.map(match => ({ matches: [match], winAmount: 0 }));
     spinData.totalWin = wins.reduce((acc, match) => acc + this.calculateWin([match], request.betAmount), 0);
+
+    spinData.fsWon = this.checkFSWon(this.latestSpinData.gridAfter);
+    spinData.bonusWon = this.checkBonusWon(this.latestSpinData.gridAfter);
+    console.log("Generated spin result:", spinData);
     return spinData;
   }
 
-  private checkFSWon(gridData: GridData): boolean {
+  private checkFSWon(gridData: GridData): boolean {
     let scatterCount = 0;
     gridData.symbols.forEach(column => {
       for (let row = 1; row < column.length - 1; row++) {
@@ -172,8 +179,8 @@ export class GameServer {
 
   private checkBonusWon(gridData: GridData): boolean {
     let bonusCount = 0;
-    for (let col = 1; col < gridData.symbols.length - 1; col+=2) {
-      for (let row = 1; row < gridData.symbols[col].length - 1; row++) {  
+    for (let col = 1; col < gridData.symbols.length - 1; col += 2) {
+      for (let row = 1; row < gridData.symbols[col].length - 1; row++) {
         const symbol = gridData.symbols[col][row];
         if (symbol.symbolId === 10) {
           bonusCount++;
@@ -280,9 +287,6 @@ export class GameServer {
       symbols.push([]);
       const reelset = Reelsets.Reelsets[col];
       const randomIndex = Utils.getRandomInt(0, reelset.length - 1);
-      console.log(
-        "randomIndex", randomIndex
-      )
       if (randomIndex + totalRows <= reelset.length) {
         for (let row = randomIndex; row < randomIndex + totalRows; row++) {
           const sym = { symbolId: reelset[row] };
@@ -303,9 +307,6 @@ export class GameServer {
         }
       }
     }
-    console.log(
-      "symbols", symbols
-    )
     return { symbols: symbols as SymbolData[][] };
   }
 

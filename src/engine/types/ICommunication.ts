@@ -23,8 +23,7 @@ export interface MatchData {
   wilds: [number, number][];
   symbolId: number;
   line: number[];
-  fsWon: boolean;
-  bonusWon: boolean;
+  winAmount: number;
 }
 
 // export enum ISpinState {
@@ -62,6 +61,9 @@ export interface DropData {
 export interface SpinResultData {
   spinId: string;
   totalWin: number;
+  fsWon: boolean;
+  bonusWon: boolean;
+  extraFreeSpins?: number;
   steps: StepData[];
 }
 
@@ -73,7 +75,6 @@ export interface StepData {
 
 export interface WinData {
   matches: MatchData[];
-  winAmount: number;
 }
 
 export interface InitialGridData {
