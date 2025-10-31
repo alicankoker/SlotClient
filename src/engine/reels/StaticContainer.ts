@@ -152,8 +152,8 @@ export class StaticContainer extends Container {
         this._isSkipped = false;
         this._isLooping = false;
 
-        eventBus.emit("setWinData1", "");
-        eventBus.emit("setWinData2", "0");
+        eventBus.emit("setWinData1", "0");
+        eventBus.emit("setWinData2", "");
 
         let tweenObj = { value: 0 };
         let currentAmount = "0";
@@ -164,7 +164,7 @@ export class StaticContainer extends Container {
             ease: "power1",
             onUpdate: () => {
                 currentAmount = `${Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string}`;
-                console.log(currentAmount);
+                eventBus.emit("setWinData1", currentAmount);
             }
         });
 
@@ -172,8 +172,7 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas, token);
 
-        eventBus.emit("setWinData1", "PLACE YOUR BET");
-        eventBus.emit("setWinData2", "");
+        eventBus.emit("setWinData2", "PLACE YOUR BET");
 
         if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false) {
             this.playLoopAnimations(winDatas, token);
@@ -317,6 +316,8 @@ export class StaticContainer extends Container {
             }
 
             await AnimationContainer.getInstance().playTotalWinAnimation(amount);
+
+            eventBus.emit("setWinData1", amount.toString());
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.hideAllLines();

@@ -13,6 +13,7 @@ import { GridData } from "../types/ICommunication";
 import { WinConfig } from "../types/IWinPresentation";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { GameDataManager } from "../data/GameDataManager";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 
 export class ReelsController {
   private app: Application;
@@ -120,7 +121,7 @@ export class ReelsController {
   }
 
   public async playWinAnimations(winData: WinConfig[] | undefined): Promise<void> {
-    if (!winData) return;
+    if (!winData) { return };
     const staticContainer = this.reelsContainer.getStaticContainer();
     const winLines = this.reelsContainer.getWinLines();
     await staticContainer?.setAnimation(winData);
@@ -140,6 +141,7 @@ export class ReelsController {
     let winConfigs: WinConfig[] = [];
 
     if (spinResultData!.steps[0].wins.length === 0) {
+      eventBus.emit("setWinData2", "PLACE YOUR BET");
       return;
     }
 

@@ -107,7 +107,8 @@ export class FreeSpinController {
         this.totalFreeSpins += extraCount;
         this.remainingSpins += extraCount;
 
-        this.animationContainer.getPopupText().text = `You won ${extraCount} extra Free Spins!`;
+        this.animationContainer.getPopupCountText().text = `${extraCount}`;
+        this.animationContainer.getPopupFreeSpinsText().text = `EXTRA FREESPINS!`;
 
         await this.animationContainer.playFreeSpinPopupAnimation();
 

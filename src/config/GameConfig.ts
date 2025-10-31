@@ -184,16 +184,12 @@ export class GameConfig {
     public static readonly fillGradientStops: FillGradient = new FillGradient({
         colorStops: [
             {
-                offset: 0,
-                color: 0xffffff
+                offset: 0.4,
+                color: 0xffeb8b
             },
             {
-                offset: 0.7,
-                color: 0xffffff
-            },
-            {
-                offset: 1,
-                color: 0xa2bdfb
+                offset: 0.8,
+                color: 0xc9571b
             }
         ]
     });
@@ -201,20 +197,20 @@ export class GameConfig {
     // Text style for UI elements
     public static readonly style: TextStyle = new TextStyle({
         dropShadow: {
-            angle: 1.5,
-            color: 0x142c54,
-            distance: 4.5
+            angle: 1.6,
+            color: 0x562200,
+            distance: 6
         },
-        fill: this.fillGradientStops,
-        fontFamily: "Nunito Black",
-        fontSize: 42,
+        fontFamily: "MikadoBlack",
+        fontSize: 60,
         fontWeight: "bolder",
         stroke: {
-            color: 0x142c54,
+            color: 0x562200,
             width: 6,
             join: 'round'
         },
         align: 'center',
-        trim: true
+        trim: true,
+        fill: this.fillGradientStops,
     });
 }

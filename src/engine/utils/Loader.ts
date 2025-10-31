@@ -90,7 +90,7 @@ export class Loader extends Container {
         this.percentageLabel = new Text({
             text: "0%",
             style: {
-                fontFamily: "Nunito Black",
+                fontFamily: "MikadoBlack",
                 fontSize: 35,
                 fill: 0x000000,
                 trim: true
@@ -103,7 +103,7 @@ export class Loader extends Container {
         this.progressStatus = new Text({
             text: "Loading...",
             style: {
-                fontFamily: "Nunito Black",
+                fontFamily: "MikadoBlack",
                 fontSize: 35,
                 fill: 0x000000,
                 trim: true
@@ -116,7 +116,7 @@ export class Loader extends Container {
         const bePatientText = new Text({
             text: "Please be patient, this may take a while...",
             style: {
-                fontFamily: "Nunito Black",
+                fontFamily: "MikadoBlack",
                 fontSize: 35,
                 fill: 0x000000,
                 trim: true

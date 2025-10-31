@@ -37,6 +37,8 @@ export class ReelsContainer extends Container {
   private _rightLantern!: Spine;
   private _headerBackground!: Sprite;
   private _logo!: Sprite;
+  private _leftGem!: Sprite;
+  private _rightGem!: Sprite;
   private _autoPlayCount: number = 0;
   private _autoPlayCountText: Text;
   private _isFreeSpinMode: boolean = false;
@@ -212,6 +214,18 @@ export class ReelsContainer extends Container {
     this._logo.anchor.set(0.5, 0.5);
     this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 120);
     this.frameElementsContainer.addChild(this._logo);
+
+    this._leftGem = Sprite.from('gem_left');
+    this._leftGem.label = 'GemLeft';
+    this._leftGem.anchor.set(0.5, 0.5);
+    this._leftGem.position.set(130, 895);
+    this.frameElementsContainer.addChild(this._leftGem);
+
+    this._rightGem = Sprite.from('gem_right');
+    this._rightGem.label = 'GemRight';
+    this._rightGem.anchor.set(0.5, 0.5);
+    this._rightGem.position.set(1675, 880);
+    this.frameElementsContainer.addChild(this._rightGem);
   }
 
   private createReelAreaMask(): void {
