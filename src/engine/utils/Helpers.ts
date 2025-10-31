@@ -107,7 +107,7 @@ export class Helpers {
    * @param digit The number of decimal places to include in the result (default is 2).
    * @returns {string} The converted amount or array of amounts as a string.
    */
-  public static convertToDecimal(amount: number | number[], denomination: number = 100, digit: number = 2): string | string[] {
+  public static convertToDecimal(amount: number | number[], denomination: number = 1, digit: number = 2): string | string[] {
     let convertedAmountArray: number[] = [];
     let convertedAmount: number;
 

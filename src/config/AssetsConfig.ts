@@ -58,8 +58,12 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/Loading_Bar_Frame.png'
           },
           {
-            alias: 'MikadoBlack',
-            src: PATH + '/assets/fonts/MikadoBlack.otf'
+            alias: "MikadoBlack",
+            src: PATHS.ROOT + `fonts/MikadoBlack.otf`,
+          },
+          {
+            alias: "MikadoMedium",
+            src: PATHS.ROOT + `fonts/MikadoMedium.otf`,
           }
         ]
       },
@@ -181,6 +185,10 @@ export class AssetsConfig {
           {
             alias: 'volatility_arrow',
             src: PATH + '/assets/raw/Volatility_Arrow.png'
+          },
+          {
+            alias: 'font_style',
+            src: PATH + '/assets/fonts/Font_Style_2.json'
           }
         ]
       },
@@ -349,6 +357,10 @@ export class AssetsConfig {
             alias: "MikadoBlack",
             src: PATHS.ROOT + `fonts/MikadoBlack.otf`,
           },
+          {
+            alias: "MikadoMedium",
+            src: PATHS.ROOT + `fonts/MikadoMedium.otf`,
+          }
         ],
       },
     ],
@@ -366,7 +378,7 @@ export class AssetsConfig {
     6: { idle: 'Symbol_7', blurred: 'Symbol_7_Blur', prefix: '6' },
     7: { idle: 'Symbol_8', blurred: 'Symbol_8_Blur', prefix: '7' },
     8: { idle: 'Symbol_9', blurred: 'Symbol_9_Blur', prefix: '8' },
-    9: { idle: 'Symbol_10', blurred: 'Symbol_10_Blur', prefix:  '9' },
+    9: { idle: 'Symbol_10', blurred: 'Symbol_10_Blur', prefix: '9' },
     10: { idle: 'Symbol_11', blurred: 'Symbol_11_Blur', prefix: '10' }
   };
 

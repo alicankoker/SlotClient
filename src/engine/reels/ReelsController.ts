@@ -77,13 +77,13 @@ export class ReelsController {
     );
 
     if (mode === ISpinState.IDLE) {
-      this.reelsContainer.setChainAnimation(false, false);
+      this.reelsContainer.setChainAnimation(false, false, false);
       this.reelsContainer.chainSpeed = 1;
       await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
     }
 
     if (mode === ISpinState.SPINNING) {
-      this.reelsContainer.setChainAnimation(true, true);
+      this.reelsContainer.setChainAnimation(true, true, true);
     }
   }
 
@@ -152,7 +152,7 @@ export class ReelsController {
         const winConfig: WinConfig = {
           symbolIds: symbolIds,
           line: line,
-          amount: winData.winAmount * Math.max(1, Math.floor(Math.random() * 5)),
+          amount: winData.match.winAmount,
           multiplier: Math.max(1, Math.floor(Math.random() * 5))
         }
 

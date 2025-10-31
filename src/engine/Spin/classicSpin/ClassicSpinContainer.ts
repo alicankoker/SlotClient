@@ -9,6 +9,7 @@ import { GameConfig, spinContainerConfig } from "../../../config/GameConfig";
 import { Utils } from "../../utils/Utils";
 import { GridData, SpinResultData, SymbolData } from "../../types/ICommunication";
 import { IReelSpinState, IReelSpinStateData } from "../../types/IReelSpinStateData";
+import { ReelsContainer } from "../../reels/ReelsContainer";
 
 export class ClassicSpinContainer extends SpinContainer {
     protected bottomSymbolYPos: number = 60;
@@ -141,7 +142,6 @@ export class ClassicSpinContainer extends SpinContainer {
     public stopSpin(): void {
         super.stopSpin();
         this.reelsSpinStates.forEach(state => {state.speed = 0; state.state = IReelSpinState.STOPPED;});
-
         //TO-DO: Run win sequences
     }
 

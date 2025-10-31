@@ -38,7 +38,7 @@ export class ClassicSpinController extends SpinController {
       this.reelsController.resetWinAnimations();
 
       this.setState(ISpinState.SPINNING);
-      this.reelsController.getReelsContainer().setChainAnimation(true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
+      this.reelsController.getReelsContainer().setChainAnimation(true, true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
 
       if (this.onSpinStartCallback) {
         this.onSpinStartCallback();
@@ -63,7 +63,7 @@ export class ClassicSpinController extends SpinController {
       const finalGrid = response.result.steps[0].gridAfter;
 
       this.onSpinCompleteCallback = async () => {
-        this.reelsController.getReelsContainer().setChainAnimation(false, false);
+        this.reelsController.getReelsContainer().setChainAnimation(false, false, false);
 
         await this.transferSymbolsToStaticContainer(finalGrid);
 

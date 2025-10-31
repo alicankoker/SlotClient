@@ -11,6 +11,7 @@ import { WinLines } from '../components/WinLines';
 import { ResponsiveConfig } from '../utils/ResponsiveManager';
 import { AssetsConfig } from '../../config/AssetsConfig';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
+import { Helpers } from '../utils/Helpers';
 
 export class ReelsContainer extends Container {
   private app: Application;
@@ -456,9 +457,10 @@ export class ReelsContainer extends Container {
     });
   }
 
-  public setChainAnimation(isSpinning: boolean, loop: boolean): void {
+  public setChainAnimation(isSpinning: boolean, loop: boolean, isStart: boolean): void {
     const chainAnimationName = isSpinning ? (this._isFreeSpinMode ? 'Free_chain' : 'Base_chain') : (this._isFreeSpinMode ? 'Free_chain_hold' : 'Base_chain_hold');
-    this.chains.forEach(chain => {
+    this.chains.forEach(async (chain, index) => {
+      await Helpers.delay(isStart ? 150 * (index % 6) : 0);
       chain.state.setAnimation(0, chainAnimationName, loop);
     });
   }

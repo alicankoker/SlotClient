@@ -90,9 +90,9 @@ export class Loader extends Container {
         this.percentageLabel = new Text({
             text: "0%",
             style: {
-                fontFamily: "MikadoBlack",
+                fontFamily: "MikadoMedium",
                 fontSize: 35,
-                fill: 0x000000,
+                fill: 0xfafafa,
                 trim: true
             },
         });
@@ -103,9 +103,9 @@ export class Loader extends Container {
         this.progressStatus = new Text({
             text: "Loading...",
             style: {
-                fontFamily: "MikadoBlack",
+                fontFamily: "MikadoMedium",
                 fontSize: 35,
-                fill: 0x000000,
+                fill: 0xfafafa,
                 trim: true
             },
         });
@@ -116,9 +116,9 @@ export class Loader extends Container {
         const bePatientText = new Text({
             text: "Please be patient, this may take a while...",
             style: {
-                fontFamily: "MikadoBlack",
+                fontFamily: "MikadoMedium",
                 fontSize: 35,
-                fill: 0x000000,
+                fill: 0xfafafa,
                 trim: true
             },
         });
