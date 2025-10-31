@@ -72,7 +72,7 @@ export class GameServer {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const spinId = `spin_${++this.spinCounter}_${Date.now()}`;
-      const result = this.generateSpinResult(spinId, request);
+      const result = this.generateSpinResult(spinId, request, request.forcedFS);
 
       debug.log("GameServer: Spin result generated", result);
 
@@ -139,7 +139,8 @@ export class GameServer {
 
   private generateSpinResult(
     spinId: string,
-    request: SpinRequestData
+    request: SpinRequestData,
+    forcedFS: boolean = false
   ): SpinResultData {
     const spinData: SpinResultData = {
       spinId,
@@ -154,7 +155,7 @@ export class GameServer {
     this.firstSpin = false;
     this.latestSpinData = {
       gridBefore: this.firstSpin ? this.initData : this.previousGrid,
-      gridAfter: this.generateNewGridData(),
+      gridAfter: this.generateNewGridData(forcedFS),
       wins: [],
     };
     
@@ -306,8 +307,9 @@ export class GameServer {
         };
     }*/
 
-  private generateNewGridData(): GridData {
+  private generateNewGridData(forcedFS:boolean = false): GridData {
     const symbols: SymbolData[][] = [];
+    const scatterIndexes: number[] = [7, 6, 9];
     const totalRows =
       GameConfig.GRID_LAYOUT.visibleRows +
       GameConfig.GRID_LAYOUT.rowsAboveMask +
@@ -315,23 +317,24 @@ export class GameServer {
     for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
       symbols.push([]);
       const reelset = Reelsets.Reelsets[col];
-      const randomIndex = Utils.getRandomInt(0, reelset.length - 1);
+      let randomIndex = Utils.getRandomInt(0, reelset.length - 1);
+      if(forcedFS && (col === 0 || col === 2 || col === 4)) {
+        const index = scatterIndexes[Math.floor(col/2)];
+        randomIndex = index - 2;
+      }
       if (randomIndex + totalRows <= reelset.length) {
         for (let row = randomIndex; row < randomIndex + totalRows; row++) {
           const sym = { symbolId: reelset[row] };
-          if (sym.symbolId === undefined || sym.symbolId > 9) debugger;
           symbols[col].push(sym as SymbolData);
         }
       } else {
         const remaining = totalRows - (reelset.length - randomIndex);
         for (let row = randomIndex; row < reelset.length; row++) {
           const sym = { symbolId: reelset[randomIndex] };
-          if (sym.symbolId === undefined || sym.symbolId > 9) debugger;
           symbols[col].push(sym as SymbolData);
         }
         for (let row = 0; row < remaining; row++) {
           const sym = { symbolId: reelset[row] };
-          if (sym.symbolId === undefined || sym.symbolId > 9) debugger;
           symbols[col].push(sym as SymbolData);
         }
       }

@@ -96,6 +96,8 @@ export interface SymbolData {
 export interface SpinRequestData {
   betAmount: number;
   gameMode?: string;
+  forcedFS?: boolean;
+  forcedBonus?: boolean;
 }
 
 export interface SpinResponseData {
