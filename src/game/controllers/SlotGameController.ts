@@ -15,8 +15,8 @@ import { GameDataManager } from '../../engine/data/GameDataManager';
 import { AnimationContainer } from '../../engine/components/AnimationContainer';
 import { FreeSpinController } from '../../engine/freeSpin/FreeSpinController';
 import { Background } from '../../engine/components/Background';
-import { ClassicSpinContainer } from '../../engine/Spin/classicSpin1/ClassicSpinContainer';
-import { ClassicSpinController } from '../../engine/Spin/classicSpin1/ClassicSpinController';
+import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinContainer';
+import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
 import { Helpers } from '../../engine/utils/Helpers';
 
 export interface SlotSpinRequest {
