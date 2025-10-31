@@ -100,16 +100,7 @@ export class WinLines extends WinLinesContainer {
         }
     }
 
-    protected override onResize(responsiveConfig: ResponsiveConfig): void {
-        switch (responsiveConfig.orientation) {
-            case GameConfig.ORIENTATION.landscape:
-                this.position.set(0, 0);
-                break;
-            case GameConfig.ORIENTATION.portrait:
-                this.position.set(0, -270);
-                break;
-        }
-    }
+    protected override onResize(responsiveConfig: ResponsiveConfig): void { }
 
     public getController(): WinLinesController<WinLines> {
         return this._controller;

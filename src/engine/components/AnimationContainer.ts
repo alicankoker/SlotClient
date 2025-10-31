@@ -1,16 +1,18 @@
-import { Container, Sprite, Text } from "pixi.js";
+import { Container, Graphics, Sprite, Text } from "pixi.js";
 import { WinLines } from "./WinLines";
 import { WinEvent } from "./WinEvent";
 import { GameConfig } from "../../config/GameConfig";
-import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
+import { signals, SIGNAL_EVENTS, SignalSubscription } from "../controllers/SignalManager";
 import { Helpers } from "../utils/Helpers";
 import { gsap } from "gsap";
 import { AssetsConfig } from "../../config/AssetsConfig";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameDataManager } from "../data/GameDataManager";
+import { ResponsiveConfig } from "../utils/ResponsiveManager";
 
 export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
+    protected _resizeSubscription?: SignalSubscription;
 
     private _winLines: WinLines;
     private _winEvent: WinEvent;
@@ -18,6 +20,7 @@ export class AnimationContainer extends Container {
     private _autoPlayCountText: Text;
     private _winText: Text;
     private _spinModeText!: Text;
+    private _dimmer!: Graphics;
     private _popup!: Container;
     private _freeSpinRemain!: Container;
     private _freeSpinRemainHolder!: Sprite;
@@ -62,7 +65,18 @@ export class AnimationContainer extends Container {
         this._popup.label = 'FreeSpinPopupContainer';
         this._popup.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this._popup.visible = false;
+        this._popup.alpha = 0;
         this.addChild(this._popup);
+
+        this._dimmer = new Graphics();
+        this._dimmer.beginPath();
+        this._dimmer.rect(0, 0, GameConfig.REFERENCE_RESOLUTION.width, GameConfig.REFERENCE_RESOLUTION.height);
+        this._dimmer.fill({ color: 0x000000, alpha: 0.75 });
+        this._dimmer.closePath();
+        this._dimmer.pivot.set(this._dimmer.width / 2, this._dimmer.height / 2);
+        this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._dimmer.scale.set(3, 3);
+        this._popup.addChild(this._dimmer);
 
         this._popupBackground = Sprite.from("popup_background");
         this._popupBackground.label = 'FreeSpinPopupBackground';
@@ -199,6 +213,10 @@ export class AnimationContainer extends Container {
         signals.on(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE, () => {
             this.stopWinTextAnimation();
         });
+
+        this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
+            this.onResize(responsiveConfig);
+        });
     }
 
     public playTotalWinAnimation(totalWinAmount: number): Promise<void> {
@@ -281,19 +299,38 @@ export class AnimationContainer extends Container {
 
     public playFreeSpinPopupAnimation(): Promise<void> {
         return new Promise((resolve) => {
-            this._popup.scale.set(0);
+            this._popup.interactive = true;
+            this._popup.cursor = 'pointer';
+
             this._popup.visible = true;
-            gsap.to(this._popup.scale, {
-                x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onComplete: () => {
-                    gsap.to(this._popup.scale, {
-                        x: 0, y: 0, duration: 0.25, ease: 'back.out(1.7)', delay: 1, onComplete: () => {
-                            this._popup.visible = false;
-                            resolve();
-                        }
+
+            gsap.to(this._popup, {
+                alpha: 1, duration: 0.5, ease: 'back.out(1.7)', onComplete: () => {
+                    this._popup.once('pointerdown', () => {
+                        this._popup.interactive = false;
+                        this._popup.cursor = 'default';
+
+                        gsap.to(this._popup, {
+                            alpha: 0, duration: 0.5, ease: 'back.out(1.7)', delay: 0.25, onComplete: () => {
+                                this._popup.visible = false;
+                                resolve();
+                            }
+                        });
                     });
                 }
             });
         });
+    }
+
+    private onResize(responsiveConfig: ResponsiveConfig): void {
+        switch (responsiveConfig.orientation) {
+            case GameConfig.ORIENTATION.landscape:
+                this.position.set(0, 0);
+                break;
+            case GameConfig.ORIENTATION.portrait:
+                this.position.set(0, -270);
+                break;
+        }
     }
 
     public getWinLines(): WinLines {

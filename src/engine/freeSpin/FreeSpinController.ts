@@ -9,11 +9,11 @@ export class FreeSpinController {
     private static instance: FreeSpinController;
     private spinController: SpinController;
     private animationContainer: AnimationContainer;
+    private totalWin: number = 0;
     private totalFreeSpins: number = 0;
     private remainingSpins: number = 0;
     private isActive: boolean = false;
 
-    // 🔹 Promise kontrolü için
     private resolvePromise?: () => void;
     private rejectPromise?: (reason?: any) => void;
 
@@ -34,16 +34,17 @@ export class FreeSpinController {
      * @param freeSpinCount 
      * @returns Promise<void>
      */
-    public async executeFreeSpin(freeSpinCount: number): Promise<void> {
+    public async executeFreeSpin(freeSpinCount: number, initialWin:number): Promise<number> {
         this.totalFreeSpins = freeSpinCount;
         this.remainingSpins = freeSpinCount;
+        this.totalWin = initialWin;
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_STARTED, {
             total: this.totalFreeSpins,
         });
 
-        return new Promise<void>((resolve, reject) => {
-            this.resolvePromise = resolve;
+        return new Promise<number>((resolve, reject) => {
+            this.resolvePromise = () => resolve(this.totalWin);
             this.rejectPromise = reject;
             this.playNext();
         });
@@ -74,9 +75,18 @@ export class FreeSpinController {
             forcedFS: false
         });
 
+        this.totalWin += response.result?.steps[0].wins.reduce((acc, win) => acc + win.match.winAmount, 0) || 0;
+
+        console.log("Free Spin Total Win:", this.totalWin);
+
         GameDataManager.getInstance().setSpinData(response);
 
-        this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
+        if (this.remaining - 1 !== 0) {
+            this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
+        } else {
+            this.animationContainer.getFreeSpinRemainText().text = ``;
+            this.animationContainer.getFreeSpinRemainText().visible = false;
+        }
 
         await this.spinController.executeSpin();
 
@@ -128,10 +138,11 @@ export class FreeSpinController {
     private async complete(): Promise<void> {
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_COMPLETED, {
             total: this.totalFreeSpins,
+            totalWin: this.totalWin,
         });
 
         if (this.resolvePromise) {
-            this.resolvePromise();
+            this.resolvePromise(); // burada totalWin Promise zincirine dönüyor
             this.resolvePromise = undefined;
             this.rejectPromise = undefined;
         }

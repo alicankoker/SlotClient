@@ -217,9 +217,10 @@ export class SlotGameController {
                     this.animationContainer.getBuyFreeSpinButton().visible = false;
                 });
 
-                await this.executeFreeSpin(freeSpinCount);
+                const initialWin = response.result?.steps[0].wins.reduce((acc, win) => acc + win.match.winAmount, 0) || 0;
+                const totalWin = await this.executeFreeSpin(freeSpinCount, initialWin);
 
-                this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(1220)}`;
+                this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
                 this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
                 await this.animationContainer.playFreeSpinPopupAnimation();
 
@@ -238,8 +239,8 @@ export class SlotGameController {
         }
     }
 
-    public async executeFreeSpin(freeSpinCount: number): Promise<void> {
-        await this.freeSpinController.executeFreeSpin(freeSpinCount);
+    public async executeFreeSpin(freeSpinCount: number, initialWin: number): Promise<number> {
+        return await this.freeSpinController.executeFreeSpin(freeSpinCount, initialWin);
     }
 
     //TODO: Needs to be moved to Nexus
