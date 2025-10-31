@@ -18,6 +18,7 @@ type eventType = {
     name: 'quickSpin' | 'ambientMusic' | 'gameSounds' | 'introScreen';
     value: boolean;
   };
+  onWin: number;
 };
 
 class EventManager<Events extends eventType> {

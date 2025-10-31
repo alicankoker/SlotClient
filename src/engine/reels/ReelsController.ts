@@ -177,6 +177,8 @@ export class ReelsController {
     const amount = winConfigs.reduce((sum, win) => sum + win.amount, 0);
     const lines = winConfigs.map(win => win.line);
 
+    eventBus.emit("onWin", amount);
+
     // Play the win animations. If skipped, play the skipped animation, otherwise play the full animation.
     if (isSkipped) {
       await staticContainer?.playSkippedWinAnimation(amount, lines);
