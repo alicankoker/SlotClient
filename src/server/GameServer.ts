@@ -98,35 +98,40 @@ export class GameServer {
       const indices: [number, number][] = [];
       const wilds = this.checkForWilds(line, grid);
       const initialWildCount = wilds.length;
-      line.forEach((indexValue, index) => {
-        if (index <= initialWildCount) return;
-        const symInd = indexValue + 1
-        const firstSymbol = grid.symbols[0][line[0]];
-        const currentSymbol = grid.symbols[index][symInd];
-        if (firstSymbol.symbolId === currentSymbol.symbolId) {
-          indices.push([index, indexValue]);
-          count++;
-        } else if (currentSymbol.symbolId === wildId) {
-          wilds.push([index, indexValue]);
-        }
-        else {
-          count = 0;
-        }
-        if (count + wilds.length >= 3) {
-          matches.push({ indices: indices, wilds: wilds, symbolId: firstSymbol.symbolId, line: line, fsWon: fsWon, bonusWon: bonusWon });
-        }
+      const initialIndexToStart = initialWildCount > 0 ? initialWildCount + 1 : 1;
+      wilds.forEach(wild => {
+        indices.push([wild[0], wild[1]]);
       });
+      indices.push([initialWildCount, line[initialIndexToStart] + 1]);
+      count = initialWildCount > 0 ? initialWildCount + 1 : 1;
+      const firstSymbolIndex = initialWildCount > 0 ? initialIndexToStart - 1 : 0;
+      const firstSymbol = grid.symbols[firstSymbolIndex][line[firstSymbolIndex] + 1];
+      for(let i = initialIndexToStart; i < line.length; i++) {
+        const currentSymbol = grid.symbols[i][line[i] + 1];
+        if (firstSymbol.symbolId === currentSymbol.symbolId || currentSymbol.symbolId === wildId) {
+          indices.push([i, line[i] + 1]);
+          count++;
+        }else break;
+      }
+      if(count >= 3) {
+        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, fsWon, bonusWon });
+      }
     });
+    console.log("matches", matches);
     return matches;
   }
 
   private checkForWilds(lineData: number[], gridData: GridData): [number, number][] {
-    let wildPositions: [number, number][] = [];
-    lineData.forEach((lineIndex, index) => {
-      if (gridData.symbols[index][lineIndex].symbolId === 9) {
-        wildPositions.push([index, lineIndex]);
+    let wildPositions: [number, number][] =  [];
+    for (let i = 0; i < lineData.length; i++) { 
+      const lineIndex = lineData[i] + 1;
+      const symbol = gridData.symbols[i][lineIndex];
+      if (symbol.symbolId === 9) {
+        wildPositions.push([i, lineIndex]);
+      }else{
+        break;
       }
-    });
+    }
     return wildPositions;
   }
 
@@ -148,10 +153,35 @@ export class GameServer {
       gridAfter: this.generateNewGridData(),
       wins: [],
     };
+    this.latestSpinData.gridAfter.symbols[0][0].symbolId = 8;
+    this.latestSpinData.gridAfter.symbols[0][1].symbolId = 9;
+    this.latestSpinData.gridAfter.symbols[0][2].symbolId = 0;
+    this.latestSpinData.gridAfter.symbols[0][3].symbolId = 2;
+    this.latestSpinData.gridAfter.symbols[0][4].symbolId = 5;
+    this.latestSpinData.gridAfter.symbols[1][0].symbolId = 4;
+    this.latestSpinData.gridAfter.symbols[1][1].symbolId = 0;
+    this.latestSpinData.gridAfter.symbols[1][2].symbolId = 0;
+    this.latestSpinData.gridAfter.symbols[1][3].symbolId = 9;
+    this.latestSpinData.gridAfter.symbols[1][4].symbolId = 8;
+    this.latestSpinData.gridAfter.symbols[2][0].symbolId = 10;
+    this.latestSpinData.gridAfter.symbols[2][1].symbolId = 0;
+    this.latestSpinData.gridAfter.symbols[2][2].symbolId = 9;
+    this.latestSpinData.gridAfter.symbols[2][3].symbolId = 2;
+    this.latestSpinData.gridAfter.symbols[2][4].symbolId = 5;  
+    this.latestSpinData.gridAfter.symbols[3][0].symbolId = 6;
+    this.latestSpinData.gridAfter.symbols[3][1].symbolId = 8;
+    this.latestSpinData.gridAfter.symbols[3][2].symbolId = 7;
+    this.latestSpinData.gridAfter.symbols[3][3].symbolId = 9;
+    this.latestSpinData.gridAfter.symbols[3][4].symbolId = 2;
+    this.latestSpinData.gridAfter.symbols[4][0].symbolId = 6;
+    this.latestSpinData.gridAfter.symbols[4][1].symbolId = 5;
+    this.latestSpinData.gridAfter.symbols[4][2].symbolId = 1;
+    this.latestSpinData.gridAfter.symbols[4][3].symbolId = 2;
+    this.latestSpinData.gridAfter.symbols[4][4].symbolId = 8;
     spinData.steps.push(this.latestSpinData);
-    const wins = this.analyzeGridWins(this.latestSpinData.gridAfter);
-    this.latestSpinData.wins = wins.map(match => ({ matches: [match], winAmount: 0 }));
-    spinData.totalWin = wins.reduce((acc, match) => acc + this.calculateWin([match], request.betAmount), 0);
+    const matches = this.analyzeGridWins(this.latestSpinData.gridAfter);
+    this.latestSpinData.wins = matches.map(match => ({ match, winAmount: this.calculateWin([match], request.betAmount) }));
+    spinData.totalWin = this.latestSpinData.wins.reduce((acc, win) => acc + win.winAmount, 0);
     return spinData;
   }
 

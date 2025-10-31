@@ -62,15 +62,9 @@ export class ClassicSpinController extends SpinController {
         GameConfig.WIN_EVENT.enabled && await AnimationContainer.getInstance().getWinEvent().getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
         const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
+        //GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playWinAnimations((response.result?.steps?.at(-1)?.wins as unknown as any));
         GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
 
-        // if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
-        //   this.stopAutoPlay();
-        // }
-
-        if (this._isAutoPlaying) {
-          this.continueAutoPlay();
-        }
       }
 
       this._soundManager.play("spin", true, 0.75); // Play spin sound effect

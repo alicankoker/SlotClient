@@ -118,6 +118,17 @@ export class ReelsController {
     };
   }
 
+  public async playWinAnimations(winData: WinConfig[] | undefined): Promise<void> {
+    if(!winData) return;
+    const staticContainer = this.reelsContainer.getStaticContainer();
+    const winLines = this.reelsContainer.getWinLines();
+    await staticContainer?.setAnimation(winData);
+    if (winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
+      winData.forEach(win => {
+        winLines.showLine(win.line);
+      });
+    }
+  }
   /**
    * @description Play a random win animation.
    * @param isSkipped Whether the animation is skipped.

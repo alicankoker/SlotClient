@@ -72,7 +72,7 @@ export interface StepData {
 }
 
 export interface WinData {
-  matches: MatchData[];
+  match: MatchData;
   winAmount: number;
 }
 
