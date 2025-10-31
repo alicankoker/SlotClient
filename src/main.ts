@@ -127,7 +127,7 @@ export class DoodleV8Main {
         }
       };
 
-      eventBus.on("spin", () => {
+      eventBus.on("spinIt", () => {
         spin()
       });
       eventBus.on("startAutoPlay", (payload) => {
