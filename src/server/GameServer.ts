@@ -90,23 +90,26 @@ export class GameServer {
     }
   }
 
-  private analyzeGridWins(grid: GridData): MatchData[] {
+  private analyzeGridWins(grid: GridData, fsWon: boolean): MatchData[] {
     const matches: MatchData[] = [];
 
     this.winningLines.forEach((line: number[], index: number) => {
       let count = 0;
       let wildId = 9;
+      const winSymbols: number[] = [];
       const indices: [number, number][] = [];
       const wilds = this.checkForWilds(line, grid);
       const initialWildCount = wilds.length;
       const initialIndexToStart = initialWildCount > 0 ? initialWildCount + 1 : 1;
       wilds.forEach(wild => {
         indices.push([wild[0], wild[1]]);
+        winSymbols.push(wildId);
       });
       indices.push([initialWildCount, line[initialIndexToStart] + 1]);
       count = initialWildCount > 0 ? initialWildCount + 1 : 1;
       const firstSymbolIndex = initialWildCount > 0 ? initialIndexToStart - 1 : 0;
       const firstSymbol = grid.symbols[firstSymbolIndex][line[firstSymbolIndex] + 1];
+      winSymbols.push(firstSymbol.symbolId);
       for(let i = initialIndexToStart; i < line.length; i++) {
         const currentSymbol = grid.symbols[i][line[i] + 1];
         if (firstSymbol.symbolId === currentSymbol.symbolId || currentSymbol.symbolId === wildId) {
@@ -115,8 +118,13 @@ export class GameServer {
         }else break;
       }
       if(count >= 3) {
-        const winAmount = this.calculateLineWinAmount(grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, count, 2);
-        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount});
+        const winAmount = this.calculateLineWinAmount(grid.symbols[initialIndexToStart][line[initialIndexToStart]].symbolId, count, 2);
+        let winSymbolId = 0;
+        if(winSymbols.filter(symbol => symbol === 8).length === winSymbols.length) winSymbolId = 8;
+        else winSymbolId = firstSymbol.symbolId;
+        const fsPayout = fsWon && winSymbolId === 8 ? winAmount : 0;
+        if(fsPayout > 0 || winSymbolId !== 8)
+          matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount});
       }
     });
     console.log("matches", matches);
@@ -129,6 +137,7 @@ export class GameServer {
     if(paytableEntry) {
       winAmount = paytableEntry.winAmounts[symbolCount - 3] * betAmount;
     }
+    if(symbolCount >=3 && winAmount === 0 && symbolId !== 9) debugger;
     return winAmount;
   }
 
@@ -195,9 +204,9 @@ export class GameServer {
     this.latestSpinData.gridAfter.symbols[4][4].symbolId = 8;*/
 
     spinData.steps.push(this.latestSpinData);
-    const matches = this.analyzeGridWins(this.latestSpinData.gridAfter);
     const fsWon = this.checkFSWon(this.latestSpinData.gridAfter);
     const bonusWon = this.checkBonusWon(this.latestSpinData.gridAfter);
+    const matches = this.analyzeGridWins(this.latestSpinData.gridAfter, fsWon);
     this.latestSpinData.wins = matches.map(match => ({ match, winAmount: this.calculateWin([match], request.betAmount) }));
     spinData.totalWin = this.latestSpinData.wins.reduce((acc, win) => acc + win.winAmount, 0);
     spinData.fsWon = fsWon;
