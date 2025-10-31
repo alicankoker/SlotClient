@@ -92,8 +92,6 @@ export class GameServer {
 
   private analyzeGridWins(grid: GridData): MatchData[] {
     const matches: MatchData[] = [];
-    const fsWon = this.checkFSWon(grid);
-    const bonusWon = this.checkBonusWon(grid);
 
     this.winningLines.forEach((line: number[], index: number) => {
       let count = 0;
@@ -118,7 +116,7 @@ export class GameServer {
       }
       if(count >= 3) {
         const winAmount = this.calculateLineWinAmount(grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, count, 2);
-        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount, fsWon, bonusWon });
+        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount});
       }
     });
     console.log("matches", matches);
@@ -130,9 +128,6 @@ export class GameServer {
     const paytableEntry = this.paytable.find(entry => entry.symbolId === symbolId);
     if(paytableEntry) {
       winAmount = paytableEntry.winAmounts[symbolCount - 3] * betAmount;
-    }
-    if(isNaN(winAmount)) {
-      debugger
     }
     return winAmount;
   }
@@ -201,8 +196,12 @@ export class GameServer {
 
     spinData.steps.push(this.latestSpinData);
     const matches = this.analyzeGridWins(this.latestSpinData.gridAfter);
+    const fsWon = this.checkFSWon(this.latestSpinData.gridAfter);
+    const bonusWon = this.checkBonusWon(this.latestSpinData.gridAfter);
     this.latestSpinData.wins = matches.map(match => ({ match, winAmount: this.calculateWin([match], request.betAmount) }));
     spinData.totalWin = this.latestSpinData.wins.reduce((acc, win) => acc + win.winAmount, 0);
+    spinData.fsWon = fsWon;
+    spinData.bonusWon = bonusWon;
     return spinData;
   }
 
@@ -213,11 +212,10 @@ export class GameServer {
         const symbol = column[row];
         if (symbol.symbolId === 8) {
           scatterCount++;
-        } else {
-          break;
         }
       }
     });
+    if(scatterCount >= 3) debugger
     return scatterCount >= 3;
   }
 

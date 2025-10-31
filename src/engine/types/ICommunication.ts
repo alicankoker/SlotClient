@@ -24,8 +24,6 @@ export interface MatchData {
   symbolId: number;
   line: number[];
   winAmount: number;
-  fsWon: boolean;
-  bonusWon: boolean;
 }
 
 // export enum ISpinState {
