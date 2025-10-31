@@ -103,10 +103,14 @@ export class DoodleV8Main {
           if (
             this.slotGameController.spinController.getIsSpinning() === false &&
             this.winEvent.isWinEventActive === false &&
-            this.slotGameController.spinController.getIsAutoPlaying() === false &&
-            this.slotGameController.getFreeSpinController().isRunning === false
+            this.slotGameController.spinController.getIsAutoPlaying() === false
           ) {
-            this.slotGameController.executeGameSpin(10, "manual");
+            if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
+              this.slotGameController.reelsController.skipWinAnimations();
+            }
+            if (this.slotGameController.getFreeSpinController().isRunning === false) {
+              this.slotGameController.executeGameSpin(10, "manual");
+            }
           } /*else {
             GameConfig.FORCE_STOP.enabled && this.slotGameController.spinController.forceStop();
           }*/

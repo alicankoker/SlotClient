@@ -34,7 +34,7 @@ export class FreeSpinController {
      * @param freeSpinCount 
      * @returns Promise<void>
      */
-    public async executeFreeSpin(freeSpinCount: number, initialWin:number): Promise<number> {
+    public async executeFreeSpin(freeSpinCount: number, initialWin: number): Promise<number> {
         this.totalFreeSpins = freeSpinCount;
         this.remainingSpins = freeSpinCount;
         this.totalWin = initialWin;
@@ -81,12 +81,7 @@ export class FreeSpinController {
 
         GameDataManager.getInstance().setSpinData(response);
 
-        if (this.remaining - 1 !== 0) {
-            this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
-        } else {
-            this.animationContainer.getFreeSpinRemainText().text = ``;
-            this.animationContainer.getFreeSpinRemainText().visible = false;
-        }
+        this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
 
         await this.spinController.executeSpin();
 
@@ -140,6 +135,11 @@ export class FreeSpinController {
             total: this.totalFreeSpins,
             totalWin: this.totalWin,
         });
+
+        if (this.remainingSpins - 1 === 0) {
+            this.animationContainer.getFreeSpinRemainText().text = ``;
+            this.animationContainer.getFreeSpinRemainText().visible = false;
+        }
 
         if (this.resolvePromise) {
             this.resolvePromise(); // burada totalWin Promise zincirine dönüyor

@@ -301,23 +301,41 @@ export class AnimationContainer extends Container {
         return new Promise((resolve) => {
             this._popup.interactive = true;
             this._popup.cursor = 'pointer';
-
             this._popup.visible = true;
 
-            gsap.to(this._popup, {
-                alpha: 1, duration: 0.5, ease: 'back.out(1.7)', onComplete: () => {
-                    this._popup.once('pointerdown', () => {
-                        this._popup.interactive = false;
-                        this._popup.cursor = 'default';
+            const closePopup = () => {
+                this._popup.interactive = false;
+                this._popup.cursor = 'default';
 
-                        gsap.to(this._popup, {
-                            alpha: 0, duration: 0.5, ease: 'back.out(1.7)', delay: 0.25, onComplete: () => {
-                                this._popup.visible = false;
-                                resolve();
-                            }
-                        });
-                    });
+                window.removeEventListener("keydown", onKeyDown);
+                this._popup.off('pointerdown', closePopup);
+
+                gsap.to(this._popup, {
+                    alpha: 0,
+                    duration: 0.5,
+                    ease: 'back.out(1.7)',
+                    delay: 0.25,
+                    onComplete: () => {
+                        this._popup.visible = false;
+                        resolve();
+                    }
+                });
+            };
+
+            const onKeyDown = (e: KeyboardEvent) => {
+                if (e.code === "Space" || e.code === "Enter") {
+                    e.preventDefault();
+                    closePopup();
                 }
+            };
+
+            this._popup.once('pointerdown', closePopup);
+            window.addEventListener('keydown', onKeyDown);
+
+            gsap.to(this._popup, {
+                alpha: 1,
+                duration: 0.5,
+                ease: 'back.out(1.7)',
             });
         });
     }
