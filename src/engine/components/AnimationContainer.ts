@@ -23,7 +23,9 @@ export class AnimationContainer extends Container {
     private _freeSpinRemainHolder!: Sprite;
     private _freeSpinRemainText!: Text;
     private _popupBackground!: Sprite;
-    private _popupText!: Text;
+    private _popupHeader!: Sprite;
+    private _popupFreeSpinsText!: Text;
+    private _popupCountText!: Text;
     private _transition!: Spine;
     private _buyFreeSpinButton!: Sprite;
 
@@ -63,13 +65,55 @@ export class AnimationContainer extends Container {
         this.addChild(this._popup);
 
         this._popupBackground = Sprite.from("popup_background");
+        this._popupBackground.label = 'FreeSpinPopupBackground';
         this._popupBackground.anchor.set(0.5);
         this._popup.addChild(this._popupBackground);
 
-        this._popupText = new Text({ text: '', style: GameConfig.style.clone() });
-        this._popupText.label = 'FreeSpinPopupText';
-        this._popupText.anchor.set(0.5, 0.5);
-        this._popup.addChild(this._popupText);
+        this._popupHeader = Sprite.from("popup_header");
+        this._popupHeader.label = 'FreeSpinPopupHeader';
+        this._popupHeader.anchor.set(0.5);
+        this._popupHeader.position.set(0, -275);
+        this._popup.addChild(this._popupHeader);
+
+        const popupHeaderText = new Text({ text: 'CONGRATULATIONS', style: GameConfig.style.clone() });
+        popupHeaderText.label = 'FreeSpinPopupHeaderText';
+        popupHeaderText.anchor.set(0.5, 0.5);
+        popupHeaderText.position.set(0, -250);
+        popupHeaderText.style.fontSize = 58;
+        this._popup.addChild(popupHeaderText);
+
+        const popupYouWonText = new Text({ text: 'YOU HAVE WON', style: GameConfig.style.clone() });
+        popupYouWonText.label = 'FreeSpinPopupYouWonText';
+        popupYouWonText.anchor.set(0.5, 0.5);
+        popupYouWonText.position.set(0, -100);
+        popupYouWonText.style.fontSize = 46;
+        this._popup.addChild(popupYouWonText);
+
+        this._popupCountText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._popupCountText.label = 'FreeSpinPopupCountText';
+        this._popupCountText.anchor.set(0.5, 0.5);
+        this._popupCountText.position.set(0, 30);
+        this._popupCountText.style.fontSize = 145;
+        this._popup.addChild(this._popupCountText);
+
+        this._popupFreeSpinsText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._popupFreeSpinsText.label = 'FreeSpinPopupFreeSpinsText';
+        this._popupFreeSpinsText.anchor.set(0.5, 0.5);
+        this._popupFreeSpinsText.position.set(0, 160);
+        this._popupFreeSpinsText.style.fontSize = 46;
+        this._popup.addChild(this._popupFreeSpinsText);
+
+        const popupPressAnywhere = new Text({ text: 'PRESS ANYWHERE TO CONTINUE', style: GameConfig.style.clone() });
+        popupPressAnywhere.label = 'FreeSpinPopupPressText';
+        popupPressAnywhere.anchor.set(0.5, 0.5);
+        popupPressAnywhere.position.set(0, 225);
+        popupPressAnywhere.style.fontSize = 20;
+        popupPressAnywhere.style.fill = 0xffffff;
+        popupPressAnywhere.style.stroke = {
+            width: 0,
+            color: 0x000000,
+        }
+        this._popup.addChild(popupPressAnywhere);
 
         this._freeSpinRemain = new Container();
         this._freeSpinRemain.label = 'FreeSpinRemainContainer';
@@ -87,39 +131,6 @@ export class AnimationContainer extends Container {
         this._freeSpinRemainText.label = 'FreeSpinRemainText';
         this._freeSpinRemainText.anchor.set(0.5, 0.5);
         this._freeSpinRemain.addChild(this._freeSpinRemainText);
-
-        this._winEvent = WinEvent.getInstance();
-        this.addChild(this._winEvent);
-
-        const { atlas, skeleton } = AssetsConfig.TRANSITION_SPINE_ASSET;
-
-        this._transition = Spine.from({ atlas, skeleton });
-        this._transition.label = 'TransitionSpine';
-        this._transition.scale.set(15, 10);
-        this._transition.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._transition.visible = false;
-        this.addChild(this._transition);
-
-        this.eventListeners();
-    }
-
-    public static getInstance(): AnimationContainer {
-        if (!AnimationContainer._instance) {
-            AnimationContainer._instance = new AnimationContainer();
-        }
-        return AnimationContainer._instance;
-    }
-
-    private eventListeners(): void {
-        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, (winAmount: number | undefined) => {
-            if (winAmount !== undefined) {
-                this.playWinTextAnimation(winAmount);
-            }
-        });
-
-        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE, () => {
-            this.stopWinTextAnimation();
-        });
 
         this._buyFreeSpinButton = Sprite.from('freespin_logo');
         this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
@@ -155,6 +166,39 @@ export class AnimationContainer extends Container {
                 }
             });
         });
+
+        this._winEvent = WinEvent.getInstance();
+        this.addChild(this._winEvent);
+
+        const { atlas, skeleton } = AssetsConfig.TRANSITION_SPINE_ASSET;
+
+        this._transition = Spine.from({ atlas, skeleton });
+        this._transition.label = 'TransitionSpine';
+        this._transition.scale.set(15, 10);
+        this._transition.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._transition.visible = false;
+        this.addChild(this._transition);
+
+        this.eventListeners();
+    }
+
+    public static getInstance(): AnimationContainer {
+        if (!AnimationContainer._instance) {
+            AnimationContainer._instance = new AnimationContainer();
+        }
+        return AnimationContainer._instance;
+    }
+
+    private eventListeners(): void {
+        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, (winAmount: number | undefined) => {
+            if (winAmount !== undefined) {
+                this.playWinTextAnimation(winAmount);
+            }
+        });
+
+        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE, () => {
+            this.stopWinTextAnimation();
+        });
     }
 
     public playTotalWinAnimation(totalWinAmount: number): Promise<void> {
@@ -167,7 +211,7 @@ export class AnimationContainer extends Container {
             // Play total win text animation
             gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                    this._winText.text = `${Helpers.convertToDecimal(totalWinAmount)}€`;
+                    this._winText.text = `$${Helpers.convertToDecimal(totalWinAmount)}`;
                     this._winText.visible = true;
                 },
                 onComplete: () => {
@@ -189,7 +233,7 @@ export class AnimationContainer extends Container {
             // Play single win text animation
             gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                    this._winText.text = `${Helpers.convertToDecimal(winAmount)}€`;
+                    this._winText.text = `$${Helpers.convertToDecimal(winAmount)}`;
                     this._winText.visible = true;
                 }
             });
@@ -284,11 +328,15 @@ export class AnimationContainer extends Container {
         return this._popupBackground;
     }
 
-    public getPopupText(): Text {
-        return this._popupText;
+    public getPopupCountText(): Text {
+        return this._popupCountText;
     }
 
-    public getBuyFreeSpinButton(): Sprite{
+    public getPopupFreeSpinsText(): Text {
+        return this._popupFreeSpinsText;
+    }
+
+    public getBuyFreeSpinButton(): Sprite {
         return this._buyFreeSpinButton;
     }
 }

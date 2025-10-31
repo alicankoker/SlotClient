@@ -44,7 +44,8 @@ export class ClassicSpinController extends SpinController {
         this.onSpinStartCallback();
       }
 
-      eventBus.emit("setWinData1", "GOOD LUCK!")
+      eventBus.emit("setWinData1", "");
+      eventBus.emit("setWinData2", "GOOD LUCK!")
 
       // Simulate server request (replace with actual server call)
       const response: SpinResponseData =

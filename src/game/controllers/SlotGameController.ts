@@ -17,6 +17,7 @@ import { FreeSpinController } from '../../engine/freeSpin/FreeSpinController';
 import { Background } from '../../engine/components/Background';
 import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinContainer';
 import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
+import { Helpers } from '../../engine/utils/Helpers';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -203,7 +204,8 @@ export class SlotGameController {
                 this.staticContainer.allowLoop = false;
                 this.staticContainer.isFreeSpinMode = true;
 
-                this.animationContainer.getPopupText().text = `You won ${freeSpinCount} Free Spins!`;
+                this.animationContainer.getPopupCountText().text = `${freeSpinCount}`;
+                this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
                 await this.animationContainer.playFreeSpinPopupAnimation();
 
                 await this.animationContainer.startTransitionAnimation(() => {
@@ -212,11 +214,13 @@ export class SlotGameController {
 
                     this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${freeSpinCount} REMAINING`;
                     this.animationContainer.getFreeSpinRemainContainer().visible = true;
+                    this.animationContainer.getBuyFreeSpinButton().visible = false;
                 });
 
                 await this.executeFreeSpin(freeSpinCount);
 
-                this.animationContainer.getPopupText().text = `Free Spins Completed!`;
+                this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(1220)}`;
+                this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
                 await this.animationContainer.playFreeSpinPopupAnimation();
 
                 await this.animationContainer.startTransitionAnimation(() => {
@@ -224,6 +228,7 @@ export class SlotGameController {
                     this.background.setFreeSpinMode(false);
 
                     this.animationContainer.getFreeSpinRemainContainer().visible = false;
+                    this.animationContainer.getBuyFreeSpinButton().visible = true;
                 });
 
                 this.freeSpinController.isRunning = false;

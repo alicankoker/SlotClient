@@ -24,5 +24,5 @@ export default defineConfig({
       '@': '/src',
     },
   },
-  assetsInclude: ['**/*.skel', '**/*.atlas', '**/*.ttf'],
+  assetsInclude: ['**/*.skel', '**/*.atlas', '**/*.ttf', '**/*.otf'],
 });

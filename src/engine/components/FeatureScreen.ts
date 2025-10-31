@@ -326,7 +326,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         const dontShowText = new Text({
             text: "DON'T SHOW NEXT TIME",
             style: {
-                fontFamily: "Nunito Black",
+                fontFamily: "MikadoBlack",
                 fontSize: 32,
                 fill: 0xffffff,
                 align: "center",

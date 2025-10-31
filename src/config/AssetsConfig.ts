@@ -58,8 +58,8 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/Loading_Bar_Frame.png'
           },
           {
-            alias: 'Nunito Black',
-            src: PATH + '/assets/fonts/Nunito-Black.ttf'
+            alias: 'MikadoBlack',
+            src: PATH + '/assets/fonts/MikadoBlack.otf'
           }
         ]
       },
@@ -147,8 +147,20 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/Logo_Super_Scatter_Game.png'
           },
           {
+            alias: 'gem_left',
+            src: PATH + '/assets/raw/gem_left.png'
+          },
+          {
+            alias: 'gem_right',
+            src: PATH + '/assets/raw/gem_right.png'
+          },
+          {
             alias: 'popup_background',
             src: PATH + '/assets/raw/UI_Pop_Up_Background.png'
+          },
+          {
+            alias: 'popup_header',
+            src: PATH + '/assets/raw/UI_Pop_Up_Bar.png'
           },
           {
             alias: 'slider_button_frame',
@@ -334,8 +346,8 @@ export class AssetsConfig {
         name: "fonts",
         assets: [
           {
-            alias: "Nunito Black",
-            src: `${PATHS.ART}fonts/Nunito-Black.ttf`,
+            alias: "MikadoBlack",
+            src: PATHS.ROOT + `fonts/MikadoBlack.otf`,
           },
         ],
       },

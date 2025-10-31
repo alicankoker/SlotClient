@@ -65,7 +65,7 @@ export class Counter {
                     });
                 },
                 onUpdate: () => {
-                    this._amountText.text = `${Helpers.convertToDecimal(Math.floor(this._tweenObj.value)) as string} €`;
+                    this._amountText.text = `$${Helpers.convertToDecimal(Math.floor(this._tweenObj.value)) as string}`;
                 },
                 onComplete: () => {
                     gsap.to(this._amountText.scale, {
@@ -109,7 +109,7 @@ export class Counter {
         });
 
         if (this._tweenObj.value < this._targetAmount) {
-            this._amountText.text = `${Helpers.convertToDecimal(this._targetAmount) as string} €`;
+            this._amountText.text = `$${Helpers.convertToDecimal(this._targetAmount) as string}`;
         }
     }
 }
