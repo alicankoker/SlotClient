@@ -3,6 +3,7 @@ import { SpinConfig } from "../../../config/SpinConfig";
 import { GameServer } from "../../../server/GameServer";
 import { AnimationContainer } from "../../components/AnimationContainer";
 import { GameDataManager } from "../../data/GameDataManager";
+import { FreeSpinController } from "../../freeSpin/FreeSpinController";
 import { IReelMode } from "../../reels/ReelController";
 import { GridData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
@@ -52,7 +53,7 @@ export class ClassicSpinController extends SpinController {
       }
 
       const initialGrid = response.result.steps[0].gridBefore;
-      
+
       await this.transferSymbolsToSpinContainer(initialGrid);
 
       const finalGrid = response.result.steps[0].gridAfter;
@@ -64,14 +65,14 @@ export class ClassicSpinController extends SpinController {
 
         GameConfig.WIN_EVENT.enabled && await AnimationContainer.getInstance().getWinEvent().getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
-        const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
+        const isSkipped = (GameConfig.AUTO_PLAY.skipAnimations === true && ((this._isAutoPlaying && this._autoPlayCount > 0) || FreeSpinController.getInstance(this).isRunning === true));
         GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
 
         // if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
         //   this.stopAutoPlay();
         // }
 
-        if (this._isAutoPlaying) {
+        if (this._isAutoPlaying && FreeSpinController.getInstance(this).isRunning === false) {
           this.continueAutoPlay();
         }
       }

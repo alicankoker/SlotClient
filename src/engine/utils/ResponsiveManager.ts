@@ -102,7 +102,7 @@ export class ResponsiveManager {
 
         // final stage width/height (reference size scaled)
         const stageWidth = refWidth * scale;
-        const stageHeight = refHeight * scale;
+        const stageHeight = refHeight * scale * 1.025;
 
         // alignment
         const padding = this.resolveAlignment({ width: viewportWidth, height: viewportHeight }, { width: stageWidth, height: stageHeight });

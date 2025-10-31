@@ -17,6 +17,7 @@ import { AnimationContainer } from '../../engine/components/AnimationContainer';
 import { ClassicSpinContainer } from '../../engine/Spin/ClassicSpin/ClassicSpinContainer';
 import { ClassicSpinController } from '../../engine/Spin/ClassicSpin/ClassicSpinController';
 import { FreeSpinController } from '../../engine/freeSpin/FreeSpinController';
+import { Background } from '../../engine/components/Background';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -44,6 +45,7 @@ export class SlotGameController {
     public reelsContainer!: ReelsContainer;
     public reelsController!: ReelsController;
     public freeSpinController!: FreeSpinController;
+    private background!: Background;
     private animationContainer!: AnimationContainer;
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
     private onSpinResultCallback?: (result: SpinResultData) => void;
@@ -72,6 +74,7 @@ export class SlotGameController {
             symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData);
 
+        this.background = Background.getInstance();
         this.animationContainer = AnimationContainer.getInstance();
 
         // Set initial visibility - StaticContainer visible, SpinContainer hidden
@@ -90,7 +93,7 @@ export class SlotGameController {
             reelsController: this.reelsController
         });
 
-        this.freeSpinController = new FreeSpinController(this.spinController);
+        this.freeSpinController = FreeSpinController.getInstance(this.spinController);
 
         this.connectControllers();
     }
@@ -195,11 +198,14 @@ export class SlotGameController {
             const response = await this.spinController.executeSpin();
 
             if (GameDataManager.getInstance().checkFreeSpins()) {
-                await this.animationContainer.startTransitionAnimation();
-                this.animationContainer.getPopupText().text = "You won 10 Free Spins!";
+                await this.animationContainer.startTransitionAnimation(() => {
+                    //this.reelsContainer.setFreeSpinMode(true);
+                    this.background.setFreeSpinMode(true);
+                });
+                this.animationContainer.getPopupText().text = "You won 3 Free Spins!";
                 await this.animationContainer.playFreeSpinPopupAnimation();
 
-                await this.executeFreeSpin(10);
+                await this.executeFreeSpin(3);
             }
         }
     }
@@ -224,5 +230,9 @@ export class SlotGameController {
         }
 
         return success;
+    }
+
+    public getFreeSpinController(): FreeSpinController {
+        return this.freeSpinController;
     }
 } 

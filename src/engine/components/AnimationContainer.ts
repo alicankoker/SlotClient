@@ -148,7 +148,7 @@ export class AnimationContainer extends Container {
     public stopWinTextAnimation(): void {
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
             gsap.to(this._winText.scale, {
-                x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', onComplete: () => {
+                x: 0, y: 0, duration: 0.1, ease: 'back.in(1.7)', onComplete: () => {
                     this._winText.text = ``;
                     this._winText.visible = false;
                 }

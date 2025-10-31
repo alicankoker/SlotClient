@@ -52,7 +52,7 @@ export class Bonus extends BonusContainer {
     }
 
     private createScene(): void {
-        this._background = Sprite.from('background_bonus');
+        this._background = Sprite.from('bonus_background');
         this._background.label = 'BonusBackground';
         this._background.anchor.set(0.5);
         this._background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);

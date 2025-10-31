@@ -58,7 +58,7 @@ export class WinLines extends WinLinesContainer {
 
     protected override createLineNumbers(): void {
         for (let index = 0; index < 2; index++) {
-            const chain = Sprite.from(`line_chain`);
+            const chain = Sprite.from(`base_line_chain`);
             chain.label = `LineChain_${index}`;
             chain.anchor.set(0.5);
             chain.position.set(305 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
@@ -67,7 +67,7 @@ export class WinLines extends WinLinesContainer {
 
         for (const key of Object.keys(GameRulesConfig.LINE_NUMBER_POSITION)) {
             const position = GameRulesConfig.LINE_NUMBER_POSITION[Number(key)];
-            const texture = Sprite.from(`line_holder`);
+            const texture = Sprite.from(`base_line_holder`);
             texture.label = `LineHolderTexture_${key}`;
             texture.anchor.set(0.5);
             texture.position.set((GameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (GameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
