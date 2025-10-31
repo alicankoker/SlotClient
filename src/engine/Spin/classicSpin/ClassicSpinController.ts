@@ -45,7 +45,12 @@ export class ClassicSpinController extends SpinController {
       }
 
       eventBus.emit("setWinData1", "");
-      eventBus.emit("setWinData2", "GOOD LUCK!")
+      eventBus.emit("setWinData2", "GOOD LUCK!");
+
+      eventBus.emit('setComponentState', {
+        componentName: 'spinButton',
+        stateOrUpdates: 'spinning',
+      });
 
       // Simulate server request (replace with actual server call)
       const response: SpinResponseData =
@@ -63,6 +68,11 @@ export class ClassicSpinController extends SpinController {
       const finalGrid = response.result.steps[0].gridAfter;
 
       this.onSpinCompleteCallback = async () => {
+        eventBus.emit('setComponentState', {
+          componentName: 'spinButton',
+          stateOrUpdates: 'default',
+        });
+
         this.reelsController.getReelsContainer().setChainAnimation(false, false, false);
 
         await this.transferSymbolsToStaticContainer(finalGrid);

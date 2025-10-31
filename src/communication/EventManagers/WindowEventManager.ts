@@ -1,5 +1,6 @@
 type eventType = {
   error: string;
+  spinIt: null;
   spin: null;
   setComponentState: TSetComponentStateEventMap;
   setBatchComponentState: TSetBatchComponentStateEventMap;
@@ -60,13 +61,13 @@ type TCommonVariants = 'default';
 type TSetComponentStateEventMap = {
   [K in TComponentNames]: {
     componentName: K;
-    variantOrUpdates: TComponentVariants[K] | TComponentUpdates[K];
+    stateOrUpdates: TComponentVariants[K] | TComponentUpdates[K];
   };
 }[TComponentNames];
 
 type TSetBatchComponentStateEventMap = {
   componentNames: TComponentNames[];
-  variantOrUpdates: TCommonVariants | TCommonComponentProperties;
+  stateOrUpdates: TCommonVariants | TCommonComponentProperties;
 };
 
 type TComponentNames =
