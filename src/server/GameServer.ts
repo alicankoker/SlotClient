@@ -15,7 +15,7 @@ import {
 } from "../engine/types/ICommunication";
 import { debug } from "../engine/utils/debug";
 import { Utils } from "../engine/utils/Utils";
-import { Reelsets } from "./Games/ClassicSpinGame/Reelsets";
+import { Reelsets, FSReelsets } from "./Games/ClassicSpinGame/Reelsets";
 import { GameRulesConfig } from "../config/GameRulesConfig";
 
 export class GameServer {
@@ -316,7 +316,7 @@ export class GameServer {
       GameConfig.GRID_LAYOUT.rowsBelowMask;
     for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
       symbols.push([]);
-      const reelset = Reelsets.Reelsets[col];
+      const reelset = forcedFS ? FSReelsets.Reelsets[col] : Reelsets.Reelsets[col];
       let randomIndex = Utils.getRandomInt(0, reelset.length - 1);
       if(forcedFS && (col === 0 || col === 2 || col === 4)) {
         const index = scatterIndexes[Math.floor(col/2)];

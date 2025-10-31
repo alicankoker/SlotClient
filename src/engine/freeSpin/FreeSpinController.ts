@@ -1,5 +1,7 @@
+import { GameServer } from "../../server/GameServer";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
+import { GameDataManager } from "../data/GameDataManager";
 import { SpinController } from "../Spin/SpinController";
 import { Helpers } from "../utils/Helpers";
 
@@ -66,9 +68,17 @@ export class FreeSpinController {
 
         await Helpers.delay(1000);
 
+        const response = await GameServer.getInstance().processSpinRequest({
+            betAmount: 0,
+            gameMode: "freespin",
+            forcedFS: false
+        });
+
+        GameDataManager.getInstance().setSpinData(response);
+
         this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
 
-        const response = await this.spinController.executeSpin();
+        await this.spinController.executeSpin();
 
         if (response?.result?.extraFreeSpins && response.result.extraFreeSpins > 0) {
             await this.addExtraFreeSpins(response.result.extraFreeSpins);

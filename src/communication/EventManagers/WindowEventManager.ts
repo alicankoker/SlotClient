@@ -11,6 +11,12 @@ type eventType = {
   };
   stopAutoPlay: null;
   closeWrapperLoading: null;
+  setWinData1: string;
+  setWinData2: string;
+  switchSetting: {
+    name: 'quickSpin' | 'ambientMusic' | 'gameSounds' | 'introScreen';
+    value: boolean;
+  };
 };
 
 class EventManager<Events extends eventType> {

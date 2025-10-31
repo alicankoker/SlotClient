@@ -11,6 +11,7 @@ import { WinConfig } from '../types/IWinPresentation';
 import { GridData } from '../types/ICommunication';
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { AnimationContainer } from '../components/AnimationContainer';
+import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -151,9 +152,28 @@ export class StaticContainer extends Container {
         this._isSkipped = false;
         this._isLooping = false;
 
+        eventBus.emit("setWinData1", "");
+        eventBus.emit("setWinData2", "0");
+
+        let tweenObj = { value: 0 };
+        let currentAmount = "0";
+
+        gsap.to(tweenObj, {
+            value: totalWinAmount,
+            duration: 3,
+            ease: "power1",
+            onUpdate: () => {
+                currentAmount = `${Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string}`;
+                console.log(currentAmount);
+            }
+        });
+
         await AnimationContainer.getInstance().playTotalWinAnimation(totalWinAmount);
 
         await this.playWinAnimations(winDatas, token);
+
+        eventBus.emit("setWinData1", "PLACE YOUR BET");
+        eventBus.emit("setWinData2", "");
 
         if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false) {
             this.playLoopAnimations(winDatas, token);

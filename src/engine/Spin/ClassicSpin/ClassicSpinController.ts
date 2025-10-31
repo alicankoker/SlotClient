@@ -1,3 +1,4 @@
+import { eventBus } from "../../../communication/EventManagers/WindowEventManager";
 import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
 import { GameServer } from "../../../server/GameServer";
@@ -42,6 +43,8 @@ export class ClassicSpinController extends SpinController {
       if (this.onSpinStartCallback) {
         this.onSpinStartCallback();
       }
+
+      eventBus.emit("setWinData1", "GOOD LUCK!")
 
       // Simulate server request (replace with actual server call)
       const response: SpinResponseData =

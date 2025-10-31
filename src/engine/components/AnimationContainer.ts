@@ -163,6 +163,7 @@ export class AnimationContainer extends Container {
                 resolve();
                 return;
             }
+
             // Play total win text animation
             gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
@@ -174,6 +175,7 @@ export class AnimationContainer extends Container {
                         x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', delay: 1, onComplete: () => {
                             this._winText.text = ``;
                             this._winText.visible = false;
+
                             resolve();
                         }
                     });
@@ -284,5 +286,9 @@ export class AnimationContainer extends Container {
 
     public getPopupText(): Text {
         return this._popupText;
+    }
+
+    public getBuyFreeSpinButton(): Sprite{
+        return this._buyFreeSpinButton;
     }
 }

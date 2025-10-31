@@ -427,6 +427,7 @@ export class DoodleV8Main {
     this.slotGameController!.reelsController!.setMode(ISpinState.IDLE);
 
     eventBus.emit("showUI");
+    eventBus.emit("setWinData1", "PLACE YOUR BET");
   }
 }
 
