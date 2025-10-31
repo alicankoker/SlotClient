@@ -9,7 +9,9 @@ export class SpinGame {
             result: {
                 spinId: '123',
                 totalWin: 0,
-                steps: []
+                steps: [],
+                fsWon: false,
+                bonusWon: false
             }
         }
     }
