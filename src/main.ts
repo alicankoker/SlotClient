@@ -107,9 +107,9 @@ export class DoodleV8Main {
             this.slotGameController.getFreeSpinController().isRunning === false
           ) {
             this.slotGameController.executeGameSpin(10, "manual");
-          } else {
+          } /*else {
             GameConfig.FORCE_STOP.enabled && this.slotGameController.spinController.forceStop();
-          }
+          }*/
         }
       }
 

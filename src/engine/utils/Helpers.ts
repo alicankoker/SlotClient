@@ -139,6 +139,31 @@ export class Helpers {
   }
 
   /**
+   * @description Returns a promise that resolves after a specified delay.
+   * @param ms The delay duration in milliseconds.
+   * @param signal An optional AbortSignal to cancel the delay.
+   * @returns A promise that resolves after the delay.
+   */
+  public static delay(ms: number, signal?: AbortSignal): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const id = setTimeout(() => resolve(), ms);
+
+            if (signal) {
+                if (signal.aborted) {
+                    clearTimeout(id);
+                    resolve();
+                    return;
+                }
+
+                signal.addEventListener("abort", () => {
+                    clearTimeout(id);
+                    resolve();
+                }, { once: true });
+            }
+        });
+    }
+
+  /**
    * @description Generates a path for an arc.
    * @param radius Radius of the arc
    * @param degree Total angle (in degrees)

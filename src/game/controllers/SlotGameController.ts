@@ -12,12 +12,11 @@ import { GameConfig, spinContainerConfig } from '../../config/GameConfig';
 import { StaticContainer } from '../../engine/reels/StaticContainer';
 import { ReelsContainer } from '../../engine/reels/ReelsContainer';
 import { GameDataManager } from '../../engine/data/GameDataManager';
-import { ISpinState } from '../../engine/types/ISpinConfig';
 import { AnimationContainer } from '../../engine/components/AnimationContainer';
 import { FreeSpinController } from '../../engine/freeSpin/FreeSpinController';
 import { Background } from '../../engine/components/Background';
-import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
-import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinContainer';
+import { ClassicSpinContainer } from '../../engine/Spin/ClassicSpin/ClassicSpinContainer';
+import { ClassicSpinController } from '../../engine/Spin/ClassicSpin/ClassicSpinController';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -196,22 +195,45 @@ export class SlotGameController {
 
         if (this.spinController) {
             const response = await this.spinController.executeSpin();
+            const freeSpinCount = 3;
 
             if (GameDataManager.getInstance().checkFreeSpins()) {
-                await this.animationContainer.startTransitionAnimation(() => {
-                    //this.reelsContainer.setFreeSpinMode(true);
-                    this.background.setFreeSpinMode(true);
-                });
-                this.animationContainer.getPopupText().text = "You won 3 Free Spins!";
+                this.freeSpinController.isRunning = true;
+                this.staticContainer.allowLoop = false;
+                this.staticContainer.isFreeSpinMode = true;
+
+                this.animationContainer.getPopupText().text = `You won ${freeSpinCount} Free Spins!`;
                 await this.animationContainer.playFreeSpinPopupAnimation();
 
-                await this.executeFreeSpin(3);
+                await this.animationContainer.startTransitionAnimation(() => {
+                    this.reelsContainer.setFreeSpinMode(true);
+                    this.background.setFreeSpinMode(true);
+
+                    this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${freeSpinCount} REMAINING`;
+                    this.animationContainer.getFreeSpinRemainContainer().visible = true;
+                });
+
+                await this.executeFreeSpin(freeSpinCount);
+
+                this.animationContainer.getPopupText().text = `Free Spins Completed!`;
+                await this.animationContainer.playFreeSpinPopupAnimation();
+
+                await this.animationContainer.startTransitionAnimation(() => {
+                    this.reelsContainer.setFreeSpinMode(false);
+                    this.background.setFreeSpinMode(false);
+
+                    this.animationContainer.getFreeSpinRemainContainer().visible = false;
+                });
+
+                this.freeSpinController.isRunning = false;
+                this.staticContainer.allowLoop = true;
+                this.staticContainer.isFreeSpinMode = false;
             }
         }
     }
 
     public async executeFreeSpin(freeSpinCount: number): Promise<void> {
-        this.freeSpinController.executeFreeSpin(freeSpinCount);
+        await this.freeSpinController.executeFreeSpin(freeSpinCount);
     }
 
     //TODO: Needs to be moved to Nexus

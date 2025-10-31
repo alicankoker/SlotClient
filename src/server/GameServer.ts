@@ -157,7 +157,8 @@ export class GameServer {
       gridAfter: this.generateNewGridData(),
       wins: [],
     };
-    this.latestSpinData.gridAfter.symbols[0][0].symbolId = 8;
+    
+    /*this.latestSpinData.gridAfter.symbols[0][0].symbolId = 8;
     this.latestSpinData.gridAfter.symbols[0][1].symbolId = 9;
     this.latestSpinData.gridAfter.symbols[0][2].symbolId = 0;
     this.latestSpinData.gridAfter.symbols[0][3].symbolId = 2;
@@ -181,7 +182,8 @@ export class GameServer {
     this.latestSpinData.gridAfter.symbols[4][1].symbolId = 5;
     this.latestSpinData.gridAfter.symbols[4][2].symbolId = 1;
     this.latestSpinData.gridAfter.symbols[4][3].symbolId = 2;
-    this.latestSpinData.gridAfter.symbols[4][4].symbolId = 8;
+    this.latestSpinData.gridAfter.symbols[4][4].symbolId = 8;*/
+
     spinData.steps.push(this.latestSpinData);
     const matches = this.analyzeGridWins(this.latestSpinData.gridAfter);
     this.latestSpinData.wins = matches.map(match => ({ match, winAmount: this.calculateWin([match], request.betAmount) }));

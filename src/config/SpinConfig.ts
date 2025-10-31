@@ -1,6 +1,6 @@
 export class SpinConfig {
     public static readonly SPIN_SPEED = 0;
-    public static readonly SPIN_DURATION = 3000;
+    public static readonly SPIN_DURATION = 1500;
     public static readonly FAST_SPIN_SPEED = 100;
     public static readonly REEL_MAX_SPEED = 10;
     public static readonly REEL_SPIN_DURATION = 1000;

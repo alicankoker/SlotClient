@@ -12,6 +12,7 @@ import { ISpinState, SpinMode } from "../types/ISpinConfig";
 import { GridData } from "../types/ICommunication";
 import { WinConfig } from "../types/IWinPresentation";
 import { AnimationContainer } from "../components/AnimationContainer";
+import { GameDataManager } from "../data/GameDataManager";
 
 export class ReelsController {
   private app: Application;
@@ -75,13 +76,13 @@ export class ReelsController {
     );
 
     if (mode === ISpinState.IDLE) {
-      this.reelsContainer.setChainAnimation('Base_chain_hold', false);
+      this.reelsContainer.setChainAnimation(false, false);
       this.reelsContainer.chainSpeed = 1;
       await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
     }
 
     if (mode === ISpinState.SPINNING) {
-      this.reelsContainer.setChainAnimation('Base_chain', true);
+      this.reelsContainer.setChainAnimation(true, true);
     }
   }
 
@@ -119,7 +120,7 @@ export class ReelsController {
   }
 
   public async playWinAnimations(winData: WinConfig[] | undefined): Promise<void> {
-    if(!winData) return;
+    if (!winData) return;
     const staticContainer = this.reelsContainer.getStaticContainer();
     const winLines = this.reelsContainer.getWinLines();
     await staticContainer?.setAnimation(winData);
@@ -135,9 +136,34 @@ export class ReelsController {
    */
   public async playRandomWinAnimation(isSkipped: boolean = false): Promise<void> {
     // set win display datas
-    const winData = this.setWinDisplayData();
-    const winData2 = this.setWinDisplayData();
-    const winData3 = this.setWinDisplayData();
+    const spinResultData = GameDataManager.getInstance().getLastSpinResult();
+    let winConfigs: WinConfig[] = [];
+
+    if (spinResultData!.steps[0].wins.length === 0) {
+      return;
+    }
+
+    if (spinResultData) {
+      for (const winData of spinResultData.steps[0].wins) {
+        const line = Number(Object.entries(GameRulesConfig.WINNING_LINES).find(([, line]) => JSON.stringify(line) === JSON.stringify(winData.match.line))?.[0]);
+        const symbolIds = winData.match.line.slice(0, winData.match.indices.length);
+        const winConfig: WinConfig = {
+          symbolIds: symbolIds,
+          line: line,
+          amount: winData.winAmount * Math.max(1, Math.floor(Math.random() * 5)),
+          multiplier: Math.max(1, Math.floor(Math.random() * 5))
+        }
+
+        winConfigs.push(winConfig);
+      }
+    }
+
+    console.log("winConfigs", winConfigs);
+
+    // const winData = this.setWinDisplayData();
+    // const winData2 = this.setWinDisplayData();
+    // const winData3 = this.setWinDisplayData();
+
     const staticContainer = this.reelsContainer.getStaticContainer();
     const winLines = this.reelsContainer.getWinLines();
 
@@ -145,15 +171,15 @@ export class ReelsController {
       winLines.visible = true;
     }
 
+    const winDatas = [...winConfigs];
+    const amount = winConfigs.reduce((sum, win) => sum + win.amount, 0);
+    const lines = winConfigs.map(win => win.line);
+
     // Play the win animations. If skipped, play the skipped animation, otherwise play the full animation.
     if (isSkipped) {
-      const amount = winData.amount + winData2.amount + winData3.amount;
-      const lines = [winData.line, winData2.line, winData3.line];
-
       await staticContainer?.playSkippedWinAnimation(amount, lines);
     } else {
-      this.reelsContainer.playFrameAnimation();
-      await staticContainer?.setAnimation([winData, winData2, winData3]);
+      await staticContainer?.setAnimation(winDatas);
     }
   }
 
@@ -176,8 +202,6 @@ export class ReelsController {
       );
       return;
     }
-
-    this.reelsContainer.stopFrameAnimation();
 
     const animationContainer = AnimationContainer.getInstance();
 

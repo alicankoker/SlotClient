@@ -17,6 +17,7 @@ export interface GameState {
 export class GameDataManager {
     private static instance: GameDataManager;
     private gameState: GameState;
+    private _freeSpinActive: boolean = false;
 
     private constructor() {
         this.gameState = {
@@ -50,11 +51,20 @@ export class GameDataManager {
     }
 
     checkFreeSpins(): boolean {
-        const currentSpinData = this.gameState.currentSpinData;
+        return this._freeSpinActive;
+        // const currentSpinData = this.gameState.currentSpinData;
 
-        //return (currentSpinData && currentSpinData.result && currentSpinData.result.fsWon) || false;
+        // return (currentSpinData && currentSpinData.result && currentSpinData.result.fsWon) || false;
 
-        return true; // For testing purposes, always return true
+        // return true; // For testing purposes, always return true
+    }
+
+    public get freeSpinActive(): boolean {
+        return this._freeSpinActive;
+    }
+
+    public set freeSpinActive(value: boolean) {
+        this._freeSpinActive = value;
     }
 
     // Getters

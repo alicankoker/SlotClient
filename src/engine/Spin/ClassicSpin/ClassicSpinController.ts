@@ -37,7 +37,7 @@ export class ClassicSpinController extends SpinController {
       this.reelsController.resetWinAnimations();
 
       this.setState(ISpinState.SPINNING);
-      this.reelsController.getReelsContainer().setChainAnimation('Base_chain', true); // TODO: it must update for each reels and it should be getting slow down accordingly
+      this.reelsController.getReelsContainer().setChainAnimation(true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
 
       if (this.onSpinStartCallback) {
         this.onSpinStartCallback();
@@ -59,13 +59,13 @@ export class ClassicSpinController extends SpinController {
       const finalGrid = response.result.steps[0].gridAfter;
 
       this.onSpinCompleteCallback = async () => {
-        this.reelsController.getReelsContainer().setChainAnimation('Base_chain_hold', false);
+        this.reelsController.getReelsContainer().setChainAnimation(false, false);
 
         await this.transferSymbolsToStaticContainer(finalGrid);
 
         GameConfig.WIN_EVENT.enabled && await AnimationContainer.getInstance().getWinEvent().getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
-        const isSkipped = (GameConfig.AUTO_PLAY.skipAnimations === true && ((this._isAutoPlaying && this._autoPlayCount > 0) || FreeSpinController.getInstance(this).isRunning === true));
+        const isSkipped = ((this._isAutoPlaying && this._autoPlayCount > 0 && GameConfig.FREE_SPIN.skipAnimations === true) || (FreeSpinController.getInstance(this).isRunning === true && GameConfig.FREE_SPIN.skipAnimations === true));
         GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
 
         // if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {

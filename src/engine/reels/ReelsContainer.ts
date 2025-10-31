@@ -1,4 +1,4 @@
-import { Container, Application, Graphics, Sprite, Text } from 'pixi.js';
+import { Container, Application, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import { SpinContainer } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
 import { GameConfig } from '../../config/GameConfig';
@@ -25,6 +25,7 @@ export class ReelsContainer extends Container {
   private winLines?: WinLines;
   private frameElementsContainer?: Container;
   private chains: Spine[] = [];
+  private floors: Sprite[] = [];
 
   // Position storage
   private reelXPositions: number[] = [];
@@ -38,6 +39,7 @@ export class ReelsContainer extends Container {
   private _logo!: Sprite;
   private _autoPlayCount: number = 0;
   private _autoPlayCountText: Text;
+  private _isFreeSpinMode: boolean = false;
 
   private readonly numberOfReels: number;
   private readonly symbolsPerReel: number;
@@ -62,7 +64,7 @@ export class ReelsContainer extends Container {
     this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
     this._autoPlayCountText.label = 'AutoPlayCountText';
     this._autoPlayCountText.anchor.set(0.5, 0.5);
-    this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
+    this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 965);
     this._autoPlayCountText.visible = false;
     this.addChild(this._autoPlayCountText);
 
@@ -157,6 +159,8 @@ export class ReelsContainer extends Container {
       floor.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (240 * fIndex) + 435);
       this.frameElementsContainer.addChild(floor);
 
+      this.floors.push(floor);
+
       for (let cIndex = 0; cIndex < 6; cIndex++) {
         const hole = Sprite.from('chain_hole');
         hole.label = `ChainHole_${fIndex}`;
@@ -229,14 +233,6 @@ export class ReelsContainer extends Container {
     this.addChild(this.reelAreaMask);
 
     debug.log(`ReelsContainer: Created reel area mask at (${maskX}, ${maskY}) with size ${totalWidth}x${totalHeight}`);
-  }
-
-  public playFrameAnimation(): void {
-    // this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame', true);
-  }
-
-  public stopFrameAnimation(): void {
-    // this._reelFrame.state.setAnimation(0, 'Background_Landscape_Frame_Hold', false);
   }
 
   // Container access methods
@@ -379,9 +375,32 @@ export class ReelsContainer extends Container {
   }
 
   public setFreeSpinMode(enabled: boolean): void {
-    const animationName = enabled ? 'FS_Lanthern' : 'Base_Lanthern';
-    this._leftLantern.state.setAnimation(0, animationName, true);
-    this._rightLantern.state.setAnimation(0, animationName, true);
+    const frameBackgroundTexture = enabled ? 'freespin_frame_background' : 'base_frame_background';
+    this._reelBackground.texture = Texture.from(frameBackgroundTexture);
+
+    const frameTexture = enabled ? 'freespin_frame' : 'base_frame';
+    this._reelFrame.texture = Texture.from(frameTexture);
+
+    const lanternAnimationName = enabled ? 'FS_Lanthern' : 'Base_Lanthern';
+    this._leftLantern.state.setAnimation(0, lanternAnimationName, true);
+    this._rightLantern.state.setAnimation(0, lanternAnimationName, true);
+
+    const headerTexture = enabled ? 'freespin_header_background' : 'base_header_background';
+    this._headerBackground.texture = Texture.from(headerTexture);
+    this._headerBackground.scale.set(enabled ? 1 : 0.5, enabled ? 1 : 0.5);
+
+    const logoTexture = enabled ? 'freespin_logo' : 'base_logo';
+    this._logo.texture = Texture.from(logoTexture);
+
+    const floorTexture = enabled ? `freespin_floor` : `base_floor`;
+    this.floors.forEach((floor) => {
+      floor.texture = Texture.from(floorTexture);
+    });
+
+    const chainAnimationName = enabled ? 'Free_chain_hold' : 'Base_chain_hold';
+    this.chains.forEach((chain) => {
+      chain.state.setAnimation(0, chainAnimationName, false);
+    });
   }
 
   private onResize(responsiveConfig: ResponsiveConfig): void {
@@ -423,9 +442,10 @@ export class ReelsContainer extends Container {
     });
   }
 
-  public setChainAnimation(animationName: string, loop: boolean): void {
+  public setChainAnimation(isSpinning: boolean, loop: boolean): void {
+    const chainAnimationName = isSpinning ? (this._isFreeSpinMode ? 'Free_chain' : 'Base_chain') : (this._isFreeSpinMode ? 'Free_chain_hold' : 'Base_chain_hold');
     this.chains.forEach(chain => {
-      chain.state.setAnimation(0, animationName, loop);
+      chain.state.setAnimation(0, chainAnimationName, loop);
     });
   }
 

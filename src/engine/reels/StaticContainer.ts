@@ -32,6 +32,7 @@ export class StaticContainer extends Container {
     private _isLooping: boolean = false;
     private _isSkipped: boolean = false;
     private _allowLoop: boolean = GameConfig.WIN_ANIMATION.winLoop ?? true;
+    private _isFreeSpinMode: boolean = false;
     private _animationToken: number = 0;
     private _initialGrid: GridData;
     private _pendingResolvers: (() => void)[] = [];
@@ -154,7 +155,7 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas, token);
 
-        if (this._allowLoop && this._animationToken === token) {
+        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false) {
             this.playLoopAnimations(winDatas, token);
         }
     }
@@ -252,7 +253,7 @@ export class StaticContainer extends Container {
         this._isLooping = true;
         this._isSkipped = false;
 
-        while (this._isLooping && this._animationToken === token) {
+        while (this._isLooping && this._animationToken === token && this._isFreeSpinMode === false) {
             await this.playWinAnimations(winDatas, token);
             await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
         }
@@ -536,6 +537,14 @@ export class StaticContainer extends Container {
 
     public set allowLoop(value: boolean) {
         this._allowLoop = value;
+    }
+
+    public get isFreeSpinMode(): boolean {
+        return this._isFreeSpinMode;
+    }
+
+    public set isFreeSpinMode(value: boolean) {
+        this._isFreeSpinMode = value;
     }
 
     public destroy(): void {

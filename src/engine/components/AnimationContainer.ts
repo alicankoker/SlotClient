@@ -7,6 +7,7 @@ import { Helpers } from "../utils/Helpers";
 import { gsap } from "gsap";
 import { AssetsConfig } from "../../config/AssetsConfig";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { GameDataManager } from "../data/GameDataManager";
 
 export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
@@ -18,10 +19,13 @@ export class AnimationContainer extends Container {
     private _winText: Text;
     private _spinModeText!: Text;
     private _popup!: Container;
-    private _freeSpinCountText!: Text;
+    private _freeSpinRemain!: Container;
+    private _freeSpinRemainHolder!: Sprite;
+    private _freeSpinRemainText!: Text;
     private _popupBackground!: Sprite;
     private _popupText!: Text;
     private _transition!: Spine;
+    private _buyFreeSpinButton!: Sprite;
 
     private constructor() {
         super();
@@ -30,7 +34,7 @@ export class AnimationContainer extends Container {
         this.addChild(this._winLines);
 
         // initialize auto play count indicator
-        this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
+        this._autoPlayCountText = new Text({ text: '', style: GameConfig.style.clone() });
         this._autoPlayCountText.label = 'AutoPlayCountText';
         this._autoPlayCountText.anchor.set(0.5, 0.5);
         this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
@@ -67,12 +71,22 @@ export class AnimationContainer extends Container {
         this._popupText.anchor.set(0.5, 0.5);
         this._popup.addChild(this._popupText);
 
-        this._freeSpinCountText = new Text({ text: '', style: GameConfig.style.clone() });
-        this._freeSpinCountText.label = 'FreeSpinCountText';
-        this._freeSpinCountText.anchor.set(0.5, 0.5);
-        this._freeSpinCountText.position.set(480, 115);
-        this._freeSpinCountText.visible = false;
-        this.addChild(this._freeSpinCountText);
+        this._freeSpinRemain = new Container();
+        this._freeSpinRemain.label = 'FreeSpinRemainContainer';
+        this._freeSpinRemain.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 940);
+        this._freeSpinRemain.visible = false;
+        this.addChild(this._freeSpinRemain);
+
+        this._freeSpinRemainHolder = Sprite.from('freespin_remaining_strip');
+        this._freeSpinRemainHolder.label = 'FreeSpinRemainHolder';
+        this._freeSpinRemainHolder.anchor.set(0.5, 0.5);
+        this._freeSpinRemainHolder.scale.set(0.5, 0.5);
+        this._freeSpinRemain.addChild(this._freeSpinRemainHolder);
+
+        this._freeSpinRemainText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._freeSpinRemainText.label = 'FreeSpinRemainText';
+        this._freeSpinRemainText.anchor.set(0.5, 0.5);
+        this._freeSpinRemain.addChild(this._freeSpinRemainText);
 
         this._winEvent = WinEvent.getInstance();
         this.addChild(this._winEvent);
@@ -105,6 +119,41 @@ export class AnimationContainer extends Container {
 
         signals.on(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE, () => {
             this.stopWinTextAnimation();
+        });
+
+        this._buyFreeSpinButton = Sprite.from('freespin_logo');
+        this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
+        this._buyFreeSpinButton.anchor.set(0.5, 0.5);
+        this._buyFreeSpinButton.scale.set(0.3, 0.3);
+        this._buyFreeSpinButton.position.set(1570, 50);
+        this._buyFreeSpinButton.interactive = true;
+        this._buyFreeSpinButton.cursor = 'pointer';
+        this.addChild(this._buyFreeSpinButton);
+
+        const activatedText = new Text({ text: 'FREE SPIN DEACTIVATED', style: GameConfig.style.clone() });
+        activatedText.label = 'FreeSpinActivatedText';
+        activatedText.anchor.set(0.5, 0.5);
+        activatedText.position.set(1570, 90);
+        activatedText.style.fontSize = 16;
+        activatedText.alpha = 0;
+        this.addChild(activatedText);
+
+        this._buyFreeSpinButton.on('pointerenter', () => {
+            gsap.to(this._buyFreeSpinButton.scale, { x: 0.4, y: 0.4, duration: 0.2 });
+        });
+
+        this._buyFreeSpinButton.on('pointerleave', () => {
+            gsap.to(this._buyFreeSpinButton.scale, { x: 0.3, y: 0.3, duration: 0.2 });
+        });
+
+        this._buyFreeSpinButton.on('pointerdown', () => {
+            GameDataManager.getInstance().freeSpinActive = !GameDataManager.getInstance().freeSpinActive;
+            activatedText.text = GameDataManager.getInstance().freeSpinActive ? 'FREE SPIN ACTIVATED' : 'FREE SPIN DEACTIVATED';
+            gsap.to(activatedText, {
+                alpha: 1, duration: 0.2, onComplete: () => {
+                    gsap.to(activatedText, { alpha: 0, duration: 0.2, delay: 1 });
+                }
+            });
         });
     }
 
@@ -192,6 +241,7 @@ export class AnimationContainer extends Container {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onComplete: () => {
                     gsap.to(this._popup.scale, {
                         x: 0, y: 0, duration: 0.25, ease: 'back.out(1.7)', delay: 1, onComplete: () => {
+                            this._popup.visible = false;
                             resolve();
                         }
                     });
@@ -220,8 +270,12 @@ export class AnimationContainer extends Container {
         return this._winEvent;
     }
 
-    public getFreeSpinCountText(): Text {
-        return this._freeSpinCountText;
+    public getFreeSpinRemainContainer(): Container {
+        return this._freeSpinRemain;
+    }
+
+    public getFreeSpinRemainText(): Text {
+        return this._freeSpinRemainText;
     }
 
     public getPopupBackground(): Sprite {

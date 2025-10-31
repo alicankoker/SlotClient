@@ -6,6 +6,7 @@ import { OrientationConfig } from "../engine/types/IGameStates";
 import { ForceStopConfig } from "../engine/types/ISpinConfig";
 import { WinEventConfig } from "../engine/types/IWinEvents";
 import { WinAnimationConfig } from "../engine/types/IWinPresentation";
+import { IFreeSpin } from "../engine/types/IFreeSpin";
 
 export interface ResolutionConfig {
     width: number;
@@ -96,6 +97,12 @@ export class GameConfig {
         fadeOut: 50 // fade out duration (ms)
     };
 
+    public static readonly FREE_SPIN: IFreeSpin = {
+        isActive: true,
+        skipAnimations: false,
+        remainingSpins: 10
+    }
+
     // Win animation configuration
     public static readonly WIN_ANIMATION: WinAnimationConfig = {
         enabled: true,
@@ -113,7 +120,7 @@ export class GameConfig {
         delay: 1000,
         stopOnWin: false,
         stopOnFeature: false,
-        skipAnimations: true
+        skipAnimations: false
     };
 
     public static readonly FORCE_STOP: ForceStopConfig = {
