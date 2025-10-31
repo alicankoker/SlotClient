@@ -16,6 +16,8 @@ import { ISpinState } from '../../engine/types/ISpinConfig';
 import { AnimationContainer } from '../../engine/components/AnimationContainer';
 import { FreeSpinController } from '../../engine/freeSpin/FreeSpinController';
 import { Background } from '../../engine/components/Background';
+import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
+import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinContainer';
 
 export interface SlotSpinRequest {
     playerId: string;
