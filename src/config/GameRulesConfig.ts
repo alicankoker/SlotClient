@@ -11,6 +11,11 @@ export interface GridConfig {
     };
 }
 
+export interface IPaytableEntry {
+    symbolId: number;
+    winAmounts: number[];
+};
+
 export interface SpinConfig {
     maxAutoPlaySpins: number;       // Maximum auto-play spins allowed
     minBetAmount: number;           // Minimum bet amount
@@ -50,7 +55,7 @@ export class GameRulesConfig {
         dropAnimationSteps: 5,      // 5 steps for drop animations
         removeAnimationSteps: 3     // 3 steps for removal animations
     };
-
+    
     // Reference symbol dimensions at base resolution
     private static sh = GameConfig.REFERENCE_SYMBOL.height + GameConfig.REFERENCE_SPACING.vertical;
     private static sw = GameConfig.REFERENCE_SYMBOL.width + GameConfig.REFERENCE_SPACING.horizontal;
@@ -104,6 +109,21 @@ export class GameRulesConfig {
         25: [2, 0, 2, 0, 2]
     };
 
+    public static readonly PAYTABLE: IPaytableEntry[]= 
+    [
+        { symbolId: 0, winAmounts: [15, 75, 300,] },
+        { symbolId: 1, winAmounts: [15, 100, 300] },
+        { symbolId: 2, winAmounts: [20, 150, 400] },
+        { symbolId: 3, winAmounts: [40, 200, 1000] },
+        { symbolId: 4, winAmounts: [5, 20, 100] },
+        { symbolId: 5, winAmounts: [5, 20, 150] },
+        { symbolId: 6, winAmounts: [10, 25, 200] },
+        { symbolId: 7, winAmounts: [10, 50, 250] },
+        { symbolId: 8, winAmounts: [100, 1000, 10000] },
+        { symbolId: 9, winAmounts: [0, 0, 0] },
+        { symbolId: 10, winAmounts: [0, 0, 0] },
+    ];
+    
     // winning lines configuration
     public static readonly LINES: { [key: number]: number[] } = {
         1: [6, 10],

@@ -16,14 +16,15 @@ import {
 import { debug } from "../engine/utils/debug";
 import { Utils } from "../engine/utils/Utils";
 import { Reelsets, FSReelsets } from "./Games/ClassicSpinGame/Reelsets";
-import { GameRulesConfig } from "../config/GameRulesConfig";
+import { GameRulesConfig, IPaytableEntry } from "../config/GameRulesConfig";
 
 export class GameServer {
   private static instance: GameServer;
   private spinCounter: number = 0;
   private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
   private readonly gameID: number = 0;
-  private lines = Object.values(GameRulesConfig.WINNING_LINES);
+  private readonly winningLines = Object.values(GameRulesConfig.WINNING_LINES);
+  private readonly paytable: IPaytableEntry[] = GameRulesConfig.PAYTABLE;
 
   private initData: InitialGridData = { symbols: [] };
   private firstSpin: boolean = true;
@@ -94,7 +95,7 @@ export class GameServer {
     const fsWon = this.checkFSWon(grid);
     const bonusWon = this.checkBonusWon(grid);
 
-    this.lines.forEach(line => {
+    this.winningLines.forEach((line: number[], index: number) => {
       let count = 0;
       let wildId = 9;
       const indices: [number, number][] = [];
@@ -116,11 +117,24 @@ export class GameServer {
         }else break;
       }
       if(count >= 3) {
-        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: 0, fsWon, bonusWon });
+        const winAmount = this.calculateLineWinAmount(grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, count, 2);
+        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount, fsWon, bonusWon });
       }
     });
     console.log("matches", matches);
     return matches;
+  }
+
+  private calculateLineWinAmount(symbolId: number, symbolCount: number, betAmount: number): number {
+    let winAmount = 0;
+    const paytableEntry = this.paytable.find(entry => entry.symbolId === symbolId);
+    if(paytableEntry) {
+      winAmount = paytableEntry.winAmounts[symbolCount - 3] * betAmount;
+    }
+    if(isNaN(winAmount)) {
+      debugger
+    }
+    return winAmount;
   }
 
   private checkForWilds(lineData: number[], gridData: GridData): [number, number][] {
