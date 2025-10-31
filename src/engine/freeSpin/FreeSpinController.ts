@@ -1,17 +1,28 @@
 import { AnimationContainer } from "../components/AnimationContainer";
+import { Background } from "../components/Background";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { SpinController } from "../Spin/SpinController";
 
 export class FreeSpinController {
+    private static instance: FreeSpinController;
     private spinController: SpinController;
     private animationContainer: AnimationContainer;
+    private background: Background;
     private totalFreeSpins: number = 0;
     private remainingSpins: number = 0;
     private isActive: boolean = false;
 
-    constructor(spinController: SpinController) {
+    private constructor(spinController: SpinController) {
         this.spinController = spinController;
         this.animationContainer = AnimationContainer.getInstance();
+        this.background = Background.getInstance();
+    }
+
+    public static getInstance(spinController: SpinController): FreeSpinController {
+        if (!FreeSpinController.instance) {
+            FreeSpinController.instance = new FreeSpinController(spinController);
+        }
+        return FreeSpinController.instance;
     }
 
     public executeFreeSpin(freeSpinCount: number): void {
@@ -21,6 +32,9 @@ export class FreeSpinController {
 
         this.animationContainer.getFreeSpinCountText().visible = true;
         this.animationContainer.getFreeSpinCountText().text = this.remainingSpins.toString();
+        
+        // TODO: allowLoop will be false during Free Spins
+        // TODO: there must be delay between animations
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_STARTED, {
             total: this.totalFreeSpins,
@@ -81,10 +95,18 @@ export class FreeSpinController {
         });
     }
 
-    private complete(): void {
+    private async complete(): Promise<void> {
         this.isActive = false;
 
         this.animationContainer.getFreeSpinCountText().visible = false;
+
+        this.animationContainer.getPopupText().text = `Free Spins Completed!`;
+
+        await this.animationContainer.playFreeSpinPopupAnimation();
+
+        await this.animationContainer.startTransitionAnimation(()=>{
+            this.background.setFreeSpinMode(false);
+        });
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_COMPLETED, {
             total: this.totalFreeSpins,

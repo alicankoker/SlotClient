@@ -1,18 +1,17 @@
-import { Application, Container, Sprite } from "pixi.js";
+import { Container, Sprite, Texture } from "pixi.js";
 import { GameConfig } from "../../config/GameConfig";
 import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 
 export abstract class BackgroundContainer extends Container {
-    protected _app: Application;
     protected _resizeSubscription?: SignalSubscription;
     protected _backgroundSprite!: Sprite;
 
-    protected constructor(app: Application, textureKey: string) {
+    protected constructor() {
         super();
+    }
 
-        this._app = app;
-
+    protected initialize(textureKey: string): void {
         this.createBackground(textureKey);
         this.setupBackgroundElements();
 
@@ -30,6 +29,10 @@ export abstract class BackgroundContainer extends Container {
     }
 
     protected setupBackgroundElements(): void { }
+
+    protected setBackgroundTexture(textureKey: string): void {
+        this._backgroundSprite.texture = Texture.from(textureKey);
+    }
 
     /**
      * @description Handle resize events

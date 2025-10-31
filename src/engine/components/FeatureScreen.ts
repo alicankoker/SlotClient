@@ -66,7 +66,7 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     private setupBackground(): void {
-        this._background = Sprite.from('background_base');
+        this._background = Sprite.from('base_background');
         this._background.label = 'Background';
         this._background.anchor.set(0.5, 0.5);
         this._background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
@@ -74,7 +74,7 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     private setupLogo(): void {
-        this._logo = Sprite.from('game_logo');
+        this._logo = Sprite.from('base_logo');
         this._logo.label = 'GameLogo';
         this._logo.anchor.set(0.5, 0.5);
         this._logo.position.set(1550, 260);
@@ -87,7 +87,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         this._previewContainer.position.set(690, 460);
         this.addChild(this._previewContainer);
 
-        const previewGridBg = Sprite.from("frame_background_base");
+        const previewGridBg = Sprite.from("base_frame_background");
         previewGridBg.label = "PreviewGridBackground";
         previewGridBg.anchor.set(0.5, 0.5);
         previewGridBg.scale.set(0.75, 0.75);

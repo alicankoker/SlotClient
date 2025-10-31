@@ -103,7 +103,8 @@ export class DoodleV8Main {
           if (
             this.slotGameController.spinController.getIsSpinning() === false &&
             this.winEvent.isWinEventActive === false &&
-            this.slotGameController.spinController.getIsAutoPlaying() === false
+            this.slotGameController.spinController.getIsAutoPlaying() === false &&
+            this.slotGameController.getFreeSpinController().isRunning === false
           ) {
             this.slotGameController.executeGameSpin(10, "manual");
           } else {
@@ -118,7 +119,8 @@ export class DoodleV8Main {
           this.slotGameController?.spinController &&
           this.slotGameController.spinController.getIsSpinning() === false &&
           this.slotGameController.spinController.getIsAutoPlaying() === false &&
-          this.winEvent.isWinEventActive === false
+          this.winEvent.isWinEventActive === false &&
+          this.slotGameController.getFreeSpinController().isRunning === false
         ) {
           // usage: window.dispatchEvent(new CustomEvent("startAutoPlay", { detail: {numberOfAutoSpins: 5, selectedSpinType: "skip"} }));
           this.slotGameController.spinController.startAutoPlay(numberOfAutoSpins);
@@ -406,7 +408,7 @@ export class DoodleV8Main {
   private async createScene(): Promise<void> {
     //if (!this.reelsController) return;
 
-    const background = Background.getInstance(this.app);
+    const background = Background.getInstance();
     this.app.stage.addChild(background);
 
     // Get the reels container from the controller

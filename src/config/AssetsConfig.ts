@@ -42,11 +42,11 @@ export class AssetsConfig {
         name: 'preload',
         assets: [
           {
-            alias: 'background_base',
-            src: PATH + '/assets/Asset 2.png'
+            alias: 'base_background',
+            src: PATH + '/assets/base_background.png'
           },
           {
-            alias: 'game_logo',
+            alias: 'base_logo',
             src: PATH + '/assets/raw/Logo_Base_Game_Vertical.png'
           },
           {
@@ -67,40 +67,76 @@ export class AssetsConfig {
         name: 'environment',
         assets: [
           {
+            alias: 'chain_hole',
+            src: PATH + '/assets/raw/Chain_Hole.png'
+          },
+          // #region Base Frame and UI Assets
+          {
+            alias: 'base_floor',
+            src: PATH + '/assets/raw/base_floor.png'
+          },
+          {
+            alias: 'base_frame',
+            src: PATH + '/assets/raw/base_frame.png'
+          },
+          {
+            alias: 'base_frame_background',
+            src: PATH + '/assets/raw/base_frame_background.png'
+          },
+          {
+            alias: 'base_header_background',
+            src: PATH + '/assets/raw/base_header_background.png'
+          },
+          {
+            alias: 'base_line_chain',
+            src: PATH + '/assets/raw/base_line_chain.png'
+          },
+          {
+            alias: 'base_line_holder',
+            src: PATH + '/assets/raw/base_line_holder.png'
+          },
+          {
+            alias: 'base_logo',
+            src: PATH + '/assets/raw/base_logo.png'
+          },
+          // #endregion
+          // #region Freespin Frame and UI Assets
+          {
+            alias: 'freespin_floor',
+            src: PATH + '/assets/raw/freespin_floor.png'
+          },
+          {
+            alias: 'freespin_frame',
+            src: PATH + '/assets/raw/freespin_frame.png'
+          },
+          {
+            alias: 'freespin_frame_background',
+            src: PATH + '/assets/raw/freespin_frame_background.png'
+          },
+          {
+            alias: 'freespin_header_background',
+            src: PATH + '/assets/raw/freespin_header_background.png'
+          },
+          {
+            alias: 'freespin_line_chain',
+            src: PATH + '/assets/raw/freespin_line_chain.png'
+          },
+          {
+            alias: 'freespin_line_holder',
+            src: PATH + '/assets/raw/freespin_line_holder.png'
+          },
+          {
+            alias: 'freespin_logo',
+            src: PATH + '/assets/raw/freespin_logo.png'
+          },
+          {
+            alias: 'freespin_remaining_strip',
+            src: PATH + '/assets/raw/freespin_remaining_strip.png'
+          },
+          // #endregion
+          {
             alias: 'bet_area',
             src: PATH + '/assets/raw/Bet_Amount_Area.png'
-          },
-          {
-            alias: 'frame_background_base',
-            src: PATH + '/assets/raw/Base_Frame_Background_UI.png'
-          },
-          {
-            alias: 'header_background',
-            src: PATH + '/assets/raw/Base_Header_Background_UI.png'
-          },
-          {
-            alias: 'reel_chain',
-            src: PATH + '/assets/raw/Base_Frame_Chain_UI.png'
-          },
-          {
-            alias: 'line_chain',
-            src: PATH + '/assets/raw/Base_Line_Chain_UI.png'
-          },
-          {
-            alias: 'floor',
-            src: PATH + '/assets/raw/Base_Frame_Symbol_Holder_UI.png'
-          },
-          {
-            alias: 'floor2',
-            src: PATH + '/assets/raw/Base_Frame_Symbol_Holder_UI2.png'
-          },
-          {
-            alias: 'line_holder',
-            src: PATH + '/assets/raw/Base_Line_Holder_UI.png'
-          },
-          {
-            alias: 'frame_base',
-            src: PATH + '/assets/raw/Base_Frame_UI.png'
           },
           {
             alias: 'game_logo_1000',
@@ -109,14 +145,6 @@ export class AssetsConfig {
           {
             alias: 'game_logo_super_scatter',
             src: PATH + '/assets/raw/Logo_Super_Scatter_Game.png'
-          },
-          {
-            alias: 'game_logo',
-            src: PATH + '/assets/raw/Base_Logo_UI.png'
-          },
-          {
-            alias: 'freespin_logo',
-            src: PATH + '/assets/raw/Freespin_Logo_UI.png'
           },
           {
             alias: 'popup_background',
@@ -148,16 +176,16 @@ export class AssetsConfig {
         name: 'background',
         assets: [
           {
-            alias: ['background_base'],
-            src: PATH + '/assets/Background_Base.png'
+            alias: ['base_background'],
+            src: PATH + '/assets/base_background.png'
           },
           {
-            alias: ['background_freespin'],
-            src: PATH + '/assets/Background_Freespin.png'
+            alias: ['freespin_background'],
+            src: PATH + '/assets/freespin_background.png'
           },
           {
-            alias: ['background_bonus'],
-            src: PATH + '/assets/Background_Bonus.png'
+            alias: ['bonus_background'],
+            src: PATH + '/assets/bonus_background.png'
           }
         ]
       }
@@ -317,19 +345,17 @@ export class AssetsConfig {
   // abi bunların 3'ünü de tek bir constdan çekebilirdim ama ne olur ne olmaz diye 3'e ayırdım,
   // isimleri değişebilir hala değişiklikler yapılıyor assetlerde
   public static readonly SYMBOL_ASSET_DATA: { [key: number]: { idle: string, blurred: string, prefix: string } } = {
-    0: { idle: 'Symbol_1', blurred: 'Symbol_1_Blur', prefix: 'Symbol1' },
-    1: { idle: 'Symbol_2', blurred: 'Symbol_2_Blur', prefix: 'Symbol2' },
-    2: { idle: 'Symbol_3', blurred: 'Symbol_3_Blur', prefix: 'Symbol3' },
-    3: { idle: 'Symbol_4', blurred: 'Symbol_4_Blur', prefix: 'Symbol4' },
-    4: { idle: 'Symbol_5', blurred: 'Symbol_5_Blur', prefix: 'Symbol5' },
-    5: { idle: 'Symbol_6', blurred: 'Symbol_6_Blur', prefix: 'Symbol6' },
-    6: { idle: 'Symbol_7', blurred: 'Symbol_7_Blur', prefix: 'Symbol7' },
-    7: { idle: 'Symbol_8', blurred: 'Symbol_8_Blur', prefix: 'Symbol8' },
-    8: { idle: 'Symbol_9', blurred: 'Symbol_9_Blur', prefix: 'Symbol9' },
-    9: { idle: 'Symbol_10', blurred: 'Symbol_10_Blur', prefix: 'Symbol10' },
-    10: { idle: 'Symbol_11', blurred: 'Symbol_11_Blur', prefix: 'Symbol11' },
-    11: { idle: 'Symbol_12', blurred: 'Symbol_12_Blur', prefix: 'Symbol12' },
-    12: { idle: 'Symbol_13', blurred: 'Symbol_13_Blur', prefix: 'Symbol13' }
+    0: { idle: 'Symbol_1', blurred: 'Symbol_1_Blur', prefix: '0' },
+    1: { idle: 'Symbol_2', blurred: 'Symbol_2_Blur', prefix: '1' },
+    2: { idle: 'Symbol_3', blurred: 'Symbol_3_Blur', prefix: '2' },
+    3: { idle: 'Symbol_4', blurred: 'Symbol_4_Blur', prefix: '3' },
+    4: { idle: 'Symbol_5', blurred: 'Symbol_5_Blur', prefix: '4' },
+    5: { idle: 'Symbol_6', blurred: 'Symbol_6_Blur', prefix: '5' },
+    6: { idle: 'Symbol_7', blurred: 'Symbol_7_Blur', prefix: '6' },
+    7: { idle: 'Symbol_8', blurred: 'Symbol_8_Blur', prefix: '7' },
+    8: { idle: 'Symbol_9', blurred: 'Symbol_9_Blur', prefix: '8' },
+    9: { idle: 'Symbol_10', blurred: 'Symbol_10_Blur', prefix:  '9' },
+    10: { idle: 'Symbol_11', blurred: 'Symbol_11_Blur', prefix: '10' }
   };
 
   // spine symbol indexes to asset name mapping

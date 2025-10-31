@@ -32,6 +32,8 @@ export class ReelsContainer extends Container {
 
   private _reelBackground!: Sprite;
   private _reelFrame!: Sprite;
+  private _leftLantern!: Spine;
+  private _rightLantern!: Spine;
   private _headerBackground!: Sprite;
   private _logo!: Sprite;
   private _autoPlayCount: number = 0;
@@ -69,7 +71,7 @@ export class ReelsContainer extends Container {
 
   private createReelFrame(): void {
     // Create a background for the reels
-    this._reelBackground = Sprite.from('frame_background_base');
+    this._reelBackground = Sprite.from('base_frame_background');
     this._reelBackground.label = 'ReelFrameBackground';
     this._reelBackground.anchor.set(0.5, 0.5);
     this._reelBackground.position.set(980, 550);
@@ -149,13 +151,20 @@ export class ReelsContainer extends Container {
     }
 
     for (let fIndex = 0; fIndex < 2; fIndex++) {
-      const floor = Sprite.from('floor');
+      const floor = Sprite.from('base_floor');
       floor.label = `FloorBase_${fIndex}`;
       floor.anchor.set(0.5, 0.5);
       floor.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (240 * fIndex) + 435);
       this.frameElementsContainer.addChild(floor);
 
       for (let cIndex = 0; cIndex < 6; cIndex++) {
+        const hole = Sprite.from('chain_hole');
+        hole.label = `ChainHole_${fIndex}`;
+        hole.anchor.set(0.5, 0.5);
+        hole.scale.set(1.1, 1);
+        hole.position.set(360 + (cIndex * 242), 447 + (fIndex * 241));
+        this.frameElementsContainer.addChild(hole);
+
         const floorChain = Spine.from({ atlas, skeleton });
         floorChain.label = `FloorChain_${cIndex}`;
         floorChain.scale.set(1, 0.8);
@@ -167,20 +176,34 @@ export class ReelsContainer extends Container {
       }
     }
 
-    this._reelFrame = Sprite.from('frame_base');
+    this._reelFrame = Sprite.from('base_frame');
     this._reelFrame.label = 'ReelFrame';
     this._reelFrame.anchor.set(0.5, 0.5);
     this._reelFrame.position.set(960, 520);
     this.frameElementsContainer.addChild(this._reelFrame);
 
-    this._headerBackground = Sprite.from('header_background');
+    this._leftLantern = Spine.from({ atlas, skeleton });
+    this._leftLantern.label = 'LeftLanternSpine';
+    this._leftLantern.position.set(155, -20);
+    this._leftLantern.scale.set(0.8, 0.8);
+    this._leftLantern.state.setAnimation(0, 'Base_Lanthern', true);
+    this.frameElementsContainer.addChild(this._leftLantern);
+
+    this._rightLantern = Spine.from({ atlas, skeleton });
+    this._rightLantern.label = 'RightLanternSpine';
+    this._rightLantern.position.set(1750, -120);
+    this._rightLantern.scale.set(0.8, 0.8);
+    this._rightLantern.state.setAnimation(0, 'Base_Lanthern', true);
+    this.frameElementsContainer.addChild(this._rightLantern);
+
+    this._headerBackground = Sprite.from('base_header_background');
     this._headerBackground.label = 'HeaderBackground';
     this._headerBackground.anchor.set(0.5, 0.5);
     this._headerBackground.scale.set(0.5, 0.5);
     this._headerBackground.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 130);
     this.frameElementsContainer.addChild(this._headerBackground);
 
-    this._logo = Sprite.from('game_logo');
+    this._logo = Sprite.from('base_logo');
     this._logo.label = 'GameLogo';
     this._logo.anchor.set(0.5, 0.5);
     this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 120);
@@ -355,13 +378,23 @@ export class ReelsContainer extends Container {
     }
   }
 
+  public setFreeSpinMode(enabled: boolean): void {
+    const animationName = enabled ? 'FS_Lanthern' : 'Base_Lanthern';
+    this._leftLantern.state.setAnimation(0, animationName, true);
+    this._rightLantern.state.setAnimation(0, animationName, true);
+  }
+
   private onResize(responsiveConfig: ResponsiveConfig): void {
     switch (responsiveConfig.orientation) {
       case GameConfig.ORIENTATION.landscape:
         this.position.set(0, 0);
+        this._leftLantern.position.set(155, -20);
+        this._rightLantern.position.set(1750, -120);
         break;
       case GameConfig.ORIENTATION.portrait:
         this.position.set(0, -270);
+        this._leftLantern.position.set(420, -540);
+        this._rightLantern.position.set(1440, -600);
         break;
     }
   }

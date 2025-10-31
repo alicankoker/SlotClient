@@ -48,14 +48,14 @@ export class Loader extends Container {
     }
 
     public async create(): Promise<void> {
-        const backgroundTexture = await Assets.load('background_base');
-        const logoTexture = await Assets.load('game_logo');
+        const backgroundTexture = await Assets.load('base_background');
+        const logoTexture = await Assets.load('base_logo');
         const frameTexture = await Assets.load('loading_bar_frame');
         const fillTexture = await Assets.load('loading_bar_fill');
 
         const background = Sprite.from(backgroundTexture);
         background.anchor.set(0.5, 0.5);
-        background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) - 20);
         this.addChild(background);
 
         const logo = Sprite.from(logoTexture);
