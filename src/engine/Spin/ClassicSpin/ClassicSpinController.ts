@@ -50,10 +50,13 @@ export class ClassicSpinController extends SpinController {
         this.handleError(response.error || "Unknown server error");
         return response;
       }
+
       const initialGrid = response.result.steps[0].gridBefore;
+      
       await this.transferSymbolsToSpinContainer(initialGrid);
 
       const finalGrid = response.result.steps[0].gridAfter;
+
       this.onSpinCompleteCallback = async () => {
         this.reelsController.getReelsContainer().setChainAnimation('Base_chain_hold', false);
 
@@ -91,12 +94,10 @@ export class ClassicSpinController extends SpinController {
       this._soundManager.stop("spin");
       this._soundManager.play("stop", false, 0.75); // Play stop sound effect
 
-      if (this.onSpinCompleteCallback) {
-        this.onSpinCompleteCallback(response);
-      }
-
       //await this.reelsController.setMode(ISpinState.IDLE);
       this.setState(ISpinState.IDLE);
+
+      const onSpinComplete = await this.onSpinCompleteCallback(response);
 
       /*if (this.reelsController.checkWinCondition()) {
                 if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {

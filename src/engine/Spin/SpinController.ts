@@ -51,7 +51,7 @@ export abstract class SpinController {
 
   // Callbacks
   protected onSpinStartCallback?: () => void;
-  protected onSpinCompleteCallback?: (result: SpinResponseData) => void;
+  protected onSpinCompleteCallback?: (result: SpinResponseData) => Promise<void>;
   protected onCascadeStepCallback?: (stepData: CascadeStepData) => void;
   protected onErrorCallback?: (error: string) => void;
   protected container: SpinContainer;
@@ -445,9 +445,7 @@ export abstract class SpinController {
     this.onSpinStartCallback = callback;
   }
 
-  public setOnSpinCompleteCallback(
-    callback: (result: SpinResponseData) => void
-  ): void {
+  public setOnSpinCompleteCallback(callback: (result: SpinResponseData) => Promise<void>): void {
     this.onSpinCompleteCallback = callback;
   }
 

@@ -23,6 +23,7 @@ export interface MatchData {
   wilds: [number, number][];
   symbolId: number;
   line: number[];
+  winAmount: number;
   fsWon: boolean;
   bonusWon: boolean;
 }
@@ -62,6 +63,9 @@ export interface DropData {
 export interface SpinResultData {
   spinId: string;
   totalWin: number;
+  fsWon: boolean;
+  bonusWon: boolean;
+  extraFreeSpins?: number;
   steps: StepData[];
 }
 

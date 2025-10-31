@@ -119,6 +119,10 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/Freespin_Logo_UI.png'
           },
           {
+            alias: 'popup_background',
+            src: PATH + '/assets/raw/UI_Pop_Up_Background.png'
+          },
+          {
             alias: 'slider_button_frame',
             src: PATH + '/assets/raw/Slider_Button_Frame_Splash_Scene.png'
           },

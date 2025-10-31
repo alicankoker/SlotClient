@@ -37,6 +37,8 @@ export class GameServer {
     spinId: "",
     steps: [],
     totalWin: 0,
+    fsWon: false,
+    bonusWon: false,
   };
 
   private latestSpinRequest: SpinRequestData = {
@@ -114,7 +116,7 @@ export class GameServer {
         }else break;
       }
       if(count >= 3) {
-        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, fsWon, bonusWon });
+        matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: 0, fsWon, bonusWon });
       }
     });
     console.log("matches", matches);
@@ -143,6 +145,8 @@ export class GameServer {
       spinId,
       steps: [],
       totalWin: 0,
+      fsWon: false,
+      bonusWon: false,
     };
     this.previousGrid = this.firstSpin
       ? this.initData
@@ -185,7 +189,7 @@ export class GameServer {
     return spinData;
   }
 
-  private checkFSWon(gridData: GridData): boolean {
+  private checkFSWon(gridData: GridData): boolean {
     let scatterCount = 0;
     gridData.symbols.forEach(column => {
       for (let row = 1; row < column.length - 1; row++) {
@@ -202,8 +206,8 @@ export class GameServer {
 
   private checkBonusWon(gridData: GridData): boolean {
     let bonusCount = 0;
-    for (let col = 1; col < gridData.symbols.length - 1; col+=2) {
-      for (let row = 1; row < gridData.symbols[col].length - 1; row++) {  
+    for (let col = 1; col < gridData.symbols.length - 1; col += 2) {
+      for (let row = 1; row < gridData.symbols[col].length - 1; row++) {
         const symbol = gridData.symbols[col][row];
         if (symbol.symbolId === 10) {
           bonusCount++;
@@ -310,9 +314,6 @@ export class GameServer {
       symbols.push([]);
       const reelset = Reelsets.Reelsets[col];
       const randomIndex = Utils.getRandomInt(0, reelset.length - 1);
-      console.log(
-        "randomIndex", randomIndex
-      )
       if (randomIndex + totalRows <= reelset.length) {
         for (let row = randomIndex; row < randomIndex + totalRows; row++) {
           const sym = { symbolId: reelset[row] };
@@ -333,9 +334,6 @@ export class GameServer {
         }
       }
     }
-    console.log(
-      "symbols", symbols
-    )
     return { symbols: symbols as SymbolData[][] };
   }
 

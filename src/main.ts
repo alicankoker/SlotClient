@@ -68,14 +68,14 @@ export class DoodleV8Main {
       const storage = Storage.getInstance();
       storage.setItem("player_balance", 1000);
 
-      if (localStorage.getItem('featureScreenDontShow') !== 'true') {
-        const featureScreen = new FeatureScreen(this.app);
-        this.app.stage.addChild(featureScreen);
+      // if (localStorage.getItem('featureScreenDontShow') !== 'true') {
+      //   const featureScreen = new FeatureScreen(this.app);
+      //   this.app.stage.addChild(featureScreen);
 
-        this.responsiveManager.onResize();
+      //   this.responsiveManager.onResize();
 
-        await featureScreen.waitForClose();
-      }
+      //   await featureScreen.waitForClose();
+      // }
 
       // Step 4: Initialize controllers (now that assets are loaded)
       this.initializeControllers(initData as GridData);
@@ -372,11 +372,9 @@ export class DoodleV8Main {
       debug.log("🎲 Spin started!");
     });
 
-    this.slotGameController.spinController.setOnSpinCompleteCallback(
-      (result: SpinResponseData) => {
-        debug.log("✅ Spin completed!", result);
-      }
-    );
+    this.slotGameController.spinController.setOnSpinCompleteCallback(async (result: SpinResponseData) => {
+      debug.log("✅ Spin completed!", result);
+    });
 
     this.slotGameController.spinController.setOnCascadeStepCallback(
       (step: CascadeStepData) => {

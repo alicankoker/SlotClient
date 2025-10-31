@@ -164,7 +164,14 @@ export const SIGNAL_EVENTS = {
 
     // Win Event signals
     WIN_EVENT_STARTED: 'winevent:started',
-    WIN_EVENT_STOPPED: 'winevent:stopped'
+    WIN_EVENT_STOPPED: 'winevent:stopped',
+
+    // Free Spin signals
+    FREE_SPIN_STARTED: 'freespin:started',
+    FREE_SPIN_COMPLETED: 'freespin:completed',
+    FREE_SPIN_BEFORE_SPIN: 'freespin:before_spin',
+    FREE_SPIN_AFTER_SPIN: 'freespin:after_spin',
+    FREE_SPIN_RETRIGGER: 'freespin:retrigger',
 } as const;
 
 // Export singleton instance for convenience

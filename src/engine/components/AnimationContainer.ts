@@ -1,4 +1,4 @@
-import { Container, Text } from "pixi.js";
+import { Container, Sprite, Text } from "pixi.js";
 import { WinLines } from "./WinLines";
 import { WinEvent } from "./WinEvent";
 import { GameConfig } from "../../config/GameConfig";
@@ -17,6 +17,10 @@ export class AnimationContainer extends Container {
     private _autoPlayCountText: Text;
     private _winText: Text;
     private _spinModeText!: Text;
+    private _popup!: Container;
+    private _freeSpinCountText!: Text;
+    private _popupBackground!: Sprite;
+    private _popupText!: Text;
     private _transition!: Spine;
 
     private constructor() {
@@ -47,6 +51,28 @@ export class AnimationContainer extends Container {
         this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this._spinModeText.visible = false; // Hide by default
         this.addChild(this._spinModeText);
+
+        this._popup = new Container();
+        this._popup.label = 'FreeSpinPopupContainer';
+        this._popup.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._popup.visible = false;
+        this.addChild(this._popup);
+
+        this._popupBackground = Sprite.from("popup_background");
+        this._popupBackground.anchor.set(0.5);
+        this._popup.addChild(this._popupBackground);
+
+        this._popupText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._popupText.label = 'FreeSpinPopupText';
+        this._popupText.anchor.set(0.5, 0.5);
+        this._popup.addChild(this._popupText);
+
+        this._freeSpinCountText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._freeSpinCountText.label = 'FreeSpinCountText';
+        this._freeSpinCountText.anchor.set(0.5, 0.5);
+        this._freeSpinCountText.position.set(480, 115);
+        this._freeSpinCountText.visible = false;
+        this.addChild(this._freeSpinCountText);
 
         this._winEvent = WinEvent.getInstance();
         this.addChild(this._winEvent);
@@ -158,6 +184,22 @@ export class AnimationContainer extends Container {
         });
     }
 
+    public playFreeSpinPopupAnimation(): Promise<void> {
+        return new Promise((resolve) => {
+            this._popup.scale.set(0);
+            this._popup.visible = true;
+            gsap.to(this._popup.scale, {
+                x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onComplete: () => {
+                    gsap.to(this._popup.scale, {
+                        x: 0, y: 0, duration: 0.25, ease: 'back.out(1.7)', delay: 1, onComplete: () => {
+                            resolve();
+                        }
+                    });
+                }
+            });
+        });
+    }
+
     public getWinLines(): WinLines {
         return this._winLines;
     }
@@ -176,5 +218,17 @@ export class AnimationContainer extends Container {
 
     public getWinEvent(): WinEvent {
         return this._winEvent;
+    }
+
+    public getFreeSpinCountText(): Text {
+        return this._freeSpinCountText;
+    }
+
+    public getPopupBackground(): Sprite {
+        return this._popupBackground;
+    }
+
+    public getPopupText(): Text {
+        return this._popupText;
     }
 }
