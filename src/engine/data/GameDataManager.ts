@@ -51,7 +51,8 @@ export class GameDataManager {
     }
 
     checkFreeSpins(): boolean {
-        return this._freeSpinActive;
+        const naturalFSActive = this.gameState.lastSpinResult?.fsWon || false;
+        return this._freeSpinActive || naturalFSActive;
         // const currentSpinData = this.gameState.currentSpinData;
 
         // return (currentSpinData && currentSpinData.result && currentSpinData.result.fsWon) || false;

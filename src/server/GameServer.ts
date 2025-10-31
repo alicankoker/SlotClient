@@ -215,7 +215,6 @@ export class GameServer {
         }
       }
     });
-    if(scatterCount >= 3) debugger
     return scatterCount >= 3;
   }
 
