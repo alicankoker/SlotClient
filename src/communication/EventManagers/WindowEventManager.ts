@@ -19,6 +19,7 @@ type eventType = {
     value: boolean;
   };
   onWin: number;
+  onScreenClick: null;
 };
 
 class EventManager<Events extends eventType> {

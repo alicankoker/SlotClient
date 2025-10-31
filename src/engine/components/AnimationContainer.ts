@@ -9,6 +9,7 @@ import { AssetsConfig } from "../../config/AssetsConfig";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameDataManager } from "../data/GameDataManager";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 
 export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
@@ -331,6 +332,8 @@ export class AnimationContainer extends Container {
 
             this._popup.once('pointerdown', closePopup);
             window.addEventListener('keydown', onKeyDown);
+            eventBus.on("spinIt", closePopup);
+            eventBus.on("onScreenClick", closePopup);
 
             gsap.to(this._popup, {
                 alpha: 1,

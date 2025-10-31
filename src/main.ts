@@ -140,9 +140,6 @@ export class DoodleV8Main {
 
       window.addEventListener("keydown", (event) => {
         switch (event.key.toLowerCase()) {
-          case " ":
-            spin()
-            break;
           case "f":
             debug.log("🔄 Force stop triggered");
             if (
