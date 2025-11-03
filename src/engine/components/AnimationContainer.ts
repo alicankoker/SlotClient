@@ -62,13 +62,6 @@ export class AnimationContainer extends Container {
         this._spinModeText.visible = false; // Hide by default
         this.addChild(this._spinModeText);
 
-        this._popup = new Container();
-        this._popup.label = 'FreeSpinPopupContainer';
-        this._popup.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._popup.visible = false;
-        this._popup.alpha = 0;
-        this.addChild(this._popup);
-
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
         this._dimmer.rect(0, 0, GameConfig.REFERENCE_RESOLUTION.width, GameConfig.REFERENCE_RESOLUTION.height);
@@ -77,7 +70,16 @@ export class AnimationContainer extends Container {
         this._dimmer.pivot.set(this._dimmer.width / 2, this._dimmer.height / 2);
         this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this._dimmer.scale.set(3, 3);
-        this._popup.addChild(this._dimmer);
+        this._dimmer.visible = false;
+        this._dimmer.alpha = 0;
+        this.addChild(this._dimmer);
+
+        this._popup = new Container();
+        this._popup.label = 'FreeSpinPopupContainer';
+        this._popup.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._popup.visible = false;
+        this._popup.alpha = 0;
+        this.addChild(this._popup);
 
         this._popupBackground = Sprite.from("popup_background");
         this._popupBackground.label = 'FreeSpinPopupBackground';
@@ -124,10 +126,11 @@ export class AnimationContainer extends Container {
         popupPressAnywhere.position.set(0, 225);
         popupPressAnywhere.style.fontSize = 20;
         popupPressAnywhere.style.fill = 0xffffff;
+        popupPressAnywhere.style.dropShadow = false;
         popupPressAnywhere.style.stroke = {
             width: 0,
             color: 0x000000,
-        }
+        };
         this._popup.addChild(popupPressAnywhere);
 
         this._freeSpinRemain = new Container();
@@ -192,6 +195,7 @@ export class AnimationContainer extends Container {
         this._transition.scale.set(15, 10);
         this._transition.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this._transition.visible = false;
+        this._transition.state.timeScale = 0.50;
         this.addChild(this._transition);
 
         this.eventListeners();
@@ -304,22 +308,32 @@ export class AnimationContainer extends Container {
         return new Promise((resolve) => {
             this._popup.interactive = true;
             this._popup.cursor = 'pointer';
+            this._dimmer.interactive = true;
+            this._dimmer.cursor = 'pointer';
+
             this._popup.visible = true;
+            this._dimmer.visible = true;
 
             const closePopup = () => {
                 this._popup.interactive = false;
                 this._popup.cursor = 'default';
+                this._dimmer.interactive = false;
+                this._dimmer.cursor = 'default';
 
                 window.removeEventListener("keydown", onKeyDown);
                 this._popup.off('pointerdown', closePopup);
+                this._dimmer.off('pointerdown', closePopup);
+                eventBus.off("spinIt", closePopup);
+                eventBus.off("onScreenClick", closePopup);
 
-                gsap.to(this._popup, {
+                gsap.to([this._popup, this._dimmer], {
                     alpha: 0,
                     duration: 0.5,
                     ease: 'back.out(1.7)',
                     delay: 0.25,
                     onComplete: () => {
                         this._popup.visible = false;
+                        this._dimmer.visible = false;
                         resolve();
                     }
                 });
@@ -332,12 +346,13 @@ export class AnimationContainer extends Container {
                 }
             };
 
-            this._popup.once('pointerdown', closePopup);
             window.addEventListener('keydown', onKeyDown);
+            this._popup.once('pointerdown', closePopup);
+            this._dimmer.once('pointerdown', closePopup);
             eventBus.on("spinIt", closePopup);
             eventBus.on("onScreenClick", closePopup);
 
-            gsap.to(this._popup, {
+            gsap.to([this._popup, this._dimmer], {
                 alpha: 1,
                 duration: 0.5,
                 ease: 'back.out(1.7)',
