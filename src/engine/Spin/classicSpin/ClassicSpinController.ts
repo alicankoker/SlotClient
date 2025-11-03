@@ -79,8 +79,8 @@ export class ClassicSpinController extends SpinController {
 
         GameConfig.WIN_EVENT.enabled && await AnimationContainer.getInstance().getWinEvent().getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
-        const isSkipped = ((this._isAutoPlaying && this._autoPlayCount > 0 && GameConfig.FREE_SPIN.skipAnimations === true) || (FreeSpinController.getInstance(this).isRunning === true && GameConfig.FREE_SPIN.skipAnimations === true));
-        GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
+        const isSkipped = GameConfig.FREE_SPIN.skipAnimations === true && ((this._isAutoPlaying && this._autoPlayCount > 0) || (FreeSpinController.getInstance(this).isRunning === true));
+        GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
 
         // if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
         //   this.stopAutoPlay();

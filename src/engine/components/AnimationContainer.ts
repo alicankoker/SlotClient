@@ -51,7 +51,7 @@ export class AnimationContainer extends Container {
         this._winText.style.fontSize = 150;
         this._winText.label = 'WinText';
         this._winText.anchor.set(0.5);
-        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
         this._winText.visible = false;
         this.addChildAt(this._winText, this.children.length);
 
@@ -230,6 +230,7 @@ export class AnimationContainer extends Container {
             // Play total win text animation
             gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
+                    this._winText.style.fontSize = 150;
                     this._winText.text = `$${Helpers.convertToDecimal(totalWinAmount)}`;
                     this._winText.visible = true;
                 },
@@ -252,6 +253,7 @@ export class AnimationContainer extends Container {
             // Play single win text animation
             gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
+                    this._winText.style.fontSize = 75;
                     this._winText.text = `$${Helpers.convertToDecimal(winAmount)}`;
                     this._winText.visible = true;
                 }

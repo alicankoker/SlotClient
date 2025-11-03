@@ -103,14 +103,14 @@ export class DoodleV8Main {
           if (
             this.slotGameController.spinController.getIsSpinning() === false &&
             this.winEvent.isWinEventActive === false &&
-            this.slotGameController.spinController.getIsAutoPlaying() === false
+            this.slotGameController.spinController.getIsAutoPlaying() === false &&
+            this.slotGameController.getFreeSpinController().isRunning === false
           ) {
             if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
               this.slotGameController.reelsController.skipWinAnimations();
             }
-            if (this.slotGameController.getFreeSpinController().isRunning === false) {
-              this.slotGameController.executeGameSpin(10, "manual");
-            }
+
+            this.slotGameController.executeGameSpin(10, "manual");
           } /*else {
             GameConfig.FORCE_STOP.enabled && this.slotGameController.spinController.forceStop();
           }*/
@@ -140,6 +140,9 @@ export class DoodleV8Main {
 
       window.addEventListener("keydown", (event) => {
         switch (event.key.toLowerCase()) {
+          case " ":
+            spin();
+            break;
           case "f":
             debug.log("🔄 Force stop triggered");
             if (
@@ -171,7 +174,7 @@ export class DoodleV8Main {
               GameConfig.WIN_ANIMATION.enabled &&
               this.winEvent.isWinEventActive === false
             ) {
-              this.slotGameController.reelsController.playRandomWinAnimation();
+              this.slotGameController.reelsController.setupWinAnimation();
             }
             break;
           case "s":

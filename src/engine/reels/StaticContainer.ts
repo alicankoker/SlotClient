@@ -140,7 +140,7 @@ export class StaticContainer extends Container {
      * @param winDatas The winning data.
      * @returns A promise that resolves when the animations are complete.
      */
-    public async setAnimation(winDatas: WinConfig[]): Promise<void> {
+    public async setupAnimation(winDatas: WinConfig[]): Promise<void> {
         this.resetWinAnimations();
 
         const totalWinAmount = winDatas.reduce((sum, winData) => sum + winData.amount, 0);
@@ -168,7 +168,14 @@ export class StaticContainer extends Container {
             }
         });
 
+        const lines = winDatas.map(winData => winData.line);
+        if (GameConfig.WIN_ANIMATION.winlineVisibility) {
+            this._winLines.showLines(lines);
+        }
+
         await AnimationContainer.getInstance().playTotalWinAnimation(totalWinAmount);
+
+        this._winLines.hideAllLines();
 
         await this.playWinAnimations(winDatas, token);
 
@@ -217,9 +224,16 @@ export class StaticContainer extends Container {
                 this._winLines.showLine(winData.line);
             }
 
+            this._symbols.forEach((reelSymbols) => {
+                reelSymbols.forEach((symbol) => {
+                    symbol.setBlackout();
+                });
+            });
+
             // play all symbol animations on this win
             await Promise.all(
                 winData.symbolIds.map(async (symbolId, index) => {
+                    this._symbols.get(index)?.[symbolId]?.clearBlackout();
                     return new Promise<void>((resolve) => {
                         this._pendingResolvers.push(resolve);
 
@@ -252,6 +266,12 @@ export class StaticContainer extends Container {
                 }
             });
         }
+
+        this._symbols.forEach((reelSymbols) => {
+            reelSymbols.forEach((symbol) => {
+                symbol.clearBlackout();
+            });
+        });
 
         if (this._animationToken !== token) return;
 
@@ -346,6 +366,12 @@ export class StaticContainer extends Container {
 
         this._pendingResolvers.forEach(resolve => resolve());
         this._pendingResolvers = [];
+
+        this._symbols.forEach((reelSymbols) => {
+            reelSymbols.forEach((symbol) => {
+                symbol.clearBlackout();
+            });
+        });
 
         this._symbols.forEach((reelSymbols) => {
             reelSymbols.forEach((symbol) => {

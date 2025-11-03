@@ -120,28 +120,18 @@ export class ReelsController {
     };
   }
 
-  public async playWinAnimations(winData: WinConfig[] | undefined): Promise<void> {
-    if (!winData) { return };
-    const staticContainer = this.reelsContainer.getStaticContainer();
-    const winLines = this.reelsContainer.getWinLines();
-    await staticContainer?.setAnimation(winData);
-    if (winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
-      winData.forEach(win => {
-        winLines.showLine(win.line);
-      });
-    }
-  }
   /**
    * @description Play a random win animation.
    * @param isSkipped Whether the animation is skipped.
    */
-  public async playRandomWinAnimation(isSkipped: boolean = false): Promise<void> {
+  public async setupWinAnimation(isSkipped: boolean = false): Promise<void> {
     // set win display datas
     const spinResultData = GameDataManager.getInstance().getLastSpinResult();
     let winConfigs: WinConfig[] = [];
 
     if (spinResultData!.steps[0].wins.length === 0) {
       eventBus.emit("setWinData2", "PLACE YOUR BET");
+      this.resetWinAnimations();
       return;
     }
 
@@ -183,7 +173,7 @@ export class ReelsController {
     if (isSkipped) {
       await staticContainer?.playSkippedWinAnimation(amount, lines);
     } else {
-      await staticContainer?.setAnimation(winDatas);
+      await staticContainer?.setupAnimation(winDatas);
     }
   }
 

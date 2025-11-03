@@ -139,6 +139,22 @@ export class SpineSymbol extends Spine {
     }
 
     /**
+     * @description Sets the symbol to a blackout (dark gray tint) state.
+     * @returns void
+     */
+    public setBlackout(): void {
+        this.tint = 0x555555;
+    }
+
+    /**
+     * @description Clears the blackout tint, restoring the symbol's original colors.
+     * @returns void
+     */
+    public clearBlackout(): void {
+        this.tint = 0xFFFFFF;
+    }
+
+    /**
      * @description Sets the symbol to its ID and prefix. After setting the ID and prefix, the symbol is set to its landing state.
      * @returns void
      */
