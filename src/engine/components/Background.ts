@@ -1,4 +1,4 @@
-import { Application } from "pixi.js";
+import { Application, Texture } from "pixi.js";
 import { BackgroundContainer } from "../background/BackgroundContainer";
 import { BackgroundController } from "../background/BackgroundController";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
@@ -10,19 +10,19 @@ export class Background extends BackgroundContainer {
     private static _instance: Background;
     private _controller: BackgroundController<Background>;
 
-    private constructor() {
+    private constructor(texture: Texture) {
         super();
 
-        this.initialize('base_background');
+        this.initialize(texture);
 
         this._controller = this.createController();
 
         this.setupBackgroundFilter();
     }
 
-    public static getInstance(): Background {
+    public static getInstance(texture?: Texture): Background {
         if (!this._instance) {
-            this._instance = new Background();
+            this._instance = new Background(texture || Texture.from('base_background'));
         }
         return this._instance;
     }

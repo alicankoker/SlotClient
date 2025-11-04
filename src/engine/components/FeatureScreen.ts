@@ -6,13 +6,9 @@ import { FeatureScreenController } from "../featureScreen/FeatureScreenControlle
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import gsap from "gsap";
 import { Helpers } from "../utils/Helpers";
-import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { eventBus } from "../utils/WindowEventManager";
-import { AssetsConfig } from "../../config/AssetsConfig";
 
 export class FeatureScreen extends FeatureScreenContainer {
     private _controller: FeatureScreenController<FeatureScreen>;
-    private _background!: Sprite;
     private _logo!: Sprite;
     private _previewContainer!: Container;
     private _spinButtonContainer!: Container;
@@ -55,7 +51,6 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     protected setupFeatureElements(): void {
-        this.setupBackground();
         this.setupLogo();
         this.setupPreview();
         this.setupSpinButton();
@@ -64,15 +59,6 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         this.startPreviewCycle();
     }
-
-    private setupBackground(): void {
-        this._background = Sprite.from('base_background');
-        this._background.label = 'Background';
-        this._background.anchor.set(0.5, 0.5);
-        this._background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this.addChild(this._background);
-    }
-
     private setupLogo(): void {
         this._logo = Sprite.from('base_logo');
         this._logo.label = 'GameLogo';
@@ -93,12 +79,9 @@ export class FeatureScreen extends FeatureScreenContainer {
         previewGridBg.scale.set(0.75, 0.75);
         this._previewContainer.addChild(previewGridBg);
 
-        const { atlas, skeleton } = AssetsConfig.BONUS_SPINE_ASSET;
-
-        const previewGridFrame = Spine.from({ atlas, skeleton });
+        const previewGridFrame = Sprite.from("base_frame");
         previewGridFrame.label = 'PreviewGridFrame';
-        previewGridFrame.skeleton.setSlotsToSetupPose();
-        previewGridFrame.state.setAnimation(0, 'FS_Golds', true);
+        previewGridFrame.anchor.set(0.5, 0.5);
         previewGridFrame.position.set(8, 11);
         previewGridFrame.scale.set(0.745, 0.745);
         this._previewContainer.addChild(previewGridFrame);

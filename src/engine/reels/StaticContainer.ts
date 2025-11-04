@@ -1,4 +1,4 @@
-import { Container, Application, Text, FillGradient, TextStyle } from 'pixi.js';
+import { Container, Application, Text } from 'pixi.js';
 import { GameConfig } from '../../config/GameConfig';
 import { SpineSymbol } from '../symbol/SpineSymbol';
 import { GridSymbol } from '../symbol/GridSymbol';
@@ -6,7 +6,6 @@ import { debug } from '../utils/debug';
 import { gsap } from 'gsap';
 import { WinLines } from '../components/WinLines';
 import SoundManager from '../controllers/SoundManager';
-import { Helpers } from '../utils/Helpers';
 import { WinConfig } from '../types/IWinPresentation';
 import { GridData } from '../types/ICommunication';
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
@@ -151,22 +150,6 @@ export class StaticContainer extends Container {
         this._isPlaying = true;
         this._isSkipped = false;
         this._isLooping = false;
-
-        eventBus.emit("setWinData1", "0");
-        eventBus.emit("setWinData2", "");
-
-        let tweenObj = { value: 0 };
-        let currentAmount = "0";
-
-        gsap.to(tweenObj, {
-            value: totalWinAmount,
-            duration: 3,
-            ease: "power1",
-            onUpdate: () => {
-                currentAmount = `${Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string}`;
-                eventBus.emit("setWinData1", currentAmount);
-            }
-        });
 
         const lines = winDatas.map(winData => winData.line);
         if (GameConfig.WIN_ANIMATION.winlineVisibility) {

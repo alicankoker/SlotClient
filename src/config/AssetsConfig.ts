@@ -50,12 +50,20 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/Logo_Base_Game_Vertical.png'
           },
           {
-            alias: 'loading_bar_fill',
-            src: PATH + '/assets/raw/Loading_Bar_Fill.png'
+            alias: 'loading_bar_bg',
+            src: PATH + '/assets/raw/loading_bar_bg.png'
           },
           {
-            alias: 'loading_bar_frame',
-            src: PATH + '/assets/raw/Loading_Bar_Frame.png'
+            alias: 'loading_bar_shadow',
+            src: PATH + '/assets/raw/loading_bar_shadow.png'
+          },
+          {
+            alias: 'loading_bar_stroke_front',
+            src: PATH + '/assets/raw/loading_bar_stroke_front.png'
+          },
+          {
+            alias: 'loading_bar_stroke_back',
+            src: PATH + '/assets/raw/loading_bar_stroke_back.png'
           },
           {
             alias: "MikadoBlack",

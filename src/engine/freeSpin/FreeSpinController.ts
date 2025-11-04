@@ -14,7 +14,7 @@ export class FreeSpinController {
     private remainingSpins: number = 0;
     private isActive: boolean = false;
 
-    private resolvePromise?: () => void;
+    private resolvePromise?: (value: { totalWin: number, freeSpinCount: number }) => void;
     private rejectPromise?: (reason?: any) => void;
 
     private constructor(spinController: SpinController) {
@@ -34,7 +34,7 @@ export class FreeSpinController {
      * @param freeSpinCount 
      * @returns Promise<void>
      */
-    public async executeFreeSpin(freeSpinCount: number, initialWin: number): Promise<number> {
+    public async executeFreeSpin(freeSpinCount: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
         this.totalFreeSpins = freeSpinCount;
         this.remainingSpins = freeSpinCount;
         this.totalWin = initialWin;
@@ -43,8 +43,8 @@ export class FreeSpinController {
             total: this.totalFreeSpins,
         });
 
-        return new Promise<number>((resolve, reject) => {
-            this.resolvePromise = () => resolve(this.totalWin);
+        return new Promise<{ totalWin: number, freeSpinCount: number }>((resolve, reject) => {
+            this.resolvePromise = () => resolve({ totalWin: this.totalWin, freeSpinCount: this.totalFreeSpins });
             this.rejectPromise = reject;
             this.playNext();
         });
@@ -117,7 +117,7 @@ export class FreeSpinController {
 
         await this.animationContainer.playFreeSpinPopupAnimation();
 
-        this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${this.remainingSpins.toString()} REMAINING`;
+        this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, {
             added: extraCount,
@@ -130,7 +130,7 @@ export class FreeSpinController {
      * @description Completes the free spin session and resolves the promise.
      * @returns Promise<void>
      */
-    private async complete(): Promise<void> {
+    private async complete(): Promise<{ totalWin: number, freeSpinCount: number }> {
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_COMPLETED, {
             total: this.totalFreeSpins,
             totalWin: this.totalWin,
@@ -140,10 +140,12 @@ export class FreeSpinController {
         this.animationContainer.getFreeSpinRemainText().text = ``;
 
         if (this.resolvePromise) {
-            this.resolvePromise(); // burada totalWin Promise zincirine dönüyor
+            this.resolvePromise({ totalWin: this.totalWin, freeSpinCount: this.totalFreeSpins });
             this.resolvePromise = undefined;
             this.rejectPromise = undefined;
         }
+        
+        return { totalWin: this.totalWin, freeSpinCount: this.totalFreeSpins };
     }
 
     /**

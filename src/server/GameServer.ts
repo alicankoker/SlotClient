@@ -110,21 +110,21 @@ export class GameServer {
       const firstSymbolIndex = initialWildCount > 0 ? initialIndexToStart - 1 : 0;
       const firstSymbol = grid.symbols[firstSymbolIndex][line[firstSymbolIndex] + 1];
       winSymbols.push(firstSymbol.symbolId);
-      for(let i = initialIndexToStart; i < line.length; i++) {
+      for (let i = initialIndexToStart; i < line.length; i++) {
         const currentSymbol = grid.symbols[i][line[i] + 1];
         if (firstSymbol.symbolId === currentSymbol.symbolId || currentSymbol.symbolId === wildId) {
           indices.push([i, line[i] + 1]);
           count++;
-        }else break;
+        } else break;
       }
-      if(count >= 3) {
+      if (count >= 3) {
         const winAmount = this.calculateLineWinAmount(grid.symbols[initialIndexToStart][line[initialIndexToStart]].symbolId, count, 2);
         let winSymbolId = 0;
-        if(winSymbols.filter(symbol => symbol === 8).length === winSymbols.length) winSymbolId = 8;
+        if (winSymbols.filter(symbol => symbol === 8).length === winSymbols.length) winSymbolId = 8;
         else winSymbolId = firstSymbol.symbolId;
         const fsPayout = fsWon && winSymbolId === 8 ? winAmount : 0;
-        if(fsPayout > 0 || winSymbolId !== 8)
-          matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount});
+        if (fsPayout > 0 || winSymbolId !== 8)
+          matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount });
       }
     });
     console.log("Matches found:", matches);
@@ -134,21 +134,21 @@ export class GameServer {
   private calculateLineWinAmount(symbolId: number, symbolCount: number, betAmount: number): number {
     let winAmount = 0;
     const paytableEntry = this.paytable.find(entry => entry.symbolId === symbolId);
-    if(paytableEntry) {
+    if (paytableEntry) {
       winAmount = paytableEntry.winAmounts[symbolCount - 3] * betAmount;
     }
-    if(symbolCount >=3 && winAmount === 0 && symbolId !== 9) debugger;
+    if (symbolCount >= 3 && winAmount === 0 && symbolId !== 9) debugger;
     return winAmount;
   }
 
   private checkForWilds(lineData: number[], gridData: GridData): [number, number][] {
-    let wildPositions: [number, number][] =  [];
-    for (let i = 0; i < lineData.length; i++) { 
+    let wildPositions: [number, number][] = [];
+    for (let i = 0; i < lineData.length; i++) {
       const lineIndex = lineData[i] + 1;
       const symbol = gridData.symbols[i][lineIndex];
       if (symbol.symbolId === 9) {
         wildPositions.push([i, lineIndex]);
-      }else{
+      } else {
         break;
       }
     }
@@ -166,6 +166,7 @@ export class GameServer {
       totalWin: 0,
       fsWon: false,
       bonusWon: false,
+      extraFreeSpins: 0
     };
     this.previousGrid = this.firstSpin
       ? this.initData
@@ -176,7 +177,7 @@ export class GameServer {
       gridAfter: this.generateNewGridData(forcedFS),
       wins: [],
     };
-    
+
     /*this.latestSpinData.gridAfter.symbols[0][0].symbolId = 8;
     this.latestSpinData.gridAfter.symbols[0][1].symbolId = 9;
     this.latestSpinData.gridAfter.symbols[0][2].symbolId = 0;
@@ -205,12 +206,14 @@ export class GameServer {
 
     spinData.steps.push(this.latestSpinData);
     const fsWon = this.checkFSWon(this.latestSpinData.gridAfter);
+    const extraFreeSpins =  fsWon ? 3 : 0;
     const bonusWon = this.checkBonusWon(this.latestSpinData.gridAfter);
     const matches = this.analyzeGridWins(this.latestSpinData.gridAfter, fsWon);
     this.latestSpinData.wins = matches.map(match => ({ match, winAmount: this.calculateWin([match], request.betAmount) }));
     spinData.totalWin = this.latestSpinData.wins.reduce((acc, win) => acc + win.winAmount, 0);
     spinData.fsWon = fsWon;
     spinData.bonusWon = bonusWon;
+    spinData.extraFreeSpins = extraFreeSpins;
     return spinData;
   }
 
@@ -224,7 +227,7 @@ export class GameServer {
         }
       }
     });
-    return scatterCount >= 3;
+    return scatterCount >= 2; //temporary set to 2 instead of 3 for testing
   }
 
   private checkBonusWon(gridData: GridData): boolean {
@@ -327,7 +330,7 @@ export class GameServer {
         };
     }*/
 
-  private generateNewGridData(forcedFS:boolean = false): GridData {
+  private generateNewGridData(forcedFS: boolean = false): GridData {
     const symbols: SymbolData[][] = [];
     const scatterIndexes: number[] = [7, 6, 9];
     const totalRows =
@@ -338,8 +341,8 @@ export class GameServer {
       symbols.push([]);
       const reelset = forcedFS ? FSReelsets.Reelsets[col] : Reelsets.Reelsets[col];
       let randomIndex = Utils.getRandomInt(0, reelset.length - 1);
-      if(forcedFS && (col === 0 || col === 2 || col === 4)) {
-        const index = scatterIndexes[Math.floor(col/2)];
+      if (forcedFS && (col === 0 || col === 2 || col === 4)) {
+        const index = scatterIndexes[Math.floor(col / 2)];
         randomIndex = index - 2;
       }
       if (randomIndex + totalRows <= reelset.length) {

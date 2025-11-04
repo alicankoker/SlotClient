@@ -20,6 +20,7 @@ type eventType = {
   };
   onWin: number;
   onScreenClick: null;
+  messageBoxPosition: number;
 };
 
 class EventManager<Events extends eventType> {

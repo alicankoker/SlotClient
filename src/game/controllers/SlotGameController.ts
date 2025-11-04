@@ -197,7 +197,7 @@ export class SlotGameController {
 
         if (this.spinController) {
             await this.spinController.executeSpin();
-            const freeSpinCount = 3;
+            const initialFreeSpinCount = 3;
 
             if (GameDataManager.getInstance().checkFreeSpins()) {
                 this.freeSpinController.isRunning = true;
@@ -209,16 +209,16 @@ export class SlotGameController {
                     this.background.setFreeSpinMode(true);
 
                     this.animationContainer.getFreeSpinRemainContainer().visible = true;
-                    this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${freeSpinCount} REMAINING`;
+                    this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${initialFreeSpinCount} REMAINING`;
                     this.animationContainer.getBuyFreeSpinButton().visible = false;
                 });
 
-                this.animationContainer.getPopupCountText().text = `${freeSpinCount}`;
+                this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
                 this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
                 await this.animationContainer.playFreeSpinPopupAnimation();
 
                 const initialWin = response.result?.steps[0].wins.reduce((acc, win) => acc + win.match.winAmount, 0) || 0;
-                const totalWin = await this.executeFreeSpin(freeSpinCount, initialWin);
+                const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
 
                 this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
                 this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
@@ -238,8 +238,8 @@ export class SlotGameController {
         }
     }
 
-    public async executeFreeSpin(freeSpinCount: number, initialWin: number): Promise<number> {
-        return await this.freeSpinController.executeFreeSpin(freeSpinCount, initialWin);
+    public async executeFreeSpin(initialFreeSpinCount: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
+        return await this.freeSpinController.executeFreeSpin(initialFreeSpinCount, initialWin);
     }
 
     //TODO: Needs to be moved to Nexus

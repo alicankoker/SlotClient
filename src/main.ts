@@ -20,6 +20,8 @@ import { Background } from "./engine/components/Background";
 import { WinEventType } from "./engine/types/IWinEvents";
 import { AnimationContainer } from "./engine/components/AnimationContainer";
 import { FeatureScreen } from "./engine/components/FeatureScreen";
+import config from "./game/config";
+import { io } from "socket.io-client";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -51,6 +53,42 @@ export class DoodleV8Main {
         this.startLoader(),
       ]);
 
+      console.log("Backend URL from env:", config.BACKEND_URL);
+
+      const socket = io(config.BACKEND_URL, { auth: { id: "690a108c83a435b3595e1e37" } });
+      socket.on("connect", () => {
+        console.log("Connected to backend via Socket.IO:", socket.id);
+
+        socket.on("disconnect", (reason) => {
+          console.log("Disconnected from backend:", reason);
+        });
+
+        socket.on("connect_error", (err) => {
+          console.error("Connection error:", err);
+        });
+
+        socket.on("error", (error) => {
+          console.error("Socket error:", error);
+        });
+
+        socket.on("ready", (data: any) => {
+          console.log("Socket ready:", data);
+        });
+
+        socket.emit("event", {
+          action: "spin", // freeSpin, bonus etc.
+          data: {
+            roundId: "round12345", // only for feature requests
+            lines: 25,
+            bet: 10, // it will be index of bet array
+          }
+        },
+          (data: any) => {
+            console.log("Spin response from backend:", data);
+          }
+        );
+      });
+
       // Initialize GameDataManager first
       const gameDataManager = GameDataManager.getInstance();
 
@@ -70,7 +108,7 @@ export class DoodleV8Main {
 
       // if (localStorage.getItem('featureScreenDontShow') !== 'true') {
       //   const featureScreen = new FeatureScreen(this.app);
-      //   this.app.stage.addChild(featureScreen);
+      //   this.app.stage.addChildAt(featureScreen, this.app.stage.children.length);
 
       //   this.responsiveManager.onResize();
 
@@ -375,6 +413,10 @@ export class DoodleV8Main {
       resizeTo: window,
     });
 
+    // this.app.canvas.onclick = () => {
+    //   alert("Canvas clicked!");
+    // }
+
     // Add to DOM
     document.getElementById("pixi-container")?.appendChild(this.app.canvas);
 
@@ -435,9 +477,6 @@ export class DoodleV8Main {
 
   private async createScene(): Promise<void> {
     //if (!this.reelsController) return;
-
-    const background = Background.getInstance();
-    this.app.stage.addChild(background);
 
     // Get the reels container from the controller
     //const reelsContainer = this.reelsController.getReelsContainer();

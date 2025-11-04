@@ -78,6 +78,11 @@ export class WinLines extends WinLinesContainer {
             const text = new Text({ text: key.toString(), style: GameConfig.style.clone() });
             text.label = `LineHolderText_${key}`;
             text.style.fontSize = 25;
+            text.style.stroke = {
+                color: '#000000',
+                width: 0
+            }
+            text.style.dropShadow = false;
             text.anchor.set(0.5);
             texture.addChild(text);
 

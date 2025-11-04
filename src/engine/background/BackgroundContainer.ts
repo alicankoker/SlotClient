@@ -11,8 +11,8 @@ export abstract class BackgroundContainer extends Container {
         super();
     }
 
-    protected initialize(textureKey: string): void {
-        this.createBackground(textureKey);
+    protected initialize(texture: Texture): void {
+        this.createBackground(texture);
         this.setupBackgroundElements();
 
         this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
@@ -20,8 +20,8 @@ export abstract class BackgroundContainer extends Container {
         });
     }
 
-    protected createBackground(textureKey: string): void {
-        this._backgroundSprite = Sprite.from(textureKey);
+    protected createBackground(texture: Texture): void {
+        this._backgroundSprite = Sprite.from(texture);
         this._backgroundSprite.label = "BackgroundSprite";
         this._backgroundSprite.anchor.set(0.5, 0.5);
         this._backgroundSprite.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);

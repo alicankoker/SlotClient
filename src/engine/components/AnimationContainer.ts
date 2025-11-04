@@ -33,6 +33,7 @@ export class AnimationContainer extends Container {
     private _transition!: Spine;
     private _buyFreeSpinButton!: Sprite;
 
+    private totalWinTween?: gsap.core.Tween;
     private totalWinResolver?: () => void;
 
     private constructor() {
@@ -81,6 +82,23 @@ export class AnimationContainer extends Container {
         this._freeSpinRemainText.label = 'FreeSpinRemainText';
         this._freeSpinRemainText.anchor.set(0.5, 0.5);
         this._freeSpinRemain.addChild(this._freeSpinRemainText);
+
+        this._buyFreeSpinButton = Sprite.from('freespin_logo');
+        this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
+        this._buyFreeSpinButton.anchor.set(0.5, 0.5);
+        this._buyFreeSpinButton.scale.set(0.3, 0.3);
+        this._buyFreeSpinButton.position.set(1570, 50);
+        this._buyFreeSpinButton.interactive = true;
+        this._buyFreeSpinButton.cursor = 'pointer';
+        this.addChild(this._buyFreeSpinButton);
+
+        const activatedText = new Text({ text: 'FREE SPIN DEACTIVATED', style: GameConfig.style.clone() });
+        activatedText.label = 'FreeSpinActivatedText';
+        activatedText.anchor.set(0.5, 0.5);
+        activatedText.position.set(1570, 90);
+        activatedText.style.fontSize = 16;
+        activatedText.alpha = 0;
+        this.addChild(activatedText);
 
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
@@ -152,23 +170,6 @@ export class AnimationContainer extends Container {
         };
         this._popup.addChild(popupPressAnywhere);
 
-        this._buyFreeSpinButton = Sprite.from('freespin_logo');
-        this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
-        this._buyFreeSpinButton.anchor.set(0.5, 0.5);
-        this._buyFreeSpinButton.scale.set(0.3, 0.3);
-        this._buyFreeSpinButton.position.set(1570, 50);
-        this._buyFreeSpinButton.interactive = true;
-        this._buyFreeSpinButton.cursor = 'pointer';
-        this.addChild(this._buyFreeSpinButton);
-
-        const activatedText = new Text({ text: 'FREE SPIN DEACTIVATED', style: GameConfig.style.clone() });
-        activatedText.label = 'FreeSpinActivatedText';
-        activatedText.anchor.set(0.5, 0.5);
-        activatedText.position.set(1570, 90);
-        activatedText.style.fontSize = 16;
-        activatedText.alpha = 0;
-        this.addChild(activatedText);
-
         this._buyFreeSpinButton.on('pointerenter', () => {
             gsap.to(this._buyFreeSpinButton.scale, { x: 0.4, y: 0.4, duration: 0.2 });
         });
@@ -235,6 +236,34 @@ export class AnimationContainer extends Container {
                 return;
             }
 
+            if (this.totalWinTween) {
+                this.totalWinTween.kill();
+                this.totalWinTween = undefined;
+            }
+
+            eventBus.emit("setWinData1", "0");
+            eventBus.emit("setWinData2", "");
+
+            let tweenObj = { value: 0 };
+            let currentAmount = "0";
+
+            this.totalWinTween = gsap.to(tweenObj, {
+                value: totalWinAmount,
+                duration: 1.5,
+                ease: "power1",
+                onUpdate: () => {
+                    if (!this.totalWinResolver) {
+                        eventBus.emit("setWinData1", `${Helpers.convertToDecimal(totalWinAmount) as string}`);
+                        gsap.killTweensOf(tweenObj);
+
+                        return;
+                    }
+
+                    currentAmount = `${Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string}`;
+                    eventBus.emit("setWinData1", currentAmount);
+                }
+            });
+
             // Play total win text animation
             gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
@@ -252,6 +281,8 @@ export class AnimationContainer extends Container {
                                 this.totalWinResolver();
                                 this.totalWinResolver = undefined;
                             }
+
+                            this.totalWinTween = undefined;
                         }
                     });
                 }
@@ -261,6 +292,12 @@ export class AnimationContainer extends Container {
 
     public stopTotalWinAnimation(): void {
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+
+            if (this.totalWinTween) {
+                this.totalWinTween.kill();
+                this.totalWinTween = undefined;
+            }
+
             gsap.to(this._winText.scale, {
                 x: 0, y: 0, duration: 0.1, ease: 'back.in(1.7)', onComplete: () => {
                     this._winText.text = ``;

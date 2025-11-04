@@ -38,7 +38,7 @@ export class ClassicSpinController extends SpinController {
       this.reelsController.resetWinAnimations();
 
       this.setState(ISpinState.SPINNING);
-      
+
       this.reelsController.getReelsContainer().setChainAnimation(true, true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
 
       if (this.onSpinStartCallback) {
@@ -54,8 +54,7 @@ export class ClassicSpinController extends SpinController {
       });
 
       // Simulate server request (replace with actual server call)
-      const response: SpinResponseData =
-        GameDataManager.getInstance().getSpinData();
+      const response: SpinResponseData = GameDataManager.getInstance().getSpinData();
 
       if (!response.success || !response.result) {
         this.handleError(response.error || "Unknown server error");
@@ -69,7 +68,7 @@ export class ClassicSpinController extends SpinController {
       const finalGrid = response.result.steps[0].gridAfter;
 
       this.onSpinCompleteCallback = async () => {
-        FreeSpinController.getInstance(this).isRunning = GameDataManager.getInstance().checkFreeSpins();
+        FreeSpinController.getInstance(this).isRunning === false && (FreeSpinController.getInstance(this).isRunning = GameDataManager.getInstance().checkFreeSpins());
 
         eventBus.emit('setComponentState', {
           componentName: 'spinButton',
