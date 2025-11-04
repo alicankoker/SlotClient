@@ -127,7 +127,7 @@ export class GameServer {
           matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount});
       }
     });
-    console.log("matches", matches);
+    console.log("Matches found:", matches);
     return matches;
   }
 

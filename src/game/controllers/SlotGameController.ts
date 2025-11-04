@@ -204,18 +204,18 @@ export class SlotGameController {
                 this.staticContainer.allowLoop = false;
                 this.staticContainer.isFreeSpinMode = true;
 
-                this.animationContainer.getPopupCountText().text = `${freeSpinCount}`;
-                this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
-                await this.animationContainer.playFreeSpinPopupAnimation();
-
                 await this.animationContainer.startTransitionAnimation(() => {
                     this.reelsContainer.setFreeSpinMode(true);
                     this.background.setFreeSpinMode(true);
 
-                    this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${freeSpinCount} REMAINING`;
                     this.animationContainer.getFreeSpinRemainContainer().visible = true;
+                    this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${freeSpinCount} REMAINING`;
                     this.animationContainer.getBuyFreeSpinButton().visible = false;
                 });
+
+                this.animationContainer.getPopupCountText().text = `${freeSpinCount}`;
+                this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
+                await this.animationContainer.playFreeSpinPopupAnimation();
 
                 const initialWin = response.result?.steps[0].wins.reduce((acc, win) => acc + win.match.winAmount, 0) || 0;
                 const totalWin = await this.executeFreeSpin(freeSpinCount, initialWin);
@@ -228,7 +228,6 @@ export class SlotGameController {
                     this.reelsContainer.setFreeSpinMode(false);
                     this.background.setFreeSpinMode(false);
 
-                    this.animationContainer.getFreeSpinRemainContainer().visible = false;
                     this.animationContainer.getBuyFreeSpinButton().visible = true;
                 });
 

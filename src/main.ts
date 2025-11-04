@@ -97,7 +97,7 @@ export class DoodleV8Main {
       //TO-DO: this needs to be moved to a separate place
       // Add keyboard handlers
 
-      const spin = () => {
+      const spin = async () => {
         debug.log("🎲 Manual spin triggered");
         if (this.slotGameController?.spinController) {
           if (
@@ -106,18 +106,12 @@ export class DoodleV8Main {
             this.slotGameController.spinController.getIsAutoPlaying() === false &&
             this.slotGameController.getFreeSpinController().isRunning === false
           ) {
-            if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
-              this.slotGameController.reelsController.skipWinAnimations();
-            }
-
-            this.slotGameController.executeGameSpin(10, "manual");
-          } /*else {
-            GameConfig.FORCE_STOP.enabled && this.slotGameController.spinController.forceStop();
-          }*/
+            await this.slotGameController.executeGameSpin(10, "manual");
+          }
         }
       }
 
-      const autoPlay = (numberOfAutoSpins: number) => {
+      const autoPlay = async (numberOfAutoSpins: number) => {
         debug.log("🔄 Auto-play triggered");
         if (
           this.slotGameController?.spinController &&
@@ -127,7 +121,7 @@ export class DoodleV8Main {
           this.slotGameController.getFreeSpinController().isRunning === false
         ) {
           // usage: window.dispatchEvent(new CustomEvent("startAutoPlay", { detail: {numberOfAutoSpins: 5, selectedSpinType: "skip"} }));
-          this.slotGameController.spinController.startAutoPlay(numberOfAutoSpins);
+          await this.slotGameController.spinController.startAutoPlay(numberOfAutoSpins);
         }
       };
 
@@ -138,10 +132,22 @@ export class DoodleV8Main {
         autoPlay(payload.numberOfAutoSpins);
       });
 
-      window.addEventListener("keydown", (event) => {
-        switch (event.key.toLowerCase()) {
+      let isKeyHeld = false;
+      let isSpinning = false;
+
+      window.addEventListener("keydown", async (event) => {
+        const key = event.key.toLowerCase();
+
+        switch (key) {
           case " ":
-            spin();
+            if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
+              this.slotGameController.reelsController.skipWinAnimations();
+            }
+
+            if (isKeyHeld || isSpinning) return;
+            isKeyHeld = true;
+
+            startSpinLoop();
             break;
           case "f":
             debug.log("🔄 Force stop triggered");
@@ -154,7 +160,7 @@ export class DoodleV8Main {
             }
             break;
           case "a":
-            autoPlay(5); // Example: start 10 auto-spins
+            autoPlay(5); // Example: start 5 auto-spins
             break;
           case "q":
             debug.log("🛑 Stop auto-play");
@@ -308,6 +314,24 @@ export class DoodleV8Main {
             break;
         }
       });
+
+      window.addEventListener("keyup", (event) => {
+        if (event.key === " " || event.code === "Space") {
+          isKeyHeld = false;
+        }
+      });
+
+      async function startSpinLoop() {
+        while (isKeyHeld) {
+          if (!isSpinning) {
+            isSpinning = true;
+            await spin(); // spin tamamlanana kadar bekle
+            isSpinning = false;
+          } else {
+            await new Promise((r) => requestAnimationFrame(r)); // spin devam ederken bekle
+          }
+        }
+      }
 
       // Step 7: Start the main game loop
       this.startGameLoop();

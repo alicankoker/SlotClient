@@ -136,8 +136,8 @@ export class FreeSpinController {
             totalWin: this.totalWin,
         });
 
+        this.animationContainer.getFreeSpinRemainContainer().visible = false;
         this.animationContainer.getFreeSpinRemainText().text = ``;
-        this.animationContainer.getFreeSpinRemainText().visible = false;
 
         if (this.resolvePromise) {
             this.resolvePromise(); // burada totalWin Promise zincirine dönüyor

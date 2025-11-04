@@ -33,6 +33,8 @@ export class AnimationContainer extends Container {
     private _transition!: Spine;
     private _buyFreeSpinButton!: Sprite;
 
+    private totalWinResolver?: () => void;
+
     private constructor() {
         super();
 
@@ -62,6 +64,24 @@ export class AnimationContainer extends Container {
         this._spinModeText.visible = false; // Hide by default
         this.addChild(this._spinModeText);
 
+        this._freeSpinRemain = new Container();
+        this._freeSpinRemain.label = 'FreeSpinRemainContainer';
+        this._freeSpinRemain.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 940);
+        this._freeSpinRemain.visible = false;
+        this.addChild(this._freeSpinRemain);
+
+        this._freeSpinRemainHolder = Sprite.from('freespin_remaining_strip');
+        this._freeSpinRemainHolder.label = 'FreeSpinRemainHolder';
+        this._freeSpinRemainHolder.anchor.set(0.5, 0.5);
+        this._freeSpinRemainHolder.scale.set(0.5, 0.5);
+        this._freeSpinRemain.addChild(this._freeSpinRemainHolder);
+
+        this._freeSpinRemainText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._freeSpinRemainText.style.fontSize = 35;
+        this._freeSpinRemainText.label = 'FreeSpinRemainText';
+        this._freeSpinRemainText.anchor.set(0.5, 0.5);
+        this._freeSpinRemain.addChild(this._freeSpinRemainText);
+
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
         this._dimmer.rect(0, 0, GameConfig.REFERENCE_RESOLUTION.width, GameConfig.REFERENCE_RESOLUTION.height);
@@ -78,7 +98,6 @@ export class AnimationContainer extends Container {
         this._popup.label = 'FreeSpinPopupContainer';
         this._popup.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this._popup.visible = false;
-        this._popup.alpha = 0;
         this.addChild(this._popup);
 
         this._popupBackground = Sprite.from("popup_background");
@@ -132,23 +151,6 @@ export class AnimationContainer extends Container {
             color: 0x000000,
         };
         this._popup.addChild(popupPressAnywhere);
-
-        this._freeSpinRemain = new Container();
-        this._freeSpinRemain.label = 'FreeSpinRemainContainer';
-        this._freeSpinRemain.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 940);
-        this._freeSpinRemain.visible = false;
-        this.addChild(this._freeSpinRemain);
-
-        this._freeSpinRemainHolder = Sprite.from('freespin_remaining_strip');
-        this._freeSpinRemainHolder.label = 'FreeSpinRemainHolder';
-        this._freeSpinRemainHolder.anchor.set(0.5, 0.5);
-        this._freeSpinRemainHolder.scale.set(0.5, 0.5);
-        this._freeSpinRemain.addChild(this._freeSpinRemainHolder);
-
-        this._freeSpinRemainText = new Text({ text: '', style: GameConfig.style.clone() });
-        this._freeSpinRemainText.label = 'FreeSpinRemainText';
-        this._freeSpinRemainText.anchor.set(0.5, 0.5);
-        this._freeSpinRemain.addChild(this._freeSpinRemainText);
 
         this._buyFreeSpinButton = Sprite.from('freespin_logo');
         this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
@@ -226,6 +228,8 @@ export class AnimationContainer extends Container {
 
     public playTotalWinAnimation(totalWinAmount: number): Promise<void> {
         return new Promise((resolve) => {
+            this.totalWinResolver = resolve;
+
             if (!GameConfig.WIN_ANIMATION.winTextVisibility) {
                 resolve();
                 return;
@@ -244,12 +248,31 @@ export class AnimationContainer extends Container {
                             this._winText.text = ``;
                             this._winText.visible = false;
 
-                            resolve();
+                            if (this.totalWinResolver) {
+                                this.totalWinResolver();
+                                this.totalWinResolver = undefined;
+                            }
                         }
                     });
                 }
             });
         });
+    }
+
+    public stopTotalWinAnimation(): void {
+        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+            gsap.to(this._winText.scale, {
+                x: 0, y: 0, duration: 0.1, ease: 'back.in(1.7)', onComplete: () => {
+                    this._winText.text = ``;
+                    this._winText.visible = false;
+
+                    if (this.totalWinResolver) {
+                        this.totalWinResolver();
+                        this.totalWinResolver = undefined;
+                    }
+                }
+            });
+        }
     }
 
     public playWinTextAnimation(winAmount: number): void {
@@ -326,11 +349,15 @@ export class AnimationContainer extends Container {
                 eventBus.off("spinIt", closePopup);
                 eventBus.off("onScreenClick", closePopup);
 
-                gsap.to([this._popup, this._dimmer], {
+                gsap.to([this._dimmer], {
                     alpha: 0,
-                    duration: 0.5,
-                    ease: 'back.out(1.7)',
-                    delay: 0.25,
+                    duration: 0.4
+                });
+                gsap.to([this._popup.scale], {
+                    x: 0,
+                    y: 0,
+                    duration: 0.4,
+                    ease: 'back.in(1.7)',
                     onComplete: () => {
                         this._popup.visible = false;
                         this._dimmer.visible = false;
@@ -340,22 +367,28 @@ export class AnimationContainer extends Container {
             };
 
             const onKeyDown = (e: KeyboardEvent) => {
-                if (e.code === "Space" || e.code === "Enter") {
+                if (e.code === "Space") {
                     e.preventDefault();
                     closePopup();
                 }
             };
 
-            window.addEventListener('keydown', onKeyDown);
-            this._popup.once('pointerdown', closePopup);
-            this._dimmer.once('pointerdown', closePopup);
-            eventBus.on("spinIt", closePopup);
-            eventBus.on("onScreenClick", closePopup);
-
-            gsap.to([this._popup, this._dimmer], {
+            gsap.to([this._dimmer], {
                 alpha: 1,
-                duration: 0.5,
+                duration: 0.4
+            });
+            gsap.fromTo([this._popup.scale], { x: 0, y: 0 }, {
+                x: 1,
+                y: 1,
+                duration: 0.4,
                 ease: 'back.out(1.7)',
+                onComplete: () => {
+                    window.addEventListener('keydown', onKeyDown);
+                    this._popup.once('pointerdown', closePopup);
+                    this._dimmer.once('pointerdown', closePopup);
+                    eventBus.on("spinIt", closePopup);
+                    eventBus.on("onScreenClick", closePopup);
+                }
             });
         });
     }
