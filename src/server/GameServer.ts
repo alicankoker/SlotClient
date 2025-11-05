@@ -17,6 +17,8 @@ import { debug } from "../engine/utils/debug";
 import { Utils } from "../engine/utils/Utils";
 import { Reelsets, FSReelsets } from "./Games/ClassicSpinGame/Reelsets";
 import { GameRulesConfig, IPaytableEntry } from "../config/GameRulesConfig";
+import { io } from "socket.io-client";
+import config from "../game/config";
 
 export class GameServer {
   private static instance: GameServer;
@@ -88,6 +90,23 @@ export class GameServer {
         error: "Failed to process spin",
       };
     }
+  }
+
+  public request(): void {
+    const socket = io(config.BACKEND_URL, { auth: { id: config.USER_ID } });
+
+    socket.emit("event", {
+      action: "spin", // freeSpin, bonus etc.
+      data: {
+        roundId: "round12345", // only for feature requests
+        lines: 25,
+        bet: 10, // it will be index of bet array
+      }
+    },
+      (data: any) => {
+        console.log("Spin response from backend:", data);
+      }
+    );
   }
 
   private analyzeGridWins(grid: GridData, fsWon: boolean): MatchData[] {
@@ -206,7 +225,7 @@ export class GameServer {
 
     spinData.steps.push(this.latestSpinData);
     const fsWon = this.checkFSWon(this.latestSpinData.gridAfter);
-    const extraFreeSpins =  fsWon ? 3 : 0;
+    const extraFreeSpins = fsWon ? 3 : 0;
     const bonusWon = this.checkBonusWon(this.latestSpinData.gridAfter);
     const matches = this.analyzeGridWins(this.latestSpinData.gridAfter, fsWon);
     this.latestSpinData.wins = matches.map(match => ({ match, winAmount: this.calculateWin([match], request.betAmount) }));

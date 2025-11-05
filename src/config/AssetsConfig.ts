@@ -43,7 +43,7 @@ export class AssetsConfig {
         assets: [
           {
             alias: 'base_background',
-            src: PATH + '/assets/base_background.png'
+            src: PATH + '/assets/base_background.jpg'
           },
           {
             alias: 'base_logo',
@@ -59,11 +59,11 @@ export class AssetsConfig {
           },
           {
             alias: 'loading_bar_stroke_front',
-            src: PATH + '/assets/raw/loading_bar_stroke_front.png'
+            src: PATH + '/assets/raw/loading_bar_stroke_f.png'
           },
           {
             alias: 'loading_bar_stroke_back',
-            src: PATH + '/assets/raw/loading_bar_stroke_back.png'
+            src: PATH + '/assets/raw/loading_bar_stroke_b.png'
           },
           {
             alias: "MikadoBlack",
@@ -205,15 +205,15 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['base_background'],
-            src: PATH + '/assets/base_background.png'
+            src: PATH + '/assets/base_background.jpg'
           },
           {
             alias: ['freespin_background'],
-            src: PATH + '/assets/freespin_background.png'
+            src: PATH + '/assets/freespin_background.jpg'
           },
           {
             alias: ['bonus_background'],
-            src: PATH + '/assets/bonus_background.png'
+            src: PATH + '/assets/bonus_background.jpg'
           }
         ]
       }
