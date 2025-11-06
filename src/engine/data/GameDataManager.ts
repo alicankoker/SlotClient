@@ -1,13 +1,16 @@
-import { GridData, CascadeStepData, SpinResultData, SpinResponseData } from '../types/ICommunication';
+import { GridData, CascadeStepData, SpinResultData, SpinResponseData, IResponseData, IData } from '../types/ICommunication';
 import { debug } from '../utils/debug';
 
 export interface GameState {
     currentSpinId?: string;
     currentGrid?: GridData;
-    symbolsBeforeSpin?: GridData;
+    initialData?: IData;
+    symbolsBeforeSpin?: number[][];
     currentCascadeSteps?: CascadeStepData[];
     isSpinning: boolean;
     lastSpinResult?: SpinResultData;
+    lastResponseData?: IResponseData;
+    currentResponseData?: IResponseData;
     lastSpinData?: SpinResponseData;
     currentSpinData?: SpinResponseData;
     playerBalance: number;
@@ -33,31 +36,76 @@ export class GameDataManager {
         }
         return GameDataManager.instance;
     }
-    setSpinData(response: SpinResponseData): void {
-        // Store the previous spin result as the "before" state
-        if (this.gameState.currentSpinData?.result) {
-            this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[0].gridBefore;
+
+    public setInitialData(data: IData): void {
+        this.gameState.initialData = data;
+        this.setInitialSymbols(data.history.reels);
+    }
+
+    public getInitialData(): IData | undefined {
+        return this.gameState.initialData;
+    }
+
+    public setInitialSymbols(initialGrid: number[][]): void {
+        const min = 0;
+        const max = 10;
+
+        const symbolsBefore: number[][] = initialGrid.map((column: number[]) => {
+            if (column.length === 0) return column;
+
+            const newColumn = [...column];
+            const randomFirst = Math.floor(Math.random() * (max - min + 1)) + min;
+            const randomLast = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            newColumn.unshift(randomFirst);
+            newColumn.push(randomLast);
+
+            return newColumn;
+        });
+
+        this.gameState.symbolsBeforeSpin = symbolsBefore;
+    }
+
+    public getInitialSymbols(): number[][] | undefined {
+        return this.gameState.initialData?.history.reels;
+    }
+
+    public setSpinData(response: any): void {
+        if (response) {
+            this.gameState.initialData = undefined; // Clear initial data after first spin
+
+            if (this.gameState.currentResponseData) {
+                const min = 0;
+                const max = 10;
+
+                const symbolsBefore: number[][] = this.gameState.currentResponseData.reels.map((column: number[]) => {
+                    if (column.length === 0) return column;
+
+                    const newColumn = [...column];
+                    const randomFirst = Math.floor(Math.random() * (max - min + 1)) + min;
+                    const randomLast = Math.floor(Math.random() * (max - min + 1)) + min;
+
+                    newColumn.unshift(randomFirst);
+                    newColumn.push(randomLast);
+
+                    return newColumn;
+                });
+
+                this.gameState.symbolsBeforeSpin = symbolsBefore;
+            }
+
+            this.gameState.lastResponseData = response.data as IResponseData;
+            this.gameState.currentResponseData = response.data as IResponseData;
         }
-        
-        this.gameState.lastSpinResult = response.result;
-        this.gameState.currentSpinData = response;
     }
 
-    getSpinData(): SpinResponseData {
-        return {
-            success: true,
-            result: this.gameState.lastSpinResult
-        };
+    public getSpinData(): IResponseData {
+        return this.gameState.lastResponseData as IResponseData;
     }
 
-    checkFreeSpins(): boolean {
-        const naturalFSActive = this.gameState.lastSpinResult?.fsWon || false;
+    public checkFreeSpins(): boolean {
+        const naturalFSActive = this.gameState.lastResponseData?.freeSpin !== undefined || false;
         return this._freeSpinActive || naturalFSActive;
-        // const currentSpinData = this.gameState.currentSpinData;
-
-        // return (currentSpinData && currentSpinData.result && currentSpinData.result.fsWon) || false;
-
-        // return true; // For testing purposes, always return true
     }
 
     public get freeSpinActive(): boolean {
@@ -77,8 +125,12 @@ export class GameDataManager {
         return this.gameState.currentGrid;
     }
 
-    public getSymbolsBeforeSpin(): GridData | undefined {
-        return this.gameState.symbolsBeforeSpin;
+    public getSymbolsBeforeSpin(): number[][] | undefined {
+        if (this.gameState.symbolsBeforeSpin) {
+            return this.gameState.symbolsBeforeSpin;
+        } else {
+            return this.getInitialSymbols();
+        }
     }
 
     public getCurrentCascadeSteps(): CascadeStepData[] | undefined {
@@ -89,8 +141,8 @@ export class GameDataManager {
         return this.gameState.isSpinning;
     }
 
-    public getLastSpinResult(): SpinResultData | undefined {
-        return this.gameState.lastSpinResult;
+    public getLastSpinResult(): IResponseData | undefined {
+        return this.gameState.lastResponseData;
     }
 
     public getPlayerBalance(): number {
@@ -116,30 +168,26 @@ export class GameDataManager {
         debug.log('GameDataManager: Current grid updated');
     }
 
-    public setSymbolsBeforeSpin(grid: GridData): void {
-        this.gameState.symbolsBeforeSpin = grid;
-        debug.log('GameDataManager: Symbols before spin set');
-    }
+    // public setSymbolsBeforeSpin(grid: GridData): void {
+    //     this.gameState.symbolsBeforeSpin = grid;
+    //     debug.log('GameDataManager: Symbols before spin set');
+    // }
 
-    // Method to capture current static container symbols before starting a new spin
-    public captureCurrentStaticSymbols(): void {
-        const totalSteps = this.gameState.currentSpinData?.result?.steps.length || 0;
-        // This should be called before starting a new spin to capture what's currently on StaticContainer
-        if (this.gameState.currentSpinData?.result?.steps[totalSteps ? totalSteps - 1 : 0]) {
-            // Use the final grid from the previous spin
-            this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[totalSteps ? totalSteps - 1 : 0].gridAfter;
-            debug.log('GameDataManager: Captured previous spin final symbols as symbolsBeforeSpin');
-        } else {
-            // First spin - no previous data, this will be set by the game initialization
-            debug.log('GameDataManager: First spin - no previous symbols to capture');
-        }
-    }
+    // // Method to capture current static container symbols before starting a new spin
+    // public captureCurrentStaticSymbols(): void {
+    //     const totalSteps = this.gameState.currentSpinData?.result?.steps.length || 0;
+    //     // This should be called before starting a new spin to capture what's currently on StaticContainer
+    //     if (this.gameState.currentSpinData?.result?.steps[totalSteps ? totalSteps - 1 : 0]) {
+    //         // Use the final grid from the previous spin
+    //         this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[totalSteps ? totalSteps - 1 : 0].gridAfter;
+    //         debug.log('GameDataManager: Captured previous spin final symbols as symbolsBeforeSpin');
+    //     } else {
+    //         // First spin - no previous data, this will be set by the game initialization
+    //         debug.log('GameDataManager: First spin - no previous symbols to capture');
+    //     }
+    // }
 
     // Method to set initial symbols for first spin (from game initialization)
-    public setInitialSymbols(initialGrid: GridData): void {
-        this.gameState.symbolsBeforeSpin = initialGrid;
-        debug.log('GameDataManager: Set initial symbols for first spin');
-    }
 
     public setCurrentCascadeSteps(steps: CascadeStepData[]): void {
         this.gameState.currentCascadeSteps = steps;

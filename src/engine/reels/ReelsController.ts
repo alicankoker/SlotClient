@@ -32,7 +32,7 @@ export class ReelsController {
 
   constructor(
     app: Application,
-    initData: GridData,
+    initData: number[][],
     reelsContainer?: ReelsContainer
   ) {
     this.app = app;
@@ -44,7 +44,7 @@ export class ReelsController {
     this.initializeControllers(initData);
   }
 
-  private initializeControllers(initData: GridData): void {
+  private initializeControllers(initData: number[][]): void {
     const numberOfReels = GameConfig.GRID_LAYOUT.columns;
 
     for (let i = 0; i < numberOfReels; i++) {
@@ -129,20 +129,18 @@ export class ReelsController {
     const spinResultData = GameDataManager.getInstance().getLastSpinResult();
     let winConfigs: WinConfig[] = [];
 
-    if (spinResultData!.steps[0].wins.length === 0) {
+    if (spinResultData?.ws.length! <= 0) {
       eventBus.emit("setWinData2", "PLACE YOUR BET");
       this.resetWinAnimations();
       return;
     }
 
     if (spinResultData) {
-      for (const winData of spinResultData.steps[0].wins) {
-        const line = Number(Object.entries(GameRulesConfig.WINNING_LINES).find(([, line]) => JSON.stringify(line) === JSON.stringify(winData.match.line))?.[0]);
-        const symbolIds = winData.match.line.slice(0, winData.match.indices.length);
+      for (const winData of spinResultData.ws) {
         const winConfig: WinConfig = {
-          symbolIds: symbolIds,
-          line: line,
-          amount: winData.match.winAmount,
+          symbolIds: winData.positions,
+          line: winData.line,
+          amount: winData.payout,
           multiplier: Math.max(1, Math.floor(Math.random() * 5))
         }
 
@@ -150,7 +148,7 @@ export class ReelsController {
       }
     }
 
-    console.log("winConfigs", winConfigs);
+    //console.log("winConfigs", winConfigs);
 
     // const winData = this.setWinDisplayData();
     // const winData2 = this.setWinDisplayData();

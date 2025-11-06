@@ -3,7 +3,7 @@ export interface WinConfig {
   multiplier: number; // Win multiplier
   amount: number; // Win amount
   line: number; // Line number
-  symbolIds: number[]; // Array of symbol IDs
+  symbolIds: number[] | number[][]; // Array of symbol IDs
 }
 
 // Win animation configuration interface

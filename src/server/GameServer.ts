@@ -6,6 +6,8 @@ import {
   GridData,
   GridUtils,
   InitialGridData,
+  IPayload,
+  IResponseData,
   MatchData,
   SpinRequestData,
   SpinResponseData,
@@ -17,8 +19,8 @@ import { debug } from "../engine/utils/debug";
 import { Utils } from "../engine/utils/Utils";
 import { Reelsets, FSReelsets } from "./Games/ClassicSpinGame/Reelsets";
 import { GameRulesConfig, IPaytableEntry } from "../config/GameRulesConfig";
-import { io } from "socket.io-client";
-import config from "../game/config";
+import { SocketConnection } from "../communication/Connection/SocketConnection";
+import { GameDataManager } from "../engine/data/GameDataManager";
 
 export class GameServer {
   private static instance: GameServer;
@@ -28,6 +30,7 @@ export class GameServer {
   private readonly winningLines = Object.values(GameRulesConfig.WINNING_LINES);
   private readonly paytable: IPaytableEntry[] = GameRulesConfig.PAYTABLE;
 
+  private socket: SocketConnection;
   private initData: InitialGridData = { symbols: [] };
   private firstSpin: boolean = true;
   private previousGrid: GridData = { symbols: [] };
@@ -50,7 +53,7 @@ export class GameServer {
   };
 
   private constructor() {
-    // No longer need symbolNames array
+    this.socket = SocketConnection.getInstance();
   }
 
   public static getInstance(): GameServer {
@@ -92,21 +95,12 @@ export class GameServer {
     }
   }
 
-  public request(): void {
-    const socket = io(config.BACKEND_URL, { auth: { id: config.USER_ID } });
+  public async processRequest(payload: IPayload = { action: "spin", data: { lines: 25, betIndex: 0 } }): Promise<IResponseData> {
+    const response: IResponseData = await this.socket.request(payload);
 
-    socket.emit("event", {
-      action: "spin", // freeSpin, bonus etc.
-      data: {
-        roundId: "round12345", // only for feature requests
-        lines: 25,
-        bet: 10, // it will be index of bet array
-      }
-    },
-      (data: any) => {
-        console.log("Spin response from backend:", data);
-      }
-    );
+    GameDataManager.getInstance().setSpinData(response);
+
+    return response;
   }
 
   private analyzeGridWins(grid: GridData, fsWon: boolean): MatchData[] {
@@ -146,7 +140,7 @@ export class GameServer {
           matches.push({ indices, wilds, symbolId: grid.symbols[initialIndexToStart][line[initialIndexToStart] + 1].symbolId, line, winAmount: winAmount });
       }
     });
-    console.log("Matches found:", matches);
+    //console.log("Matches found:", matches);
     return matches;
   }
 

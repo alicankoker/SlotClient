@@ -374,22 +374,6 @@ export class AssetsConfig {
     ],
   };
 
-  // abi bunların 3'ünü de tek bir constdan çekebilirdim ama ne olur ne olmaz diye 3'e ayırdım,
-  // isimleri değişebilir hala değişiklikler yapılıyor assetlerde
-  public static readonly SYMBOL_ASSET_DATA: { [key: number]: { idle: string, blurred: string, prefix: string } } = {
-    0: { idle: 'Symbol_1', blurred: 'Symbol_1_Blur', prefix: '0' },
-    1: { idle: 'Symbol_2', blurred: 'Symbol_2_Blur', prefix: '1' },
-    2: { idle: 'Symbol_3', blurred: 'Symbol_3_Blur', prefix: '2' },
-    3: { idle: 'Symbol_4', blurred: 'Symbol_4_Blur', prefix: '3' },
-    4: { idle: 'Symbol_5', blurred: 'Symbol_5_Blur', prefix: '4' },
-    5: { idle: 'Symbol_6', blurred: 'Symbol_6_Blur', prefix: '5' },
-    6: { idle: 'Symbol_7', blurred: 'Symbol_7_Blur', prefix: '6' },
-    7: { idle: 'Symbol_8', blurred: 'Symbol_8_Blur', prefix: '7' },
-    8: { idle: 'Symbol_9', blurred: 'Symbol_9_Blur', prefix: '8' },
-    9: { idle: 'Symbol_10', blurred: 'Symbol_10_Blur', prefix: '9' },
-    10: { idle: 'Symbol_11', blurred: 'Symbol_11_Blur', prefix: '10' }
-  };
-
   // spine symbol indexes to asset name mapping
   public static readonly SYMBOL_SPINE_ASSET: SpineAssetData = {
     atlas: "icons_atlas",
@@ -456,21 +440,11 @@ export class AssetsConfig {
   }
 
   public static getSymbolAsset(symbolIndex: number): string {
-    const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
-    if (!assetName) {
-      debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
-      return 'Symbol_1';
-    }
-    return assetName.idle;
+    return symbolIndex.toString();
   }
 
   public static getBlurredSymbolAsset(symbolIndex: number): string {
-    const assetName = this.SYMBOL_ASSET_DATA[symbolIndex];
-    if (!assetName) {
-      debug.warn(`No asset found for symbol index ${symbolIndex}, using default`);
-      return 'Symbol_1_Blur';
-    }
-    return assetName.blurred;
+    return `${symbolIndex}_blur`;
   }
 
   public static getSpineAsset(asset: SpineAsset): SpineData {
@@ -507,14 +481,5 @@ export class AssetsConfig {
     }
 
     return { atlasData, skeletonData };
-  }
-
-  public static getSymbolIndexFromAsset(assetName: string): number {
-    for (const [index, name] of Object.entries(this.SYMBOL_ASSET_DATA)) {
-      if (name.idle === assetName) {
-        return parseInt(index);
-      }
-    }
-    return -1; // Not found
   }
 }

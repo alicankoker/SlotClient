@@ -99,19 +99,6 @@ export class Symbol extends Sprite {
     this.label = `Symbol_${newSymbolId}`;
   }
 
-
-  public setTexture(symbolAssetName: string): void {
-    const spritesheet = Assets.cache.get("/assets/symbols/symbols.json");
-    if (spritesheet && spritesheet.textures[symbolAssetName]) {
-      this.texture = spritesheet.textures[symbolAssetName];
-      // Update symbolId based on asset name if possible
-      const symbolId = AssetsConfig.getSymbolIndexFromAsset(symbolAssetName);
-      if (symbolId !== -1) {
-        this._symbolId = symbolId;
-      }
-    }
-  }
-
   // Animation methods
   public async animateToPosition(
     targetPosition: { x: number; y: number },

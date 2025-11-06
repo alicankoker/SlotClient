@@ -12,6 +12,7 @@ import { ResponsiveConfig } from '../utils/ResponsiveManager';
 import { AssetsConfig } from '../../config/AssetsConfig';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { Helpers } from '../utils/Helpers';
+import { SpinMode } from '../types/ISpinConfig';
 
 export class ReelsContainer extends Container {
   private app: Application;
@@ -43,6 +44,7 @@ export class ReelsContainer extends Container {
   private _autoPlayCount: number = 0;
   private _autoPlayCountText: Text;
   private _isFreeSpinMode: boolean = false;
+  private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
   private readonly numberOfReels: number;
   private readonly symbolsPerReel: number;
@@ -460,7 +462,7 @@ export class ReelsContainer extends Container {
   public setChainAnimation(isSpinning: boolean, loop: boolean, isStart: boolean): void {
     const chainAnimationName = isSpinning ? (this._isFreeSpinMode ? 'Free_chain' : 'Base_chain') : (this._isFreeSpinMode ? 'Free_chain_hold' : 'Base_chain_hold');
     this.chains.forEach(async (chain, index) => {
-      await Helpers.delay(isStart ? 150 * (index % 6) : 0);
+      await Helpers.delay((isStart && this._spinMode === GameConfig.SPIN_MODES.NORMAL) ? 150 * (index % 6) : 0);
       chain.state.setAnimation(0, chainAnimationName, loop);
     });
   }
@@ -474,5 +476,13 @@ export class ReelsContainer extends Container {
 
   public getElementsContainer(): Container | undefined {
     return this.frameElementsContainer;
+  }
+
+  public get spinMode(): SpinMode {
+    return this._spinMode;
+  }
+
+  public set spinMode(value: SpinMode) {
+    this._spinMode = value;
   }
 } 

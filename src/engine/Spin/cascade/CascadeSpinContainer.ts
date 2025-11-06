@@ -5,7 +5,7 @@ import { GameRulesConfig } from "../../../config/GameRulesConfig";
 import { GameConfig } from "../../../config/GameConfig";
 import { gsap } from "gsap";
 import { GridSymbol } from "../../symbol/GridSymbol";
-import { GridData, CascadeStepData, SpinResultData, SymbolData, GridUtils, DropData } from "../../types/ICommunication";
+import { GridData, CascadeStepData, SpinResultData, SymbolData, GridUtils, DropData, IResponseData } from "../../types/ICommunication";
 
 export class CascadeSpinContainer extends SpinContainer {
     private reelAreaMask: Graphics = new Graphics();
@@ -37,12 +37,13 @@ export class CascadeSpinContainer extends SpinContainer {
     }
 
     // Cascading functionality
-    public displayInitialGrid(gridData: GridData): void {
+    public displayInitialGrid(gridData: number[][]): Promise<void> {
         debug.log(`SpinContainer ${this.config.reelIndex}: Displaying initial grid`);
         this.clearSymbols();
         this.updateGridFromData(gridData);
         //this.updateScale();
         //this.updateSymbolPositions();
+        return Promise.resolve();
     }
 
     public async processCascadeStep(stepData: CascadeStepData): Promise<void> {
@@ -55,13 +56,13 @@ export class CascadeSpinContainer extends SpinContainer {
         await this.dropSymbolsWithAnimation(stepData.symbolsToDrop);
 
         // Step 3: Add new symbols from the top
-        await this.addNewSymbolsWithAnimation(stepData.newSymbols, stepData.newSymbolIndices);
+        //await this.addNewSymbolsWithAnimation(stepData.newSymbols, stepData.newSymbolIndices);
 
         debug.log(`CascadeSpinContainer: Completed cascade step ${stepData.step}`);
     }
 
     // temporary spinning functionality for abstract SpinContainer
-    public startSpin(spinData: SpinResultData): Promise<void> {
+    public startSpin(spinData: IResponseData): Promise<void> {
         return new Promise<void>((resolve) => {
             this.startSpinAnimation(spinData);
         });
@@ -132,7 +133,7 @@ export class CascadeSpinContainer extends SpinContainer {
     }
 
     // Spin animation methods
-    public startSpinAnimation(spinData: SpinResultData): void {
+    public startSpinAnimation(spinData: IResponseData): void {
         debug.log('CascadeSpinContainer: Starting spin animation with', this.symbols.length, 'columns');
         this.isSpinning = true;
 
@@ -149,31 +150,31 @@ export class CascadeSpinContainer extends SpinContainer {
     }
 
 
-    protected updateGridFromData(gridData: GridData): void {
-        debug.log(`CascadeSpinContainer: Updating grid with ${gridData.symbols.length} symbols from server`);
+    protected updateGridFromData(gridData: number[][]): void {
+        debug.log(`CascadeSpinContainer: Updating grid with ${gridData.length} symbols from server`);
 
-        gridData.symbols.flat().forEach((symbolData: SymbolData, index: number) => {
+        gridData.flat().forEach((symbolId: number, index: number) => {
             const { column, row } = GridUtils.indexToPosition(index);
 
             try {
                 const symbolRef: GridSymbol = this.symbols[column][row] as GridSymbol;
                 if (symbolRef) {
-                    symbolRef.updateSymbolTexture(symbolData.symbolId);
+                    symbolRef.updateSymbolTexture(symbolId);
                 } else {
                     // Process all columns since this container manages all reels
                     const gridIndex = row;
-                    const newSymbol = this.createGridSymbol(symbolData, column, row);
+                    const newSymbol = this.createGridSymbol(symbolId, column, row);
                     if (newSymbol) {
                         // Ensure the column array exists
                         if (!this.symbols[column]) {
                             this.symbols[column] = [];
                         }
                         this.symbols[column][gridIndex] = newSymbol;
-                        debug.log(`CascadeSpinContainer: Created symbol ID ${symbolData.symbolId} at column ${column}, row ${row}, gridIndex ${gridIndex}`);
+                        debug.log(`CascadeSpinContainer: Created symbol ID ${symbolId} at column ${column}, row ${row}, gridIndex ${gridIndex}`);
                     }
                 }
             } catch (error) {
-                debug.error(`CascadeSpinContainer: Error updating symbol ${symbolData.symbolId} at column ${column}, row ${row}`, error);
+                debug.error(`CascadeSpinContainer: Error updating symbol ${symbolId} at column ${column}, row ${row}`, error);
             }
         });
 
@@ -305,7 +306,7 @@ export class CascadeSpinContainer extends SpinContainer {
         await Promise.all(animations);
     }
 
-    private async addNewSymbolsWithAnimation(newSymbols: SymbolData[], newSymbolIndices: number[]): Promise<void> {
+    private async addNewSymbolsWithAnimation(newSymbols: number[], newSymbolIndices: number[]): Promise<void> {
         if (newSymbols.length === 0) return;
 
         debug.log(`CascadeSpinContainer: Adding ${newSymbols.length} new symbols with animation`);

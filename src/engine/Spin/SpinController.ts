@@ -13,6 +13,7 @@ import {
   CascadeStepData,
   DropData,
   GridData,
+  IResponseData,
   MatchData,
   SpinResponseData,
   SpinResultData,
@@ -51,7 +52,7 @@ export abstract class SpinController {
 
   // Callbacks
   protected onSpinStartCallback?: () => void;
-  protected onSpinCompleteCallback?: (result: SpinResponseData) => Promise<void>;
+  protected onSpinCompleteCallback?: (result: IResponseData) => Promise<void>;
   protected onCascadeStepCallback?: (stepData: CascadeStepData) => void;
   protected onErrorCallback?: (error: string) => void;
   protected container: SpinContainer;
@@ -64,12 +65,11 @@ export abstract class SpinController {
   }
 
   // Main spin orchestration methods
-  public async executeSpin(): Promise<SpinResponseData> {
+  public async executeSpin(): Promise<IResponseData> {
     if (this.currentState !== "idle") {
       const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
       debug.warn(error);
       this.handleError(error);
-      return { success: false, error };
     }
 
     this._abortController = new AbortController();
@@ -87,12 +87,12 @@ export abstract class SpinController {
       // Simulate server request (replace with actual server call)
       const response = GameDataManager.getInstance().getSpinData();
 
-      if (!response.success || !response.result) {
-        this.handleError(response.error || "Unknown server error");
-        return response as SpinResponseData;
+      if (!response) {
+        this.handleError("Unknown server error");
+        return response || false;
       }
 
-      this.currentSpinId = response.result.spinId;
+      // this.currentSpinId = response.result.spinId;
       // this.currentCascadeSteps = response.result.steps;
       // this.finalGridData = response.result.steps[response.result.steps.length - 1].gridAfter; // Store final grid
 
@@ -153,17 +153,17 @@ export abstract class SpinController {
                 this.continueAutoPlay();
             }*/
 
-      return response as SpinResponseData;
+      return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       this.handleError(errorMessage);
-      return { success: false, error: errorMessage };
+      throw error;
     }
   }
 
-  public startSpinAnimation(spinData: SpinResultData): void {
+  public startSpinAnimation(spinData: IResponseData): void {
     this.container.startSpin(spinData);
   }
 
@@ -441,7 +441,7 @@ export abstract class SpinController {
     this.onSpinStartCallback = callback;
   }
 
-  public setOnSpinCompleteCallback(callback: (result: SpinResponseData) => Promise<void>): void {
+  public setOnSpinCompleteCallback(callback: (result: IResponseData | boolean) => Promise<void>): void {
     this.onSpinCompleteCallback = callback;
   }
 
@@ -491,6 +491,7 @@ export abstract class SpinController {
 
     this._spinMode = mode;
     this.reelsController.setSpinMode(mode);
+    this.reelsController.getReelsContainer().spinMode = mode;
 
     debug.log(`SpinController: Spin mode set to ${mode}`);
 
@@ -500,9 +501,7 @@ export abstract class SpinController {
   }
 
   // Symbol transfer methods
-  protected async transferSymbolsToSpinContainer(
-    initialGrid: GridData
-  ): Promise<void> {
+  protected async transferSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
     debug.log(
       "SpinController: Transferring symbols from StaticContainer to SpinContainer"
     );
@@ -539,7 +538,7 @@ export abstract class SpinController {
     }
   }
 
-  protected async transferSymbolsToStaticContainer(finalGrid: GridData): Promise<void> {
+  protected async transferSymbolsToStaticContainer(finalGrid: number[][]): Promise<void> {
     debug.log("SpinController: Transferring final symbols from SpinContainer to StaticContainer");
     const reelsContainer = this.reelsController.getReelsContainer();
     if (!reelsContainer) {
@@ -560,9 +559,8 @@ export abstract class SpinController {
 
     // Show static container and update with final symbols
     staticContainer.visible = true;
-
     // Convert final grid to the format expected by StaticContainer
-    const finalSymbols: number[] = finalGrid.symbols.map((column: { symbolId: number }[]) => column.slice(1, -1).map(cell => cell.symbolId)).flat();
+    const finalSymbols: number[] = finalGrid.map((column: number[]) => column).flat();
     await staticContainer.updateSymbols(finalSymbols); // Assuming single reel for now
   }
 

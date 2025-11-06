@@ -34,10 +34,10 @@ export class StaticContainer extends Container {
     private _allowLoop: boolean = GameConfig.WIN_ANIMATION.winLoop ?? true;
     private _isFreeSpinMode: boolean = false;
     private _animationToken: number = 0;
-    private _initialGrid: GridData;
+    private _initialGrid: number[][];
     private _pendingResolvers: (() => void)[] = [];
 
-    constructor(app: Application, config: StaticContainerConfig, initialGrid: GridData) {
+    constructor(app: Application, config: StaticContainerConfig, initialGrid: number[][]) {
         super();
 
         this.position.set(0, 15); // Offset to avoid clipping issues
@@ -57,12 +57,8 @@ export class StaticContainer extends Container {
         this._winText.visible = false;
         this.addChild(this._winText);
 
-        const staticGrid = initialGrid.symbols.map((column: any[]) => column.slice(1, -1));
-
-        const symbolIds = staticGrid.map((column: any[]) => column.map((symbol: { symbolId: any }) => symbol.symbolId));
-
-        symbolIds.forEach((column: number[], columnIndex: number) => {
-            this.createSymbolsFromIds(column, columnIndex);
+        initialGrid.forEach((symbolIds: number[], reelIndex: number) => {
+            this.createSymbolsFromIds(symbolIds, reelIndex);
         });
     }
 
@@ -73,7 +69,7 @@ export class StaticContainer extends Container {
      * @return void
      */
     public setSymbols(symbolIds: number[], reelIndex: number): void {
-        this.createSymbolsFromIds(symbolIds, reelIndex);
+        //this.createSymbolsFromIds(symbolIds, reelIndex);
     }
 
     /**
@@ -107,14 +103,11 @@ export class StaticContainer extends Container {
             // Calculate vertical position (actual pixels)
             const symbolY = this.calculateSymbolY(i);
 
-            // Get symbol ID (use provided IDs or generate random for testing)
-            const symbolId = i < symbolIds.length ? symbolIds[i] : Math.floor(Math.random() * 10);
-
             //debug.log(`StaticContainer: Creating symbol ${i} for reel ${reelIndex} with ID ${symbolId} at pixel position (${Math.round(reelX)}, ${Math.round(symbolY)})`);
 
             // Create symbol with container positioning to avoid conflicts with ReelsContainer offset
             const symbol = new SpineSymbol({
-                symbolId: symbolId,
+                symbolId: symbolIds[i],
                 position: {
                     x: reelX, // Offset for container position
                     y: symbolY // Offset for container position
@@ -214,33 +207,41 @@ export class StaticContainer extends Container {
             });
 
             // play all symbol animations on this win
+            const symbolGroups: number[][] = Array.isArray(winData.symbolIds[0])
+                ? (winData.symbolIds as number[][])
+                : (winData.symbolIds as unknown as number[]).map((id) => [id]);
+
             await Promise.all(
-                winData.symbolIds.map(async (symbolId, index) => {
-                    this._symbols.get(index)?.[symbolId]?.clearBlackout();
-                    return new Promise<void>((resolve) => {
-                        this._pendingResolvers.push(resolve);
+                symbolGroups.map(async (symbolIds, reelIndex) => {
+                    return Promise.all(
+                        symbolIds.map(async (symbolId) => {
+                            this._symbols.get(reelIndex)?.[symbolId]?.clearBlackout();
 
-                        if (this._isSkipped || this._animationToken !== token) {
-                            resolve();
-                            return;
-                        }
+                            return new Promise<void>((resolve) => {
+                                this._pendingResolvers.push(resolve);
 
-                        this._symbols.get(index)?.[symbolId]?.setWinAnimation(false, () => {
-                            // set idle right after completion of each symbol animation
-                            // this._symbols.get(index)?.[symbolId]?.setIdle();
-                            resolve();
-                        });
-                    });
+                                if (this._isSkipped || this._animationToken !== token) {
+                                    resolve();
+                                    return;
+                                }
+
+                                this._symbols.get(reelIndex)?.[symbolId]?.setWinAnimation(false, () => {
+                                    resolve();
+                                });
+                            });
+                        })
+                    );
                 })
             ).then(() => {
                 if (this._animationToken !== token) return;
 
-                // after all symbols have played their win animations, set them to idle
                 if (!this._isSkipped) {
                     this._pendingResolvers = [];
 
-                    winData.symbolIds.forEach((symbolId, index) => {
-                        this._symbols.get(index)?.[symbolId]?.setIdle();
+                    symbolGroups.forEach((symbolIds, reelIndex) => {
+                        symbolIds.forEach((symbolId) => {
+                            this._symbols.get(reelIndex)?.[symbolId]?.setIdle();
+                        });
                     });
 
                     if (GameConfig.WIN_ANIMATION.winlineVisibility) {

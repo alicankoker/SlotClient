@@ -13,15 +13,13 @@ import { Storage } from "./engine/utils/Storage";
 import { eventBus } from "./communication/EventManagers/WindowEventManager";
 import { SpinEventTypes } from "./communication";
 import { GameDataManager } from "./engine/data/GameDataManager";
-import { CascadeStepData, GridData, SpinResponseData, } from "./engine/types/ICommunication";
+import { CascadeStepData, GridData, IResponseData, SpinResponseData, } from "./engine/types/ICommunication";
 import { ISpinState, SpinMode } from "./engine/types/ISpinConfig";
 import { WinEvent } from "./engine/components/WinEvent";
-import { Background } from "./engine/components/Background";
 import { WinEventType } from "./engine/types/IWinEvents";
 import { AnimationContainer } from "./engine/components/AnimationContainer";
 import { FeatureScreen } from "./engine/components/FeatureScreen";
-import config from "./game/config";
-import { io } from "socket.io-client";
+import { SocketConnection } from "./communication/Connection/SocketConnection";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -47,50 +45,14 @@ export class DoodleV8Main {
       // Step 2: Initialize responsive system
       this.initializeResponsiveSystem();
 
+      // Initialize GameDataManager first
+      const gameDataManager = GameDataManager.getInstance();
+
       // Step 3: Load assets with progress bar BEFORE creating controllers (symbols need textures)
       await Promise.all([
         this.loadAssets(this.assetResolutionChooser.assetSize.name),
         this.startLoader(),
       ]);
-
-      console.log("Backend URL from env:", config.BACKEND_URL);
-
-      const socket = io(config.BACKEND_URL, { auth: { id: "690a108c83a435b3595e1e37" } });
-      socket.on("connect", () => {
-        console.log("Connected to backend via Socket.IO:", socket.id);
-
-        socket.on("disconnect", (reason) => {
-          console.log("Disconnected from backend:", reason);
-        });
-
-        socket.on("connect_error", (err) => {
-          console.error("Connection error:", err);
-        });
-
-        socket.on("error", (error) => {
-          console.error("Socket error:", error);
-        });
-
-        socket.on("ready", (data: any) => {
-          console.log("Socket ready:", data);
-        });
-
-        socket.emit("event", {
-          action: "spin", // freeSpin, bonus etc.
-          data: {
-            roundId: "round12345", // only for feature requests
-            lines: 25,
-            bet: 10, // it will be index of bet array
-          }
-        },
-          (data: any) => {
-            console.log("Spin response from backend:", data);
-          }
-        );
-      });
-
-      // Initialize GameDataManager first
-      const gameDataManager = GameDataManager.getInstance();
 
       // Initialize SlotGameController first (needed for grid generation)
       this.slotGameController = new SlotGameController(this.app);
@@ -166,8 +128,25 @@ export class DoodleV8Main {
       eventBus.on("spinIt", () => {
         spin()
       });
+      
       eventBus.on("startAutoPlay", (payload) => {
         autoPlay(payload.numberOfAutoSpins);
+      });
+
+      eventBus.on("setSpinSpeedInSVG", (payload) => {
+        switch (payload) {
+          case 1:
+            if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL) {
+              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.NORMAL as SpinMode);
+            }
+            break;
+          case 2:
+          case 3:
+            if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
+              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
+            }
+            break;
+        }
       });
 
       let isKeyHeld = false;
@@ -210,26 +189,6 @@ export class DoodleV8Main {
               this.slotGameController.spinController.stopAutoPlay();
             }
             break;
-          case "w":
-            debug.log("🎉 Show random win animation");
-            if (
-              this.slotGameController?.reelsController &&
-              !this.slotGameController.reelsController.getIsSpinning() &&
-              GameConfig.WIN_ANIMATION.enabled &&
-              this.winEvent.isWinEventActive === false
-            ) {
-              this.slotGameController.reelsController.setupWinAnimation();
-            }
-            break;
-          case "s":
-            debug.log("⏹️ Skip win animations");
-            if (
-              this.slotGameController?.reelsController &&
-              this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true
-            ) {
-              this.slotGameController.reelsController.skipWinAnimations();
-            }
-            break;
           case "b":
             debug.log("🎉 Show big win animation");
             if (
@@ -238,116 +197,6 @@ export class DoodleV8Main {
               !this.slotGameController?.reelsController?.getIsSpinning()
             ) {
               this.winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
-            }
-            break;
-          case "1":
-            debug.log(" Normal mode activated");
-            if (
-              this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getSpinMode() !==
-              GameConfig.SPIN_MODES.NORMAL
-            ) {
-              this.slotGameController.spinController.setSpinMode(
-                GameConfig.SPIN_MODES.NORMAL as SpinMode
-              );
-
-              gsap.killTweensOf([
-                this._spinModeText,
-                this._spinModeText.position,
-                this._spinModeText.scale,
-              ]);
-              this._spinModeText.position.set(
-                GameConfig.REFERENCE_RESOLUTION.width / 2,
-                GameConfig.REFERENCE_RESOLUTION.height / 2
-              );
-
-              gsap.fromTo(
-                this._spinModeText,
-                { alpha: 0, scale: 0 },
-                {
-                  alpha: 1,
-                  scale: 1,
-                  duration: 0.25,
-                  ease: "back.out(2)",
-                  onStart: () => {
-                    this._spinModeText.text = `Fast Spin Mode Off!`;
-                    this._spinModeText.visible = true;
-                  },
-                  onComplete: () => {
-                    gsap.to(this._spinModeText, {
-                      alpha: 0,
-                      duration: 0.25,
-                      ease: "none",
-                      delay: 0.15,
-                    });
-
-                    gsap.to(this._spinModeText.position, {
-                      y: GameConfig.REFERENCE_RESOLUTION.height / 2 - 25,
-                      duration: 0.25,
-                      ease: "none",
-                      delay: 0.15,
-                      onComplete: () => {
-                        this._spinModeText.visible = false;
-                      },
-                    });
-                  },
-                }
-              );
-            }
-            break;
-          case "2":
-            debug.log("⚡ Fast mode activated");
-            if (
-              this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getSpinMode() !==
-              GameConfig.SPIN_MODES.FAST
-            ) {
-              this.slotGameController.spinController.setSpinMode(
-                GameConfig.SPIN_MODES.FAST as SpinMode
-              );
-
-              gsap.killTweensOf([
-                this._spinModeText,
-                this._spinModeText.position,
-                this._spinModeText.scale,
-              ]);
-              this._spinModeText.position.set(
-                GameConfig.REFERENCE_RESOLUTION.width / 2,
-                GameConfig.REFERENCE_RESOLUTION.height / 2
-              );
-
-              gsap.fromTo(
-                this._spinModeText,
-                { alpha: 0, scale: 0 },
-                {
-                  alpha: 1,
-                  scale: 1,
-                  duration: 0.25,
-                  ease: "back.out(2)",
-                  onStart: () => {
-                    this._spinModeText.text = `Fast Spin Mode On!`;
-                    this._spinModeText.visible = true;
-                  },
-                  onComplete: () => {
-                    gsap.to(this._spinModeText, {
-                      alpha: 0,
-                      duration: 0.25,
-                      ease: "none",
-                      delay: 0.15,
-                    });
-
-                    gsap.to(this._spinModeText.position, {
-                      y: GameConfig.REFERENCE_RESOLUTION.height / 2 - 25,
-                      duration: 0.25,
-                      ease: "none",
-                      delay: 0.15,
-                      onComplete: () => {
-                        this._spinModeText.visible = false;
-                      },
-                    });
-                  },
-                }
-              );
             }
             break;
         }
@@ -444,7 +293,7 @@ export class DoodleV8Main {
       debug.log("🎲 Spin started!");
     });
 
-    this.slotGameController.spinController.setOnSpinCompleteCallback(async (result: SpinResponseData) => {
+    this.slotGameController.spinController.setOnSpinCompleteCallback(async (result: IResponseData | boolean) => {
       debug.log("✅ Spin completed!", result);
     });
 
@@ -468,7 +317,10 @@ export class DoodleV8Main {
     eventBus.emit("closeWrapperLoading");
     // set custom loader timings (milliseconds)
     loader.setTimings(GameConfig.LOADER_DEFAULT_TIMINGS);
-    await loader.progress; // Wait for the loader to complete
+    await Promise.all([
+      loader.progress,
+      SocketConnection.getInstance().connect()
+    ]);
   }
 
   private async loadAssets(res: string): Promise<void> {

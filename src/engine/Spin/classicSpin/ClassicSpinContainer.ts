@@ -7,7 +7,7 @@ import { Sprite } from "pixi.js";
 import { debug } from "../../utils/debug";
 import { GameConfig, spinContainerConfig } from "../../../config/GameConfig";
 import { Utils } from "../../utils/Utils";
-import { GridData, SpinResultData, SymbolData } from "../../types/ICommunication";
+import { GridData, IResponseData, SpinResultData, SymbolData } from "../../types/ICommunication";
 import { IReelSpinState, IReelSpinStateData } from "../../types/IReelSpinStateData";
 import { ReelsContainer } from "../../reels/ReelsContainer";
 
@@ -45,7 +45,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
     private tickHandler(): void {
         const deltaMs = this.app.ticker.deltaMS || 16.67;
-        for(let i = 0; i < this.reelsSpinStates.length; i++) {
+        for (let i = 0; i < this.reelsSpinStates.length; i++) {
             if (this.reelsSpinStates[i].state === IReelSpinState.SPEEDING) {
                 this.updateSpinProgress(i, deltaMs);
             }
@@ -77,20 +77,20 @@ export class ClassicSpinContainer extends SpinContainer {
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
     }
-    
+
     // Spinning functionality
-    public async startSpin(spinData: SpinResultData): Promise<void> {
-        for(let i = 0; i < this.reelsSpinStates.length; i++) {
+    public async startSpin(spinData: IResponseData): Promise<void> {
+        for (let i = 0; i < this.reelsSpinStates.length; i++) {
             this.startReelSpin(i, spinData);
             await Utils.delay(150);
         }
     }
 
-    startReelSpin(reelId: number, spinData: SpinResultData): void {
+    startReelSpin(reelId: number, spinData: IResponseData): void {
         this.reelsSpinStates[reelId].state = IReelSpinState.SPEEDING;
         this.reelsSpinStates[reelId].isSpinning = true;
-        const reelSymbolsData = spinData.steps[spinData.steps.length - 1].gridAfter.symbols[reelId];
-        const symbols = reelSymbolsData.map((symbol: SymbolData) => symbol.symbolId);
+        const reelSymbolsData = spinData.reels[reelId];
+        const symbols = reelSymbolsData.map((symbol: number) => symbol);
         this.reelsSpinStates[reelId].symbols = symbols;
     }
 
@@ -122,15 +122,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
     protected resetSymbolPositionsInCycle(symbols: (GridSymbol | Sprite | null)[]): void {
         symbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
-            const isLastSymbol = symbolIndex === symbols.length - 1;
-            const indToChange: number = isLastSymbol ? 0 : symbolIndex + 1;
-            if (isLastSymbol) {
-                (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[0];
-                (symbol as GridSymbol).updateSymbolTexture(Utils.getRandomInt(0, 10))
-            } else {
-                (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[indToChange];
-            }
-            (symbol as GridSymbol).gridY = indToChange;
+            (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[symbolIndex];
         });
     }
     protected setGridYValuesForStaticSymbols(symbols: (GridSymbol | Sprite | null)[]): void {
@@ -141,7 +133,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
     public stopSpin(): void {
         super.stopSpin();
-        this.reelsSpinStates.forEach(state => {state.speed = 0; state.state = IReelSpinState.STOPPED;});
+        this.reelsSpinStates.forEach(state => { state.speed = 0; state.state = IReelSpinState.STOPPED; });
         //TO-DO: Run win sequences
     }
 
@@ -175,35 +167,45 @@ export class ClassicSpinContainer extends SpinContainer {
         return symbolY;
     }
 
-    public displayInitialGrid(initialGrid: GridData): void {
+    public displayInitialGrid(initialGrid: number[][]): Promise<void> {
         //debug.log('ClassicSpinContainer: Displaying initial grid: ', initialGrid.symbols);
-        if (this.symbols.length === 0) {
-            this.initializeGrid();
-        }
-
-        for (let col = 0; col < this.columns; col++) {
-            const columnData = initialGrid.symbols[col];
-            for (let row = 0; row < this.totalRows; row++) {
-                const cell = columnData?.[row];
-                if (!cell) {
-                    debug.warn(`Missing cell at [${col}, ${row}]`);
-                    continue;
-                }
-                const symbol = this.symbols[col][row] as GridSymbol;
-                symbol.setSymbolId(cell.symbolId);
-
-                symbol.position.y = this.defaultSymbolYPositions[row];
+        return new Promise<void>((resolve) => {
+            if (this.symbols.length === 0) {
+                this.initializeGrid();
+                resolve();
             }
-        }
+
+            for (let col = 0; col < this.columns; col++) {
+                const columnData = initialGrid[col];
+
+                for (let row = 0; row < this.totalRows; row++) {
+                    const cell = columnData[row];
+                    // !cell usage changed to check for undefined or null
+                    if (cell === undefined || cell === null) {
+                        debug.warn(`Missing cell at [${col}, ${row}]`);
+                        continue;
+                    }
+                    const symbol = this.symbols[col][row] as GridSymbol;
+                    symbol.setSymbolId(cell);
+
+                    symbol.position.y = this.defaultSymbolYPositions[row];
+
+                    this.symbols[col][row] = symbol;
+                }
+                this.resetSymbolPositionsInCycle(this.symbols[col]);
+            }
+            
+            resolve();
+        });
     }
 
-    protected createGridSymbol(symbolData: SymbolData, column: number, row: number): GridSymbol | null {
+    protected createGridSymbol(symbolData: number, column: number, row: number): GridSymbol | null {
         const symbolX = this.calculateSymbolX(column);
         const symbolY = this.calculateSymbolY(row);
         if (GameConfig.REFERENCE_SYMBOL.scale < 0) debugger;
 
         const gridSymbol = new GridSymbol({
-            symbolId: symbolData.symbolId,
+            symbolId: symbolData,
             position: { x: symbolX, y: symbolY },
             scale: GameConfig.REFERENCE_SYMBOL.scale, // Use reference scale
             gridX: column,

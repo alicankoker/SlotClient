@@ -69,27 +69,21 @@ export class FreeSpinController {
 
         await Helpers.delay(1000);
 
-        const response = await GameServer.getInstance().processSpinRequest({
-            betAmount: 0,
-            gameMode: "freespin",
-            forcedFS: false
-        });
+        const response = await GameServer.getInstance().processRequest();
 
-        this.totalWin += response.result?.steps[0].wins.reduce((acc, win) => acc + win.match.winAmount, 0) || 0;
+        this.totalWin += response.freeSpin?.featureWin || 0;
 
         console.log("Free Spin Total Win:", this.totalWin);
-
-        GameDataManager.getInstance().setSpinData(response);
 
         this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
 
         await this.spinController.executeSpin();
 
-        if (response?.result?.extraFreeSpins && response.result.extraFreeSpins > 0) {
-            await this.addExtraFreeSpins(response.result.extraFreeSpins);
-        }
-
         this.remainingSpins--;
+
+        if (response && response.freeSpin && response.freeSpin.extraRounds > 0) {
+            await this.addExtraFreeSpins(response.freeSpin.extraRounds);
+        }
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_AFTER_SPIN, {
             remaining: this.remainingSpins,
@@ -144,7 +138,7 @@ export class FreeSpinController {
             this.resolvePromise = undefined;
             this.rejectPromise = undefined;
         }
-        
+
         return { totalWin: this.totalWin, freeSpinCount: this.totalFreeSpins };
     }
 

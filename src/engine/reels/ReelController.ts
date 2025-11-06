@@ -43,12 +43,12 @@ export class ReelController {
     private spinDuration: number = 2000;
     private onSpinCompleteCallback?: () => void;
 
-    constructor(reelIndex: number, initData: GridData) {
+    constructor(reelIndex: number, initData: number[][]) {
         this.reelIndex = reelIndex;
         this.initializeSymbols(initData);
     }
 
-    private initializeSymbols(initData: GridData): void {
+    private initializeSymbols(initData: number[][]): void {
         // Extract symbols for this reel (column) from flat array
         // Using GridUtils helper for proper index calculation
         const reelSymbols: number[] = [];
@@ -84,12 +84,11 @@ export class ReelController {
     }
 
     private syncSymbolsToViews(): void {
-
         if (this.staticContainer && this.currentMode === IReelMode.STATIC) {
             debug.log(`ReelController ${this.reelIndex}: Syncing symbols to StaticContainer:`, this.currentSymbols);
             this.staticContainer.setSymbols(this.currentSymbols, this.reelIndex);
             debug.log(`ReelController ${this.reelIndex}: StaticContainer now has symbols for reel ${this.reelIndex}`);
-        }else if (this.spinContainer && !this.isSpinning) {
+        } else if (this.spinContainer && !this.isSpinning) {
             debug.log(`ReelController ${this.reelIndex}: Syncing symbols to SpinContainer:`, this.currentSymbols);
             //burada semboller set ediliyor
             this.spinContainer.setSymbols(this.currentSymbols, this.reelIndex);

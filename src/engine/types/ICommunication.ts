@@ -104,6 +104,62 @@ export interface SpinResponseData {
   result?: SpinResultData;
 }
 
+export interface ISpinPayload {
+  action: "spin";
+  data: {
+    lines: number;
+    betIndex: number;
+  }
+}
+
+export interface IFreeSpinPayload {
+  action: "freeSpin";
+  data: {
+    lines: number;
+    betIndex: number;
+    roundId: string;
+  }
+}
+
+export type IPayload = ISpinPayload | IFreeSpinPayload;
+
+export interface IData {
+  gameId: string;
+  history: IHistory;
+  user: IUserData;
+}
+
+export interface IHistory {
+  reels: number[][];
+}
+
+export interface IUserData {
+  balance: number;
+  id: string;
+}
+
+export interface IResponseData {
+  balance: {
+    before: number;
+    after: number;
+  };
+  freeSpin?: {
+    featureWin: number;
+    totalRounds: number;
+    playedRounds: number;
+    extraRounds: number;
+  };
+  reels: number[][];
+  status: number;
+  totalWin: number;
+  ws: {
+    line: number;
+    payout: number;
+    positions: number[] | number[][];
+    temp: any;
+  }[];
+}
+
 // Game state types
 // export interface GameState {
 //   currentSpinId?: string;

@@ -8,7 +8,6 @@ type eventType = {
   hideUI: null;
   startAutoPlay: {
     numberOfAutoSpins: number;
-    selectedSpinType: 'turbo' | 'quick' | 'skip';
   };
   stopAutoPlay: null;
   closeWrapperLoading: null;
@@ -21,6 +20,7 @@ type eventType = {
   onWin: number;
   onScreenClick: null;
   messageBoxPosition: number;
+  setSpinSpeedInSVG: 1 | 2 | 3;
 };
 
 class EventManager<Events extends eventType> {

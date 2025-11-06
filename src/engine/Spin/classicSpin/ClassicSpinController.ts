@@ -6,7 +6,7 @@ import { AnimationContainer } from "../../components/AnimationContainer";
 import { GameDataManager } from "../../data/GameDataManager";
 import { FreeSpinController } from "../../freeSpin/FreeSpinController";
 import { IReelMode } from "../../reels/ReelController";
-import { GridData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
+import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
 import { WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
@@ -21,12 +21,11 @@ export class ClassicSpinController extends SpinController {
   }
 
   // Main spin orchestration methods
-  public async executeSpin(): Promise<SpinResponseData> {
+  public async executeSpin(): Promise<IResponseData> {
     if (this.currentState !== "idle") {
       const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
       debug.warn(error);
       this.handleError(error);
-      return { success: false, error };
     }
 
     this._abortController = new AbortController();
@@ -54,18 +53,18 @@ export class ClassicSpinController extends SpinController {
       });
 
       // Simulate server request (replace with actual server call)
-      const response: SpinResponseData = GameDataManager.getInstance().getSpinData();
+      const response: IResponseData = GameDataManager.getInstance().getSpinData();
 
-      if (!response.success || !response.result) {
-        this.handleError(response.error || "Unknown server error");
-        return response;
+      if (!response) {
+        this.handleError(response || "Unknown server error");
+        throw new Error("SpinController: No response from server");
       }
 
-      const initialGrid = response.result.steps[0].gridBefore;
+      const initialGrid = GameDataManager.getInstance().getSymbolsBeforeSpin()!;
 
       await this.transferSymbolsToSpinContainer(initialGrid);
 
-      const finalGrid = response.result.steps[0].gridAfter;
+      const finalGrid = response.reels;
 
       this.onSpinCompleteCallback = async () => {
         FreeSpinController.getInstance(this).isRunning === false && (FreeSpinController.getInstance(this).isRunning = GameDataManager.getInstance().checkFreeSpins());
@@ -95,7 +94,7 @@ export class ClassicSpinController extends SpinController {
 
       this._soundManager.play("spin", true, 0.75); // Play spin sound effect
 
-      this.startSpinAnimation(response.result);
+      this.startSpinAnimation(response);
 
       Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
 
@@ -104,7 +103,6 @@ export class ClassicSpinController extends SpinController {
         this.container.setMode(IReelMode.SLOWING);
 
         this._isForceStopped === false && this.reelsController.slowDown();
-        this.reelsController.getReelsContainer().chainSpeed
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
       } else {
@@ -122,45 +120,26 @@ export class ClassicSpinController extends SpinController {
 
       const onSpinComplete = await this.onSpinCompleteCallback(response);
 
-      /*if (this.reelsController.checkWinCondition()) {
-                if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
-                    this.stopAutoPlay();
-                }
-
-                GameConfig.BIG_WIN.enabled && await this._bigWinContainer.showBigWin(15250, BigWinType.INSANE); // Example big win amount and type
-
-                const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
-                GameConfig.WIN_ANIMATION.enabled && await this.reelsController.playRandomWinAnimation(isSkipped);
-            }*/
-
-      /*if (this._isAutoPlaying) {
-                this.continueAutoPlay();
-            }*/
-
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       this.handleError(errorMessage);
-      return { success: false, error: errorMessage };
+      console.log("Error during spin execution:", errorMessage);
+      throw error;
     }
   }
 
-  public startSpinAnimation(spinData: SpinResultData): void {
+  public startSpinAnimation(spinData: IResponseData): void {
     (this.container as ClassicSpinContainer).startSpin(spinData);
   }
   // Symbol transfer methods
-  protected async transferSymbolsToSpinContainer(
-    initialGrid: GridData
-  ): Promise<void> {
+  protected async transferSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
     debug.log("SpinController: Transferring symbols from StaticContainer to SpinContainer");
 
     const reelsContainer = this.reelsController.getReelsContainer();
     if (!reelsContainer) {
-      debug.error(
-        "SpinController: No reels container available for symbol transfer"
-      );
+      debug.error("SpinController: No reels container available for symbol transfer");
       return;
     }
 
@@ -172,9 +151,6 @@ export class ClassicSpinController extends SpinController {
       return;
     }
 
-    // Hide static container symbols and clear them
-    staticContainer.visible = false;
-
     debug.log("SpinController: StaticContainer hidden and cleared");
     staticContainer.visible = false;
 
@@ -182,8 +158,8 @@ export class ClassicSpinController extends SpinController {
     spinContainer.visible = true;
 
     if (spinContainer instanceof SpinContainer) {
-      debug.log("SpinController: Displaying initial grid on SpinContainer: ", initialGrid.symbols);
-      (spinContainer as any).displayInitialGrid(initialGrid);
+      debug.log("SpinController: Displaying initial grid on SpinContainer: ", initialGrid);
+      await spinContainer.displayInitialGrid(initialGrid);
       debug.log("SpinController: Initial grid displayed on SpinContainer");
     }
   }
@@ -228,12 +204,8 @@ export class ClassicSpinController extends SpinController {
 
     // Set up the auto play timeout
     this._autoPlayTimeoutID = setTimeout(async () => {
-      const response = await GameServer.getInstance().processSpinRequest({
-        betAmount,
-        gameMode
-      });
+      const response = await GameServer.getInstance().processRequest();
 
-      GameDataManager.getInstance().setSpinData(response)
       this.executeSpin(); // Replace with actual bet amount
 
       // Check if the spin was successful. If not, stop auto play.

@@ -29,7 +29,7 @@ export class SpineSymbol extends Spine {
 
         this._skeletonData = this.state.data.skeletonData;
 
-        this._prefix = AssetsConfig.SYMBOL_ASSET_DATA[config.symbolId]?.prefix || 'Symbol1';
+        this._prefix = config.symbolId.toString();
 
         this.position.set(config.position.x, config.position.y);
         this.scale.set(config.scale || 1);
@@ -160,7 +160,8 @@ export class SpineSymbol extends Spine {
      */
     public async setSymbol(symbolId: number): Promise<void> {
         this._symbolId = symbolId;
-        this._prefix = AssetsConfig.SYMBOL_ASSET_DATA[symbolId]?.prefix || 'Symbol_1';
+        this._prefix = symbolId.toString();
+        this.config.symbolId = symbolId;
         this.state.data.defaultMix = 0.05;
         this.label = `Symbol_${symbolId}`;
         await this.setLanding();

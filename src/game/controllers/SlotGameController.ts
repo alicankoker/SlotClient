@@ -1,7 +1,7 @@
 import { Nexus } from '../../nexus/Nexus';
 import { PlayerController } from '../../nexus/player/PlayerController';
 import { GameServer } from '../../server/GameServer';
-import { SpinResultData, CascadeStepData, GridData } from '../../engine/types/ICommunication';
+import { SpinResultData, CascadeStepData, GridData, IResponseData } from '../../engine/types/ICommunication';
 import { INexusPlayerData, SpinTransaction } from '../../nexus/NexusInterfaces';
 import { debug } from '../../engine/utils/debug';
 import { SpinController } from '../../engine/Spin/SpinController';
@@ -63,16 +63,16 @@ export class SlotGameController {
         this.reelsContainer = new ReelsContainer(this.app);
 
         // Create ReelsController with the ReelsContainer
-        const initialGridData = this.gameServer.generateInitialGridData();
+        const initialGridData = GameDataManager.getInstance().getInitialSymbols();
         debug.log('SlotGameController: Initial grid data for ReelsController:', initialGridData);
-        this.reelsController = new ReelsController(this.app, initialGridData, this.reelsContainer);
+        this.reelsController = new ReelsController(this.app, initialGridData as number[][], this.reelsContainer);
 
         this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig) as ClassicSpinContainer;
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0,
             symbolHeight: GameConfig.REFERENCE_SYMBOL.height,
             symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
-        }, initialGridData);
+        }, initialGridData as number[][]);
 
         this.background = Background.getInstance();
         this.animationContainer = AnimationContainer.getInstance();
@@ -187,19 +187,20 @@ export class SlotGameController {
     public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
         //const response = await this.gameServer.requestSpin(betAmount);
 
-        const response = await this.gameServer.processSpinRequest({
-            betAmount,
-            gameMode,
-            forcedFS: GameDataManager.getInstance().freeSpinActive
-        });
+        // const response = await this.gameServer.processSpinRequest({
+        //     betAmount,
+        //     gameMode,
+        //     forcedFS: GameDataManager.getInstance().freeSpinActive
+        // });
 
-        GameDataManager.getInstance().setSpinData(response);
+        const response = await this.gameServer.processRequest();
 
-        if (this.spinController) {
+        if (this.spinController && response) {
             await this.spinController.executeSpin();
-            const initialFreeSpinCount = 3;
 
-            if (GameDataManager.getInstance().checkFreeSpins()) {
+            if (response && response.freeSpin && GameDataManager.getInstance().checkFreeSpins()) {
+                const initialFreeSpinCount = response.freeSpin?.totalRounds;
+
                 this.freeSpinController.isRunning = true;
                 this.staticContainer.allowLoop = false;
                 this.staticContainer.isFreeSpinMode = true;
@@ -217,7 +218,7 @@ export class SlotGameController {
                 this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
                 await this.animationContainer.playFreeSpinPopupAnimation();
 
-                const initialWin = response.result?.steps[0].wins.reduce((acc, win) => acc + win.match.winAmount, 0) || 0;
+                const initialWin = response.totalWin;
                 const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
 
                 this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;

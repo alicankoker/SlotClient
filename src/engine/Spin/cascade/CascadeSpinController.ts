@@ -4,7 +4,7 @@ import { SpinContainer } from "../SpinContainer";
 import { SpinController, SpinControllerConfig } from "../SpinController";
 import { GameDataManager } from "../../data/GameDataManager";
 import { Utils } from "../../utils/Utils";
-import { GridData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
+import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
 import { WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
@@ -16,12 +16,11 @@ export class CascadeSpinController extends SpinController {
 
 
     // Main spin orchestration methods
-    public async executeSpin(): Promise<SpinResponseData> {
+    public async executeSpin(): Promise<IResponseData> {
         if (this.currentState !== 'idle') {
             const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
             debug.warn(error);
             this.handleError(error);
-            return { success: false, error };
         }
 
         this._abortController = new AbortController();
@@ -39,9 +38,9 @@ export class CascadeSpinController extends SpinController {
             // Simulate server request (replace with actual server call)
             const response = GameDataManager.getInstance().getSpinData();
 
-            if (!response.success || !response.result) {
-                this.handleError(response.error || 'Unknown server error');
-                return response as SpinResponseData;
+            if (!response) {
+                this.handleError('Unknown server error');
+                throw new Error('SpinController: No response from server');
             }
 
             /*this.currentSpinId = response.result.spinId;
@@ -104,17 +103,17 @@ export class CascadeSpinController extends SpinController {
                 this.continueAutoPlay();
             }*/
 
-            return response as SpinResponseData;
+            return response;
         } catch (error) {
             debug.error('SpinController: Spin execution error', error);
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             this.handleError(errorMessage);
-            return { success: false, error: errorMessage };
+            throw error;
         }
     }
 
     // Symbol transfer methods
-    protected async transferSymbolsToSpinContainer(initialGrid: GridData): Promise<void> {
+    protected async transferSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
         debug.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
 
 
@@ -141,7 +140,7 @@ export class CascadeSpinController extends SpinController {
         }
     }
 
-    public async startSpinAnimation(spinData: SpinResultData): Promise<void> {
+    public async startSpinAnimation(spinData: IResponseData): Promise<void> {
         await this.container.startSpin(spinData);
         Utils.delay(3500);
     }
