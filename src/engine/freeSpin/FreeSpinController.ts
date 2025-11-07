@@ -1,3 +1,4 @@
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { GameServer } from "../../server/GameServer";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
@@ -75,7 +76,7 @@ export class FreeSpinController {
 
         console.log("Free Spin Total Win:", this.totalWin);
 
-        this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
+        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
 
         await this.spinController.executeSpin();
 
@@ -111,7 +112,7 @@ export class FreeSpinController {
 
         await this.animationContainer.playFreeSpinPopupAnimation();
 
-        this.animationContainer.getFreeSpinRemainText().text = `FREESPIN ${(this.remainingSpins - 1).toString()} REMAINING`;
+        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, {
             added: extraCount,
@@ -130,8 +131,7 @@ export class FreeSpinController {
             totalWin: this.totalWin,
         });
 
-        this.animationContainer.getFreeSpinRemainContainer().visible = false;
-        this.animationContainer.getFreeSpinRemainText().text = ``;
+        eventBus.emit("setMessageBox");
 
         if (this.resolvePromise) {
             this.resolvePromise({ totalWin: this.totalWin, freeSpinCount: this.totalFreeSpins });
@@ -165,6 +165,7 @@ export class FreeSpinController {
     }
 
     public set isRunning(value: boolean) {
+        GameDataManager.getInstance().isFreeSpinning = value;
         this.isActive = value;
     }
 

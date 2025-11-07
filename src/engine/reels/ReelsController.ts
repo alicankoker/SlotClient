@@ -130,7 +130,10 @@ export class ReelsController {
     let winConfigs: WinConfig[] = [];
 
     if (spinResultData?.ws.length! <= 0) {
-      eventBus.emit("setWinData2", "PLACE YOUR BET");
+      if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
+        eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+      }
+      
       this.resetWinAnimations();
       return;
     }
@@ -149,10 +152,6 @@ export class ReelsController {
     }
 
     //console.log("winConfigs", winConfigs);
-
-    // const winData = this.setWinDisplayData();
-    // const winData2 = this.setWinDisplayData();
-    // const winData3 = this.setWinDisplayData();
 
     const staticContainer = this.reelsContainer.getStaticContainer();
     const winLines = this.reelsContainer.getWinLines();

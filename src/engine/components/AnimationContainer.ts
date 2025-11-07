@@ -23,15 +23,13 @@ export class AnimationContainer extends Container {
     private _spinModeText!: Text;
     private _dimmer!: Graphics;
     private _popup!: Container;
-    private _freeSpinRemain!: Container;
-    private _freeSpinRemainHolder!: Sprite;
-    private _freeSpinRemainText!: Text;
     private _popupBackground!: Sprite;
     private _popupHeader!: Sprite;
     private _popupFreeSpinsText!: Text;
     private _popupCountText!: Text;
     private _transition!: Spine;
     private _buyFreeSpinButton!: Sprite;
+    private _totalWinAmount: number = 0;
 
     private totalWinTween?: gsap.core.Tween;
     private totalWinResolver?: () => void;
@@ -64,24 +62,6 @@ export class AnimationContainer extends Container {
         this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this._spinModeText.visible = false; // Hide by default
         this.addChild(this._spinModeText);
-
-        this._freeSpinRemain = new Container();
-        this._freeSpinRemain.label = 'FreeSpinRemainContainer';
-        this._freeSpinRemain.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 940);
-        this._freeSpinRemain.visible = false;
-        this.addChild(this._freeSpinRemain);
-
-        this._freeSpinRemainHolder = Sprite.from('freespin_remaining_strip');
-        this._freeSpinRemainHolder.label = 'FreeSpinRemainHolder';
-        this._freeSpinRemainHolder.anchor.set(0.5, 0.5);
-        this._freeSpinRemainHolder.scale.set(0.5, 0.5);
-        this._freeSpinRemain.addChild(this._freeSpinRemainHolder);
-
-        this._freeSpinRemainText = new Text({ text: '', style: GameConfig.style.clone() });
-        this._freeSpinRemainText.style.fontSize = 35;
-        this._freeSpinRemainText.label = 'FreeSpinRemainText';
-        this._freeSpinRemainText.anchor.set(0.5, 0.5);
-        this._freeSpinRemain.addChild(this._freeSpinRemainText);
 
         this._buyFreeSpinButton = Sprite.from('freespin_logo');
         this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
@@ -228,10 +208,13 @@ export class AnimationContainer extends Container {
     }
 
     public playTotalWinAnimation(totalWinAmount: number): Promise<void> {
+        this._totalWinAmount = totalWinAmount;
+
         return new Promise((resolve) => {
             this.totalWinResolver = resolve;
 
             if (!GameConfig.WIN_ANIMATION.winTextVisibility) {
+                eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
                 resolve();
                 return;
             }
@@ -241,8 +224,11 @@ export class AnimationContainer extends Container {
                 this.totalWinTween = undefined;
             }
 
-            eventBus.emit("setWinData1", "0");
-            eventBus.emit("setWinData2", "");
+            eventBus.emit("setWinBox", { variant: "default", amount: "0" });
+
+            if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
+                eventBus.emit("setMessageBox", { variant: "default", message: "" });
+            }
 
             let tweenObj = { value: 0 };
             let currentAmount = "0";
@@ -253,14 +239,15 @@ export class AnimationContainer extends Container {
                 ease: "power1",
                 onUpdate: () => {
                     if (!this.totalWinResolver) {
-                        eventBus.emit("setWinData1", `${Helpers.convertToDecimal(totalWinAmount) as string}`);
+                        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
                         gsap.killTweensOf(tweenObj);
+                        this._totalWinAmount = 0;
 
                         return;
                     }
 
-                    currentAmount = `${Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string}`;
-                    eventBus.emit("setWinData1", currentAmount);
+                    currentAmount = Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string;
+                    eventBus.emit("setWinBox", { variant: "default", amount: currentAmount });
                 }
             });
 
@@ -291,8 +278,10 @@ export class AnimationContainer extends Container {
     }
 
     public stopTotalWinAnimation(): void {
-        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+        this._totalWinAmount = 0;
 
+        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
             if (this.totalWinTween) {
                 this.totalWinTween.kill();
                 this.totalWinTween = undefined;
@@ -383,7 +372,7 @@ export class AnimationContainer extends Container {
                 window.removeEventListener("keydown", onKeyDown);
                 this._popup.off('pointerdown', closePopup);
                 this._dimmer.off('pointerdown', closePopup);
-                eventBus.off("spinIt", closePopup);
+                eventBus.off("startSpin", closePopup);
                 eventBus.off("onScreenClick", closePopup);
 
                 gsap.to([this._dimmer], {
@@ -423,7 +412,7 @@ export class AnimationContainer extends Container {
                     window.addEventListener('keydown', onKeyDown);
                     this._popup.once('pointerdown', closePopup);
                     this._dimmer.once('pointerdown', closePopup);
-                    eventBus.on("spinIt", closePopup);
+                    eventBus.on("startSpin", closePopup);
                     eventBus.on("onScreenClick", closePopup);
                 }
             });
@@ -459,14 +448,6 @@ export class AnimationContainer extends Container {
 
     public getWinEvent(): WinEvent {
         return this._winEvent;
-    }
-
-    public getFreeSpinRemainContainer(): Container {
-        return this._freeSpinRemain;
-    }
-
-    public getFreeSpinRemainText(): Text {
-        return this._freeSpinRemainText;
     }
 
     public getPopupBackground(): Sprite {

@@ -41,8 +41,6 @@ export class ReelsContainer extends Container {
   private _logo!: Sprite;
   private _leftGem!: Sprite;
   private _rightGem!: Sprite;
-  private _autoPlayCount: number = 0;
-  private _autoPlayCountText: Text;
   private _isFreeSpinMode: boolean = false;
   private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
@@ -64,14 +62,6 @@ export class ReelsContainer extends Container {
     this.createReelAreaMask();
 
     this.initializeContainers();
-
-    // initialize auto play count indicator
-    this._autoPlayCountText = new Text({ text: '', style: GameConfig.style });
-    this._autoPlayCountText.label = 'AutoPlayCountText';
-    this._autoPlayCountText.anchor.set(0.5, 0.5);
-    this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 965);
-    this._autoPlayCountText.visible = false;
-    this.addChild(this._autoPlayCountText);
 
     this.setupResizeHandler();
   }
@@ -354,24 +344,6 @@ export class ReelsContainer extends Container {
   ): boolean {
     const container = this.getStaticContainer();
     return container ? container.updateSymbolAt(position, symbolId) : false;
-  }
-
-  public getAutoPlayCount(): number {
-    return this._autoPlayCount;
-  }
-
-  /**
-   * @description Set the auto play count and update the display text.
-   * @param count The new auto play count.
-   * @param text The display text for the auto play count.
-   */
-  public setAutoPlayCount(count: number, text: string): void {
-    this._autoPlayCount = count;
-    this._autoPlayCountText.text = text;
-  }
-
-  public getAutoPlayCountText(): Text {
-    return this._autoPlayCountText;
   }
 
   // Cleanup methods

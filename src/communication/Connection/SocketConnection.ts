@@ -2,6 +2,7 @@ import { GameDataManager } from "../../engine/data/GameDataManager";
 import { IPayload } from "../../engine/types/ICommunication";
 import config from "../../game/config";
 import { io, Socket } from "socket.io-client";
+import { Nexus } from "../../nexus/Nexus";
 
 export class SocketConnection {
     private static instance: SocketConnection;
@@ -46,6 +47,8 @@ export class SocketConnection {
                 this._socket.once("ready", (data: any) => {
                     console.log("Socket ready:", data.data);
                     GameDataManager.getInstance().setInitialData(data.data);
+                    Nexus.getInstance().setGameDefaults(data.data);
+                    Nexus.getInstance().setUIDefaults(data.data);
                     resolve();
                 });
             });

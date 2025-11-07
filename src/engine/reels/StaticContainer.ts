@@ -11,6 +11,7 @@ import { GridData } from '../types/ICommunication';
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { AnimationContainer } from '../components/AnimationContainer';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
+import { GameDataManager } from '../data/GameDataManager';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -27,7 +28,6 @@ export class StaticContainer extends Container {
     private _config: StaticContainerConfig;
     private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
     private _winDatas: WinConfig[] = [];
-    private _winText: Text;
     private _isPlaying: boolean = false;
     private _isLooping: boolean = false;
     private _isSkipped: boolean = false;
@@ -50,12 +50,6 @@ export class StaticContainer extends Container {
         this._winLines = WinLines.getInstance();
         this._config = config;
         this._initialGrid = initialGrid;
-        this._winText = new Text({ text: '', style: GameConfig.style });
-        this._winText.label = 'WinText';
-        this._winText.anchor.set(0.5);
-        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 130);
-        this._winText.visible = false;
-        this.addChild(this._winText);
 
         initialGrid.forEach((symbolIds: number[], reelIndex: number) => {
             this.createSymbolsFromIds(symbolIds, reelIndex);
@@ -155,7 +149,9 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas, token);
 
-        eventBus.emit("setWinData2", "PLACE YOUR BET");
+        if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
+            eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+        }
 
         if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false) {
             this.playLoopAnimations(winDatas, token);
@@ -187,26 +183,18 @@ export class StaticContainer extends Container {
     public async playWinAnimations(winDatas: WinConfig[], token: number): Promise<void> {
         if (this._animationToken !== token) return;
 
-        // Play win animations based on the provided data
         for (const winData of winDatas) {
             if (this._animationToken !== token) return;
-            //debug.log(`StaticContainer: Playing win animation for win data:`, winData);
 
-            this._isLooping === false && this._soundManager.play('win', false, 0.75); // Play win sound effect
-
+            this._isLooping === false && this._soundManager.play("win", false, 0.75);
             signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, winData.amount);
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility && !this._isSkipped) {
                 this._winLines.showLine(winData.line);
             }
 
-            this._symbols.forEach((reelSymbols) => {
-                reelSymbols.forEach((symbol) => {
-                    symbol.setBlackout();
-                });
-            });
+            this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.setBlackout()));
 
-            // play all symbol animations on this win
             const symbolGroups: number[][] = Array.isArray(winData.symbolIds[0])
                 ? (winData.symbolIds as number[][])
                 : (winData.symbolIds as unknown as number[]).map((id) => [id]);
@@ -215,6 +203,8 @@ export class StaticContainer extends Container {
                 symbolGroups.map(async (symbolIds, reelIndex) => {
                     return Promise.all(
                         symbolIds.map(async (symbolId) => {
+                            if (symbolId === -1) return;
+
                             this._symbols.get(reelIndex)?.[symbolId]?.clearBlackout();
 
                             return new Promise<void>((resolve) => {
@@ -240,6 +230,8 @@ export class StaticContainer extends Container {
 
                     symbolGroups.forEach((symbolIds, reelIndex) => {
                         symbolIds.forEach((symbolId) => {
+                            if (symbolId === -1) return;
+
                             this._symbols.get(reelIndex)?.[symbolId]?.setIdle();
                         });
                     });
@@ -251,16 +243,11 @@ export class StaticContainer extends Container {
             });
         }
 
-        this._symbols.forEach((reelSymbols) => {
-            reelSymbols.forEach((symbol) => {
-                symbol.clearBlackout();
-            });
-        });
+        this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.clearBlackout()));
 
         if (this._animationToken !== token) return;
 
         signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE);
-
         this._isPlaying = false;
     }
 
@@ -321,7 +308,7 @@ export class StaticContainer extends Container {
 
             await AnimationContainer.getInstance().playTotalWinAnimation(amount);
 
-            eventBus.emit("setWinData1", amount.toString());
+            eventBus.emit("setWinBox", { variant: "default", amount: amount.toString() });
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.hideAllLines();
@@ -338,11 +325,6 @@ export class StaticContainer extends Container {
         this._isLooping = false;
         this._isSkipped = false;
         this._winDatas = [];
-
-        gsap.killTweensOf(this._winText.scale);
-        this._winText.text = ``;
-        this._winText.scale.set(0);
-        this._winText.visible = false;
 
         if (GameConfig.WIN_ANIMATION.winlineVisibility) {
             this._winLines.hideAllLines();

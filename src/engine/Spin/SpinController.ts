@@ -21,6 +21,8 @@ import {
 } from "../types/ICommunication";
 import { WinEventType } from "../types/IWinEvents";
 import { GameRulesConfig } from "../../config/GameRulesConfig";
+import { AnimationContainer } from "../components/AnimationContainer";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 
 export interface SpinControllerConfig {
   reelsController: ReelsController;
@@ -182,9 +184,7 @@ export abstract class SpinController {
     this._autoPlayed = 0;
     this._isAutoPlaying = true;
 
-    const text = `Starting Auto Play: ${this._autoPlayCount}`;
-    this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
-    this.reelsController.getReelsContainer().getAutoPlayCountText().visible = true;
+    eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
     const staticContainer = this.reelsController.getStaticContainer();
     if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
@@ -218,8 +218,7 @@ export abstract class SpinController {
       this._autoPlayCount -= 1;
       this._autoPlayed += 1;
 
-      const text = `Auto Plays Left: ${this._autoPlayCount}`;
-      this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
+    eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
       if (this._autoPlayCount <= 0) {
         const staticContainer = this.reelsController.getStaticContainer();
@@ -245,12 +244,7 @@ export abstract class SpinController {
     this._autoPlayed = 0;
     this._isAutoPlaying = false;
 
-    const text = `Auto Play Stopped`;
-    this.reelsController
-      .getReelsContainer()
-      .setAutoPlayCount(this._autoPlayCount, text);
-    this.reelsController.getReelsContainer().getAutoPlayCountText().visible =
-      false;
+    eventBus.emit("setMessageBox");
 
     const staticContainer = this.reelsController.getStaticContainer();
     // Re-enable looped win animation after auto play stops

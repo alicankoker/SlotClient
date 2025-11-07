@@ -1,18 +1,23 @@
 type eventType = {
   error: string;
-  spinIt: null;
-  spin: null;
+  startSpin: null;
+  stopSpin: null;
   setComponentState: TSetComponentStateEventMap;
   setBatchComponentState: TSetBatchComponentStateEventMap;
   showUI: null;
   hideUI: null;
-  startAutoPlay: {
-    numberOfAutoSpins: number;
-  };
+  startAutoPlay: number;
   stopAutoPlay: null;
+  skipWin: boolean;
   closeWrapperLoading: null;
-  setWinData1: string;
-  setWinData2: string;
+  setWinBox: {
+    variant: 'default' | 'bigWin' | 'megaWin' | 'superWin';
+    amount: string;
+  } | null;
+  setMessageBox: {
+    variant: 'default' | 'freeSpin' | 'autoPlay';
+    message: string;
+  } | null;
   switchSetting: {
     name: 'quickSpin' | 'ambientMusic' | 'gameSounds' | 'introScreen';
     value: boolean;
@@ -20,7 +25,12 @@ type eventType = {
   onWin: number;
   onScreenClick: null;
   messageBoxPosition: number;
-  setSpinSpeedInSVG: 1 | 2 | 3;
+  setBalance: number;
+  setBetValues: number[];
+  setBetValueIndex: number;
+  setSpinSpeed: 1 | 2 | 3;
+  setMaxLine: number;
+  setLine: number;
 };
 
 class EventManager<Events extends eventType> {
@@ -59,7 +69,7 @@ type TCommonComponentProperties = {
   onPress?: () => void;
 };
 // Intersection of all component variants for Batch Update (only 'default' exists in all)
-type TCommonVariants = 'default';
+type TCommonStates = 'default' | 'spinning';
 
 type TSetComponentStateEventMap = {
   [K in TComponentNames]: {
@@ -70,7 +80,7 @@ type TSetComponentStateEventMap = {
 
 type TSetBatchComponentStateEventMap = {
   componentNames: TComponentNames[];
-  stateOrUpdates: TCommonVariants | TCommonComponentProperties;
+  stateOrUpdates: TCommonStates | TCommonComponentProperties;
 };
 
 type TComponentNames =

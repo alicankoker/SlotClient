@@ -109,7 +109,8 @@ export interface ISpinPayload {
   data: {
     lines: number;
     betIndex: number;
-  }
+    freespin?: boolean;
+  };
 }
 
 export interface IFreeSpinPayload {
@@ -124,13 +125,34 @@ export interface IFreeSpinPayload {
 export type IPayload = ISpinPayload | IFreeSpinPayload;
 
 export interface IData {
+  balance: number;
+  betLevelIndex: number;
+  betLevels: number[];
   gameId: string;
   history: IHistory;
+  lines: number;
   user: IUserData;
 }
 
 export interface IHistory {
+  bet: number;
+  betIndex: number;
+  freeSpin?: {
+    featureWin: number;
+    totalRounds: number;
+    playedRounds: number;
+    extraRounds: number;
+  };
+  lines: number;
   reels: number[][];
+  status: number;
+  totalWin: number;
+  ws: {
+    line: number;
+    payout: number;
+    positions: number[] | number[][];
+    temp: any;
+  }[];
 }
 
 export interface IUserData {

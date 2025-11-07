@@ -26,6 +26,8 @@ export abstract class WinLinesContainer extends Container {
     protected abstract createLineNumbers(): void;
 
     public showLine(lineNumber: number): void {
+        if (lineNumber < 1 || lineNumber > this._winLine.length) return;
+        
         const line = this._winLine[lineNumber - 1];
         const texture = this._lineTextures[lineNumber - 1];
         
@@ -44,6 +46,8 @@ export abstract class WinLinesContainer extends Container {
         }
 
         for (const lineNumber of lineNumbers) {
+            if (lineNumber < 1 || lineNumber > this._winLine.length) continue;
+
             const line = this._winLine[lineNumber - 1];
             const texture = this._lineTextures[lineNumber - 1];
 

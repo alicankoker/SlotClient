@@ -44,8 +44,10 @@ export class ClassicSpinController extends SpinController {
         this.onSpinStartCallback();
       }
 
-      eventBus.emit("setWinData1", "");
-      eventBus.emit("setWinData2", "GOOD LUCK!");
+      eventBus.emit("setWinBox");
+      if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
+        eventBus.emit("setMessageBox", { variant: "default", message: "GOOD LUCK!" });
+      }
 
       eventBus.emit('setComponentState', {
         componentName: 'spinButton',
@@ -86,6 +88,8 @@ export class ClassicSpinController extends SpinController {
         // if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
         //   this.stopAutoPlay();
         // }
+
+        eventBus.emit("setBalance", response.balance.after);
 
         if (this._isAutoPlaying && FreeSpinController.getInstance(this).isRunning === false) {
           this.continueAutoPlay();
@@ -178,10 +182,13 @@ export class ClassicSpinController extends SpinController {
     this._autoPlayCount = count;
     this._autoPlayed = 0;
     this._isAutoPlaying = true;
+    GameDataManager.getInstance().isAutoPlaying = true;
 
-    const text = `Starting Auto Play: ${this._autoPlayCount}`;
-    this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
-    this.reelsController.getReelsContainer().getAutoPlayCountText().visible = true;
+    eventBus.emit("setBatchComponentState", {
+      componentNames: ['autoplayButton', 'mobileAutoplayButton'],
+      stateOrUpdates: 'spinning',
+    })
+    eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
     const staticContainer = this.reelsController.getStaticContainer();
     if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
@@ -217,8 +224,7 @@ export class ClassicSpinController extends SpinController {
       this._autoPlayCount -= 1;
       this._autoPlayed += 1;
 
-      const text = `Auto Plays Left: ${this._autoPlayCount}`;
-      this.reelsController.getReelsContainer().setAutoPlayCount(this._autoPlayCount, text);
+      eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
       if (this._autoPlayCount <= 0) {
         const staticContainer = this.reelsController.getStaticContainer();
@@ -243,13 +249,13 @@ export class ClassicSpinController extends SpinController {
     this._autoPlayCount = 0;
     this._autoPlayed = 0;
     this._isAutoPlaying = false;
+    GameDataManager.getInstance().isAutoPlaying = false;
 
-    const text = `Auto Play Stopped`;
-    this.reelsController
-      .getReelsContainer()
-      .setAutoPlayCount(this._autoPlayCount, text);
-    this.reelsController.getReelsContainer().getAutoPlayCountText().visible =
-      false;
+    eventBus.emit("setBatchComponentState", {
+      componentNames: ['autoplayButton', 'mobileAutoplayButton'],
+      stateOrUpdates: 'default',
+    });
+    eventBus.emit("setMessageBox");
 
     const staticContainer = this.reelsController.getStaticContainer();
     // Re-enable looped win animation after auto play stops
@@ -262,5 +268,9 @@ export class ClassicSpinController extends SpinController {
     }
 
     debug.log("Auto play stopped");
+  }
+
+  public get isAutoPlaying(): boolean {
+    return this._isAutoPlaying;
   }
 }

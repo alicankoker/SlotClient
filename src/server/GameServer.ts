@@ -95,12 +95,12 @@ export class GameServer {
     }
   }
 
-  public async processRequest(payload: IPayload = { action: "spin", data: { lines: 25, betIndex: 0 } }): Promise<IResponseData> {
-    const response: IResponseData = await this.socket.request(payload);
+  public async processRequest(payload: IPayload = { action: "spin", data: { lines: GameDataManager.getInstance().getLine(), betIndex: GameDataManager.getInstance().getBetValueIndex(), freespin: false } }): Promise<any> {
+    const response: any = await this.socket.request(payload);
 
     GameDataManager.getInstance().setSpinData(response);
 
-    return response;
+    return response.data;
   }
 
   private analyzeGridWins(grid: GridData, fsWon: boolean): MatchData[] {

@@ -15,18 +15,28 @@ export interface GameState {
     currentSpinData?: SpinResponseData;
     playerBalance: number;
     currentBet: number;
+    betValues: number[];
+    betValueIndex: number;
+    maxLine: number;
+    line: number;
 }
 
 export class GameDataManager {
     private static instance: GameDataManager;
     private gameState: GameState;
-    private _freeSpinActive: boolean = false;
+    private _freeSpinActive: boolean = false; // temporary flag for manually triggering free spin state
+    private _isFreeSpinning: boolean = false;
+    private _isAutoPlaying: boolean = false;
 
     private constructor() {
         this.gameState = {
             isSpinning: false,
             playerBalance: 1000, // Default balance
-            currentBet: 10
+            currentBet: 10,
+            betValues: [1],
+            betValueIndex: 0,
+            maxLine: 25,
+            line: 1
         };
     }
 
@@ -105,6 +115,7 @@ export class GameDataManager {
 
     public checkFreeSpins(): boolean {
         const naturalFSActive = this.gameState.lastResponseData?.freeSpin !== undefined || false;
+        console.log(this.gameState.lastResponseData?.freeSpin, naturalFSActive);
         return this._freeSpinActive || naturalFSActive;
     }
 
@@ -214,6 +225,58 @@ export class GameDataManager {
         debug.log('GameDataManager: Current bet set to', bet);
     }
 
+    public setBetValues(betValues: number[]): void {
+        this.gameState.betValues = betValues;
+        debug.log('GameDataManager: Bet values set to', betValues);
+    }
+
+    public getBetValues(): number[] {
+        return this.gameState.betValues;
+    }
+
+    public setBetValueIndex(index: number): void {
+        this.gameState.betValueIndex = index;
+        debug.log('GameDataManager: Bet value index set to', index);
+    }
+
+    public getBetValueIndex(): number {
+        return this.gameState.betValueIndex;
+    }
+
+    public setMaxLine(maxLine: number): void {
+        this.gameState.maxLine = maxLine;
+        debug.log('GameDataManager: Max line set to', maxLine);
+    }
+
+    public getMaxLine(): number {
+        return this.gameState.maxLine;
+    }
+
+    public setLine(line: number): void {
+        this.gameState.line = line;
+        debug.log('GameDataManager: Line set to', line);
+    }
+
+    public getLine(): number {
+        return this.gameState.line;
+    }
+
+    public get isFreeSpinning(): boolean {
+        return this._isFreeSpinning;
+    }
+
+    public set isFreeSpinning(value: boolean) {
+        this._isFreeSpinning = value;
+    }
+
+    public get isAutoPlaying(): boolean {
+        return this._isAutoPlaying;
+    }
+
+    public set isAutoPlaying(value: boolean) {
+        this._isAutoPlaying = value;
+    }
+
     // Update multiple properties at once
     public updateSpinData(spinId: string, grid: GridData, steps: CascadeStepData[]): void {
         this.setCurrentSpinId(spinId);
@@ -236,7 +299,11 @@ export class GameDataManager {
         this.gameState = {
             isSpinning: false,
             playerBalance: 1000,
-            currentBet: 10
+            currentBet: 10,
+            betValues: [1],
+            betValueIndex: 0,
+            maxLine: 25,
+            line: 1
         };
         debug.log('GameDataManager: All data cleared');
     }

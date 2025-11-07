@@ -1,3 +1,5 @@
+import { eventBus, eventType } from '../communication/EventManagers/WindowEventManager';
+import { GameDataManager } from '../engine/data/GameDataManager';
 import { debug } from '../engine/utils/debug';
 import { SpinTransaction, NexusSpinRequest } from './NexusInterfaces';
 import { PlayerController } from './player/PlayerController';
@@ -141,6 +143,24 @@ export class Nexus {
             totalTransactions: this.transactions.size,
             totalPlayerBalance: this.playerController.getTotalPlayerBalance()
         };
+    }
+
+    public setUIDefaults(data: any): void {
+        eventBus.emit('setBetValues', data.betLevels);
+        eventBus.emit('setBetValueIndex', data.betLevelIndex);
+        eventBus.emit('setMaxLine', data.lines);
+        eventBus.emit('setLine', 1);
+        eventBus.emit('setBalance', data.balance);
+        debug.log('Nexus: Game UI defaults set from initial data');
+    }
+
+    public setGameDefaults(data: any): void {
+        GameDataManager.getInstance().setBetValues(data.betLevels);
+        GameDataManager.getInstance().setBetValueIndex(data.betLevelIndex);
+        GameDataManager.getInstance().setMaxLine(data.lines);
+        GameDataManager.getInstance().setLine(1);
+        GameDataManager.getInstance().setPlayerBalance(data.balance);
+        debug.log('Nexus: Game data defaults set from initial data');
     }
 
     // Future API integration points

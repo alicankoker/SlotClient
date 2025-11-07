@@ -5,7 +5,7 @@ import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameConfig } from "../../config/GameConfig";
 import { Counter } from "../utils/Counter";
 import SoundManager from "../controllers/SoundManager";
-import { eventBus } from "../utils/WindowEventManager";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { AssetsConfig } from "../../config/AssetsConfig";
 import { WinEventType } from "../types/IWinEvents";
 
