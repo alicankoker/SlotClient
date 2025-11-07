@@ -149,7 +149,7 @@ export class Nexus {
         eventBus.emit('setBetValues', data.betLevels);
         eventBus.emit('setBetValueIndex', data.betLevelIndex);
         eventBus.emit('setMaxLine', data.lines);
-        eventBus.emit('setLine', 1);
+        eventBus.emit('setLine', data.lines);
         eventBus.emit('setBalance', data.balance);
         debug.log('Nexus: Game UI defaults set from initial data');
     }
@@ -158,7 +158,7 @@ export class Nexus {
         GameDataManager.getInstance().setBetValues(data.betLevels);
         GameDataManager.getInstance().setBetValueIndex(data.betLevelIndex);
         GameDataManager.getInstance().setMaxLine(data.lines);
-        GameDataManager.getInstance().setLine(1);
+        GameDataManager.getInstance().setLine(data.lines);
         GameDataManager.getInstance().setPlayerBalance(data.balance);
         debug.log('Nexus: Game data defaults set from initial data');
     }

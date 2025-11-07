@@ -345,10 +345,10 @@ export class DoodleV8Main {
     const response = GameDataManager.getInstance().getInitialData();
     console.log("Initial Data:", response);
 
-    if (this.slotGameController && response && response.history.freeSpin) {
+    if (this.slotGameController && response && response.history.freeSpin && response.history.freeSpin.totalRounds > response.history.freeSpin.playedRounds) {
       console.log("Starting in free spins with data:", response);
       const initialFreeSpinCount = response.history.freeSpin?.totalRounds - response.history.freeSpin.playedRounds;
-      const initialWin = response.history.freeSpin.featureWin;
+      const initialWin = response.history.freeSpin.featureWin + response.history.totalWin;
 
       this.slotGameController.startFreeSpinState(initialFreeSpinCount, initialWin);
     }

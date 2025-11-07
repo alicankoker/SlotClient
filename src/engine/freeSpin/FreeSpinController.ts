@@ -10,6 +10,7 @@ export class FreeSpinController {
     private static instance: FreeSpinController;
     private spinController: SpinController;
     private animationContainer: AnimationContainer;
+    private initialWin: number = 0;
     private totalWin: number = 0;
     private totalFreeSpins: number = 0;
     private remainingSpins: number = 0;
@@ -38,7 +39,7 @@ export class FreeSpinController {
     public async executeFreeSpin(freeSpinCount: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
         this.totalFreeSpins = freeSpinCount;
         this.remainingSpins = freeSpinCount;
-        this.totalWin = initialWin;
+        this.initialWin = initialWin;
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_STARTED, {
             total: this.totalFreeSpins,
@@ -72,7 +73,7 @@ export class FreeSpinController {
 
         const response = await GameServer.getInstance().processRequest();
 
-        this.totalWin += response.freeSpin?.featureWin || 0;
+        this.totalWin = response.freeSpin?.featureWin + this.initialWin || 0;
 
         console.log("Free Spin Total Win:", this.totalWin);
 

@@ -95,7 +95,7 @@ export class GameServer {
     }
   }
 
-  public async processRequest(payload: IPayload = { action: "spin", data: { lines: GameDataManager.getInstance().getLine(), betIndex: GameDataManager.getInstance().getBetValueIndex(), freespin: false } }): Promise<any> {
+  public async processRequest(payload: IPayload = { action: "spin", data: { lines: GameDataManager.getInstance().getLine(), betIndex: GameDataManager.getInstance().getBetValueIndex(), freespin: GameDataManager.getInstance().freeSpinActive } }): Promise<any> {
     const response: any = await this.socket.request(payload);
 
     GameDataManager.getInstance().setSpinData(response);

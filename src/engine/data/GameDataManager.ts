@@ -114,9 +114,7 @@ export class GameDataManager {
     }
 
     public checkFreeSpins(): boolean {
-        const naturalFSActive = this.gameState.lastResponseData?.freeSpin !== undefined || false;
-        console.log(this.gameState.lastResponseData?.freeSpin, naturalFSActive);
-        return this._freeSpinActive || naturalFSActive;
+        return this.gameState.lastResponseData?.freeSpin !== undefined;
     }
 
     public get freeSpinActive(): boolean {
