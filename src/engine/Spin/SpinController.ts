@@ -114,8 +114,10 @@ export abstract class SpinController {
         this._isForceStopped === false && this.reelsController.slowDown();
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
-      } else {
+      } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
         await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
+      } else {
+        await Utils.delay(SpinConfig.TURBO_SPIN_SPEED);
       }
 
       // Step 3: Process cascade sequence (if any)
@@ -147,7 +149,7 @@ export abstract class SpinController {
 
         GameConfig.WIN_EVENT.enabled && (await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE)); // Example big win amount and type
 
-        const isSkipped = this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0;
+        const isSkipped = this._isAutoPlaying && GameDataManager.getInstance().isWinAnimationSkipped && this._autoPlayCount > 0;
         GameConfig.WIN_ANIMATION.enabled && (await this.reelsController.setupWinAnimation(isSkipped));
       }
 
@@ -489,7 +491,7 @@ export abstract class SpinController {
 
     debug.log(`SpinController: Spin mode set to ${mode}`);
 
-    if (this._spinMode === GameConfig.SPIN_MODES.FAST && this.getIsSpinning()) {
+    if (this._spinMode === GameConfig.SPIN_MODES.TURBO && this.getIsSpinning()) {
       this.forceStop();
     }
   }

@@ -183,16 +183,18 @@ export class ReelsContainer extends Container {
 
     this._leftLantern = Spine.from({ atlas, skeleton });
     this._leftLantern.label = 'LeftLanternSpine';
-    this._leftLantern.position.set(155, -20);
+    this._leftLantern.position.set(155, -120);
     this._leftLantern.scale.set(0.8, 0.8);
-    this._leftLantern.state.setAnimation(0, 'Base_Lanthern', true);
+    const leftTrack = this._leftLantern.state.setAnimation(0, "Base_Lanthern", true);
+    leftTrack.trackTime = Math.random() * leftTrack.animationEnd;
     this.frameElementsContainer.addChild(this._leftLantern);
 
     this._rightLantern = Spine.from({ atlas, skeleton });
     this._rightLantern.label = 'RightLanternSpine';
     this._rightLantern.position.set(1750, -120);
     this._rightLantern.scale.set(0.8, 0.8);
-    this._rightLantern.state.setAnimation(0, 'Base_Lanthern', true);
+    const rightTrack = this._rightLantern.state.setAnimation(0, "Base_Lanthern", true);
+    rightTrack.trackTime = Math.random() * rightTrack.animationEnd;
     this.frameElementsContainer.addChild(this._rightLantern);
 
     this._headerBackground = Sprite.from('base_header_background');
@@ -205,6 +207,7 @@ export class ReelsContainer extends Container {
     this._logo = Sprite.from('base_logo');
     this._logo.label = 'GameLogo';
     this._logo.anchor.set(0.5, 0.5);
+    this._logo.scale.set(0.35, 0.35);
     this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 120);
     this.frameElementsContainer.addChild(this._logo);
 
@@ -379,7 +382,9 @@ export class ReelsContainer extends Container {
     this._headerBackground.scale.set(enabled ? 1 : 0.5, enabled ? 1 : 0.5);
 
     const logoTexture = enabled ? 'freespin_logo' : 'base_logo';
+    const logoScale = enabled ? 1 : 0.35;
     this._logo.texture = Texture.from(logoTexture);
+    this._logo.scale.set(logoScale);
 
     const floorTexture = enabled ? `freespin_floor` : `base_floor`;
     this.floors.forEach((floor) => {
@@ -396,12 +401,12 @@ export class ReelsContainer extends Container {
     switch (responsiveConfig.orientation) {
       case GameConfig.ORIENTATION.landscape:
         this.position.set(0, 0);
-        this._leftLantern.position.set(155, -20);
+        this._leftLantern.position.set(155, -120);
         this._rightLantern.position.set(1750, -120);
         break;
       case GameConfig.ORIENTATION.portrait:
         this.position.set(0, -270);
-        this._leftLantern.position.set(420, -540);
+        this._leftLantern.position.set(420, -600);
         this._rightLantern.position.set(1440, -600);
         break;
     }
@@ -434,7 +439,17 @@ export class ReelsContainer extends Container {
   public setChainAnimation(isSpinning: boolean, loop: boolean, isStart: boolean): void {
     const chainAnimationName = isSpinning ? (this._isFreeSpinMode ? 'Free_chain' : 'Base_chain') : (this._isFreeSpinMode ? 'Free_chain_hold' : 'Base_chain_hold');
     this.chains.forEach(async (chain, index) => {
-      await Helpers.delay((isStart && this._spinMode === GameConfig.SPIN_MODES.NORMAL) ? 150 * (index % 6) : 0);
+      if (isStart) {
+        if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+          console.log("Starting chain animation in NORMAL mode");
+          await Helpers.delay(GameConfig.REFERENCE_REEL_DELAY * (index % 6));
+        } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
+          await Helpers.delay(0);
+        } else if (this._spinMode === GameConfig.SPIN_MODES.TURBO) {
+          await Helpers.delay(0);
+        }
+      }
+
       chain.state.setAnimation(0, chainAnimationName, loop);
     });
   }

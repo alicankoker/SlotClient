@@ -167,12 +167,16 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/gem_right.png'
           },
           {
-            alias: 'popup_background',
-            src: PATH + '/assets/raw/UI_Pop_Up_Background.png'
+            alias: 'popup_frame',
+            src: PATH + '/assets/raw/popup_frame.png'
           },
           {
             alias: 'popup_header',
-            src: PATH + '/assets/raw/UI_Pop_Up_Bar.png'
+            src: PATH + '/assets/raw/popup_header.png'
+          },
+          {
+            alias: 'dialogue_box',
+            src: PATH + '/assets/raw/dialogue_box.png'
           },
           {
             alias: 'slider_button_frame',
@@ -197,7 +201,12 @@ export class AssetsConfig {
           {
             alias: 'font_style',
             src: PATH + '/assets/fonts/Font_Style_2.json'
+          },
+          {
+            alias: 'line_mask',
+            src: PATH + '/assets/raw/line_mask.png'
           }
+
         ]
       },
       {
@@ -306,6 +315,19 @@ export class AssetsConfig {
         ]
       },
       {
+        name: 'lines',
+        assets: [
+          {
+            alias: ['lines_atlas'],
+            src: PATH + '/assets/animations/lines.atlas'
+          },
+          {
+            alias: ['lines_data'],
+            src: PATH + '/assets/animations/lines.json'
+          }
+        ]
+      },
+      {
         name: 'transition',
         assets: [
           {
@@ -402,6 +424,11 @@ export class AssetsConfig {
     skeleton: "transition_data",
   } as const;
 
+  public static readonly LINES_SPINE_ASSET: SpineAssetData = {
+    atlas: "lines_atlas",
+    skeleton: "lines_data",
+  } as const;
+
   public static getAllAssets(resolution: string): BundleFile {
     this.RES = RESOLUTIONS.find((r) => r.size === resolution)?.variation!;
     this.setResolution();
@@ -463,11 +490,11 @@ export class AssetsConfig {
       case "wins":
         ({ atlas, skeleton } = this.WINS_SPINE_ASSET);
         break;
-      case "chain":
-        ({ atlas, skeleton } = this.CHAIN_SPINE_ASSET);
-        break;
       case "transition":
-        ({ atlas, skeleton } = this.CHAIN_SPINE_ASSET);
+        ({ atlas, skeleton } = this.TRANSITION_SPINE_ASSET);
+        break;
+      case "lines":
+        ({ atlas, skeleton } = this.LINES_SPINE_ASSET);
         break;
       default:
         throw new Error(`Unknown spine asset type: ${asset}`);

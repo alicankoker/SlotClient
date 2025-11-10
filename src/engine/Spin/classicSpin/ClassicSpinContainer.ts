@@ -10,6 +10,8 @@ import { Utils } from "../../utils/Utils";
 import { GridData, IResponseData, SpinResultData, SymbolData } from "../../types/ICommunication";
 import { IReelSpinState, IReelSpinStateData } from "../../types/IReelSpinStateData";
 import { ReelsContainer } from "../../reels/ReelsContainer";
+import { Helpers } from "../../utils/Helpers";
+import { SpinMode } from "../../types/ISpinConfig";
 
 export class ClassicSpinContainer extends SpinContainer {
     protected bottomSymbolYPos: number = 60;
@@ -17,6 +19,7 @@ export class ClassicSpinContainer extends SpinContainer {
     protected defaultSymbolYPositions: number[] = [];
     protected isStopping: boolean = false;
     private reelsSpinStates: IReelSpinStateData[] = [];
+    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
     constructor(app: Application, config: SpinContainerConfig) {
         super(app, config);
@@ -82,7 +85,9 @@ export class ClassicSpinContainer extends SpinContainer {
     public async startSpin(spinData: IResponseData): Promise<void> {
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
             this.startReelSpin(i, spinData);
-            await Utils.delay(150);
+            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
+
+            await Utils.delay(delay);
         }
     }
 
@@ -131,10 +136,13 @@ export class ClassicSpinContainer extends SpinContainer {
         });
     }
 
-    public stopSpin(): void {
+    public async stopSpin(): Promise<void> {
         super.stopSpin();
-        this.reelsSpinStates.forEach(state => { state.speed = 0; state.state = IReelSpinState.STOPPED; });
-        //TO-DO: Run win sequences
+        for (const state of this.reelsSpinStates) {
+            state.speed = 0;
+            state.state = IReelSpinState.STOPPED;
+            await Helpers.delay(GameConfig.REFERENCE_REEL_DELAY);
+        }
     }
 
     // Mode management
@@ -194,7 +202,7 @@ export class ClassicSpinContainer extends SpinContainer {
                 }
                 this.resetSymbolPositionsInCycle(this.symbols[col]);
             }
-            
+
             resolve();
         });
     }
@@ -216,6 +224,14 @@ export class ClassicSpinContainer extends SpinContainer {
         this.addChild(gridSymbol);
 
         return gridSymbol;
+    }
+
+    public get spinMode(): SpinMode {
+        return this._spinMode;
+    }
+
+    public set spinMode(mode: SpinMode) {
+        this._spinMode = mode;
     }
 
     public destroy(): void {

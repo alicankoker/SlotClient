@@ -196,8 +196,6 @@ export class SlotGameController {
 
         const response = await this.gameServer.processRequest();
 
-        console.log('SlotGameController: Spin response received:', response);
-
         eventBus.emit("setBalance", response.balance.before);
 
         if (this.spinController && response) {

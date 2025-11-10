@@ -49,4 +49,4 @@ export interface SpineAssetData {
   skeleton: string; // Skeleton file path
 }
 
-export type SpineAsset = "symbol" | "background" | "elements" | "wins" | "chain" | "transition";
+export type SpineAsset = "symbol" | "background" | "elements" | "wins" | "chain" | "transition" | "lines";

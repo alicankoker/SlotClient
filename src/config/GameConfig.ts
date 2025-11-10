@@ -49,6 +49,8 @@ export class GameConfig {
         scale: 0.90
     };
 
+    public static readonly REFERENCE_REEL_DELAY = 300; // milliseconds
+
     // Reference spacing at base resolution
     public static readonly REFERENCE_SPACING = {
         horizontal: 90,  // 10 pixels horizontal spacing at reference resolution
@@ -135,7 +137,8 @@ export class GameConfig {
 
     public static readonly SPIN_MODES = {
         NORMAL: 'normal',
-        FAST: 'fast'
+        FAST: 'fast',
+        TURBO: 'turbo'
     };
 
     // Reference resolution - all sizes are designed for this resolution
@@ -212,5 +215,122 @@ export class GameConfig {
         align: 'center',
         trim: true,
         fill: this.fillGradientStops,
+    });
+
+    public static readonly style_1: TextStyle = new TextStyle({
+        fill: 0xffffff,
+        fontFamily: "MikadoBlack",
+        fontSize: 28,
+        fontWeight: "bolder",
+        align: 'center',
+        trim: true,
+    });
+
+    public static readonly style_2: TextStyle = new TextStyle({
+        fill: new FillGradient({
+            colorStops: [
+                {
+                    offset: 0.4,
+                    color: 0xfffdf8
+                },
+                {
+                    offset: 0.9,
+                    color: 0xf0a760
+                }
+            ]
+        }),
+        dropShadow: {
+            alpha: 0.75,
+            angle: 1.4,
+            color: 0x000000,
+            distance: 4
+        },
+        fontFamily: "MikadoBlack",
+        fontSize: 48,
+        fontWeight: "bolder",
+        stroke: {
+            color: 0x5b240f,
+            join: 'round',
+            width: 1
+        },
+        align: 'center',
+        trim: true,
+    });
+
+    public static readonly style_3: TextStyle = new TextStyle({
+        fill: 0xffffff,
+        fontFamily: "MikadoBlack",
+        fontSize: 28,
+        fontWeight: "bolder",
+        align: 'center',
+        trim: true,
+    });
+
+    public static readonly style_4: TextStyle = new TextStyle({
+        fill: new FillGradient({
+            colorStops: [
+                {
+                    offset: 0.4,
+                    color: 0x895467
+                },
+                {
+                    offset: 0.9,
+                    color: 0x4e0f52
+                },
+                {
+                    offset: 1.0,
+                    color: 0xf8616c
+                }
+            ]
+        }),
+        dropShadow: {
+            angle: 0.9,
+            color: 0x510c59,
+        },
+        fontFamily: "MikadoBlack",
+        fontSize: 62,
+        fontWeight: "bolder",
+        stroke: {
+            color: 0xffffff,
+            join: 'round',
+            width: 6
+        },
+        align: 'center',
+        trim: true,
+    });
+
+    public static readonly style_5: TextStyle = new TextStyle({
+        fill: new FillGradient({
+            colorStops: [
+                {
+                    offset: 0.4,
+                    color: 0xffffff
+                },
+                {
+                    offset: 0.9,
+                    color: 0x4e0f52
+                },
+                {
+                    offset: 1.0,
+                    color: 0xf8616c
+                }
+            ]
+        }),
+        dropShadow: {
+            angle: 1.9,
+            color: 0x510c59,
+            blur: 24,
+            distance: 4
+        },
+        fontFamily: "MikadoBlack",
+        fontSize: 74,
+        fontWeight: "bolder",
+        stroke: {
+            color: 0xa3a3a3,
+            join: 'round',
+            width: 3
+        },
+        align: 'center',
+        trim: true,
     });
 }

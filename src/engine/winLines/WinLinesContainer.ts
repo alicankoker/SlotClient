@@ -1,11 +1,15 @@
-import { Container, Graphics, Sprite } from "pixi.js";
+import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
+import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { GameRulesConfig } from "../../config/GameRulesConfig";
 
 export abstract class WinLinesContainer extends Container {
     protected _resizeSubscription?: SignalSubscription;
+    protected _lineMask: Sprite = new Sprite(Texture.EMPTY);
     protected _lineTextures: Sprite[];
-    protected _winLine: Graphics[];
+    protected _winLine: (Graphics | Spine | Sprite)[];
+    protected _availableLines: number = 0;
 
     protected constructor() {
         super();
@@ -13,75 +17,110 @@ export abstract class WinLinesContainer extends Container {
         this._lineTextures = [];
         this._winLine = [];
 
+        this.createLineMask();
         this.createLineNumbers();
         this.createWinLines();
+        this.setAvailableLines(this._lineTextures.length);
 
         this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
             this.onResize(responsiveConfig);
         });
     }
 
+    protected abstract createLineMask(): void;
+
     protected abstract createWinLines(): void;
 
     protected abstract createLineNumbers(): void;
 
+    public setAvailableLines(activeLines: number): void {
+        this._availableLines = activeLines;
+
+        for (let index = 0; index < this._lineTextures.length; index++) {
+            const texture = this._lineTextures[index];
+            const isActive = index < activeLines;
+
+            texture.alpha = isActive ? 1 : 0.25;
+            texture.interactive = isActive;
+            texture.cursor = isActive ? "pointer" : "default";
+        }
+    }
+
     public showLine(lineNumber: number): void {
-        if (lineNumber < 1 || lineNumber > this._winLine.length) return;
-        
+        if (lineNumber < 1 || lineNumber > this._availableLines) return;
+
         const line = this._winLine[lineNumber - 1];
         const texture = this._lineTextures[lineNumber - 1];
-        
-        if (line && texture) {
-            line.visible = true;
+        if (!line || !texture) return;
 
-            for (const t of this._lineTextures) {
-                t.alpha = (t === texture) ? 1 : 0.25;
-            }
+        line.visible = true;
+
+        if (line instanceof Spine) {
+            line.state.clearTrack(0);
+            line.state.setAnimation(0, lineNumber.toString(), false);
+        }
+
+        for (let i = 0; i < this._lineTextures.length; i++) {
+            const t = this._lineTextures[i];
+            t.alpha = i < this._availableLines ? (t === texture ? 1 : 0.25) : 0.25;
         }
     }
 
     public showLines(lineNumbers: number[]): void {
-        for (const t of this._lineTextures) {
-            t.alpha = 0.25;
+        for (let i = 0; i < this._availableLines; i++) {
+            this._lineTextures[i].alpha = 0.25;
         }
 
         for (const lineNumber of lineNumbers) {
-            if (lineNumber < 1 || lineNumber > this._winLine.length) continue;
+            if (lineNumber < 1 || lineNumber > this._availableLines) continue;
 
             const line = this._winLine[lineNumber - 1];
             const texture = this._lineTextures[lineNumber - 1];
+            if (!line || !texture) continue;
 
-            if (line && texture) {
-                line.visible = true;
-                texture.alpha = 1;
+            line.visible = true;
+
+            if (line instanceof Spine) {
+                line.state.clearTrack(0);
+                line.state.setAnimation(0, lineNumber.toString(), false);
             }
+
+            texture.alpha = 1;
         }
     }
 
     public showAllLines(): void {
-        this._winLine.forEach(line => line.visible = true);
+        for (let i = 0; i < this._availableLines; i++) {
+            const line = this._winLine[i];
+            const texture = this._lineTextures[i];
+            if (!line || !texture) continue;
 
-        for (const t of this._lineTextures) {
-            t.alpha = 1;
+            line.visible = true;
+            texture.alpha = 1;
         }
     }
 
     public hideLine(lineNumber: number): void {
-        const line = this._winLine[lineNumber - 1];
+        if (lineNumber < 1 || lineNumber > this._availableLines) return;
 
-        if (line) {
-            line.visible = false;
-            for (const t of this._lineTextures) {
-                t.alpha = 1;
-            }
+        const line = this._winLine[lineNumber - 1];
+        if (line) line.visible = false;
+
+        for (let i = 0; i < this._availableLines; i++) {
+            this._lineTextures[i].alpha = 1;
         }
     }
 
     public hideAllLines(): void {
-        this._winLine.forEach(line => line.visible = false);
+        for (let i = 0; i < this._availableLines; i++) {
+            const line = this._winLine[i];
+            if (line) line.visible = false;
+            this._lineTextures[i].alpha = 1;
+        }
 
-        for (const t of this._lineTextures) {
-            t.alpha = 1;
+        for (let i = this._availableLines; i < this._winLine.length; i++) {
+            this._winLine[i].visible = false;
+            this._lineTextures[i].alpha = 0.25;
         }
     }
 

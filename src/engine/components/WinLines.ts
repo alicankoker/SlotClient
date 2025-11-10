@@ -1,9 +1,11 @@
-import { Graphics, Sprite, Text } from "pixi.js";
+import { FillGradient, Graphics, Sprite, Text } from "pixi.js";
 import { GameRulesConfig } from "../../config/GameRulesConfig";
 import { GameConfig } from "../../config/GameConfig";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { WinLinesContainer } from "../winLines/WinLinesContainer";
 import { WinLinesController } from "../winLines/WinLinesController";
+import { AssetsConfig } from "../../config/AssetsConfig";
+import { Spine } from "@esotericsoftware/spine-pixi-v8";
 
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
@@ -26,33 +28,60 @@ export class WinLines extends WinLinesContainer {
         return new (class extends WinLinesController<WinLines> { })(this);
     }
 
+    protected override createLineMask(): void {
+        this._lineMask = Sprite.from('line_mask');
+        this._lineMask.label = 'LineMask';
+        this._lineMask.anchor.set(0.5, 0.5);
+        this._lineMask.position.set(962, 550);
+        this._lineMask.width = 1210;
+        this._lineMask.height = 700;
+        this._lineMask.alpha = 0;
+        this.addChild(this._lineMask);
+    }
+
     protected override createWinLines(): void {
+        // for (const key of Object.keys(GameRulesConfig.LINES)) {
+        //     const line = GameRulesConfig.getLine(Number(key));
+
+        //     const winLine = new Graphics();
+        //     winLine.label = `WinLine_${key}`;
+        //     winLine.beginPath();
+        //     winLine.moveTo(line[0].x, line[0].y);
+
+        //     for (let i = 0; i < line.length; i++) {
+        //         winLine.lineTo(line[i].x, line[i].y);
+        //         winLine.stroke({
+        //             color: 0xFFFFFF,
+        //             width: 10,
+        //             join: 'round',
+        //             cap: 'round'
+        //         });
+        //     }
+        //     winLine.closePath();
+
+        //     winLine.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+        //     winLine.visible = false; // Hidden by default
+        //     winLine.tint = Math.floor(Math.random() * 0xFFFFFF); // Random color for each win line
+
+        //     this._winLine.push(winLine);
+
+        //     this.addChild(winLine);
+        // }
+
+        const { atlas, skeleton } = AssetsConfig.LINES_SPINE_ASSET;
+
         for (const key of Object.keys(GameRulesConfig.LINES)) {
-            const line = GameRulesConfig.getLine(Number(key));
+            const line = Spine.from({ atlas, skeleton });
+            line.label = `WinLine_${key}`;
+            line.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+            line.visible = false; // Hidden by default
+            line.state.setAnimation(0, key, false);
+            line.state.timeScale = 2;
+            line.mask = this._lineMask;
 
-            const winLine = new Graphics();
-            winLine.label = `WinLine_${key}`;
-            winLine.beginPath();
-            winLine.moveTo(line[0].x, line[0].y);
+            this._winLine.push(line);
 
-            for (let i = 0; i < line.length; i++) {
-                winLine.lineTo(line[i].x, line[i].y);
-                winLine.stroke({
-                    color: 0xFFFFFF,
-                    width: 10,
-                    join: 'round',
-                    cap: 'round'
-                });
-            }
-            winLine.closePath();
-
-            winLine.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
-            winLine.visible = false; // Hidden by default
-            winLine.tint = Math.floor(Math.random() * 0xFFFFFF); // Random color for each win line
-
-            this._winLine.push(winLine);
-
-            this.addChild(winLine);
+            this.addChild(line);
         }
     }
 
@@ -75,30 +104,24 @@ export class WinLines extends WinLinesContainer {
             texture.cursor = 'pointer';
             this.addChild(texture);
 
-            const text = new Text({ text: key.toString(), style: GameConfig.style.clone() });
-            text.label = `LineHolderText_${key}`;
-            text.style.fontSize = 25;
-            text.style.stroke = {
-                color: '#000000',
-                width: 0
-            }
-            text.style.dropShadow = false;
+            const text = new Text({
+                text: key.toString(),
+                style: GameConfig.style_1
+            });
             text.anchor.set(0.5);
             texture.addChild(text);
 
             this._lineTextures.push(texture);
 
             texture.on('pointerenter', () => {
-                for (const t of this._lineTextures) {
-                    if (t !== texture) {
-                        t.alpha = 0.25;
-                    }
+                for (let index = 0; index < this._availableLines; index++) {
+                    this._lineTextures[index].alpha = index + 1 === Number(key) ? 1 : 0.25;
                 }
                 this.showLine(Number(key));
             });
             texture.on('pointerleave', () => {
-                for (const t of this._lineTextures) {
-                    t.alpha = 1;
+                for (let index = 0; index < this._availableLines; index++) {
+                    this._lineTextures[index].alpha = 1;
                 }
                 this.hideLine(Number(key));
             });

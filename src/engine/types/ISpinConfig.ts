@@ -3,7 +3,7 @@ export interface ForceStopConfig {
   enabled: boolean; // Whether force stop is enabled
 }
 
-export type SpinMode = "normal" | "fast";
+export type SpinMode = "normal" | "fast" | "turbo";
 
 export enum ISpinState {
   IDLE = "idle",

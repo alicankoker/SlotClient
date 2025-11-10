@@ -20,7 +20,6 @@ export class AnimationContainer extends Container {
 
     private _autoPlayCountText: Text;
     private _winText: Text;
-    private _spinModeText!: Text;
     private _dimmer!: Graphics;
     private _popup!: Container;
     private _popupBackground!: Sprite;
@@ -38,6 +37,7 @@ export class AnimationContainer extends Container {
         super();
 
         this._winLines = WinLines.getInstance();
+        this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
         this.addChild(this._winLines);
 
         // initialize auto play count indicator
@@ -55,13 +55,6 @@ export class AnimationContainer extends Container {
         this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
         this._winText.visible = false;
         this.addChildAt(this._winText, this.children.length);
-
-        this._spinModeText = new Text({ text: ``, style: GameConfig.style.clone(), });
-        this._spinModeText.label = 'SpinModeText';
-        this._spinModeText.anchor.set(0.5, 0.5);
-        this._spinModeText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._spinModeText.visible = false; // Hide by default
-        this.addChild(this._spinModeText);
 
         this._buyFreeSpinButton = Sprite.from('freespin_logo');
         this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
@@ -83,7 +76,7 @@ export class AnimationContainer extends Container {
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
         this._dimmer.rect(0, 0, GameConfig.REFERENCE_RESOLUTION.width, GameConfig.REFERENCE_RESOLUTION.height);
-        this._dimmer.fill({ color: 0x000000, alpha: 0.75 });
+        this._dimmer.fill({ color: 0x010b14, alpha: 0.75 });
         this._dimmer.closePath();
         this._dimmer.pivot.set(this._dimmer.width / 2, this._dimmer.height / 2);
         this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
@@ -98,7 +91,7 @@ export class AnimationContainer extends Container {
         this._popup.visible = false;
         this.addChild(this._popup);
 
-        this._popupBackground = Sprite.from("popup_background");
+        this._popupBackground = Sprite.from("popup_frame");
         this._popupBackground.label = 'FreeSpinPopupBackground';
         this._popupBackground.anchor.set(0.5);
         this._popup.addChild(this._popupBackground);
@@ -106,48 +99,50 @@ export class AnimationContainer extends Container {
         this._popupHeader = Sprite.from("popup_header");
         this._popupHeader.label = 'FreeSpinPopupHeader';
         this._popupHeader.anchor.set(0.5);
-        this._popupHeader.position.set(0, -275);
+        this._popupHeader.position.set(0, -295);
         this._popup.addChild(this._popupHeader);
 
-        const popupHeaderText = new Text({ text: 'CONGRATULATIONS', style: GameConfig.style.clone() });
+        const popupHeaderText = new Text({
+            text: 'CONGRATULATIONS',
+            style: GameConfig.style_4
+        });
         popupHeaderText.label = 'FreeSpinPopupHeaderText';
         popupHeaderText.anchor.set(0.5, 0.5);
-        popupHeaderText.position.set(0, -250);
-        popupHeaderText.style.fontSize = 58;
+        popupHeaderText.position.set(0, -295);
         this._popup.addChild(popupHeaderText);
 
-        const popupYouWonText = new Text({ text: 'YOU HAVE WON', style: GameConfig.style.clone() });
+        const popupYouWonText = new Text({
+            text: 'YOU HAVE WON',
+            style: GameConfig.style_2
+        });
         popupYouWonText.label = 'FreeSpinPopupYouWonText';
         popupYouWonText.anchor.set(0.5, 0.5);
-        popupYouWonText.position.set(0, -100);
-        popupYouWonText.style.fontSize = 46;
+        popupYouWonText.position.set(0, -120);
         this._popup.addChild(popupYouWonText);
 
         this._popupCountText = new Text({ text: '', style: GameConfig.style.clone() });
         this._popupCountText.label = 'FreeSpinPopupCountText';
         this._popupCountText.anchor.set(0.5, 0.5);
-        this._popupCountText.position.set(0, 30);
+        this._popupCountText.position.set(0, -15);
         this._popupCountText.style.fontSize = 145;
         this._popup.addChild(this._popupCountText);
 
-        this._popupFreeSpinsText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._popupFreeSpinsText = new Text({
+            text: '',
+            style: GameConfig.style_2
+        });
         this._popupFreeSpinsText.label = 'FreeSpinPopupFreeSpinsText';
         this._popupFreeSpinsText.anchor.set(0.5, 0.5);
-        this._popupFreeSpinsText.position.set(0, 160);
-        this._popupFreeSpinsText.style.fontSize = 46;
+        this._popupFreeSpinsText.position.set(0, 100);
         this._popup.addChild(this._popupFreeSpinsText);
 
-        const popupPressAnywhere = new Text({ text: 'PRESS ANYWHERE TO CONTINUE', style: GameConfig.style.clone() });
+        const popupPressAnywhere = new Text({
+            text: 'PRESS ANYWHERE TO CONTINUE',
+            style: GameConfig.style_1
+        });
         popupPressAnywhere.label = 'FreeSpinPopupPressText';
         popupPressAnywhere.anchor.set(0.5, 0.5);
-        popupPressAnywhere.position.set(0, 225);
-        popupPressAnywhere.style.fontSize = 20;
-        popupPressAnywhere.style.fill = 0xffffff;
-        popupPressAnywhere.style.dropShadow = false;
-        popupPressAnywhere.style.stroke = {
-            width: 0,
-            color: 0x000000,
-        };
+        popupPressAnywhere.position.set(0, 200);
         this._popup.addChild(popupPressAnywhere);
 
         this._buyFreeSpinButton.on('pointerenter', () => {
@@ -440,10 +435,6 @@ export class AnimationContainer extends Container {
 
     public getWinText(): Text {
         return this._winText;
-    }
-
-    public getSpinModeText(): Text {
-        return this._spinModeText;
     }
 
     public getWinEvent(): WinEvent {

@@ -61,7 +61,8 @@ export class Loader extends Container {
         const logo = Sprite.from(logoTexture);
         logo.label = "LoaderLogo";
         logo.anchor.set(0.5, 0.5);
-        logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        logo.scale.set(0.5, 0.5);
+        logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) - 200);
         this.addChild(logo);
 
         const shadow = Sprite.from(frameShadow);

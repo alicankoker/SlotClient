@@ -5,6 +5,7 @@ import { GameRulesConfig } from '../../config/GameRulesConfig';
 import { SpinConfig } from '../../config/SpinConfig';
 import { AnimationContainer } from '../components/AnimationContainer';
 import { WinEvent } from '../components/WinEvent';
+import { GameDataManager } from '../data/GameDataManager';
 import { ReelsController } from '../reels/ReelsController';
 import { CascadeStepData, InitialGridData, SpinResponseData, SpinRequestData } from '../types/ICommunication';
 import { ISpinState, SpinMode } from '../types/ISpinConfig';
@@ -98,8 +99,10 @@ export class SpinController {
                 this._isForceStopped === false && this.reelsController.slowDown();
 
                 await this.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
-            } else {
+            } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
                 await this.delay(SpinConfig.FAST_SPIN_SPEED);
+            } else {
+                await this.delay(SpinConfig.TURBO_SPIN_SPEED);
             }
 
             //await this.processCascadeSequence();
@@ -128,7 +131,7 @@ export class SpinController {
 
                 GameConfig.WIN_EVENT.enabled && await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
-                const isSkipped = (this._isAutoPlaying && GameConfig.AUTO_PLAY.skipAnimations === true && this._autoPlayCount > 0);
+                const isSkipped = (this._isAutoPlaying && GameDataManager.getInstance().isWinAnimationSkipped && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
             }
 
@@ -192,7 +195,7 @@ export class SpinController {
             this._autoPlayCount -= 1;
             this._autoPlayed += 1;
 
-    eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
+            eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
             if (this._autoPlayCount <= 0) {
                 const staticContainer = this.reelsController.getStaticContainer();

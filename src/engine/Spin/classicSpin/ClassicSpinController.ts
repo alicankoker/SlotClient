@@ -7,7 +7,7 @@ import { GameDataManager } from "../../data/GameDataManager";
 import { FreeSpinController } from "../../freeSpin/FreeSpinController";
 import { IReelMode } from "../../reels/ReelController";
 import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
-import { ISpinState } from "../../types/ISpinConfig";
+import { ISpinState, SpinMode } from "../../types/ISpinConfig";
 import { WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
 import { Utils } from "../../utils/Utils";
@@ -82,12 +82,12 @@ export class ClassicSpinController extends SpinController {
 
         GameConfig.WIN_EVENT.enabled && await AnimationContainer.getInstance().getWinEvent().getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
 
-        const isSkipped = GameConfig.FREE_SPIN.skipAnimations === true && ((this._isAutoPlaying && this._autoPlayCount > 0) || (FreeSpinController.getInstance(this).isRunning === true));
+        const isSkipped = GameDataManager.getInstance().isWinAnimationSkipped && ((this._isAutoPlaying && this._autoPlayCount > 0) || (FreeSpinController.getInstance(this).isRunning === true));
         GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
 
-        // if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
-        //   this.stopAutoPlay();
-        // }
+        if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
+          this.stopAutoPlay();
+        }
 
         eventBus.emit("setBalance", response.balance.after);
 
@@ -109,8 +109,10 @@ export class ClassicSpinController extends SpinController {
         this._isForceStopped === false && this.reelsController.slowDown();
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
-      } else {
+      } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
         await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
+      } else {
+        await Utils.delay(SpinConfig.TURBO_SPIN_SPEED);
       }
 
       this.container.setMode(IReelMode.STOPPING);
@@ -137,6 +139,7 @@ export class ClassicSpinController extends SpinController {
   public startSpinAnimation(spinData: IResponseData): void {
     (this.container as ClassicSpinContainer).startSpin(spinData);
   }
+
   // Symbol transfer methods
   protected async transferSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
     debug.log("SpinController: Transferring symbols from StaticContainer to SpinContainer");
@@ -174,7 +177,7 @@ export class ClassicSpinController extends SpinController {
    * @param count The number of spins to auto play.
    * @returns A promise that resolves when auto play starts.
    */
-  public async startAutoPlay(count: number, betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
+  public async startAutoPlay(count: number): Promise<void> {
     if (this._isAutoPlaying || this.getIsSpinning()) {
       return;
     }
@@ -193,7 +196,7 @@ export class ClassicSpinController extends SpinController {
     const staticContainer = this.reelsController.getStaticContainer();
     if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
 
-    void this.continueAutoPlay(betAmount, gameMode);
+    void this.continueAutoPlay();
 
     debug.log("Auto play started with count:", this._autoPlayCount);
   }
@@ -203,7 +206,7 @@ export class ClassicSpinController extends SpinController {
    * @description Continue auto play if conditions are met.
    * @returns True if auto play continues, false otherwise.
    */
-  public async continueAutoPlay(betAmount: number = 10, gameMode: string = "manual"): Promise<boolean> {
+  public async continueAutoPlay(): Promise<boolean> {
     if (!this._isAutoPlaying || this.getIsSpinning() || this._autoPlayCount <= 0) {
       this.stopAutoPlay();
       return false;
@@ -272,5 +275,14 @@ export class ClassicSpinController extends SpinController {
 
   public get isAutoPlaying(): boolean {
     return this._isAutoPlaying;
+  }
+
+  public get spinMode(): SpinMode {
+    return this._spinMode;
+  }
+
+  public set spinMode(mode: SpinMode) {
+    this._spinMode = mode;
+    (this.container as ClassicSpinContainer).spinMode = this._spinMode;
   }
 }

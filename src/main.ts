@@ -20,6 +20,7 @@ import { WinEventType } from "./engine/types/IWinEvents";
 import { AnimationContainer } from "./engine/components/AnimationContainer";
 import { FeatureScreen } from "./engine/components/FeatureScreen";
 import { SocketConnection } from "./communication/Connection/SocketConnection";
+import { WinLines } from "./engine/components/WinLines";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -29,7 +30,6 @@ export class DoodleV8Main {
   private winEvent!: WinEvent;
   private assetLoader!: AssetLoader;
   private assetResolutionChooser!: AssetSizeManager;
-  private _spinModeText!: Text;
 
   public async init(): Promise<void> {
     try {
@@ -84,8 +84,6 @@ export class DoodleV8Main {
       this.setupControllersCallbacks();
       // Step 5: Create scene/sprites
       this.createScene();
-
-      this._spinModeText = AnimationContainer.getInstance().getSpinModeText();
 
       // const bonusScene = Bonus.getInstance();
       // this.app.stage.addChild(bonusScene);
@@ -160,6 +158,11 @@ export class DoodleV8Main {
 
       eventBus.on("setLine", (line) => {
         gameDataManager.setLine(line);
+        WinLines.getInstance().setAvailableLines(line);
+      });
+
+      eventBus.on("skipWin", (isSkipped: boolean) => {
+        gameDataManager.setIsWinAnimationSkipped(isSkipped);
       });
 
       eventBus.on("setSpinSpeed", (phase) => {
@@ -170,9 +173,13 @@ export class DoodleV8Main {
             }
             break;
           case 2:
-          case 3:
             if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
+            }
+            break;
+          case 3:
+            if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.TURBO) {
+              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
             }
             break;
         }

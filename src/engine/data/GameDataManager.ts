@@ -27,6 +27,7 @@ export class GameDataManager {
     private _freeSpinActive: boolean = false; // temporary flag for manually triggering free spin state
     private _isFreeSpinning: boolean = false;
     private _isAutoPlaying: boolean = false;
+    private _isSkippedWinAnimation: boolean = false;
 
     private constructor() {
         this.gameState = {
@@ -273,6 +274,14 @@ export class GameDataManager {
 
     public set isAutoPlaying(value: boolean) {
         this._isAutoPlaying = value;
+    }
+
+    public get isWinAnimationSkipped(): boolean {
+        return this._isSkippedWinAnimation;
+    }
+
+    public setIsWinAnimationSkipped(value: boolean): void {
+        this._isSkippedWinAnimation = value;
     }
 
     // Update multiple properties at once

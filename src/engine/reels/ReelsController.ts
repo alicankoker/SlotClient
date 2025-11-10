@@ -261,6 +261,7 @@ export class ReelsController {
   }
 
   public stopSpin(): void {
+    console.log("ReelsController: Stopping all reels.");
     // Stop spin animation on the spin container
     if (this.reelsContainer) {
       const spinContainer = this.reelsContainer.getSpinContainer();
