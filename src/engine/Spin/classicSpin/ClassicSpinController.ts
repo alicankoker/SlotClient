@@ -100,11 +100,11 @@ export class ClassicSpinController extends SpinController {
 
       this.startSpinAnimation(response);
 
-      Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
+      await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
 
       if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
-        this.container.setMode(IReelMode.SLOWING);
+        (this.container as ClassicSpinContainer).slowDown();
 
         this._isForceStopped === false && this.reelsController.slowDown();
 
@@ -115,8 +115,8 @@ export class ClassicSpinController extends SpinController {
         await Utils.delay(SpinConfig.TURBO_SPIN_SPEED);
       }
 
-      this.container.setMode(IReelMode.STOPPING);
-      this.container.stopSpin();
+      //this.container.setMode(IReelMode.STOPPING);
+      //this.container.stopSpin();
 
       this._soundManager.stop("spin");
       this._soundManager.play("stop", false, 0.75); // Play stop sound effect

@@ -48,11 +48,8 @@ export class ClassicSpinContainer extends SpinContainer {
     private tickHandler(): void {
         const deltaMs = this.app.ticker.deltaMS || 16.67;
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
-            if (this.reelsSpinStates[i].state === IReelSpinState.SPEEDING) {
+            if (this.reelsSpinStates[i].state !== IReelSpinState.STOPPED) {
                 this.updateSpinProgress(i, deltaMs);
-            }
-            else if (this.reelsSpinStates[i].state === IReelSpinState.SLOWING) {
-                this.updateLandingProgress(i, deltaMs);
             }
         }
     }
@@ -74,8 +71,16 @@ export class ClassicSpinContainer extends SpinContainer {
                 this.reelsSpinStates[reelId].speed = SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT;
             }
         }
-        if (this.reelsSpinStates[reelId].state === IReelSpinState.SPEEDING && this.reelsSpinStates[reelId].speed < SpinConfig.REEL_MAX_SPEED) {
-            this.reelsSpinStates[reelId].speed += SpinConfig.REEL_SPEED_UP_COEFFICIENT;
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.SPEEDING) {
+            if(this.reelsSpinStates[reelId].speed < SpinConfig.REEL_MAX_SPEED) {
+                this.reelsSpinStates[reelId].speed += SpinConfig.REEL_SPEED_UP_COEFFICIENT;
+            }
+            else {
+                this.reelsSpinStates[reelId].state = IReelSpinState.SPINNING;
+            }
+        }
+        if(this.reelsSpinStates[reelId].state === IReelSpinState.STOPPING) {
+            this.reelsSpinStates[reelId].speed = SpinConfig.REEL_MAX_SPEED;
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
     }
@@ -91,12 +96,32 @@ export class ClassicSpinContainer extends SpinContainer {
         }
     }
 
+    public async slowDown() {
+        for (let i = 0; i < this.reelsSpinStates.length; i++) {
+            this.slowDownReelSpin(i);
+            console.log(this._spinMode);
+            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
+
+            await Utils.delay(delay);
+        }
+    }
+
     startReelSpin(reelId: number, spinData: IResponseData): void {
         this.reelsSpinStates[reelId].state = IReelSpinState.SPEEDING;
         this.reelsSpinStates[reelId].isSpinning = true;
         const reelSymbolsData = spinData.reels[reelId];
         const symbols = reelSymbolsData.map((symbol: number) => symbol);
         this.reelsSpinStates[reelId].symbols = symbols;
+    }
+
+    slowDownReelSpin(reelId: number): void {
+        this.reelsSpinStates[reelId].state = IReelSpinState.SLOWING;
+        this.reelsSpinStates[reelId].isSpinning = true;
+    }
+
+    stopReelSpin(reelId: number): void {
+        this.reelsSpinStates[reelId].state = IReelSpinState.STOPPING;
+        this.reelsSpinStates[reelId].isSpinning = false;
     }
 
     protected progressReelSpin(reelSymbols: (GridSymbol | Sprite | null)[], reelId: number, deltaTime: number): void {
@@ -127,7 +152,15 @@ export class ClassicSpinContainer extends SpinContainer {
 
     protected resetSymbolPositionsInCycle(symbols: (GridSymbol | Sprite | null)[]): void {
         symbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
-            (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[symbolIndex];
+            const isLastSymbol = symbolIndex === symbols.length - 1;
+            const indToChange: number = isLastSymbol ? 0 : symbolIndex + 1;
+            if (isLastSymbol) {
+                (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[0];
+                (symbol as GridSymbol).updateSymbolTexture(Utils.getRandomInt(0, 10))
+            } else {
+                (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[indToChange];
+            }
+            (symbol as GridSymbol).gridY = indToChange;
         });
     }
     protected setGridYValuesForStaticSymbols(symbols: (GridSymbol | Sprite | null)[]): void {
