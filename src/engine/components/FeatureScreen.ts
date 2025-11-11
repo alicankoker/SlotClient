@@ -6,6 +6,7 @@ import { FeatureScreenController } from "../featureScreen/FeatureScreenControlle
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import gsap from "gsap";
 import { Helpers } from "../utils/Helpers";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 
 export class FeatureScreen extends FeatureScreenContainer {
     private _controller: FeatureScreenController<FeatureScreen>;
@@ -251,12 +252,18 @@ export class FeatureScreen extends FeatureScreenContainer {
                 ease: "power1.out",
             });
         });
-        this._spinButtonContainer.on("pointerup", () => {
+        this._spinButtonContainer.on("pointerup", async () => {
             gsap.killTweensOf(spinButton);
             this._spinButtonContainer.off("pointerover");
             this._spinButtonContainer.off("pointerout");
             this._spinButtonContainer.off("pointerup");
             this._spinButtonContainer.interactive = false;
+
+            if (this._app.canvas.requestFullscreen == null) {
+                await this._app.canvas.requestFullscreen();
+            } else if ((this._app.canvas as any).webkitRequestFullscreen) {
+                await (this._app.canvas as any).webkitRequestFullscreen();
+            }
 
             this.closeFeatureScreen();
         });

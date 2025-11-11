@@ -374,8 +374,10 @@ export class ReelsContainer extends Container {
     this._reelFrame.texture = Texture.from(frameTexture);
 
     const lanternAnimationName = enabled ? 'FS_Lanthern' : 'Base_Lanthern';
-    this._leftLantern.state.setAnimation(0, lanternAnimationName, true);
-    this._rightLantern.state.setAnimation(0, lanternAnimationName, true);
+    const leftTrack = this._leftLantern.state.setAnimation(0, lanternAnimationName, true);
+    leftTrack.trackTime = Math.random() * leftTrack.animationEnd;
+    const rightTrack = this._rightLantern.state.setAnimation(0, lanternAnimationName, true);
+    rightTrack.trackTime = Math.random() * rightTrack.animationEnd;
 
     const headerTexture = enabled ? 'freespin_header_background' : 'base_header_background';
     this._headerBackground.texture = Texture.from(headerTexture);

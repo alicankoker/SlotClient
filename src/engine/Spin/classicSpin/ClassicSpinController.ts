@@ -276,13 +276,4 @@ export class ClassicSpinController extends SpinController {
   public get isAutoPlaying(): boolean {
     return this._isAutoPlaying;
   }
-
-  public get spinMode(): SpinMode {
-    return this._spinMode;
-  }
-
-  public set spinMode(mode: SpinMode) {
-    this._spinMode = mode;
-    (this.container as ClassicSpinContainer).spinMode = this._spinMode;
-  }
 }

@@ -18,6 +18,7 @@ import {
 } from "../types/ICommunication";
 import { debug } from "../utils/debug";
 import { GameDataManager } from "../data/GameDataManager";
+import { SpinMode } from "../types/ISpinConfig";
 
 export interface SpinContainerConfig {
   reelIndex: number; // TODO: Remove when refactoring to single container
@@ -44,6 +45,7 @@ export abstract class SpinContainer extends Container {
   protected rowsAboveMask: number;
   protected rowsBelowMask: number;
   protected totalRows: number;
+  protected _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
   // Symbol storage - unified approach
   public symbols: (GridSymbol | Sprite | null)[][] = [];
@@ -390,6 +392,14 @@ export abstract class SpinContainer extends Container {
 
   public getIsSpinning(): boolean {
     return this.isSpinning;
+  }
+
+  public get spinMode(): SpinMode {
+    return this._spinMode;
+  }
+
+  public set spinMode(mode: SpinMode) {
+    this._spinMode = mode;
   }
 
   // Cleanup

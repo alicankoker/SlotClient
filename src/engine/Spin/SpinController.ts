@@ -220,7 +220,7 @@ export abstract class SpinController {
       this._autoPlayCount -= 1;
       this._autoPlayed += 1;
 
-    eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
+      eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
       if (this._autoPlayCount <= 0) {
         const staticContainer = this.reelsController.getStaticContainer();
@@ -486,6 +486,7 @@ export abstract class SpinController {
     if (this._spinMode === mode) return;
 
     this._spinMode = mode;
+    this.container.spinMode = mode;
     this.reelsController.setSpinMode(mode);
     this.reelsController.getReelsContainer().spinMode = mode;
 
@@ -606,6 +607,15 @@ export abstract class SpinController {
         "SpinController: Spin container does not support cascade processing"
       );
     }
+  }
+
+  public get spinMode(): SpinMode {
+    return this._spinMode;
+  }
+
+  public set spinMode(mode: SpinMode) {
+    this.setSpinMode(mode);
+    this.container.spinMode = mode;
   }
 
   // Cleanup

@@ -171,16 +171,27 @@ export interface IResponseData {
     playedRounds: number;
     extraRounds: number;
   };
+  bonus?: {
+    featureWin: number;
+    selectedIndex: number;
+    values: (number | string)[];
+    tier: number;
+  },
+  clientAction: string;
+  nextAction: string;
   reels: number[][];
-  status: number;
   totalWin: number;
+  winEventType: WinEventType;
   ws: {
     line: number;
     payout: number;
     positions: number[] | number[][];
     temp: any;
   }[];
+  _id: string;
 }
+
+export type WinEventType = 'bigWin' | 'superWin' | 'megaWin' | 'epicWin';
 
 // Game state types
 // export interface GameState {

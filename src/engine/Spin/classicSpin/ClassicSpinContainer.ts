@@ -19,7 +19,6 @@ export class ClassicSpinContainer extends SpinContainer {
     protected defaultSymbolYPositions: number[] = [];
     protected isStopping: boolean = false;
     private reelsSpinStates: IReelSpinStateData[] = [];
-    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
     constructor(app: Application, config: SpinContainerConfig) {
         super(app, config);
@@ -85,6 +84,7 @@ export class ClassicSpinContainer extends SpinContainer {
     public async startSpin(spinData: IResponseData): Promise<void> {
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
             this.startReelSpin(i, spinData);
+            console.log(this._spinMode);
             const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
 
             await Utils.delay(delay);
@@ -224,14 +224,6 @@ export class ClassicSpinContainer extends SpinContainer {
         this.addChild(gridSymbol);
 
         return gridSymbol;
-    }
-
-    public get spinMode(): SpinMode {
-        return this._spinMode;
-    }
-
-    public set spinMode(mode: SpinMode) {
-        this._spinMode = mode;
     }
 
     public destroy(): void {
