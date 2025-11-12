@@ -134,7 +134,7 @@ export class ReelsContainer extends Container {
     this.frameElementsContainer = new Container();
     this.frameElementsContainer.label = 'FrameElementsContainer';
 
-    const { atlas, skeleton } = AssetsConfig.BONUS_SPINE_ASSET;
+    const { atlas, skeleton } = AssetsConfig.ENVIRONMENT_SPINE_ASSET;
 
     for (let cIndex = 0; cIndex < 6; cIndex++) {
       const floorChain = Spine.from({ atlas, skeleton });
@@ -157,7 +157,7 @@ export class ReelsContainer extends Container {
       this.floors.push(floor);
 
       for (let cIndex = 0; cIndex < 6; cIndex++) {
-        const hole = Sprite.from('chain_hole');
+        const hole = Sprite.from('floor_hole');
         hole.label = `ChainHole_${fIndex}`;
         hole.anchor.set(0.5, 0.5);
         hole.scale.set(1.1, 1);
@@ -373,7 +373,7 @@ export class ReelsContainer extends Container {
     const frameTexture = enabled ? 'freespin_frame' : 'base_frame';
     this._reelFrame.texture = Texture.from(frameTexture);
 
-    const lanternAnimationName = enabled ? 'FS_Lanthern' : 'Base_Lanthern';
+    const lanternAnimationName = enabled ? 'Free_Lanthern' : 'Base_Lanthern';
     const leftTrack = this._leftLantern.state.setAnimation(0, lanternAnimationName, true);
     leftTrack.trackTime = Math.random() * leftTrack.animationEnd;
     const rightTrack = this._rightLantern.state.setAnimation(0, lanternAnimationName, true);
@@ -443,7 +443,6 @@ export class ReelsContainer extends Container {
     this.chains.forEach(async (chain, index) => {
       if (isStart) {
         if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
-          console.log("Starting chain animation in NORMAL mode");
           await Helpers.delay(GameConfig.REFERENCE_REEL_DELAY * (index % 6));
         } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
           await Helpers.delay(0);

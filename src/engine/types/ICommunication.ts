@@ -104,25 +104,16 @@ export interface SpinResponseData {
   result?: SpinResultData;
 }
 
-export interface ISpinPayload {
-  action: "spin";
+export interface IPayload {
+  action: "spin" | "freeSpin" | "bonus";
   data: {
-    lines: number;
-    betIndex: number;
+    lines?: number;
+    betIndex?: number;
     freespin?: boolean;
+    bonus?: boolean;
+    roundId?: string;
   };
 }
-
-export interface IFreeSpinPayload {
-  action: "freeSpin";
-  data: {
-    lines: number;
-    betIndex: number;
-    roundId: string;
-  }
-}
-
-export type IPayload = ISpinPayload | IFreeSpinPayload;
 
 export interface IData {
   balance: number;
@@ -143,6 +134,8 @@ export interface IHistory {
     playedRounds: number;
     extraRounds: number;
   };
+  clientAction: string;
+  nextAction: string;
   lines: number;
   reels: number[][];
   status: number;
@@ -172,11 +165,9 @@ export interface IResponseData {
     extraRounds: number;
   };
   bonus?: {
-    featureWin: number;
-    selectedIndex: number;
-    values: (number | string)[];
-    tier: number;
-  },
+    history: IBonusData[];
+    positions: number[][];
+  };
   clientAction: string;
   nextAction: string;
   reels: number[][];
@@ -191,7 +182,14 @@ export interface IResponseData {
   _id: string;
 }
 
-export type WinEventType = 'bigWin' | 'superWin' | 'megaWin' | 'epicWin';
+export interface IBonusData {
+  featureWin: number;
+  selectedIndex: number;
+  values: (number | 'GATE')[];
+  tier: number;
+}
+
+export type WinEventType = 'normal' | 'big' | 'super' | 'mega' | 'epic';
 
 // Game state types
 // export interface GameState {

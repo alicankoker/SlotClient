@@ -55,7 +55,7 @@ export class ClassicSpinController extends SpinController {
       });
 
       // Simulate server request (replace with actual server call)
-      const response: IResponseData = GameDataManager.getInstance().getSpinData();
+      const response: IResponseData = GameDataManager.getInstance().getResponseData();
 
       if (!response) {
         this.handleError(response || "Unknown server error");
@@ -214,7 +214,7 @@ export class ClassicSpinController extends SpinController {
 
     // Set up the auto play timeout
     this._autoPlayTimeoutID = setTimeout(async () => {
-      const response = await GameServer.getInstance().processRequest();
+      const response = await GameServer.getInstance().processRequest("spin");
 
       this.executeSpin(); // Replace with actual bet amount
 

@@ -36,7 +36,7 @@ export class CascadeSpinController extends SpinController {
             }
 
             // Simulate server request (replace with actual server call)
-            const response = GameDataManager.getInstance().getSpinData();
+            const response = GameDataManager.getInstance().getResponseData();
 
             if (!response) {
                 this.handleError('Unknown server error');

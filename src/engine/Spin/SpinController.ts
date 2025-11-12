@@ -63,7 +63,7 @@ export abstract class SpinController {
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
-    this._winEvent = WinEvent.getInstance();
+    this._winEvent = AnimationContainer.getInstance().getWinEvent();
   }
 
   // Main spin orchestration methods
@@ -87,7 +87,7 @@ export abstract class SpinController {
       }
 
       // Simulate server request (replace with actual server call)
-      const response = GameDataManager.getInstance().getSpinData();
+      const response = GameDataManager.getInstance().getResponseData();
 
       if (!response) {
         this.handleError("Unknown server error");

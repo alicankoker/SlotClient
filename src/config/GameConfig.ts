@@ -224,6 +224,7 @@ export class GameConfig {
         fontWeight: "bolder",
         align: 'center',
         trim: true,
+        padding: 40
     });
 
     public static readonly style_2: TextStyle = new TextStyle({
@@ -255,6 +256,7 @@ export class GameConfig {
         },
         align: 'center',
         trim: true,
+        padding: 40
     });
 
     public static readonly style_3: TextStyle = new TextStyle({
@@ -264,6 +266,7 @@ export class GameConfig {
         fontWeight: "bolder",
         align: 'center',
         trim: true,
+        padding: 40
     });
 
     public static readonly style_4: TextStyle = new TextStyle({
@@ -297,6 +300,7 @@ export class GameConfig {
         },
         align: 'center',
         trim: true,
+        padding: 40
     });
 
     public static readonly style_5: TextStyle = new TextStyle({
@@ -308,17 +312,13 @@ export class GameConfig {
                 },
                 {
                     offset: 0.9,
-                    color: 0x4e0f52
-                },
-                {
-                    offset: 1.0,
-                    color: 0xf8616c
+                    color: 0xffffff
                 }
             ]
         }),
         dropShadow: {
             angle: 1.9,
-            color: 0x510c59,
+            color: 0x000000,
             blur: 24,
             distance: 4
         },
@@ -332,5 +332,6 @@ export class GameConfig {
         },
         align: 'center',
         trim: true,
+        padding: 40
     });
 }

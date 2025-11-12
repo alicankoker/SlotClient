@@ -44,7 +44,7 @@ export class Symbol extends Sprite {
 
     const extension = '.png'
 
-    const spritesheet = Assets.cache.get("symbols");
+    const spritesheet = Assets.cache.get("icons");
 
     if (!spritesheet) {
       debug.error("Symbol.getTextureForSymbol: Spritesheet not found in cache!");

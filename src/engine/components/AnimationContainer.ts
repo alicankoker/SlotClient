@@ -27,6 +27,7 @@ export class AnimationContainer extends Container {
     private _popupFreeSpinsText!: Text;
     private _popupCountText!: Text;
     private _transition!: Spine;
+    private _buyFreeSpinContainer!: Container;
     private _buyFreeSpinButton!: Sprite;
     private _totalWinAmount: number = 0;
 
@@ -56,6 +57,10 @@ export class AnimationContainer extends Container {
         this._winText.visible = false;
         this.addChildAt(this._winText, this.children.length);
 
+        this._buyFreeSpinContainer = new Container();
+        this._buyFreeSpinContainer.label = 'BuyFreeSpinContainer';
+        this.addChild(this._buyFreeSpinContainer);
+
         this._buyFreeSpinButton = Sprite.from('freespin_logo');
         this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
         this._buyFreeSpinButton.anchor.set(0.5, 0.5);
@@ -63,7 +68,7 @@ export class AnimationContainer extends Container {
         this._buyFreeSpinButton.position.set(1570, 50);
         this._buyFreeSpinButton.interactive = true;
         this._buyFreeSpinButton.cursor = 'pointer';
-        this.addChild(this._buyFreeSpinButton);
+        this._buyFreeSpinContainer.addChild(this._buyFreeSpinButton);
 
         const activatedText = new Text({ text: 'FREE SPIN DEACTIVATED', style: GameConfig.style.clone() });
         activatedText.label = 'FreeSpinActivatedText';
@@ -71,7 +76,7 @@ export class AnimationContainer extends Container {
         activatedText.position.set(1570, 90);
         activatedText.style.fontSize = 16;
         activatedText.alpha = 0;
-        this.addChild(activatedText);
+        this._buyFreeSpinContainer.addChild(activatedText);
 
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
@@ -80,7 +85,7 @@ export class AnimationContainer extends Container {
         this._dimmer.closePath();
         this._dimmer.pivot.set(this._dimmer.width / 2, this._dimmer.height / 2);
         this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._dimmer.scale.set(3, 3);
+        this._dimmer.scale.set(4, 4);
         this._dimmer.visible = false;
         this._dimmer.alpha = 0;
         this.addChild(this._dimmer);
@@ -414,6 +419,11 @@ export class AnimationContainer extends Container {
         });
     }
 
+    public setBonusMode(isActive: boolean): void {
+        this._winLines.visible = !isActive;
+        this._buyFreeSpinContainer.visible = !isActive;
+    }
+
     private onResize(responsiveConfig: ResponsiveConfig): void {
         switch (responsiveConfig.orientation) {
             case GameConfig.ORIENTATION.landscape:
@@ -453,7 +463,7 @@ export class AnimationContainer extends Container {
         return this._popupFreeSpinsText;
     }
 
-    public getBuyFreeSpinButton(): Sprite {
-        return this._buyFreeSpinButton;
+    public getBuyFreeSpinContainer(): Container {
+        return this._buyFreeSpinContainer;
     }
 }

@@ -33,6 +33,7 @@ export class StaticContainer extends Container {
     private _isSkipped: boolean = false;
     private _allowLoop: boolean = GameConfig.WIN_ANIMATION.winLoop ?? true;
     private _isFreeSpinMode: boolean = false;
+    private _isBonusMode: boolean = false;
     private _animationToken: number = 0;
     private _initialGrid: number[][];
     private _pendingResolvers: (() => void)[] = [];
@@ -153,7 +154,7 @@ export class StaticContainer extends Container {
             eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
         }
 
-        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false) {
+        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
             this.playLoopAnimations(winDatas, token);
         }
     }
@@ -263,7 +264,7 @@ export class StaticContainer extends Container {
         this._isLooping = true;
         this._isSkipped = false;
 
-        while (this._isLooping && this._animationToken === token && this._isFreeSpinMode === false) {
+        while (this._isLooping && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
             await this.playWinAnimations(winDatas, token);
             await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
         }
@@ -344,6 +345,35 @@ export class StaticContainer extends Container {
                 symbol.setIdle();
             });
         });
+    }
+
+    public async playHighlightSymbols(positions: number[] | number[][]): Promise<void> {
+        this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.setBlackout()));
+
+        const symbolGroups: number[][] = Array.isArray(positions[0])
+            ? (positions as number[][])
+            : (positions as unknown as number[]).map((id) => [id]);
+
+        await Promise.all(symbolGroups.map(async (symbolIds, reelIndex) => {
+            return Promise.all(
+                symbolIds.map(async (symbolId) => {
+                    if (symbolId === -1) return;
+
+                    const symbol = this._symbols.get(reelIndex)?.[symbolId];
+                    if (!symbol) return;
+
+                    symbol.clearBlackout();
+
+                    await new Promise<void>((resolve) => {
+                        symbol.setWinAnimation(false, () => resolve());
+                    });
+
+                    symbol.setIdle();
+                })
+            );
+        }));
+
+        this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.clearBlackout()));
     }
 
     // Public symbol management methods
@@ -558,6 +588,14 @@ export class StaticContainer extends Container {
 
     public set isFreeSpinMode(value: boolean) {
         this._isFreeSpinMode = value;
+    }
+
+    public get isBonusMode(): boolean {
+        return this._isBonusMode;
+    }
+
+    public set isBonusMode(value: boolean) {
+        this._isBonusMode = value;
     }
 
     public destroy(): void {

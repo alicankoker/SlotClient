@@ -21,6 +21,7 @@ import { AnimationContainer } from "./engine/components/AnimationContainer";
 import { FeatureScreen } from "./engine/components/FeatureScreen";
 import { SocketConnection } from "./communication/Connection/SocketConnection";
 import { WinLines } from "./engine/components/WinLines";
+import { Bonus } from "./engine/components/Bonus";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -84,11 +85,6 @@ export class DoodleV8Main {
       this.setupControllersCallbacks();
       // Step 5: Create scene/sprites
       this.createScene();
-
-      // const bonusScene = Bonus.getInstance();
-      // this.app.stage.addChild(bonusScene);
-
-      // localStorage.getItem('featureScreenDontShow') === 'true' && eventBus.emit("showUI");
 
       // Step 6: Start game systems (controllers handle the game loop)
 
@@ -336,7 +332,17 @@ export class DoodleV8Main {
 
     // Add the reels container to the stage
     //this.app.stage.addChild(this.slotGameController!.reelsController.getReelsContainer());
+
     this.slotGameController!.initialize();
+
+    const bonusScene = Bonus.getInstance(this.app);
+    bonusScene.visible = GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus";
+    this.app.stage.addChild(bonusScene);
+
+    const animationContainer = AnimationContainer.getInstance();
+    this.app.stage.addChild(animationContainer);
+    animationContainer.getWinLines().visible = GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus";
+    animationContainer.getBuyFreeSpinContainer().visible = GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus";
 
     this.winEvent = AnimationContainer.getInstance().getWinEvent();
 
@@ -346,7 +352,7 @@ export class DoodleV8Main {
     // Set initial mode to static
     this.slotGameController!.reelsController!.setMode(ISpinState.IDLE);
 
-    eventBus.emit("showUI");
+    GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus" && eventBus.emit("showUI");
     eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
 
     const response = GameDataManager.getInstance().getInitialData();

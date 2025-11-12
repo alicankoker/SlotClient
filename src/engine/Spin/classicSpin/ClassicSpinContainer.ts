@@ -89,7 +89,6 @@ export class ClassicSpinContainer extends SpinContainer {
     public async startSpin(spinData: IResponseData): Promise<void> {
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
             this.startReelSpin(i, spinData);
-            console.log(this._spinMode);
             const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
 
             await Utils.delay(delay);

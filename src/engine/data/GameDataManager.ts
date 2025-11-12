@@ -81,7 +81,7 @@ export class GameDataManager {
         return this.gameState.initialData?.history.reels;
     }
 
-    public setSpinData(response: any): void {
+    public setResponseData(response: any): void {
         if (response) {
             this.gameState.initialData = undefined; // Clear initial data after first spin
 
@@ -105,17 +105,21 @@ export class GameDataManager {
                 this.gameState.symbolsBeforeSpin = symbolsBefore;
             }
 
-            this.gameState.lastResponseData = response.data as IResponseData;
-            this.gameState.currentResponseData = response.data as IResponseData;
+            this.gameState.lastResponseData = response as IResponseData;
+            this.gameState.currentResponseData = response as IResponseData;
         }
     }
 
-    public getSpinData(): IResponseData {
+    public getResponseData(): IResponseData {
         return this.gameState.lastResponseData as IResponseData;
     }
 
     public checkFreeSpins(): boolean {
         return this.gameState.lastResponseData?.freeSpin !== undefined;
+    }
+
+    public checkBonus(): boolean {
+        return this.gameState.lastResponseData?.bonus !== undefined;
     }
 
     public get freeSpinActive(): boolean {

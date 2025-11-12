@@ -1,4 +1,4 @@
-import { Sprite } from "pixi.js";
+import { Application, Container, Sprite, Text, Texture } from "pixi.js";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameConfig } from "../../config/GameConfig";
 import { AssetsConfig } from "../../config/AssetsConfig";
@@ -6,37 +6,80 @@ import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { BonusController } from "../bonus/BonusController";
 import { BonusContainer } from "../bonus/BonusContainer";
 import { debug } from "../utils/debug";
+import { IBonusData } from "../types/ICommunication";
+import { gsap } from "gsap";
+import { AnimationContainer } from "./AnimationContainer";
+import { GameDataManager } from "../data/GameDataManager";
+import { eventBus } from "../../communication/EventManagers/WindowEventManager";
+import { Helpers } from "../utils/Helpers";
+
+const SELECT_TEXT: string = "PLEASE SELECT";
+const PRESS_TEXT: string = "PRESS ANYWHERE";
+const CONTINUE_TEXT: string = "CONTINUE TO STAGE ";
+const COLLECT_TEXT: string = "CLICK TO COLLECT";
+
+const BonusElementsPositions = [
+    { x: 575, y: 365 },
+    { x: 935, y: 520 },
+    { x: 1310, y: 475 },
+    { x: 700, y: 45 },
+    { x: 1000, y: 250 },
+    { x: 1300, y: 110 }
+];
 
 export class Bonus extends BonusContainer {
     private static _instance: Bonus;
+    private _app: Application;
     private _controller: BonusController<Bonus>;
+    private _dynamiteContainer!: Container;
+    private _rewardContainer!: Container;
 
     private _background!: Sprite;
     private _sign!: Spine;
-    private _leftLantern!: Spine;
-    private _rightLantern!: Spine;
     private _dynamites!: Spine[];
     private _trigger!: Spine;
+    private _cable!: Sprite;
+    private _infoText1!: Text;
+    private _infoText2!: Text;
+    private _rewards: (Sprite | Text)[] = [];
+    private _selectedItemIndex: number = -1;
+    private _selectedRewardIndex: number = -1;
+    private _isLandcape: boolean = true;
+    private _zIndexCounter: number = 0;
+    private _bonusStage: number = 1;
 
-    private constructor() {
+    private onBonusCompleteCallback?: () => void;
+
+    private constructor(app: Application) {
         super();
+
+        this._app = app;
 
         this._controller = this.createController();
 
-        this.createScene();
-        this.eventListeners();
+        this.setupBonusElements();
+
+        this.visible = false;
     }
 
-    public static getInstance(): Bonus {
+    public static getInstance(app: Application): Bonus {
         if (!this._instance) {
-            this._instance = new Bonus();
+            this._instance = new Bonus(app);
         }
+        return this._instance;
+    }
+
+    public static instance(): Bonus {
         return this._instance;
     }
 
     private createController(): BonusController<Bonus> {
         return new (class extends BonusController<Bonus> {
-            public onDataReceived(data: any): void {
+            public async sendBonusAction(): Promise<IBonusData> {
+                return super.sendBonusAction();
+            }
+
+            public onDataReceived(data: IBonusData): void {
                 this.view.handleDataReceived(data);
                 super.onDataReceived(data);
             }
@@ -51,6 +94,11 @@ export class Bonus extends BonusContainer {
         })(this);
     }
 
+    protected setupBonusElements(): void {
+        this.createScene();
+        this.eventListeners();
+    }
+
     private createScene(): void {
         this._background = Sprite.from('bonus_background');
         this._background.label = 'BonusBackground';
@@ -58,19 +106,22 @@ export class Bonus extends BonusContainer {
         this._background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(this._background);
 
+        this._cable = Sprite.from('tnt_cable_landscape');
+        this._cable.label = 'TntCableLandscape';
+        this._cable.anchor.set(0.5);
+        this._cable.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this.addChild(this._cable);
+
+        this._dynamiteContainer = new Container();
+        this._dynamiteContainer.label = 'DynamiteContainer';
+        this._dynamiteContainer.sortableChildren = true;
+        this.addChild(this._dynamiteContainer);
+
+        this._rewardContainer = new Container();
+        this._rewardContainer.label = 'RewardContainer';
+        this.addChild(this._rewardContainer);
+
         const { atlas, skeleton } = AssetsConfig.BONUS_SPINE_ASSET;
-
-        this._leftLantern = Spine.from({ atlas, skeleton });
-        this._leftLantern.label = 'BonusLeftLantern';
-        this._leftLantern.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._leftLantern.state.setAnimation(0, 'Base_Lanthern_Left', true);
-        this.addChild(this._leftLantern);
-
-        this._rightLantern = Spine.from({ atlas, skeleton });
-        this._rightLantern.label = 'BonusRightLantern';
-        this._rightLantern.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._rightLantern.state.setAnimation(0, 'Base_Lanthern_Right', true);
-        this.addChild(this._rightLantern);
 
         this._dynamites = [];
         for (let index = 0; index < 6; index++) {
@@ -79,9 +130,11 @@ export class Bonus extends BonusContainer {
             this._dynamites[index].position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
             this._dynamites[index].interactive = true;
             this._dynamites[index].cursor = 'pointer';
-            this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_idle`, true);
-            this.addChild(this._dynamites[index]);
+            this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_selected`, true);
+            this._dynamiteContainer.addChild(this._dynamites[index]);
         }
+
+        this._zIndexCounter = this._dynamiteContainer.children.length;
 
         this._trigger = Spine.from({ atlas, skeleton });
         this._trigger.label = 'BonusTrigger';
@@ -93,39 +146,226 @@ export class Bonus extends BonusContainer {
         this._sign.label = 'BonusSign';
         this._sign.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 - 100);
         this._sign.state.setAnimation(0, 'Horizontal_Bonus_Sign', true);
+        this._sign.state.data.defaultMix = 0.2;
         this.addChild(this._sign);
+
+        this._infoText1 = new Text({
+            text: '',
+            style: GameConfig.style_5.clone(),
+        });
+        this._infoText1.label = `WinningAmountText`;
+        this._infoText1.anchor.set(0.5, 0.5);
+        this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+        this._infoText1.visible = false;
+        this._infoText1.style.fontSize = 50;
+        this.addChild(this._infoText1);
+
+        this._infoText2 = new Text({
+            text: SELECT_TEXT,
+            style: GameConfig.style_5,
+        });
+        this._infoText2.label = `InfoText`;
+        this._infoText2.anchor.set(0.5, 0.5);
+        this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
+        this.addChild(this._infoText2);
     }
 
     private eventListeners(): void {
         for (let index = 0; index < this._dynamites.length; index++) {
             this._dynamites[index].on('pointerenter', () => {
-                this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_selected`, true);
+                this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Tnt_${index + 1}_idle` : `Vertical_Tnt_${index + 1}_idle`, true);
             });
             this._dynamites[index].on('pointerout', () => {
-                this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_idle`, true);
+                this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Tnt_${index + 1}_selected` : `Vertical_Tnt_${index + 1}_selected`, true);
             });
-            this._dynamites[index].on('pointertap', () => {
+            this._dynamites[index].on('pointertap', async () => {
                 // Disable interactions after selection
-                this._dynamites[index].off('pointerenter');
-                this._dynamites[index].off('pointerout');
-                this._dynamites[index].off('pointertap');
+                this._dynamiteContainer.interactiveChildren = false;
                 this._dynamites[index].interactive = false;
                 this._dynamites[index].cursor = 'default';
 
-                this._dynamites[index].state.setAnimation(0, `Horizontal_Bonus_${index + 1}`, false);
+                const response = await this._controller.sendBonusAction();
 
-                const listener = {
-                    complete: async (entry: any) => {
-                        if (entry.animation.name === `Horizontal_Bonus_${index + 1}`) {
-                            await this._controller.sendBonusData({ action: 'selectBonus', historyId: index })
-                            // listener cleanup
-                            this._dynamites[index].state.removeListener(listener);
-                        }
+                // TODO: test response for undefined multiplier value
+                // const response = {
+                //     featureWin: 500,
+                //     selectedIndex: 0,
+                //     tier: 3,
+                //     values: ["GATE", 5, 10, 15, 20, 25] as (number | "GATE")[]
+                // }
+
+                //this._controller.data = response;
+
+                //console.log(response);
+
+                this._selectedItemIndex = index;
+
+                //console.log("Selected Dynamite Index:", this._selectedItemIndex);
+
+                this._selectedRewardIndex = response.selectedIndex;
+
+                //console.log("Selected Reward Index from Response:", this._selectedRewardIndex);
+
+                const value = response.values[response.selectedIndex];
+
+                //console.log("Selected Value:", value);
+
+                const selectedType = typeof value === 'number' ? 'multiplier' : 'key';
+
+                //console.log("Selected Type:", selectedType);
+
+                this.layoutRewards(index, this._bonusStage, selectedType);
+
+                if (response.tier > this._bonusStage) {
+                    this._bonusStage = response.tier;
+                }
+
+                //console.log("Current Bonus Stage:", this._bonusStage);
+
+                let reward: Sprite | Text = this._rewards[index];
+
+                //console.log("Selected Reward Object:", reward);
+
+                this._zIndexCounter++;
+                this._dynamites[index].zIndex = this._zIndexCounter;
+                this._dynamiteContainer.sortChildren();
+
+                this._trigger.state.setAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Tnt1' : 'Vertical_Bonus_Tnt1', false);
+                this._trigger.state.addAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Tnt2' : 'Vertical_Bonus_Tnt2', false, 1.5);
+                this._sign.state.setAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Sign' : 'Vertical_Bonus_Sign', false);
+                this._sign.state.addAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Sign_Explode' : 'Vertical_Bonus_Sign_Explode', false, 1.5);
+                this._sign.state.addAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Sign' : 'Vertical_Bonus_Sign', true, 2.4);
+                this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Bonus_${index + 1}` : `Vertical_Bonus_${index + 1}`, false);
+
+                gsap.fromTo(reward, { alpha: 0 }, {
+                    alpha: 1, duration: 0.25, delay: 2, onStart: () => {
+                        reward.visible = true;
                     }
-                };
+                });
 
-                this._dynamites[index].state.addListener(listener);
+                setTimeout(() => {
+                    this._dynamites.forEach((element, index) => {
+                        if (index !== this._selectedItemIndex) {
+                            element.state.setAnimation(0, this._isLandcape ? `Horizontal_Bonus_${index + 1}` : `Vertical_Bonus_${index + 1}`, false);
+
+                            gsap.fromTo(this._rewards[index], { alpha: 0 }, {
+                                alpha: 1, duration: 0.25, delay: 2, onStart: () => {
+                                    this._rewards[index].visible = true;
+                                },
+                                onComplete: () => {
+                                    this._infoText1.visible = true;
+                                    this._infoText1.text = PRESS_TEXT;
+                                    this._infoText2.text = CONTINUE_TEXT + this._bonusStage;
+
+                                    this.afterSelect();
+                                }
+                            });
+                        }
+                    });
+                }, 4000);
             });
+        }
+    }
+
+    private shuffleArray<T>(array: T[]): void {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    private layoutRewards(selectedIndex: number, stage: number, selectedType: 'key' | 'multiplier'): void {
+        const total = this._dynamites.length;
+
+        let keyCount = stage === 1 ? 2 : (stage === 2 ? 1 : 0);
+        let multiplierCount = total - keyCount;
+
+        if (selectedType === 'multiplier') {
+            multiplierCount -= 1;
+        } else if (selectedType === 'key') {
+            keyCount -= 1;
+        }
+
+        //console.log("Key Count:", keyCount, "Multiplier Count:", multiplierCount);
+
+        this._rewards = [];
+
+        for (let index = 0; index < keyCount; index++) {
+            const key = Sprite.from("golden_key");
+            key.label = `Key_Stage1_${index}`;
+            key.anchor.set(0.5, 0.5);
+            key.scale.set(0.2, 0.2);
+            key.visible = false;
+            this._rewardContainer.addChild(key);
+            this._rewards.push(key);
+        }
+
+        for (let index = 0; index < multiplierCount; index++) {
+            const multiplierText = new Text({
+                text: ``,
+                style: GameConfig.style,
+            });
+            multiplierText.label = `MultiplierText_Stage1_${index}`;
+            multiplierText.anchor.set(0.5, 0.5);
+            multiplierText.visible = false;
+            this._rewardContainer.addChild(multiplierText);
+            this._rewards.push(multiplierText);
+        }
+
+        let selectedReward: Sprite | Text;
+        if (selectedType === 'key') {
+            selectedReward = Sprite.from("golden_key");
+            selectedReward.label = `SelectedKey_${stage}`;
+            selectedReward.scale.set(0.2);
+        } else {
+            selectedReward = new Text({
+                text: `X`,
+                style: GameConfig.style,
+            });
+            selectedReward.label = `SelectedMultiplier_${stage}`;
+        }
+        selectedReward.anchor.set(0.5);
+        selectedReward.visible = false;
+        this._rewardContainer.addChild(selectedReward);
+
+        const others = this._rewards;
+        this.shuffleArray(others);
+
+        const shuffled: (Sprite | Text)[] = [];
+        for (let i = 0; i < total; i++) {
+            shuffled.push(i === selectedIndex ? selectedReward : others.shift()!);
+        }
+
+        for (let i = 0; i < shuffled.length; i++) {
+            shuffled[i].position.set(
+                BonusElementsPositions[i].x,
+                BonusElementsPositions[i].y
+            );
+        }
+
+        //console.log("Shuffled Rewards Layout:", shuffled);
+
+        this._rewards = shuffled;
+
+        const multipliers = this._controller.data.values.filter(value => typeof value === 'number') as number[];
+        //console.log("Available Multipliers:", multipliers);
+        const selectedMultiplier = this._controller.data.values[this._selectedRewardIndex] as number;
+        //console.log("Selected Multiplier:", selectedMultiplier);
+        const otherMultipliers = multipliers.filter(mul => mul !== selectedMultiplier);
+        //console.log("Other Multipliers:", otherMultipliers);
+
+        //console.log("Other Multipliers:", otherMultipliers);
+
+        for (let index = 0; index < this._rewards.length; index++) {
+            if (this._rewards[index] instanceof Text) {
+                if (index === selectedIndex) {
+                    (this._rewards[index] as Text).text = `X${selectedMultiplier}`;
+                } else {
+                    const randomIndex = Math.floor(Math.random() * otherMultipliers.length);
+                    const multiplier = otherMultipliers.splice(randomIndex, 1)[0];
+                    (this._rewards[index] as Text).text = `X${multiplier}`;
+                }
+            }
         }
     }
 
@@ -133,48 +373,101 @@ export class Bonus extends BonusContainer {
         // Logic before selecting a bonus (e.g., setup animation)
     }
 
-    protected onBonusSelected(): void {
-    }
-
     protected afterSelect(): void {
         // Logic after a bonus is selected (e.g., transition out)
+        if (GameDataManager.getInstance().getResponseData().nextAction !== "bonus") {
+            this.onBonusCompleted();
+        } else {
+            this._app.canvas.onclick = async () => {
+                await AnimationContainer.getInstance().startTransitionAnimation(() => {
+                    this.resetScene();
+                    this._app.canvas.onclick = null;
+                });
+            }
+        }
     }
 
     protected resetScene(): void {
         // Logic to reset the bonus state and animations
+        this._selectedItemIndex = -1;
+        this._selectedRewardIndex = -1;
+        this._dynamiteContainer.interactiveChildren = true;
+        this._zIndexCounter = this._dynamiteContainer.children.length;
+
+        this._infoText1.visible = false;
+        this._infoText1.text = "";
+        this._infoText2.text = SELECT_TEXT;
+
+        this._rewards.forEach(reward => {
+            this._rewardContainer.removeChild(reward);
+        });
 
         for (let index = 0; index < this._dynamites.length; index++) {
-            this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_idle`, true);
+            this._dynamites[index].zIndex = index;
+            this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Tnt_${index + 1}_selected` : `Vertical_Tnt_${index + 1}_selected`, true);
+            this._dynamites[index].interactive = true;
+            this._dynamites[index].cursor = 'pointer';
         }
     }
 
     protected onBonusCompleted(): void {
         // Logic when bonus is completed visually
+        this._infoText1.visible = false;
+        this._infoText2.text = COLLECT_TEXT;
+        this._infoText2.visible = true;
+
+        this._app.canvas.onclick = async () => {
+            this._infoText2.visible = false;
+            this._app.canvas.onclick = null;
+            AnimationContainer.getInstance().getPopupCountText().text = `$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string;
+            AnimationContainer.getInstance().getPopupFreeSpinsText().text = ``;
+            await AnimationContainer.getInstance().playFreeSpinPopupAnimation();
+            await AnimationContainer.getInstance().startTransitionAnimation(() => {
+                this.resetScene();
+                this.visible = false;
+
+                if (this.onBonusCompleteCallback) {
+                    this.onBonusCompleteCallback();
+                }
+            });
+        }
+    }
+
+    public setOnBonusCompleteCallback(callback: () => void): void {
+        this.onBonusCompleteCallback = callback;
     }
 
     protected onResize(config?: ResponsiveConfig): void {
-        // switch (config?.orientation) {
-        //     case 'landscape':
-        //         for (let index = 0; index < this.dynamites.length; index++) {
-        //             this.dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_idle`, true);
-        //         }
+        switch (config?.orientation) {
+            case 'landscape':
+                this._isLandcape = true;
+                this.position.y = 280;
 
-        //         this.trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
-        //         this.sign.state.setAnimation(0, 'Horizontal_Bonus_Sign', true);
-        //         break;
-        //     case 'portrait':
-        //         for (let index = 0; index < this.dynamites.length; index++) {
-        //             this.dynamites[index].state.setAnimation(0, `Vertical_Tnt_${index + 1}_idle`, true);
-        //         }
+                this._cable.texture = Texture.from('tnt_cable_landscape');
+                this._cable.position.set(685, 640);
+                this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
+                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 770);
+                break;
+            case 'portrait':
+                this._isLandcape = false;
+                this.position.y = 0;
 
-        //         this.trigger.state.setAnimation(0, 'Vertical_Bonus_Tnt1', false);
-        //         this.sign.state.setAnimation(0, 'Vertical_Bonus_Sign', true);
-        //         break;
-        // }
+                this._cable.texture = Texture.from('tnt_cable_portrait');
+                this._cable.position.set(1115, 1110);
+                this._trigger.state.setAnimation(0, 'Vertical_Bonus_Tnt1', false);
+                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1860);
+                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1950);
+                break;
+        }
     }
 
     //#region Controller Methods
-    private handleDataReceived(data: any): void {
+    private handleSendBonusAction(data: IBonusData): void {
+        debug.log("Bonus action sended:", data);
+    }
+
+    private handleDataReceived(data: IBonusData): void {
         debug.log("Bonus data:", data);
     }
 

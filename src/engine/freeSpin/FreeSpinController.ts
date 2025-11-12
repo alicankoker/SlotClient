@@ -71,7 +71,7 @@ export class FreeSpinController {
 
         await Helpers.delay(1000);
 
-        const response = await GameServer.getInstance().processRequest();
+        const response = await GameServer.getInstance().processRequest("freeSpin");
 
         this.totalWin = response.freeSpin?.featureWin + this.initialWin || 0;
 

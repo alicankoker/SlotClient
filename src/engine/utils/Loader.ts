@@ -19,7 +19,7 @@ export class Loader extends Container {
     private completionPromise: Promise<void>;
     private resolveCompletion!: () => void;
 
-    private frame!: Sprite;
+    private background!: Sprite;
     private fill!: Sprite;
     private fillMask!: Graphics;
     private percentageLabel!: Text;
@@ -50,10 +50,12 @@ export class Loader extends Container {
     public async create(): Promise<void> {
         const backgroundTexture = await Assets.load('base_background');
         const logoTexture = await Assets.load('base_logo');
-        const frameTexture = await Assets.load('loading_bar_stroke_back');
-        const frameGradient = await Assets.load('loading_bar_stroke_front');
-        const frameShadow = await Assets.load('loading_bar_shadow');
-        const fillTexture = await Assets.load('loading_bar_bg');
+
+        const fShadow = await Assets.load('loading_bar_shadow');
+        const fBackground = await Assets.load('loading_bar_bg');
+        const fStrokeBack = await Assets.load('loading_bar_stroke_back');
+        const fStrokeFront = await Assets.load('loading_bar_stroke_front');
+        const fFill = await Assets.load('loading_bar_fill');
 
         const backgroundContainer = Background.getInstance(backgroundTexture);
         this.app?.stage.addChildAt(backgroundContainer, 0);
@@ -61,37 +63,49 @@ export class Loader extends Container {
         const logo = Sprite.from(logoTexture);
         logo.label = "LoaderLogo";
         logo.anchor.set(0.5, 0.5);
-        logo.scale.set(0.5, 0.5);
-        logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) - 200);
+        logo.scale.set(0.6, 0.6);
+        logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) - 80);
         this.addChild(logo);
 
-        const shadow = Sprite.from(frameShadow);
+        const shadow = Sprite.from(fShadow);
         shadow.label = "LoaderShadow";
         shadow.anchor.set(0.5, 0.5);
         shadow.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         shadow.scale.set(0.805, 0.850);
+        shadow.tint = 0x000000;
         this.addChild(shadow);
 
-        this.frame = Sprite.from(frameTexture);
-        this.frame.label = "LoaderFrame";
-        this.frame.anchor.set(0.5, 0.5);
-        this.frame.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
-        this.frame.scale.set(0.8, 0.8);
-        this.addChild(this.frame);
+        this.background = Sprite.from(fBackground);
+        this.background.label = "LoaderFrame";
+        this.background.anchor.set(0.5, 0.5);
+        this.background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
+        this.background.scale.set(0.8, 0.8);
+        this.background.tint = 0x2a2c40;
+        this.addChild(this.background);
 
-        this.fill = Sprite.from(fillTexture);
+        const strokeBack = Sprite.from(fStrokeBack);
+        strokeBack.label = "LoaderGradient";
+        strokeBack.anchor.set(0.5, 0.5);
+        strokeBack.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
+        strokeBack.scale.set(0.8, 0.8);
+        strokeBack.tint = 0xfff0dc;
+        this.addChild(strokeBack);
+
+        const strokeFront = Sprite.from(fStrokeFront);
+        strokeFront.label = "LoaderStroke";
+        strokeFront.anchor.set(0.5, 0.5);
+        strokeFront.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
+        strokeFront.scale.set(0.8, 0.8);
+        strokeFront.tint = 0xffa200;
+        this.addChild(strokeFront);
+
+        this.fill = Sprite.from(fFill);
         this.fill.label = "LoaderFill";
         this.fill.anchor.set(1, 0.5);
-        this.fill.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2 - this.frame.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
+        this.fill.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2 - this.background.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         this.fill.scale.set(0.8, 0.8);
+        this.fill.tint = 0x1dd4df;
         this.addChild(this.fill);
-
-        const gradient = Sprite.from(frameGradient);
-        gradient.label = "LoaderGradient";
-        gradient.anchor.set(0.5, 0.5);
-        gradient.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
-        gradient.scale.set(0.8, 0.8);
-        this.addChild(gradient);
 
         this.fillMask = new Graphics();
         this.fillMask.label = "LoaderFillMask";
@@ -115,10 +129,15 @@ export class Loader extends Container {
                 trim: true,
                 dropShadow: {
                     color: '#000000',
-                    distance: 0,
+                    distance: 2,
                     blur: 7.5,
                     alpha: 1,
-                    angle: 0
+                    angle: Math.PI / 2
+                },
+                stroke:{
+                    color: '#000000',
+                    width: 1,
+                    alpha: 0.5
                 },
                 padding: 50
             },
@@ -137,17 +156,22 @@ export class Loader extends Container {
                 trim: true,
                 dropShadow: {
                     color: '#000000',
-                    distance: 0,
+                    distance: 2,
                     blur: 7.5,
                     alpha: 1,
-                    angle: 0
+                    angle: Math.PI / 2
+                },
+                stroke:{
+                    color: '#000000',
+                    width: 1,
+                    alpha: 0.5
                 },
                 padding: 50
             },
         });
         this.progressStatus.label = "LoaderProgressStatus";
         this.progressStatus.anchor.set(0.5, 0.5);
-        this.progressStatus.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
+        this.progressStatus.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 765);
         this.addChild(this.progressStatus);
 
         const bePatientText = new Text({
@@ -159,17 +183,22 @@ export class Loader extends Container {
                 trim: true,
                 dropShadow: {
                     color: '#000000',
-                    distance: 0,
+                    distance: 2,
                     blur: 7.5,
                     alpha: 1,
-                    angle: 0
+                    angle: Math.PI / 2
+                },
+                stroke:{
+                    color: '#000000',
+                    width: 1,
+                    alpha: 0.5
                 },
                 padding: 50
             },
         });
         bePatientText.label = "LoaderBePatientText";
         bePatientText.anchor.set(0.5, 0.5);
-        bePatientText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 930);
+        bePatientText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 915);
         this.addChild(bePatientText);
     }
 

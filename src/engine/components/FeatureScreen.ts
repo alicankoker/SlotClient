@@ -257,12 +257,11 @@ export class FeatureScreen extends FeatureScreenContainer {
             this._spinButtonContainer.off("pointerover");
             this._spinButtonContainer.off("pointerout");
             this._spinButtonContainer.off("pointerup");
-            this._spinButtonContainer.interactive = false;
+            this._spinButtonContainer.interactive = false;            
 
-            if (this._app.canvas.requestFullscreen == null) {
-                await this._app.canvas.requestFullscreen();
-            } else if ((this._app.canvas as any).webkitRequestFullscreen) {
-                await (this._app.canvas as any).webkitRequestFullscreen();
+            const element = document.documentElement;
+            if (!document.fullscreenElement && element.requestFullscreen) {
+                element.requestFullscreen();
             }
 
             this.closeFeatureScreen();

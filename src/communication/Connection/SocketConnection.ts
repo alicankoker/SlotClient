@@ -61,7 +61,7 @@ export class SocketConnection {
                 if (response.error) {
                     reject(response.error);
                 } else {
-                    resolve(response);
+                    resolve(response.data);
                 }
             });
         });

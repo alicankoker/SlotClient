@@ -68,7 +68,7 @@ export class WinLines extends WinLinesContainer {
         //     this.addChild(winLine);
         // }
 
-        const { atlas, skeleton } = AssetsConfig.LINES_SPINE_ASSET;
+        const { atlas, skeleton } = AssetsConfig.LINE_SPINE_ASSET;
 
         for (const key of Object.keys(GameRulesConfig.LINES)) {
             const line = Spine.from({ atlas, skeleton });

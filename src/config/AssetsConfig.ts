@@ -1,6 +1,5 @@
 import { Assets } from "pixi.js";
 import { BundleFile, SpineAsset, SpineAssetData, SpineData } from "../engine/types/IAssetLoader";
-import { debug } from "../engine/utils/debug";
 
 const PATH = document.body.dataset.path;
 
@@ -22,14 +21,14 @@ const RESOLUTIONS = [
 
 export class AssetsConfig {
   public static RES: string = "{{resolution}}";
-  public static SPRITESHEETS: BundleFile = {
+  public static readonly SPRITESHEETS: BundleFile = {
     bundles: [
       {
-        name: "symbols",
+        name: "icons",
         assets: [
           {
-            alias: ["symbols"],
-            src: `${PATHS.ROOT}/symbols/symbols.json`,
+            alias: ["icons"],
+            src: `${PATHS.ROOT}/spritesheets/icons/icons.json`,
           },
         ],
       },
@@ -43,7 +42,7 @@ export class AssetsConfig {
         assets: [
           {
             alias: 'base_background',
-            src: PATH + '/assets/base_background.jpg'
+            src: PATH + '/assets/images/base_background.jpg'
           },
           {
             alias: 'base_logo',
@@ -54,16 +53,20 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/loading_bar_bg.png'
           },
           {
+            alias: 'loading_bar_fill',
+            src: PATH + '/assets/raw/loading_bar_fill.png'
+          },
+          {
             alias: 'loading_bar_shadow',
             src: PATH + '/assets/raw/loading_bar_shadow.png'
           },
           {
             alias: 'loading_bar_stroke_front',
-            src: PATH + '/assets/raw/loading_bar_stroke_f.png'
+            src: PATH + '/assets/raw/loading_bar_stroke_front.png'
           },
           {
             alias: 'loading_bar_stroke_back',
-            src: PATH + '/assets/raw/loading_bar_stroke_b.png'
+            src: PATH + '/assets/raw/loading_bar_stroke_back.png'
           },
           {
             alias: "MikadoBlack",
@@ -76,12 +79,8 @@ export class AssetsConfig {
         ]
       },
       {
-        name: 'environment',
+        name: 'elements',
         assets: [
-          {
-            alias: 'chain_hole',
-            src: PATH + '/assets/raw/Chain_Hole.png'
-          },
           // #region Base Frame and UI Assets
           {
             alias: 'base_floor',
@@ -147,6 +146,10 @@ export class AssetsConfig {
           },
           // #endregion
           {
+            alias: 'floor_hole',
+            src: PATH + '/assets/raw/floor_hole.png'
+          },
+          {
             alias: 'bet_area',
             src: PATH + '/assets/raw/Bet_Amount_Area.png'
           },
@@ -199,118 +202,94 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/Volatility_Arrow.png'
           },
           {
-            alias: 'font_style',
-            src: PATH + '/assets/fonts/Font_Style_2.json'
-          },
-          {
             alias: 'line_mask',
             src: PATH + '/assets/raw/line_mask.png'
+          },
+          {
+            alias: 'tnt_cable_landscape',
+            src: PATH + '/assets/raw/tnt_cable_landscape.png'
+          },
+          {
+            alias: 'tnt_cable_portrait',
+            src: PATH + '/assets/raw/tnt_cable_portrait.png'
+          },
+          {
+            alias: 'golden_key',
+            src: PATH + '/assets/raw/golden_key.png'
           }
-
         ]
       },
       {
-        name: 'background',
+        name: 'backgrounds',
         assets: [
           {
             alias: ['base_background'],
-            src: PATH + '/assets/base_background.jpg'
+            src: PATH + '/assets/images/base_background.jpg'
           },
           {
             alias: ['freespin_background'],
-            src: PATH + '/assets/freespin_background.jpg'
+            src: PATH + '/assets/images/freespin_background.jpg'
           },
           {
             alias: ['bonus_background'],
-            src: PATH + '/assets/bonus_background.jpg'
+            src: PATH + '/assets/images/bonus_background.jpg'
           }
         ]
       }
     ]
   };
 
-  public static readonly SPINE_SYMBOLS: BundleFile = {
-    bundles: [
-      {
-        name: 'icons',
-        assets: [
-          {
-            alias: ['icons_atlas'],
-            src: PATH + '/assets/symbols/icons.atlas'
-          },
-          {
-            alias: ['icons_data'],
-            src: PATH + '/assets/symbols/icons.json'
-          }
-        ]
-      }
-    ]
-  }
-
   public static readonly ANIMATIONS: BundleFile = {
     bundles: [
+      {
+        name: 'symbols',
+        assets: [
+          {
+            alias: ['symbols_atlas'],
+            src: PATH + '/assets/animations/symbols/symbols.atlas'
+          },
+          {
+            alias: ['symbols_data'],
+            src: PATH + '/assets/animations/symbols/symbols.json'
+          }
+        ]
+      },
       {
         name: 'bonus',
         assets: [
           {
             alias: ['bonus_atlas'],
-            src: PATH + '/assets/animations/bonus.atlas'
+            src: PATH + '/assets/animations/bonus/bonus.atlas'
           },
           {
             alias: ['bonus_data'],
-            src: PATH + '/assets/animations/bonus.json'
+            src: PATH + '/assets/animations/bonus/bonus.json'
           }
         ]
       },
       {
-        name: 'elements',
+        name: 'environment',
         assets: [
           {
-            alias: ['elements_atlas'],
-            src: PATH + '/assets/animations/elements.atlas'
+            alias: ['environment_atlas'],
+            src: PATH + '/assets/animations/environment/environment.atlas'
           },
           {
-            alias: ['elements_data'],
-            src: PATH + '/assets/animations/elements.json'
+            alias: ['environment_data'],
+            src: PATH + '/assets/animations/environment/environment.json'
           }
         ]
       },
       {
-        name: 'freespin',
+        name: 'winevent',
         assets: [
           {
-            alias: ['freespin_atlas'],
-            src: PATH + '/assets/animations/freespin.atlas'
+            alias: ['winevent_atlas'],
+            src: PATH + '/assets/animations/winevent/winevent.atlas'
           },
           {
-            alias: ['freespin_data'],
-            src: PATH + '/assets/animations/freespin.json'
-          }
-        ]
-      },
-      {
-        name: 'wins',
-        assets: [
-          {
-            alias: ['wins_atlas'],
-            src: PATH + '/assets/animations/wins.atlas'
-          },
-          {
-            alias: ['wins_data'],
-            src: PATH + '/assets/animations/wins.json'
-          }
-        ]
-      },
-      {
-        name: 'chain',
-        assets: [
-          {
-            alias: ['chain_atlas'],
-            src: PATH + '/assets/animations/chain.atlas'
-          },
-          {
-            alias: ['chain_data'],
-            src: PATH + '/assets/animations/chain.json'
+            alias: ['winevent_data'],
+            src: PATH + '/assets/animations/winevent/winevent.json'
           }
         ]
       },
@@ -319,11 +298,11 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['lines_atlas'],
-            src: PATH + '/assets/animations/lines.atlas'
+            src: PATH + '/assets/animations/lines/lines.atlas'
           },
           {
             alias: ['lines_data'],
-            src: PATH + '/assets/animations/lines.json'
+            src: PATH + '/assets/animations/lines/lines.json'
           }
         ]
       },
@@ -332,11 +311,11 @@ export class AssetsConfig {
         assets: [
           {
             alias: ['transition_atlas'],
-            src: PATH + '/assets/animations/transition.atlas'
+            src: PATH + '/assets/animations/transition/transition.atlas'
           },
           {
             alias: ['transition_data'],
-            src: PATH + '/assets/animations/transition.json'
+            src: PATH + '/assets/animations/transition/transition.json'
           }
         ]
       }
@@ -398,25 +377,23 @@ export class AssetsConfig {
 
   // spine symbol indexes to asset name mapping
   public static readonly SYMBOL_SPINE_ASSET: SpineAssetData = {
-    atlas: "icons_atlas",
-    skeleton: "icons_data",
+    atlas: "symbols_atlas",
+    skeleton: "symbols_data",
   } as const;
 
-  public static readonly BONUS_SPINE_ASSET: SpineAssetData = { atlas: 'bonus_atlas', skeleton: 'bonus_data' } as const;
-
-  public static readonly ELEMENTS_SPINE_ASSET: SpineAssetData = {
-    atlas: "elements_atlas",
-    skeleton: "elements_data",
+  public static readonly BONUS_SPINE_ASSET: SpineAssetData = {
+    atlas: 'bonus_atlas',
+    skeleton: 'bonus_data'
   } as const;
 
-  public static readonly WINS_SPINE_ASSET: SpineAssetData = {
-    atlas: "wins_atlas",
-    skeleton: "wins_data",
+  public static readonly ENVIRONMENT_SPINE_ASSET: SpineAssetData = {
+    atlas: "environment_atlas",
+    skeleton: "environment_data",
   } as const;
 
-  public static readonly CHAIN_SPINE_ASSET: SpineAssetData = {
-    atlas: "chain_atlas",
-    skeleton: "chain_data",
+  public static readonly WINEVENT_SPINE_ASSET: SpineAssetData = {
+    atlas: "winevent_atlas",
+    skeleton: "winevent_data",
   } as const;
 
   public static readonly TRANSITION_SPINE_ASSET: SpineAssetData = {
@@ -424,7 +401,7 @@ export class AssetsConfig {
     skeleton: "transition_data",
   } as const;
 
-  public static readonly LINES_SPINE_ASSET: SpineAssetData = {
+  public static readonly LINE_SPINE_ASSET: SpineAssetData = {
     atlas: "lines_atlas",
     skeleton: "lines_data",
   } as const;
@@ -436,12 +413,13 @@ export class AssetsConfig {
       bundles: [
         ...this.SPRITESHEETS.bundles,
         ...this.IMAGES.bundles,
-        ...this.SPINE_SYMBOLS.bundles,
         ...this.ANIMATIONS.bundles,
         ...this.AUDIO.bundles,
         ...this.FONTS.bundles,
       ],
     };
+
+    console.log(allAssets);
 
     return allAssets;
   }
@@ -484,17 +462,17 @@ export class AssetsConfig {
       case "background":
         ({ atlas, skeleton } = this.BONUS_SPINE_ASSET);
         break;
-      case "elements":
-        ({ atlas, skeleton } = this.ELEMENTS_SPINE_ASSET);
+      case "environment":
+        ({ atlas, skeleton } = this.ENVIRONMENT_SPINE_ASSET);
         break;
-      case "wins":
-        ({ atlas, skeleton } = this.WINS_SPINE_ASSET);
+      case "winevent":
+        ({ atlas, skeleton } = this.WINEVENT_SPINE_ASSET);
         break;
       case "transition":
         ({ atlas, skeleton } = this.TRANSITION_SPINE_ASSET);
         break;
-      case "lines":
-        ({ atlas, skeleton } = this.LINES_SPINE_ASSET);
+      case "line":
+        ({ atlas, skeleton } = this.LINE_SPINE_ASSET);
         break;
       default:
         throw new Error(`Unknown spine asset type: ${asset}`);

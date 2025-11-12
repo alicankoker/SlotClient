@@ -19,6 +19,7 @@ import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinC
 import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
 import { Helpers } from '../../engine/utils/Helpers';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
+import { Bonus } from '../../engine/components/Bonus';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -88,7 +89,6 @@ export class SlotGameController {
         this.spinContainer.mask = this.reelsContainer.getMask();
         this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
-        this.app.stage.addChild(this.animationContainer);
 
         this.spinController = new ClassicSpinController(this.spinContainer as SpinContainer, {
             reelsController: this.reelsController
@@ -194,7 +194,7 @@ export class SlotGameController {
         //     forcedFS: GameDataManager.getInstance().freeSpinActive
         // });
 
-        const response = await this.gameServer.processRequest();
+        const response = await this.gameServer.processRequest("spin");
 
         console.warn("Spin ID:", response._id);
 
@@ -205,43 +205,61 @@ export class SlotGameController {
 
             if (response.freeSpin && GameDataManager.getInstance().checkFreeSpins() && response.freeSpin.playedRounds === 0) {
                 await this.startFreeSpinState(response.freeSpin.totalRounds, response.totalWin);
+            } else if (response.bonus && GameDataManager.getInstance().checkBonus()) {
+                await this.startBonusState();
             }
         }
     }
 
     public async startFreeSpinState(initialFreeSpinCount: number, initialWin: number): Promise<void> {
-            this.freeSpinController.isRunning = true;
-            this.staticContainer.allowLoop = false;
-            this.staticContainer.isFreeSpinMode = true;
+        this.freeSpinController.isRunning = true;
+        this.staticContainer.allowLoop = false;
+        this.staticContainer.isFreeSpinMode = true;
 
-            await this.animationContainer.startTransitionAnimation(() => {
-                this.reelsContainer.setFreeSpinMode(true);
-                this.background.setFreeSpinMode(true);
+        await this.animationContainer.startTransitionAnimation(() => {
+            this.reelsContainer.setFreeSpinMode(true);
+            this.background.setFreeSpinMode(true);
 
-                eventBus.emit("setMessageBox", { variant: "freeSpin", message: initialFreeSpinCount.toString() });
-                this.animationContainer.getBuyFreeSpinButton().visible = false;
-            });
+            eventBus.emit("setMessageBox", { variant: "freeSpin", message: initialFreeSpinCount.toString() });
+            this.animationContainer.getBuyFreeSpinContainer().visible = false;
+        });
 
-            this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
-            this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
-            await this.animationContainer.playFreeSpinPopupAnimation();
+        this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
+        this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
+        await this.animationContainer.playFreeSpinPopupAnimation();
 
-            const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
+        const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
 
-            this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
-            this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
-            await this.animationContainer.playFreeSpinPopupAnimation();
+        this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
+        this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
+        await this.animationContainer.playFreeSpinPopupAnimation();
 
-            await this.animationContainer.startTransitionAnimation(() => {
-                this.reelsContainer.setFreeSpinMode(false);
-                this.background.setFreeSpinMode(false);
+        await this.animationContainer.startTransitionAnimation(() => {
+            this.reelsContainer.setFreeSpinMode(false);
+            this.background.setFreeSpinMode(false);
 
-                this.animationContainer.getBuyFreeSpinButton().visible = true;
-            });
+            this.animationContainer.getBuyFreeSpinContainer().visible = true;
+        });
 
-            this.freeSpinController.isRunning = false;
-            this.staticContainer.allowLoop = true;
-            this.staticContainer.isFreeSpinMode = false;
+        this.freeSpinController.isRunning = false;
+        this.staticContainer.allowLoop = true;
+        this.staticContainer.isFreeSpinMode = false;
+    }
+
+    public async startBonusState(): Promise<void> {
+        eventBus.emit("hideUI");
+        this.staticContainer.isBonusMode = true;
+        await this.staticContainer.playHighlightSymbols(GameDataManager.getInstance().getResponseData().bonus?.positions!);
+        await this.animationContainer.startTransitionAnimation(() => {
+            this.animationContainer.setBonusMode(true);
+            Bonus.instance().visible = true;
+        });
+
+        Bonus.instance().setOnBonusCompleteCallback(async () => {
+            this.animationContainer.setBonusMode(false);
+            this.staticContainer.isBonusMode = false;
+            eventBus.emit("showUI");
+        });
     }
 
     public async executeFreeSpin(initialFreeSpinCount: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
