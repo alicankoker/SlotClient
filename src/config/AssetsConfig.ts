@@ -220,6 +220,18 @@ export class AssetsConfig {
           {
             alias: 'win_event_strip',
             src: PATH + '/assets/raw/win_event_strip.png'
+          },
+          {
+            alias: 'win_strap',
+            src: PATH + '/assets/raw/win_strap.png'
+          },
+          {
+            alias: 'win_strap_line',
+            src: PATH + '/assets/raw/win_strap_line.png'
+          },
+          {
+            alias: 'win_strap_particle',
+            src: PATH + '/assets/raw/win_strap_particle.png'
           }
         ]
       },

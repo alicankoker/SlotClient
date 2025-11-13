@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, Text } from "pixi.js";
+import { Container, Graphics, Sprite, Text, Ticker } from "pixi.js";
 import { WinLines } from "./WinLines";
 import { WinEvent } from "./WinEvent";
 import { GameConfig } from "../../config/GameConfig";
@@ -11,15 +11,40 @@ import { GameDataManager } from "../data/GameDataManager";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 
+interface ParticleAnimationOptions {
+    element: Sprite | Spine | Graphics;
+    life: number;
+    maxLife: number;
+    maxCount: number;
+    rotationSpeed?: number;
+    gravity?: number;
+    friction?: number;
+}
+
+interface InternalParticle {
+    sprite: Sprite | Spine | Graphics;
+    vx: number;
+    vy: number;
+    life: number;
+    maxLife: number;
+    rotationSpeed: number;
+    gravity: number;
+    friction: number;
+}
+
 export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
     protected _resizeSubscription?: SignalSubscription;
 
     private _winLines: WinLines;
+    private _particleContainer: Container;
+    private _particleList: InternalParticle[] = [];
+    private _particleTicker?: Ticker;
     private _winEvent: WinEvent;
-
-    private _autoPlayCountText: Text;
+    private _winContainer!: Container;
+    private _winStrap!: Sprite;
     private _winText: Text;
+    private _winStrapLines: Sprite[] = [];
     private _dimmer!: Graphics;
     private _popup!: Container;
     private _popupBackground!: Sprite;
@@ -39,21 +64,38 @@ export class AnimationContainer extends Container {
         this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
         this.addChild(this._winLines);
 
-        // initialize auto play count indicator
-        this._autoPlayCountText = new Text({ text: '', style: GameConfig.style.clone() });
-        this._autoPlayCountText.label = 'AutoPlayCountText';
-        this._autoPlayCountText.anchor.set(0.5, 0.5);
-        this._autoPlayCountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
-        this._autoPlayCountText.visible = false;
-        this.addChild(this._autoPlayCountText);
+        this._particleContainer = new Container();
+        this._particleContainer.label = 'ParticleContainer';
+        this._particleContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+        this.addChild(this._particleContainer);
+
+        this._winContainer = new Container();
+        this._winContainer.label = 'WinContainer';
+        this._winContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+        this._winContainer.visible = false;
+        this.addChild(this._winContainer);
+
+        this._winStrap = Sprite.from("win_strap");
+        this._winStrap.label = 'WinStrap';
+        this._winStrap.anchor.set(0.5, 0.5);
+        this._winStrap.tint = 0x5f061f;
+        this._winContainer.addChild(this._winStrap);
 
         this._winText = new Text({ text: '', style: GameConfig.style.clone() });
         this._winText.style.fontSize = 150;
         this._winText.label = 'WinText';
-        this._winText.anchor.set(0.5);
-        this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
-        this._winText.visible = false;
-        this.addChildAt(this._winText, this.children.length);
+        this._winText.anchor.set(0.5, 0.5);
+        this._winContainer.addChild(this._winText);
+
+        for (let i = 0; i < 2; i++) {
+            const line = Sprite.from("win_strap_line");
+            line.label = `WinStrapLine_${i}`;
+            line.anchor.set(0.5, 0.5);
+            line.position.set(0, i === 0 ? -78 : 78);
+            line.tint = 0xffc90f;
+            this._winContainer.addChild(line);
+            this._winStrapLines.push(line);
+        }
 
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
@@ -211,17 +253,28 @@ export class AnimationContainer extends Container {
             });
 
             // Play total win text animation
-            gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
+            gsap.fromTo(this._winContainer.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
                     this._winText.style.fontSize = 150;
                     this._winText.text = `$${Helpers.convertToDecimal(totalWinAmount)}`;
-                    this._winText.visible = true;
+                    this._winStrap.scale.set(1, 1);
+                    this._winStrapLines.forEach((line, index) => {
+                        line.scale.set(1, 1);
+                        line.position.y = index === 0 ? -78 : 78;
+                    });
+                    this._winContainer.visible = true;
                 },
                 onComplete: () => {
-                    gsap.to(this._winText.scale, {
+                    gsap.to(this._winContainer.scale, {
                         x: 0, y: 0, duration: 0.25, ease: 'back.in(1.7)', delay: 1, onComplete: () => {
+                            this._winContainer.visible = false;
                             this._winText.text = ``;
-                            this._winText.visible = false;
+                            this._winText.style.fontSize = 75;
+                            this._winStrap.scale.set(0.75, 0.5);
+                            this._winStrapLines.forEach((line, index) => {
+                                line.scale.set(0.75, 0.5);
+                                line.position.y = index === 0 ? -39 : 39;
+                            });
 
                             if (this.totalWinResolver) {
                                 this.totalWinResolver();
@@ -246,10 +299,16 @@ export class AnimationContainer extends Container {
                 this.totalWinTween = undefined;
             }
 
-            gsap.to(this._winText.scale, {
+            gsap.to(this._winContainer.scale, {
                 x: 0, y: 0, duration: 0.1, ease: 'back.in(1.7)', onComplete: () => {
                     this._winText.text = ``;
-                    this._winText.visible = false;
+                    this._winContainer.visible = false;
+                    this._winText.style.fontSize = 75;
+                    this._winStrap.scale.set(0.75, 0.5);
+                    this._winStrapLines.forEach((line, index) => {
+                        line.scale.set(0.75, 0.5);
+                        line.position.y = index === 0 ? -39 : 39;
+                    });
 
                     if (this.totalWinResolver) {
                         this.totalWinResolver();
@@ -263,11 +322,10 @@ export class AnimationContainer extends Container {
     public playWinTextAnimation(winAmount: number): void {
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
             // Play single win text animation
-            gsap.fromTo(this._winText.scale, { x: 0, y: 0 }, {
+            gsap.fromTo(this._winContainer.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                    this._winText.style.fontSize = 75;
                     this._winText.text = `$${Helpers.convertToDecimal(winAmount)}`;
-                    this._winText.visible = true;
+                    this._winContainer.visible = true;
                 }
             });
         }
@@ -275,10 +333,10 @@ export class AnimationContainer extends Container {
 
     public stopWinTextAnimation(): void {
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
-            gsap.to(this._winText.scale, {
+            gsap.to(this._winContainer.scale, {
                 x: 0, y: 0, duration: 0.1, ease: 'back.in(1.7)', onComplete: () => {
                     this._winText.text = ``;
-                    this._winText.visible = false;
+                    this._winContainer.visible = false;
                 }
             });
         }
@@ -312,7 +370,7 @@ export class AnimationContainer extends Container {
         });
     }
 
-    public playFreeSpinPopupAnimation(): Promise<void> {
+    public playPopupAnimation(): Promise<void> {
         return new Promise((resolve) => {
             this._popup.interactive = true;
             this._popup.cursor = 'pointer';
@@ -378,6 +436,112 @@ export class AnimationContainer extends Container {
         });
     }
 
+    public startParticleAnimation(options: ParticleAnimationOptions): void {
+        const particleList: InternalParticle[] = [];
+        const rotationSpeed = options.rotationSpeed ?? 0; // dönmesin
+        const gravity = options.gravity ?? 0;             // aşağı düşmesin
+        const friction = options.friction ?? 1;           // hız azalmayacak
+
+        for (let i = 0; i < options.maxCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 3 + Math.random() * 5;
+
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+
+            // sprite klonlama
+            const particle =
+                options.element instanceof Sprite
+                    ? Sprite.from(options.element.texture)
+                    : options.element instanceof Graphics
+                        ? options.element.clone()
+                        : options.element instanceof Spine
+                            ? new Spine(options.element.skeleton.data)
+                            : null;
+
+            if (!particle) continue;
+
+            particle.alpha = 1;
+            particle.scale.set(0.2 + Math.random() * 0.3);
+
+            console.log(particle)
+
+            this._particleContainer.addChild(particle);
+
+            particleList.push({
+                sprite: particle,
+                vx,
+                vy,
+                life: options.life,
+                maxLife: options.maxLife,
+                rotationSpeed,
+                gravity,
+                friction,
+            });
+        }
+
+        this._particleList = particleList;
+
+        this._particleTicker = new Ticker();
+        this._particleTicker.add(this._updateParticleAnimation);
+        this._particleTicker.start();
+    }
+
+    private _updateParticleAnimation = (ticker: Ticker) => {
+        const delta = ticker.deltaTime;
+        if (!this._particleList || this._particleList.length === 0) return;
+
+        for (let i = this._particleList.length - 1; i >= 0; i--) {
+            const p = this._particleList[i];
+
+            // friction uygulanır (verilmediyse friction = 1 → hız değişmez)
+            p.vx *= p.friction;
+            p.vy = p.vy * p.friction + p.gravity;
+
+            // pozisyon
+            p.sprite.x += p.vx * delta;
+            p.sprite.y += p.vy * delta;
+
+            // rotation (verilmediyse rotationSpeed=0 → dönmez)
+            p.sprite.rotation += p.rotationSpeed * delta;
+
+            // life
+            p.life--;
+
+            // fade-out
+            p.sprite.alpha = p.life / p.maxLife;
+
+            // life biterse sil
+            if (p.life <= 0) {
+                this._particleContainer.removeChild(p.sprite);
+                p.sprite.destroy();
+                this._particleList.splice(i, 1);
+            }
+        }
+
+        // tüm particle'lar bittiğinde animasyon stop
+        if (this._particleList.length === 0) {
+            this.stopParticleAnimation();
+        }
+    };
+
+    public stopParticleAnimation(): void {
+        // ticker durdur
+        if (this._particleTicker) {
+            this._particleTicker.stop();
+            this._particleTicker.destroy();
+            this._particleTicker = undefined;
+        }
+
+        // particle temizle
+        for (const p of this._particleList) {
+            p.sprite.parent?.removeChild(p.sprite);
+            p.sprite.destroy();
+        }
+
+        this._particleList = [];
+    }
+
     public setBonusMode(isActive: boolean): void {
         this._winLines.visible = !isActive;
     }
@@ -397,8 +561,8 @@ export class AnimationContainer extends Container {
         return this._winLines;
     }
 
-    public getAutoPlayCountText(): Text {
-        return this._autoPlayCountText;
+    public getWinContainer(): Container {
+        return this._winContainer;
     }
 
     public getWinText(): Text {

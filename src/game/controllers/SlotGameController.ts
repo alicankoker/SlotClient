@@ -225,13 +225,13 @@ export class SlotGameController {
 
         this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
         this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
-        await this.animationContainer.playFreeSpinPopupAnimation();
+        await this.animationContainer.playPopupAnimation();
 
         const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
 
         this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
         this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
-        await this.animationContainer.playFreeSpinPopupAnimation();
+        await this.animationContainer.playPopupAnimation();
 
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(false);

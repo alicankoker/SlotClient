@@ -75,6 +75,7 @@ export class WinLines extends WinLinesContainer {
             line.label = `WinLine_${key}`;
             line.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
             line.visible = false; // Hidden by default
+            line.tint = 0xffc90f; // Gold color for win lines
             line.state.setAnimation(0, key, false);
             line.state.timeScale = 2;
             line.mask = this._lineMask;

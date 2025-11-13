@@ -436,7 +436,7 @@ export class Bonus extends BonusContainer {
             this._app.canvas.onclick = null;
             AnimationContainer.getInstance().getPopupCountText().text = `$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string;
             AnimationContainer.getInstance().getPopupFreeSpinsText().text = ``;
-            await AnimationContainer.getInstance().playFreeSpinPopupAnimation();
+            await AnimationContainer.getInstance().playPopupAnimation();
             await AnimationContainer.getInstance().startTransitionAnimation(() => {
                 this.resetScene();
                 this.visible = false;
