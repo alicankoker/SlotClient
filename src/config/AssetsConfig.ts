@@ -83,6 +83,14 @@ export class AssetsConfig {
         assets: [
           // #region Base Frame and UI Assets
           {
+            alias: 'base_chain_hole',
+            src: PATH + '/assets/raw/base_chain_hole.png'
+          },
+          {
+            alias: 'base_fixed_lines_holder',
+            src: PATH + '/assets/raw/base_fixed_lines_holder.png'
+          },
+          {
             alias: 'base_floor',
             src: PATH + '/assets/raw/base_floor.png'
           },
@@ -112,6 +120,14 @@ export class AssetsConfig {
           },
           // #endregion
           // #region Freespin Frame and UI Assets
+          {
+            alias: 'freespin_chain_hole',
+            src: PATH + '/assets/raw/freespin_chain_hole.png'
+          },
+          {
+            alias: 'freespin_fixed_lines_holder',
+            src: PATH + '/assets/raw/freespin_fixed_lines_holder.png'
+          },
           {
             alias: 'freespin_floor',
             src: PATH + '/assets/raw/freespin_floor.png'
@@ -146,10 +162,6 @@ export class AssetsConfig {
           },
           // #endregion
           {
-            alias: 'floor_hole',
-            src: PATH + '/assets/raw/floor_hole.png'
-          },
-          {
             alias: 'bet_area',
             src: PATH + '/assets/raw/Bet_Amount_Area.png'
           },
@@ -162,14 +174,6 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/Logo_Super_Scatter_Game.png'
           },
           {
-            alias: 'gem_left',
-            src: PATH + '/assets/raw/gem_left.png'
-          },
-          {
-            alias: 'gem_right',
-            src: PATH + '/assets/raw/gem_right.png'
-          },
-          {
             alias: 'popup_frame',
             src: PATH + '/assets/raw/popup_frame.png'
           },
@@ -178,8 +182,8 @@ export class AssetsConfig {
             src: PATH + '/assets/raw/popup_header.png'
           },
           {
-            alias: 'dialogue_box',
-            src: PATH + '/assets/raw/dialogue_box.png'
+            alias: 'dialog_box',
+            src: PATH + '/assets/raw/dialog_box.png'
           },
           {
             alias: 'slider_button_frame',
@@ -385,6 +389,10 @@ export class AssetsConfig {
           {
             alias: "MikadoMedium",
             src: PATHS.ROOT + `fonts/MikadoMedium.otf`,
+          },
+          {
+            alias: "Numbers",
+            src: `${PATHS.ROOT}/spritesheets/numbers/numbers.json`,
           }
         ],
       },

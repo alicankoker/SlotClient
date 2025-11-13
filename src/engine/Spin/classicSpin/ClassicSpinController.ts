@@ -88,7 +88,7 @@ export class ClassicSpinController extends SpinController {
           const backendType = response.winEventType;
           const enumType = BackendToWinEventType[backendType]!;
           
-          await AnimationContainer.getInstance().getWinEvent().show(winAmount, enumType);
+          await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
         }
 
         const isSkipped = GameDataManager.getInstance().isWinAnimationSkipped && ((this._isAutoPlaying && this._autoPlayCount > 0) || (FreeSpinController.getInstance(this).isRunning === true));
@@ -109,9 +109,9 @@ export class ClassicSpinController extends SpinController {
 
       this.startSpinAnimation(response);
 
-      await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
-
+      
       if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+        await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
         (this.container as ClassicSpinContainer).slowDown();
 

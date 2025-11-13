@@ -1,13 +1,6 @@
-import {
-  AtlasAttachmentLoader,
-  SkeletonData,
-  SkeletonJson,
-} from "@esotericsoftware/spine-pixi-v8";
 import { IReelMode } from "../reels/ReelController";
-import { AssetsConfig } from "../../config/AssetsConfig";
 import { GameConfig } from "../../config/GameConfig";
 import { Point } from "pixi.js";
-import { SpineAsset } from "../types/IAssetLoader";
 import { ISpinState } from "../types/ISpinConfig";
 
 export class Helpers {
@@ -49,7 +42,7 @@ export class Helpers {
    * @returns The calculated X position of the symbol.
    */
   public static calculateSymbolX(column: number = 0, maxColumn: number, referenceX: number, gapX?: number): number {
-    const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+    const symbolWidth = GameConfig.REFERENCE_SPRITE_SYMBOL.width;
 
     const spacingX = gapX ?? GameConfig.REFERENCE_SPACING.horizontal;
 
@@ -67,7 +60,7 @@ export class Helpers {
    * @returns The calculated Y position of the symbol.
    */
   public static calculateSymbolY(row: number, maxRow: number, referenceY: number, gapY?: number): number {
-    const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+    const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
     const spacingY = gapY ?? GameConfig.REFERENCE_SPACING.vertical;
 

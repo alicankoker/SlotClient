@@ -614,6 +614,7 @@ export abstract class SpinController {
   }
 
   public set spinMode(mode: SpinMode) {
+    this._spinMode = mode;
     this.setSpinMode(mode);
     this.container.spinMode = mode;
   }

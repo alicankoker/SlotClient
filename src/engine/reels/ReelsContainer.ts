@@ -28,6 +28,7 @@ export class ReelsContainer extends Container {
   private frameElementsContainer?: Container;
   private chains: Spine[] = [];
   private floors: Sprite[] = [];
+  private holes: Sprite[] = [];
 
   // Position storage
   private reelXPositions: number[] = [];
@@ -39,8 +40,6 @@ export class ReelsContainer extends Container {
   private _rightLantern!: Spine;
   private _headerBackground!: Sprite;
   private _logo!: Sprite;
-  private _leftGem!: Sprite;
-  private _rightGem!: Sprite;
   private _isFreeSpinMode: boolean = false;
   private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
 
@@ -71,7 +70,8 @@ export class ReelsContainer extends Container {
     this._reelBackground = Sprite.from('base_frame_background');
     this._reelBackground.label = 'ReelFrameBackground';
     this._reelBackground.anchor.set(0.5, 0.5);
-    this._reelBackground.position.set(980, 550);
+    this._reelBackground.scale.set(0.5, 0.5);
+    this._reelBackground.position.set(960, 545);
     this.addChild(this._reelBackground);
   }
 
@@ -84,7 +84,7 @@ export class ReelsContainer extends Container {
   private initializeContainers(): void {
     this.clearAllContainers();
 
-    const symbolHeight = GameConfig.REFERENCE_SYMBOL.height; // Default symbol height - can be made configurable
+    const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height; // Default symbol height - can be made configurable
 
     // Create ONE SpinContainer for entire game
     this.createSpinContainer(symbolHeight);
@@ -139,8 +139,8 @@ export class ReelsContainer extends Container {
     for (let cIndex = 0; cIndex < 6; cIndex++) {
       const floorChain = Spine.from({ atlas, skeleton });
       floorChain.label = `FloorChain_${cIndex}`;
-      floorChain.scale.set(1, 0.8);
-      floorChain.position.set(360 + (cIndex * 242), 305);
+        floorChain.scale.set(0.5, 0.5);
+      floorChain.position.set(355 + (cIndex * 242), 305);
       floorChain.state.setAnimation(0, 'Base_chain_hold', false);
       this.frameElementsContainer.addChild(floorChain);
 
@@ -151,23 +151,26 @@ export class ReelsContainer extends Container {
       const floor = Sprite.from('base_floor');
       floor.label = `FloorBase_${fIndex}`;
       floor.anchor.set(0.5, 0.5);
-      floor.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (240 * fIndex) + 435);
+      floor.scale.set(0.5, 0.5);
+      floor.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (240 * fIndex) + 425);
       this.frameElementsContainer.addChild(floor);
 
       this.floors.push(floor);
 
       for (let cIndex = 0; cIndex < 6; cIndex++) {
-        const hole = Sprite.from('floor_hole');
+        const hole = Sprite.from('base_chain_hole');
         hole.label = `ChainHole_${fIndex}`;
         hole.anchor.set(0.5, 0.5);
-        hole.scale.set(1.1, 1);
-        hole.position.set(360 + (cIndex * 242), 447 + (fIndex * 241));
+        hole.scale.set(0.5, 0.5);
+        hole.position.set(355 + (cIndex * 242), 447 + (fIndex * 241));
         this.frameElementsContainer.addChild(hole);
+
+        this.holes.push(hole);
 
         const floorChain = Spine.from({ atlas, skeleton });
         floorChain.label = `FloorChain_${cIndex}`;
-        floorChain.scale.set(1, 0.8);
-        floorChain.position.set(360 + (cIndex * 242), 570 + (fIndex * 240));
+        floorChain.scale.set(0.5, 0.5);
+        floorChain.position.set(355 + (cIndex * 242), 565 + (fIndex * 240));
         floorChain.state.setAnimation(0, 'Base_chain_hold', false);
         this.frameElementsContainer.addChild(floorChain);
 
@@ -178,12 +181,13 @@ export class ReelsContainer extends Container {
     this._reelFrame = Sprite.from('base_frame');
     this._reelFrame.label = 'ReelFrame';
     this._reelFrame.anchor.set(0.5, 0.5);
-    this._reelFrame.position.set(960, 520);
+    this._reelFrame.scale.set(0.5, 0.5);
+    this._reelFrame.position.set(965, 595);
     this.frameElementsContainer.addChild(this._reelFrame);
 
     this._leftLantern = Spine.from({ atlas, skeleton });
     this._leftLantern.label = 'LeftLanternSpine';
-    this._leftLantern.position.set(155, -120);
+    this._leftLantern.position.set(145, 280);
     this._leftLantern.scale.set(0.8, 0.8);
     const leftTrack = this._leftLantern.state.setAnimation(0, "Base_Lanthern", true);
     leftTrack.trackTime = Math.random() * leftTrack.animationEnd;
@@ -191,7 +195,7 @@ export class ReelsContainer extends Container {
 
     this._rightLantern = Spine.from({ atlas, skeleton });
     this._rightLantern.label = 'RightLanternSpine';
-    this._rightLantern.position.set(1750, -120);
+    this._rightLantern.position.set(1770, 280);
     this._rightLantern.scale.set(0.8, 0.8);
     const rightTrack = this._rightLantern.state.setAnimation(0, "Base_Lanthern", true);
     rightTrack.trackTime = Math.random() * rightTrack.animationEnd;
@@ -207,33 +211,21 @@ export class ReelsContainer extends Container {
     this._logo = Sprite.from('base_logo');
     this._logo.label = 'GameLogo';
     this._logo.anchor.set(0.5, 0.5);
-    this._logo.scale.set(0.35, 0.35);
+    this._logo.scale.set(0.33, 0.33);
     this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 120);
     this.frameElementsContainer.addChild(this._logo);
-
-    this._leftGem = Sprite.from('gem_left');
-    this._leftGem.label = 'GemLeft';
-    this._leftGem.anchor.set(0.5, 0.5);
-    this._leftGem.position.set(130, 895);
-    this.frameElementsContainer.addChild(this._leftGem);
-
-    this._rightGem = Sprite.from('gem_right');
-    this._rightGem.label = 'GemRight';
-    this._rightGem.anchor.set(0.5, 0.5);
-    this._rightGem.position.set(1675, 880);
-    this.frameElementsContainer.addChild(this._rightGem);
   }
 
   private createReelAreaMask(): void {
     // Calculate mask dimensions to cover all reels and visible rows
     // Width: cover all reels with proper spacing
-    const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 25;
+    const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SPRITE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 25;
     // Height: cover visible rows with proper spacing
-    const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount));
+    const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SPRITE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount)) + 100;
 
     // Center the mask
     const maskX = (GameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
-    const maskY = (GameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2);
+    const maskY = (GameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2) - 40;
 
     // Redraw the mask
     this.reelAreaMask.beginPath();
@@ -381,7 +373,6 @@ export class ReelsContainer extends Container {
 
     const headerTexture = enabled ? 'freespin_header_background' : 'base_header_background';
     this._headerBackground.texture = Texture.from(headerTexture);
-    this._headerBackground.scale.set(enabled ? 1 : 0.5, enabled ? 1 : 0.5);
 
     const logoTexture = enabled ? 'freespin_logo' : 'base_logo';
     const logoScale = enabled ? 1 : 0.35;
@@ -391,6 +382,11 @@ export class ReelsContainer extends Container {
     const floorTexture = enabled ? `freespin_floor` : `base_floor`;
     this.floors.forEach((floor) => {
       floor.texture = Texture.from(floorTexture);
+    });
+
+    this.holes.forEach((hole) => {
+      const holeTexture = enabled ? `freespin_chain_hole` : `base_chain_hole`;
+      hole.texture = Texture.from(holeTexture);
     });
 
     const chainAnimationName = enabled ? 'Free_chain_hold' : 'Base_chain_hold';
@@ -403,8 +399,8 @@ export class ReelsContainer extends Container {
     switch (responsiveConfig.orientation) {
       case GameConfig.ORIENTATION.landscape:
         this.position.set(0, 0);
-        this._leftLantern.position.set(155, -120);
-        this._rightLantern.position.set(1750, -120);
+        this._leftLantern.position.set(145, 280);
+        this._rightLantern.position.set(1770, 280);
         break;
       case GameConfig.ORIENTATION.portrait:
         this.position.set(0, -270);

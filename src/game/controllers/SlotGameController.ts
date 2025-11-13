@@ -72,7 +72,7 @@ export class SlotGameController {
         this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig) as ClassicSpinContainer;
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0,
-            symbolHeight: GameConfig.REFERENCE_SYMBOL.height,
+            symbolHeight: GameConfig.REFERENCE_SPRITE_SYMBOL.height,
             symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData as number[][]);
 
@@ -219,23 +219,25 @@ export class SlotGameController {
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(true);
             this.background.setFreeSpinMode(true);
+            this.animationContainer.getWinLines().setFreeSpinMode(true);
 
             eventBus.emit("setMessageBox", { variant: "freeSpin", message: initialFreeSpinCount.toString() });
         });
 
         this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
-        this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
+        this.animationContainer.getPopupContentText().text = `FREESPINS`;
         await this.animationContainer.playPopupAnimation();
 
         const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
 
         this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
-        this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
+        this.animationContainer.getPopupContentText().text = `IN ${freeSpinCount} FREESPINS`;
         await this.animationContainer.playPopupAnimation();
 
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(false);
             this.background.setFreeSpinMode(false);
+            this.animationContainer.getWinLines().setFreeSpinMode(false);
         });
 
         this.freeSpinController.isRunning = false;
@@ -255,6 +257,8 @@ export class SlotGameController {
         Bonus.instance().setOnBonusCompleteCallback(async () => {
             this.animationContainer.setBonusMode(false);
             Bonus.instance().isActive = false;
+            eventBus.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
+            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
             eventBus.emit("showUI");
         });
     }

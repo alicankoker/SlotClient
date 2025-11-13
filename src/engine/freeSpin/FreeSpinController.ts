@@ -108,10 +108,9 @@ export class FreeSpinController {
         this.totalFreeSpins += extraCount;
         this.remainingSpins += extraCount;
 
-        this.animationContainer.getPopupCountText().text = `${extraCount}`;
-        this.animationContainer.getPopupFreeSpinsText().text = `EXTRA FREESPINS!`;
+        this.animationContainer.getDialogCountText().text = `+${extraCount}`;
 
-        await this.animationContainer.playPopupAnimation();
+        await this.animationContainer.playDialogBoxAnimation();
 
         eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
 

@@ -206,6 +206,16 @@ export class DoodleV8Main {
               this.slotGameController.spinController.forceStop();
             }
             break;
+          case "KeyB":
+            debug.log("🎉 Show big win animation");
+            if (
+              this.winEvent &&
+              GameConfig.WIN_EVENT.enabled &&
+              !this.slotGameController?.reelsController?.getIsSpinning()
+            ) {
+              AnimationContainer.getInstance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
+            }
+            break;
         }
       });
 

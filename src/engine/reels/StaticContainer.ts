@@ -107,7 +107,7 @@ export class StaticContainer extends Container {
                     x: reelX, // Offset for container position
                     y: symbolY // Offset for container position
                 },
-                scale: GameConfig.REFERENCE_SYMBOL.scale, // Use responsive scale
+                scale: GameConfig.REFERENCE_SPINE_SYMBOL.scale, // Use responsive scale
             });
 
             // Add to symbols container and array
@@ -534,7 +534,7 @@ export class StaticContainer extends Container {
 
     // Position calculation utilities
     protected calculateSymbolX(column: number = 0): number {
-        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+        const symbolWidth = GameConfig.REFERENCE_SPINE_SYMBOL.width;
 
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
 
@@ -544,7 +544,7 @@ export class StaticContainer extends Container {
     }
 
     protected calculateSymbolY(row: number): number {
-        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+        const symbolHeight = GameConfig.REFERENCE_SPINE_SYMBOL.height;
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 

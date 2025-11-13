@@ -98,7 +98,6 @@ export class ClassicSpinContainer extends SpinContainer {
     public async slowDown() {
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
             this.slowDownReelSpin(i);
-            console.log(this._spinMode);
             const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
 
             await Utils.delay(delay);
@@ -188,7 +187,7 @@ export class ClassicSpinContainer extends SpinContainer {
     }
     // Position calculation utilities
     public calculateSymbolX(column: number = 0): number {
-        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+        const symbolWidth = GameConfig.REFERENCE_SPRITE_SYMBOL.width;
 
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
 
@@ -198,7 +197,7 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     public calculateSymbolY(row: number): number {
-        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+        const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
@@ -242,12 +241,12 @@ export class ClassicSpinContainer extends SpinContainer {
     protected createGridSymbol(symbolData: number, column: number, row: number): GridSymbol | null {
         const symbolX = this.calculateSymbolX(column);
         const symbolY = this.calculateSymbolY(row);
-        if (GameConfig.REFERENCE_SYMBOL.scale < 0) debugger;
+        if (GameConfig.REFERENCE_SPRITE_SYMBOL.scale < 0) debugger;
 
         const gridSymbol = new GridSymbol({
             symbolId: symbolData,
             position: { x: symbolX, y: symbolY },
-            scale: GameConfig.REFERENCE_SYMBOL.scale, // Use reference scale
+            scale: GameConfig.REFERENCE_SPRITE_SYMBOL.scale, // Use reference scale
             gridX: column,
             gridY: row
         });

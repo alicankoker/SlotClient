@@ -1,4 +1,4 @@
-import { FillGradient, Graphics, Sprite, Text } from "pixi.js";
+import { FillGradient, Graphics, Sprite, Text, Texture } from "pixi.js";
 import { GameRulesConfig } from "../../config/GameRulesConfig";
 import { GameConfig } from "../../config/GameConfig";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
@@ -91,7 +91,8 @@ export class WinLines extends WinLinesContainer {
             const chain = Sprite.from(`base_line_chain`);
             chain.label = `LineChain_${index}`;
             chain.anchor.set(0.5);
-            chain.position.set(305 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
+            chain.scale.set(0.5, 0.5);
+            chain.position.set(318 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
             this.addChild(chain);
         }
 
@@ -100,6 +101,7 @@ export class WinLines extends WinLinesContainer {
             const texture = Sprite.from(`base_line_holder`);
             texture.label = `LineHolderTexture_${key}`;
             texture.anchor.set(0.5);
+            texture.scale.set(0.5, 0.5);
             texture.position.set((GameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (GameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
             texture.interactive = true;
             texture.cursor = 'pointer';
@@ -107,9 +109,11 @@ export class WinLines extends WinLinesContainer {
 
             const text = new Text({
                 text: key.toString(),
-                style: GameConfig.style_1
+                style: GameConfig.style_1.clone()
             });
+            text.style.fontSize = 56;
             text.anchor.set(0.5);
+            text.position.set(0, -10);
             texture.addChild(text);
 
             this._lineTextures.push(texture);
@@ -127,6 +131,13 @@ export class WinLines extends WinLinesContainer {
                 this.hideLine(Number(key));
             });
         }
+    }
+    
+    public setFreeSpinMode(enabled: boolean): void {
+        this._lineTextures.forEach((texture) => {
+            const textureName = enabled ? 'freespin_line_holder' : 'base_line_holder';
+            texture.texture = Texture.from(textureName);
+        });
     }
 
     protected override onResize(responsiveConfig: ResponsiveConfig): void { }

@@ -163,7 +163,7 @@ export class ReelController {
         this.spinContainer?.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
             reelSymbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
                 if (symbol) {
-                    const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+                    const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
                     const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
