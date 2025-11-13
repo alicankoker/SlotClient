@@ -24,7 +24,6 @@ export interface GameState {
 export class GameDataManager {
     private static instance: GameDataManager;
     private gameState: GameState;
-    private _freeSpinActive: boolean = false; // temporary flag for manually triggering free spin state
     private _isFreeSpinning: boolean = false;
     private _isAutoPlaying: boolean = false;
     private _isSkippedWinAnimation: boolean = false;
@@ -120,14 +119,6 @@ export class GameDataManager {
 
     public checkBonus(): boolean {
         return this.gameState.lastResponseData?.bonus !== undefined;
-    }
-
-    public get freeSpinActive(): boolean {
-        return this._freeSpinActive;
-    }
-
-    public set freeSpinActive(value: boolean) {
-        this._freeSpinActive = value;
     }
 
     // Getters

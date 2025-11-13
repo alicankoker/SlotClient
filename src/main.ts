@@ -109,7 +109,8 @@ export class DoodleV8Main {
             this.slotGameController.spinController.getIsSpinning() === false &&
             this.winEvent.isWinEventActive === false &&
             this.slotGameController.spinController.getIsAutoPlaying() === false &&
-            this.slotGameController.getFreeSpinController().isRunning === false
+            this.slotGameController.getFreeSpinController().isRunning === false &&
+            Bonus.instance().isActive === false
           ) {
             isSpinning = true;
             await this.slotGameController.executeGameSpin(10, "manual");
@@ -130,7 +131,8 @@ export class DoodleV8Main {
           this.slotGameController.spinController.getIsSpinning() === false &&
           this.slotGameController.spinController.getIsAutoPlaying() === false &&
           this.winEvent.isWinEventActive === false &&
-          this.slotGameController.getFreeSpinController().isRunning === false
+          this.slotGameController.getFreeSpinController().isRunning === false &&
+          Bonus.instance().isActive === false
         ) {
           // usage: window.dispatchEvent(new CustomEvent("startAutoPlay", { detail: {numberOfAutoSpins: 5, selectedSpinType: "skip"} }));
           await this.slotGameController.spinController.startAutoPlay(autoSpinCount);
@@ -204,16 +206,6 @@ export class DoodleV8Main {
               this.slotGameController.spinController.forceStop();
             }
             break;
-          case "KeyB":
-            debug.log("🎉 Show big win animation");
-            if (
-              this.winEvent &&
-              GameConfig.WIN_EVENT.enabled &&
-              !this.slotGameController?.reelsController?.getIsSpinning()
-            ) {
-              this.winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
-            }
-            break;
         }
       });
 
@@ -257,6 +249,9 @@ export class DoodleV8Main {
       height: window.innerHeight,
       backgroundColor: 0x1099bb,
       resizeTo: window,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
+      antialias: true
     });
 
     // this.app.canvas.onclick = () => {
@@ -342,7 +337,6 @@ export class DoodleV8Main {
     const animationContainer = AnimationContainer.getInstance();
     this.app.stage.addChild(animationContainer);
     animationContainer.getWinLines().visible = GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus";
-    animationContainer.getBuyFreeSpinContainer().visible = GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus";
 
     this.winEvent = AnimationContainer.getInstance().getWinEvent();
 

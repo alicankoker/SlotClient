@@ -221,7 +221,6 @@ export class SlotGameController {
             this.background.setFreeSpinMode(true);
 
             eventBus.emit("setMessageBox", { variant: "freeSpin", message: initialFreeSpinCount.toString() });
-            this.animationContainer.getBuyFreeSpinContainer().visible = false;
         });
 
         this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
@@ -237,8 +236,6 @@ export class SlotGameController {
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(false);
             this.background.setFreeSpinMode(false);
-
-            this.animationContainer.getBuyFreeSpinContainer().visible = true;
         });
 
         this.freeSpinController.isRunning = false;
@@ -248,7 +245,7 @@ export class SlotGameController {
 
     public async startBonusState(): Promise<void> {
         eventBus.emit("hideUI");
-        this.staticContainer.isBonusMode = true;
+        Bonus.instance().isActive = true;
         await this.staticContainer.playHighlightSymbols(GameDataManager.getInstance().getResponseData().bonus?.positions!);
         await this.animationContainer.startTransitionAnimation(() => {
             this.animationContainer.setBonusMode(true);
@@ -257,7 +254,7 @@ export class SlotGameController {
 
         Bonus.instance().setOnBonusCompleteCallback(async () => {
             this.animationContainer.setBonusMode(false);
-            this.staticContainer.isBonusMode = false;
+            Bonus.instance().isActive = false;
             eventBus.emit("showUI");
         });
     }

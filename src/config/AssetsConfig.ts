@@ -216,6 +216,10 @@ export class AssetsConfig {
           {
             alias: 'golden_key',
             src: PATH + '/assets/raw/golden_key.png'
+          },
+          {
+            alias: 'win_event_strip',
+            src: PATH + '/assets/raw/win_event_strip.png'
           }
         ]
       },

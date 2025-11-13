@@ -6,8 +6,9 @@ import { GameDataManager } from "../../data/GameDataManager";
 import { Utils } from "../../utils/Utils";
 import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
-import { WinEventType } from "../../types/IWinEvents";
+import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
+import { AnimationContainer } from "../../components/AnimationContainer";
 
 export class CascadeSpinController extends SpinController {
     constructor(container: SpinContainer, config: SpinControllerConfig) {
@@ -93,7 +94,13 @@ export class CascadeSpinController extends SpinController {
                     this.stopAutoPlay();
                 }
 
-                GameConfig.WIN_EVENT.enabled && await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
+                if (GameConfig.WIN_EVENT.enabled && response.winEventType !== 'normal') {
+                    const winAmount = response.totalWin;
+                    const backendType = response.winEventType;
+                    const enumType = BackendToWinEventType[backendType]!;
+
+                    await AnimationContainer.getInstance().getWinEvent().show(winAmount, enumType);
+                }
 
                 const isSkipped = (this._isAutoPlaying && GameDataManager.getInstance().isWinAnimationSkipped && this._autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);

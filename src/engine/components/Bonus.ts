@@ -12,6 +12,7 @@ import { AnimationContainer } from "./AnimationContainer";
 import { GameDataManager } from "../data/GameDataManager";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { Helpers } from "../utils/Helpers";
+import { BackendToWinEventType } from "../types/IWinEvents";
 
 const SELECT_TEXT: string = "PLEASE SELECT";
 const PRESS_TEXT: string = "PRESS ANYWHERE";
@@ -47,6 +48,7 @@ export class Bonus extends BonusContainer {
     private _isLandcape: boolean = true;
     private _zIndexCounter: number = 0;
     private _bonusStage: number = 1;
+    private _isActive: boolean = false;
 
     private onBonusCompleteCallback?: () => void;
 
@@ -144,16 +146,16 @@ export class Bonus extends BonusContainer {
 
         this._sign = Spine.from({ atlas, skeleton });
         this._sign.label = 'BonusSign';
-        this._sign.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 - 100);
+        this._sign.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 535);
         this._sign.state.setAnimation(0, 'Horizontal_Bonus_Sign', true);
-        this._sign.state.data.defaultMix = 0.2;
+        this._sign.state.data.defaultMix = 0.3;
         this.addChild(this._sign);
 
         this._infoText1 = new Text({
             text: '',
             style: GameConfig.style_5.clone(),
         });
-        this._infoText1.label = `WinningAmountText`;
+        this._infoText1.label = `InfoText1`;
         this._infoText1.anchor.set(0.5, 0.5);
         this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
         this._infoText1.visible = false;
@@ -164,7 +166,7 @@ export class Bonus extends BonusContainer {
             text: SELECT_TEXT,
             style: GameConfig.style_5,
         });
-        this._infoText2.label = `InfoText`;
+        this._infoText2.label = `InfoText2`;
         this._infoText2.anchor.set(0.5, 0.5);
         this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
         this.addChild(this._infoText2);
@@ -185,6 +187,8 @@ export class Bonus extends BonusContainer {
                 this._dynamites[index].cursor = 'default';
 
                 const response = await this._controller.sendBonusAction();
+
+                this._infoText2.visible = false;
 
                 // TODO: test response for undefined multiplier value
                 // const response = {
@@ -239,9 +243,18 @@ export class Bonus extends BonusContainer {
 
                 gsap.fromTo(reward, { alpha: 0 }, {
                     alpha: 1, duration: 0.25, delay: 2, onStart: () => {
+                        (reward instanceof Text) && reward.scale.set(1.5, 1.5);
                         reward.visible = true;
                     }
                 });
+
+                if (GameConfig.WIN_EVENT.enabled && GameDataManager.getInstance().getLastSpinResult()?.winEventType !== 'normal') {
+                    const winAmount = response.featureWin;
+                    const backendType = GameDataManager.getInstance().getLastSpinResult()!.winEventType;
+                    const enumType = BackendToWinEventType[backendType]!;
+
+                    await AnimationContainer.getInstance().getWinEvent().show(winAmount, enumType);
+                }
 
                 setTimeout(() => {
                     this._dynamites.forEach((element, index) => {
@@ -255,6 +268,7 @@ export class Bonus extends BonusContainer {
                                 onComplete: () => {
                                     this._infoText1.visible = true;
                                     this._infoText1.text = PRESS_TEXT;
+                                    this._infoText2.visible = true;
                                     this._infoText2.text = CONTINUE_TEXT + this._bonusStage;
 
                                     this.afterSelect();
@@ -262,7 +276,7 @@ export class Bonus extends BonusContainer {
                             });
                         }
                     });
-                }, 4000);
+                }, 6000);
             });
         }
     }
@@ -396,6 +410,7 @@ export class Bonus extends BonusContainer {
 
         this._infoText1.visible = false;
         this._infoText1.text = "";
+        this._infoText2.visible = true;
         this._infoText2.text = SELECT_TEXT;
 
         this._rewards.forEach(reward => {
@@ -456,9 +471,19 @@ export class Bonus extends BonusContainer {
                 this._cable.texture = Texture.from('tnt_cable_portrait');
                 this._cable.position.set(1115, 1110);
                 this._trigger.state.setAnimation(0, 'Vertical_Bonus_Tnt1', false);
-                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1860);
-                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1950);
+                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
+                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 850);
                 break;
+        }
+
+        if (config?.deviceType === 'tablet') {
+            this.position.y = 280;
+
+            this._cable.texture = Texture.from('tnt_cable_landscape');
+            this._cable.position.set(685, 640);
+            this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
+            this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+            this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 770);
         }
     }
 
@@ -482,5 +507,13 @@ export class Bonus extends BonusContainer {
 
     public getController(): BonusController<Bonus> {
         return this._controller;
+    }
+
+    public get isActive(): boolean {
+        return this._isActive;
+    }
+
+    public set isActive(value: boolean) {
+        this._isActive = value;
     }
 }

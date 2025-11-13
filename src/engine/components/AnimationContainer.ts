@@ -27,8 +27,6 @@ export class AnimationContainer extends Container {
     private _popupFreeSpinsText!: Text;
     private _popupCountText!: Text;
     private _transition!: Spine;
-    private _buyFreeSpinContainer!: Container;
-    private _buyFreeSpinButton!: Sprite;
     private _totalWinAmount: number = 0;
 
     private totalWinTween?: gsap.core.Tween;
@@ -56,27 +54,6 @@ export class AnimationContainer extends Container {
         this._winText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
         this._winText.visible = false;
         this.addChildAt(this._winText, this.children.length);
-
-        this._buyFreeSpinContainer = new Container();
-        this._buyFreeSpinContainer.label = 'BuyFreeSpinContainer';
-        this.addChild(this._buyFreeSpinContainer);
-
-        this._buyFreeSpinButton = Sprite.from('freespin_logo');
-        this._buyFreeSpinButton.label = 'BuyFreeSpinButtonSpine';
-        this._buyFreeSpinButton.anchor.set(0.5, 0.5);
-        this._buyFreeSpinButton.scale.set(0.3, 0.3);
-        this._buyFreeSpinButton.position.set(1570, 50);
-        this._buyFreeSpinButton.interactive = true;
-        this._buyFreeSpinButton.cursor = 'pointer';
-        this._buyFreeSpinContainer.addChild(this._buyFreeSpinButton);
-
-        const activatedText = new Text({ text: 'FREE SPIN DEACTIVATED', style: GameConfig.style.clone() });
-        activatedText.label = 'FreeSpinActivatedText';
-        activatedText.anchor.set(0.5, 0.5);
-        activatedText.position.set(1570, 90);
-        activatedText.style.fontSize = 16;
-        activatedText.alpha = 0;
-        this._buyFreeSpinContainer.addChild(activatedText);
 
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
@@ -149,24 +126,6 @@ export class AnimationContainer extends Container {
         popupPressAnywhere.anchor.set(0.5, 0.5);
         popupPressAnywhere.position.set(0, 200);
         this._popup.addChild(popupPressAnywhere);
-
-        this._buyFreeSpinButton.on('pointerenter', () => {
-            gsap.to(this._buyFreeSpinButton.scale, { x: 0.4, y: 0.4, duration: 0.2 });
-        });
-
-        this._buyFreeSpinButton.on('pointerleave', () => {
-            gsap.to(this._buyFreeSpinButton.scale, { x: 0.3, y: 0.3, duration: 0.2 });
-        });
-
-        this._buyFreeSpinButton.on('pointerdown', () => {
-            GameDataManager.getInstance().freeSpinActive = !GameDataManager.getInstance().freeSpinActive;
-            activatedText.text = GameDataManager.getInstance().freeSpinActive ? 'FREE SPIN ACTIVATED' : 'FREE SPIN DEACTIVATED';
-            gsap.to(activatedText, {
-                alpha: 1, duration: 0.2, onComplete: () => {
-                    gsap.to(activatedText, { alpha: 0, duration: 0.2, delay: 1 });
-                }
-            });
-        });
 
         this._winEvent = WinEvent.getInstance();
         this.addChild(this._winEvent);
@@ -421,7 +380,6 @@ export class AnimationContainer extends Container {
 
     public setBonusMode(isActive: boolean): void {
         this._winLines.visible = !isActive;
-        this._buyFreeSpinContainer.visible = !isActive;
     }
 
     private onResize(responsiveConfig: ResponsiveConfig): void {
@@ -461,9 +419,5 @@ export class AnimationContainer extends Container {
 
     public getPopupFreeSpinsText(): Text {
         return this._popupFreeSpinsText;
-    }
-
-    public getBuyFreeSpinContainer(): Container {
-        return this._buyFreeSpinContainer;
     }
 }

@@ -5,6 +5,7 @@ import { GameConfig } from "../../config/GameConfig";
 
 export interface ResponsiveConfig {
     isMobile: boolean;
+    deviceType: DeviceType;
     viewportWidth: number;
     viewportHeight: number;
     safeWidth: number;
@@ -12,6 +13,8 @@ export interface ResponsiveConfig {
     orientation: string;
     scale: number;
 }
+
+export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export type Alignment = "topleft" | "bottomleft" | "bottomright" | "topright" | "center";
 
@@ -111,10 +114,13 @@ export class ResponsiveManager {
         this._app.renderer.resize(viewportWidth, viewportHeight);
         this._app.stage.position.set(padding.x, padding.y);
 
+        const deviceType: DeviceType = this.detectDeviceType();
+
         // send the payload:
         // isMobile, viewportWidth, viewportHeight, orientation, scale
         const responsiveConfig: ResponsiveConfig = {
-            isMobile: isMobile.phone || isMobile.tablet,
+            isMobile: deviceType === 'mobile' || deviceType === 'tablet',
+            deviceType: deviceType,
             viewportWidth: viewportWidth,
             viewportHeight: viewportHeight,
             safeWidth: safeWidth,
@@ -159,6 +165,13 @@ export class ResponsiveManager {
         }
 
         return { x: left, y: top };
+    }
+
+    private detectDeviceType(): 'mobile' | 'tablet' | 'desktop' {
+        const ua = navigator.userAgent.toLowerCase();
+        if (/ipad|tablet|android(?!.*mobile)/.test(ua) || ('ontouchend' in document && navigator.userAgent.includes('Mac'))) return 'tablet';
+        if (/mobile|iphone|ipod|android.*mobile|windows phone/.test(ua)) return 'mobile';
+        return 'desktop';
     }
 
     public destroy(): void {

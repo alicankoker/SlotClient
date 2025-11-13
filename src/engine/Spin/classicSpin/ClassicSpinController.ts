@@ -3,12 +3,14 @@ import { GameConfig } from "../../../config/GameConfig";
 import { SpinConfig } from "../../../config/SpinConfig";
 import { GameServer } from "../../../server/GameServer";
 import { AnimationContainer } from "../../components/AnimationContainer";
+import { Bonus } from "../../components/Bonus";
 import { GameDataManager } from "../../data/GameDataManager";
 import { FreeSpinController } from "../../freeSpin/FreeSpinController";
 import { IReelMode } from "../../reels/ReelController";
+import { StaticContainer } from "../../reels/StaticContainer";
 import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState, SpinMode } from "../../types/ISpinConfig";
-import { WinEventType } from "../../types/IWinEvents";
+import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
@@ -70,6 +72,7 @@ export class ClassicSpinController extends SpinController {
 
       this.onSpinCompleteCallback = async () => {
         FreeSpinController.getInstance(this).isRunning === false && (FreeSpinController.getInstance(this).isRunning = GameDataManager.getInstance().checkFreeSpins());
+        Bonus.instance().isActive = response.bonus ? true : false;
 
         eventBus.emit('setComponentState', {
           componentName: 'spinButton',
@@ -80,7 +83,13 @@ export class ClassicSpinController extends SpinController {
 
         await this.transferSymbolsToStaticContainer(finalGrid);
 
-        GameConfig.WIN_EVENT.enabled && await AnimationContainer.getInstance().getWinEvent().getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
+        if (GameConfig.WIN_EVENT.enabled && response.winEventType !== 'normal') {
+          const winAmount = response.totalWin;
+          const backendType = response.winEventType;
+          const enumType = BackendToWinEventType[backendType]!;
+          
+          await AnimationContainer.getInstance().getWinEvent().show(winAmount, enumType);
+        }
 
         const isSkipped = GameDataManager.getInstance().isWinAnimationSkipped && ((this._isAutoPlaying && this._autoPlayCount > 0) || (FreeSpinController.getInstance(this).isRunning === true));
         GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);

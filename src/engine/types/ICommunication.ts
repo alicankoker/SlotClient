@@ -120,32 +120,9 @@ export interface IData {
   betLevelIndex: number;
   betLevels: number[];
   gameId: string;
-  history: IHistory;
+  history: IResponseData;
   lines: number;
   user: IUserData;
-}
-
-export interface IHistory {
-  bet: number;
-  betIndex: number;
-  freeSpin?: {
-    featureWin: number;
-    totalRounds: number;
-    playedRounds: number;
-    extraRounds: number;
-  };
-  clientAction: string;
-  nextAction: string;
-  lines: number;
-  reels: number[][];
-  status: number;
-  totalWin: number;
-  ws: {
-    line: number;
-    payout: number;
-    positions: number[] | number[][];
-    temp: any;
-  }[];
 }
 
 export interface IUserData {

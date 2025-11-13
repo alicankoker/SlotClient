@@ -147,7 +147,7 @@ export abstract class SpinController {
           this.stopAutoPlay();
         }
 
-        GameConfig.WIN_EVENT.enabled && (await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE)); // Example big win amount and type
+        GameConfig.WIN_EVENT.enabled && (await this._winEvent.getController().showWinEvent(15250, WinEventType.EPIC)); // Example big win amount and type
 
         const isSkipped = this._isAutoPlaying && GameDataManager.getInstance().isWinAnimationSkipped && this._autoPlayCount > 0;
         GameConfig.WIN_ANIMATION.enabled && (await this.reelsController.setupWinAnimation(isSkipped));

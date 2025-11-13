@@ -130,7 +130,7 @@ export class GameConfig {
     }
 
     public static readonly WIN_EVENT: WinEventConfig = {
-        enabled: false,
+        enabled: true,
         duration: 3,
         canSkip: true
     };
