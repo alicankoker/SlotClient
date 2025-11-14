@@ -12,6 +12,8 @@ import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { WinEventType } from "../types/IWinEvents";
 import { SpriteText } from "../utils/SpriteText";
+import { AutoPlayController } from "../AutoPlay/AutoPlayController";
+import { FreeSpinController } from "../freeSpin/FreeSpinController";
 
 interface ParticleAnimationOptions {
     element: Sprite | Spine | Graphics;
@@ -55,10 +57,10 @@ export class AnimationContainer extends Container {
     private _popupBackground!: Sprite;
     private _popupHeader!: Sprite;
     private _popupContentText!: Text;
-    private _popupCountText!: Text;
+    private _popupCountText!: SpriteText;
     private _dialogBox!: Container;
     private _dialogBoxBackground!: Sprite;
-    private _dialogCountText!: Text;
+    private _dialogCountText!: SpriteText;
     private _dialogContentText!: Text;
     private _transition!: Spine;
     private _totalWinAmount: number = 0;
@@ -152,11 +154,10 @@ export class AnimationContainer extends Container {
         popupYouWonText.position.set(0, -120);
         this._popup.addChild(popupYouWonText);
 
-        this._popupCountText = new Text({ text: '', style: GameConfig.style.clone() });
+        this._popupCountText = new SpriteText("Numbers");
         this._popupCountText.label = 'PopupCountText';
-        this._popupCountText.anchor.set(0.5, 0.5);
-        this._popupCountText.position.set(0, -15);
-        this._popupCountText.style.fontSize = 145;
+        this._popupCountText.setAnchor(0.5, 0.5);
+        this._popupCountText.setScale(0.7, 0.7);
         this._popup.addChild(this._popupCountText);
 
         this._popupContentText = new Text({
@@ -188,14 +189,11 @@ export class AnimationContainer extends Container {
         this._dialogBoxBackground.anchor.set(0.5, 0.5);
         this._dialogBox.addChild(this._dialogBoxBackground);
 
-        this._dialogCountText = new Text({
-            text: '',
-            style: GameConfig.style.clone()
-        });
+        this._dialogCountText = new SpriteText("Numbers");
         this._dialogCountText.label = 'DialogCountText';
-        this._dialogCountText.anchor.set(0.5, 0.5);
+        this._dialogCountText.setAnchor(0.5, 0.5);
+        this._dialogCountText.setScale(0.7, 0.7);
         this._dialogCountText.position.set(0, -50);
-        this._dialogCountText.style.fontSize = 130;
         this._dialogBox.addChild(this._dialogCountText);
 
         this._dialogContentText = new Text({
@@ -247,13 +245,16 @@ export class AnimationContainer extends Container {
     }
 
     public playTotalWinAnimation(totalWinAmount: number): Promise<void> {
+        const isShow = (FreeSpinController.instance().isRunning === false);
         this._totalWinAmount = totalWinAmount;
 
         return new Promise((resolve) => {
             this.totalWinResolver = resolve;
 
             if (!GameConfig.WIN_ANIMATION.winTextVisibility) {
-                eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+                if (isShow) {
+                    eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+                }
                 resolve();
                 return;
             }
@@ -263,10 +264,10 @@ export class AnimationContainer extends Container {
                 this.totalWinTween = undefined;
             }
 
-            eventBus.emit("setWinBox", { variant: "default", amount: "0" });
+            if (isShow) {
+                eventBus.emit("setWinBox", { variant: "default", amount: "0" });
 
-            if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
-                eventBus.emit("setMessageBox", { variant: "default", message: "" });
+                AutoPlayController.instance().isRunning === false && eventBus.emit("setMessageBox", { variant: "default", message: "" });
             }
 
             const particle = Sprite.from('win_strap_particle');
@@ -284,15 +285,19 @@ export class AnimationContainer extends Container {
                 ease: "power1",
                 onUpdate: () => {
                     if (!this.totalWinResolver) {
-                        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+                        if (isShow) {
+                            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+                        }
                         gsap.killTweensOf(tweenObj);
                         this._totalWinAmount = 0;
 
                         return;
                     }
 
-                    currentAmount = Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string;
-                    eventBus.emit("setWinBox", { variant: "default", amount: currentAmount });
+                    if (isShow) {
+                        currentAmount = Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string;
+                        eventBus.emit("setWinBox", { variant: "default", amount: currentAmount });
+                    }
                 }
             });
 
@@ -336,7 +341,12 @@ export class AnimationContainer extends Container {
     }
 
     public stopTotalWinAnimation(): void {
-        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+        const isShow = (FreeSpinController.instance().isRunning === false);
+
+        if (isShow) {
+            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+        }
+
         this._totalWinAmount = 0;
 
         if (GameConfig.WIN_ANIMATION.winTextVisibility) {
@@ -748,7 +758,7 @@ export class AnimationContainer extends Container {
         return this._popupBackground;
     }
 
-    public getPopupCountText(): Text {
+    public getPopupCountText(): SpriteText {
         return this._popupCountText;
     }
 
@@ -756,7 +766,7 @@ export class AnimationContainer extends Container {
         return this._popupContentText;
     }
 
-    public getDialogCountText(): Text {
+    public getDialogCountText(): SpriteText {
         return this._dialogCountText;
     }
 }

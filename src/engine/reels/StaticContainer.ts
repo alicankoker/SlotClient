@@ -13,6 +13,9 @@ import { AnimationContainer } from '../components/AnimationContainer';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 import { GameDataManager } from '../data/GameDataManager';
 import { Helpers } from '../utils/Helpers';
+import { FreeSpinController } from '../freeSpin/FreeSpinController';
+import { AutoPlayController } from '../AutoPlay/AutoPlayController';
+import { Bonus } from '../components/Bonus';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -151,11 +154,11 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas, token);
 
-        if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
+        if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
             eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
         }
 
-        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
+        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false && Bonus.instance().isActive === false) {
             this.playLoopAnimations(winDatas, token);
         }
     }
@@ -230,18 +233,18 @@ export class StaticContainer extends Container {
                 if (!this._isSkipped) {
                     this._pendingResolvers = [];
 
-                    symbolGroups.forEach((symbolIds, reelIndex) => {
-                        symbolIds.forEach((symbolId) => {
-                            if (symbolId === -1) return;
-
-                            this._symbols.get(reelIndex)?.[symbolId]?.setIdle();
-                        });
-                    });
-
                     if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                         this._winLines.hideLine(winData.line);
                     }
                 }
+            });
+
+            symbolGroups.forEach((symbolIds, reelIndex) => {
+                symbolIds.forEach((symbolId) => {
+                    if (symbolId === -1) return;
+
+                    this._symbols.get(reelIndex)?.[symbolId]?.setIdle();
+                });
             });
         }
 
@@ -303,6 +306,7 @@ export class StaticContainer extends Container {
      * @returns A promise that resolves when the animation is complete.
      */
     public async playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
+        this._isPlaying = true;
         return new Promise(async (resolve) => {
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.showLines(lines);
@@ -310,11 +314,15 @@ export class StaticContainer extends Container {
 
             await AnimationContainer.getInstance().playTotalWinAnimation(amount);
 
-            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
+            if (FreeSpinController.instance().isRunning === false) {
+                eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
+            }
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.hideAllLines();
             }
+
+            this._isPlaying = false;
 
             resolve();
         });

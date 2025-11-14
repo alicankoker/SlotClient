@@ -10,7 +10,6 @@ export class FreeSpinController {
     private static _instance: FreeSpinController;
     private slotGameController: SlotGameController;
     private animationContainer: AnimationContainer;
-    private initialWin: number = 0;
     private totalWin: number = 0;
     private totalFreeSpins: number = 0;
     private remainingSpins: number = 0;
@@ -37,16 +36,16 @@ export class FreeSpinController {
 
     /**
      * @description Executes the free spin sequence with the given count.
-     * @param freeSpinCount 
+     * @param ramainRounds 
      * @returns Promise<void>
      */
-    public async executeFreeSpin(freeSpinCount: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
-        this.totalFreeSpins = freeSpinCount;
-        this.remainingSpins = freeSpinCount;
-        this.initialWin = initialWin;
+    public async executeFreeSpin(totalRounds: number, remainRounds: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
+        this.totalFreeSpins = totalRounds;
+        this.remainingSpins = remainRounds;
+        this.totalWin = initialWin;
 
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_STARTED, {
-            total: this.totalFreeSpins,
+            total: this.remaining,
         });
 
         return new Promise<{ totalWin: number, freeSpinCount: number }>((resolve, reject) => {
@@ -75,15 +74,15 @@ export class FreeSpinController {
 
         await Helpers.delay(1000);
 
+        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
+
         await this.slotGameController.executeGameSpin('freeSpin');
 
-        const response = await GameDataManager.getInstance().getResponseData();
+        const response = GameDataManager.getInstance().getResponseData();
 
-        this.totalWin = response.freeSpin?.featureWin! + this.initialWin || 0;
+        this.totalWin = response.freeSpin?.featureWin|| 0;
 
-        console.log("Free Spin Total Win:", this.totalWin);
-
-        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
+        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this.totalWin) as string });
 
         this.remainingSpins--;
 
@@ -112,7 +111,7 @@ export class FreeSpinController {
         this.totalFreeSpins += extraCount;
         this.remainingSpins += extraCount;
 
-        this.animationContainer.getDialogCountText().text = `+${extraCount}`;
+        this.animationContainer.getDialogCountText().setText(`+${extraCount}`);
 
         await this.animationContainer.playDialogBoxAnimation();
 

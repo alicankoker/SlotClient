@@ -218,6 +218,14 @@ export class DoodleV8Main {
               AnimationContainer.getInstance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
             }
             break;
+          case "KeyS":
+            AnimationContainer.getInstance().getPopupCountText().setText("X$1354€");
+            AnimationContainer.getInstance().playPopupAnimation();
+            break;
+          case "KeyD":
+            AnimationContainer.getInstance().getDialogCountText().setText("+5");
+            AnimationContainer.getInstance().playDialogBoxAnimation();
+            break;
         }
       });
 
@@ -372,14 +380,12 @@ export class DoodleV8Main {
     eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
 
     const response = GameDataManager.getInstance().getInitialData();
-    console.log("Initial Data:", response);
 
     if (this.slotGameController && response && response.history.freeSpin && response.history.freeSpin.totalRounds > response.history.freeSpin.playedRounds) {
-      console.log("Starting in free spins with data:", response);
-      const initialFreeSpinCount = response.history.freeSpin?.totalRounds - response.history.freeSpin.playedRounds;
-      const initialWin = response.history.freeSpin.featureWin + response.history.totalWin;
+      const remainRounds = response.history.freeSpin?.totalRounds - response.history.freeSpin.playedRounds;
+      const initialWin = response.history.freeSpin.featureWin;
 
-      this.slotGameController.startFreeSpinState(initialFreeSpinCount, initialWin);
+      this.slotGameController.startFreeSpinState(response.history.freeSpin.totalRounds, remainRounds, initialWin);
     }
   }
 }

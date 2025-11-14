@@ -6,7 +6,7 @@ import { FeatureScreenController } from "../featureScreen/FeatureScreenControlle
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import gsap from "gsap";
 import { Helpers } from "../utils/Helpers";
-import { eventBus } from "../../communication/EventManagers/WindowEventManager";
+import { SpriteText } from "../utils/SpriteText";
 
 export class FeatureScreen extends FeatureScreenContainer {
     private _controller: FeatureScreenController<FeatureScreen>;
@@ -16,7 +16,7 @@ export class FeatureScreen extends FeatureScreenContainer {
     private _volatilityContainer!: Container;
     private _dontShowContainer!: Container;
     private _previewElements: any[][] = [];
-    private _previewText!: Text;
+    private _previewText!: SpriteText;
     private _previewButton!: Sprite;
     private _dontShow: boolean = false;
     private _buttonIndex: number = 0;
@@ -107,15 +107,9 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         this._previewElements.push([featureScatter]);
 
-        this._previewText = new Text({
-            text: this.setPreviewText(this._buttonIndex),
-            style: GameConfig.style.clone(),
-        });
+        this._previewText = new SpriteText("Numbers");
         this._previewText.label = "PreviewText";
-        this._previewText.style.fontSize = 45;
-        this._previewText.style.wordWrap = true;
-        this._previewText.style.wordWrapWidth = 650;
-        this._previewText.anchor.set(0.5, 0.5);
+        this._previewText.setAnchor(0.5, 0.5);
         this._previewText.position.set(0, 470);
         this._previewContainer.addChild(this._previewText);
 
@@ -459,7 +453,7 @@ export class FeatureScreen extends FeatureScreenContainer {
             duration: 0.2,
             ease: "none",
             onComplete: () => {
-                this._previewText.text = this.setPreviewText(index);
+                this._previewText.setText(this.setPreviewText(index));
 
                 gsap.to(this._previewText, { alpha: 1, duration: 0.2, ease: "none" });
             },

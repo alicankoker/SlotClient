@@ -3,11 +3,12 @@ import { Counter } from "../utils/Counter";
 import { GameConfig } from "../../config/GameConfig";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
+import { SpriteText } from "../utils/SpriteText";
 
 export abstract class WinEventContainer extends Container {
     protected _resizeSubscription?: SignalSubscription;
     protected _counter!: Counter;
-    protected _amountText!: Text;
+    protected _amountText!: SpriteText;
     protected _winEventType: number = 0;
     protected _isAnimating: boolean = false;
     protected _isWinEventSkipped: boolean = false;
@@ -43,6 +44,9 @@ export abstract class WinEventContainer extends Container {
             target: this._targetWinAmount,
             duration: this._duration,
             ease: "power1.out",
+            currency: "$",
+            startScale: { x: 0.2, y: 0.2 },
+            endScale: { x: 0.5, y: 0.5 },
         });
     }
 
@@ -55,7 +59,7 @@ export abstract class WinEventContainer extends Container {
         this._currentWinAmount = 0;
         this._targetWinAmount = 0;
         this._tweenObj = { value: 0 };
-        this._amountText.text = "";
+        this._amountText.setText("");
     }
 
     // Skip

@@ -13,6 +13,7 @@ import { GameDataManager } from "../data/GameDataManager";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { Helpers } from "../utils/Helpers";
 import { BackendToWinEventType } from "../types/IWinEvents";
+import { SpriteText } from "../utils/SpriteText";
 
 const SELECT_TEXT: string = "PLEASE SELECT";
 const PRESS_TEXT: string = "PRESS ANYWHERE";
@@ -42,7 +43,7 @@ export class Bonus extends BonusContainer {
     private _cable!: Sprite;
     private _infoText1!: Text;
     private _infoText2!: Text;
-    private _rewards: (Sprite | Text)[] = [];
+    private _rewards: (Sprite | SpriteText)[] = [];
     private _selectedItemIndex: number = -1;
     private _selectedRewardIndex: number = -1;
     private _isLandcape: boolean = true;
@@ -226,7 +227,7 @@ export class Bonus extends BonusContainer {
 
                 //console.log("Current Bonus Stage:", this._bonusStage);
 
-                let reward: Sprite | Text = this._rewards[index];
+                let reward: Sprite | SpriteText = this._rewards[index];
 
                 //console.log("Selected Reward Object:", reward);
 
@@ -315,37 +316,33 @@ export class Bonus extends BonusContainer {
         }
 
         for (let index = 0; index < multiplierCount; index++) {
-            const multiplierText = new Text({
-                text: ``,
-                style: GameConfig.style,
-            });
+            const multiplierText = new SpriteText("Numbers");
             multiplierText.label = `MultiplierText_Stage1_${index}`;
-            multiplierText.anchor.set(0.5, 0.5);
+            multiplierText.setAnchor(0.5, 0.5);
+            multiplierText.setScale(0.5, 0.5);
             multiplierText.visible = false;
             this._rewardContainer.addChild(multiplierText);
             this._rewards.push(multiplierText);
         }
 
-        let selectedReward: Sprite | Text;
+        let selectedReward: Sprite | SpriteText;
         if (selectedType === 'key') {
             selectedReward = Sprite.from("golden_key");
             selectedReward.label = `SelectedKey_${stage}`;
+            selectedReward.anchor.set(0.5, 0.5);
             selectedReward.scale.set(0.2);
         } else {
-            selectedReward = new Text({
-                text: `X`,
-                style: GameConfig.style,
-            });
+            selectedReward = new SpriteText("Numbers");
+            selectedReward.setAnchor(0.5, 0.5);
             selectedReward.label = `SelectedMultiplier_${stage}`;
         }
-        selectedReward.anchor.set(0.5);
         selectedReward.visible = false;
         this._rewardContainer.addChild(selectedReward);
 
         const others = this._rewards;
         this.shuffleArray(others);
 
-        const shuffled: (Sprite | Text)[] = [];
+        const shuffled: (Sprite | SpriteText)[] = [];
         for (let i = 0; i < total; i++) {
             shuffled.push(i === selectedIndex ? selectedReward : others.shift()!);
         }
@@ -371,13 +368,13 @@ export class Bonus extends BonusContainer {
         //console.log("Other Multipliers:", otherMultipliers);
 
         for (let index = 0; index < this._rewards.length; index++) {
-            if (this._rewards[index] instanceof Text) {
+            if (this._rewards[index] instanceof SpriteText) {
                 if (index === selectedIndex) {
-                    (this._rewards[index] as Text).text = `X${selectedMultiplier}`;
+                    (this._rewards[index] as SpriteText).setText(`X${selectedMultiplier}`);
                 } else {
                     const randomIndex = Math.floor(Math.random() * otherMultipliers.length);
                     const multiplier = otherMultipliers.splice(randomIndex, 1)[0];
-                    (this._rewards[index] as Text).text = `X${multiplier}`;
+                    (this._rewards[index] as SpriteText).setText(`X${multiplier}`);
                 }
             }
         }
@@ -434,7 +431,7 @@ export class Bonus extends BonusContainer {
         this._app.canvas.onclick = async () => {
             this._infoText2.visible = false;
             this._app.canvas.onclick = null;
-            AnimationContainer.getInstance().getPopupCountText().text = `$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string;
+            AnimationContainer.getInstance().getPopupCountText().setText(`$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string);
             AnimationContainer.getInstance().getPopupContentText().text = ``;
             await AnimationContainer.getInstance().playPopupAnimation();
             await AnimationContainer.getInstance().startTransitionAnimation(() => {

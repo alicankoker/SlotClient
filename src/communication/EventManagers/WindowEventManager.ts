@@ -31,6 +31,7 @@ type eventType = {
   setSpinSpeed: 1 | 2 | 3;
   setMaxLine: number;
   setLine: number;
+  setSpinId: string;
 };
 
 class EventManager<Events extends eventType> {

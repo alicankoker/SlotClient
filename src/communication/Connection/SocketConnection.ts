@@ -67,12 +67,12 @@ export class SocketConnection {
         });
     }
 
-    // public reconnect(): void {
-    //     if (this._socket.connected) {
-    //         console.log("Socket already connected.");
-    //         return;
-    //     }
+    public reconnect(): void {
+        if (this._socket.connected) {
+            console.log("Socket already connected.");
+            return;
+        }
 
-    //     this._socket.connect();
-    // }
+        this._socket.connect();
+    }
 }

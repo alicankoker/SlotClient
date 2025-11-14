@@ -8,6 +8,7 @@ import SoundManager from "../controllers/SoundManager";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { AssetsConfig } from "../../config/AssetsConfig";
 import { WinEventType } from "../types/IWinEvents";
+import { SpriteText } from "../utils/SpriteText";
 
 export class WinEvent extends WinEventContainer {
     private static _instance: WinEvent;
@@ -77,12 +78,9 @@ export class WinEvent extends WinEventContainer {
         this.addChild(this._counterStrip);
 
         // win amount
-        this._amountText = new Text({
-            text: "0",
-            style: GameConfig.style.clone(),
-        });
-        this._amountText.style.fontSize = 120;
-        this._amountText.anchor.set(0.5);
+        this._amountText = new SpriteText("Numbers");
+        this._amountText.setAnchor(0.5, 0.5);
+        this._amountText.setScale(0.5, 0.5);
         this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 910);
         this.addChild(this._amountText);
 
@@ -107,8 +105,6 @@ export class WinEvent extends WinEventContainer {
     }
 
     private playAnimationCycle(): void {
-        this._wins.state.data.defaultMix = 0.25;
-
         for (let i = 1; i < this._winEventType + 1; i++) {
             this._wins.state.addAnimation(0, Object.values(WinEventType)[i] + "Win", false, GameConfig.WIN_EVENT.duration);
         }

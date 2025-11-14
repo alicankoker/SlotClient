@@ -192,18 +192,14 @@ export class SlotGameController {
     public async executeGameSpin(action: IPayload["action"]): Promise<void> {
         const response = await this.gameServer.processRequest(action);
 
-        this.reelsContainer.spinId.text = response._id.toString();
-
+        eventBus.emit("setSpinId", response._id.toString());
         eventBus.emit("setBalance", response.balance.before);
-
-        console.log("Before:", response.balance.before);
-        console.log("After:", response.balance.after);
 
         if (this.spinController && response) {
             await this.spinController.executeSpin();
 
             if (response.freeSpin && GameDataManager.getInstance().checkFreeSpins() && response.freeSpin.playedRounds === 0) {
-                await this.startFreeSpinState(response.freeSpin.totalRounds, response.totalWin);
+                await this.startFreeSpinState(response.freeSpin.totalRounds, response.freeSpin.totalRounds, response.totalWin);
             } else if (response.bonus && GameDataManager.getInstance().checkBonus()) {
                 await this.startBonusState();
             }
@@ -218,7 +214,7 @@ export class SlotGameController {
         }
     }
 
-    public async startFreeSpinState(initialFreeSpinCount: number, initialWin: number): Promise<void> {
+    public async startFreeSpinState(totalRounds: number, remainRounds: number, initialWin: number): Promise<void> {
         this.freeSpinController.isRunning = true;
         this.staticContainer.allowLoop = false;
         this.staticContainer.isFreeSpinMode = true;
@@ -228,16 +224,17 @@ export class SlotGameController {
             this.background.setFreeSpinMode(true);
             this.animationContainer.getWinLines().setFreeSpinMode(true);
 
-            eventBus.emit("setMessageBox", { variant: "freeSpin", message: initialFreeSpinCount.toString() });
+            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
+            eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
         });
 
-        this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
+        this.animationContainer.getPopupCountText().setText(`${remainRounds}`);
         this.animationContainer.getPopupContentText().text = `FREESPINS`;
         await this.animationContainer.playPopupAnimation();
 
-        const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
+        const { totalWin, freeSpinCount } = await this.executeFreeSpin(totalRounds, remainRounds, initialWin);
 
-        this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
+        this.animationContainer.getPopupCountText().setText(`$ ${Helpers.convertToDecimal(totalWin)}`);
         this.animationContainer.getPopupContentText().text = `IN ${freeSpinCount} FREESPINS`;
         await this.animationContainer.playPopupAnimation();
 
@@ -276,8 +273,8 @@ export class SlotGameController {
         });
     }
 
-    public async executeFreeSpin(initialFreeSpinCount: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
-        return await this.freeSpinController.executeFreeSpin(initialFreeSpinCount, initialWin);
+    public async executeFreeSpin(totalRounds: number, remainRounds: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
+        return await this.freeSpinController.executeFreeSpin(totalRounds, remainRounds, initialWin);
     }
 
     //TODO: Needs to be moved to Nexus

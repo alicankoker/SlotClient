@@ -2,20 +2,20 @@ import { Container, Sprite, Assets } from "pixi.js";
 
 export class SpriteText extends Container {
     private atlas: any;
-
     private _anchorX = 0;
     private _anchorY = 0;
-    private _scaleX = 1;
-    private _scaleY = 1;
-    private _offsetX = 0;
-    private _offsetY = 0;
+
+    private static CUSTOM_MAP: Record<string, string | number> = {};
 
     constructor(spriteSheetAlias: string) {
         super();
         this.atlas = Assets.get(spriteSheetAlias);
     }
 
-    // ---- PUBLIC API ----
+    public static registerCharMap(map: Record<string, string | number>): void {
+        Object.assign(SpriteText.CUSTOM_MAP, map);
+    }
+
     public setAnchor(x: number, y: number): void {
         this._anchorX = x;
         this._anchorY = y;
@@ -23,9 +23,8 @@ export class SpriteText extends Container {
     }
 
     public setScale(x: number, y: number): void {
-        this._scaleX = x;
-        this._scaleY = y;
         this.scale.set(x, y);
+        this.updateAnchor();
     }
 
     public setText(text: string, offsetX = 0): void {
@@ -34,14 +33,12 @@ export class SpriteText extends Container {
         let currentOffset = 0;
 
         for (const c of text) {
-            const code = c.charCodeAt(0);
-            const frameName = String(code);
+            const frameName = this.resolveFrameName(c);
 
             const tex = this.atlas.textures[frameName];
-            if (!tex) continue;
+            if (!tex) continue; // atlas'ta yoksa atla
 
             const char = new Sprite(tex);
-
             char.x = currentOffset;
             char.y = 0;
 
@@ -53,10 +50,19 @@ export class SpriteText extends Container {
         this.updateAnchor();
     }
 
-    // ---- INTERNAL ----
+    private resolveFrameName(c: string): string {
+        // custom map varsa kullan
+        if (SpriteText.CUSTOM_MAP[c] !== undefined) {
+            return String(SpriteText.CUSTOM_MAP[c]);
+        }
+
+        // yoksa unicode decimal karşılığını kullan
+        const code = c.charCodeAt(0);
+        return String(code);
+    }
+
     private updateAnchor(): void {
         const bounds = this.getLocalBounds();
-
         this.pivot.x = bounds.x + bounds.width * this._anchorX;
         this.pivot.y = bounds.y + bounds.height * this._anchorY;
     }

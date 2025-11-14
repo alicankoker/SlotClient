@@ -443,8 +443,6 @@ export class AssetsConfig {
       ],
     };
 
-    console.log(allAssets);
-
     return allAssets;
   }
 

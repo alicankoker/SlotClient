@@ -14,6 +14,8 @@ import { WinConfig } from "../types/IWinPresentation";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { GameDataManager } from "../data/GameDataManager";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
+import { AutoPlayController } from "../AutoPlay/AutoPlayController";
+import { FreeSpinController } from "../freeSpin/FreeSpinController";
 
 export class ReelsController {
   private app: Application;
@@ -130,10 +132,10 @@ export class ReelsController {
     let winConfigs: WinConfig[] = [];
 
     if (spinResultData?.ws.length! <= 0) {
-      if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
+      if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
         eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
       }
-      
+
       this.resetWinAnimations();
       return;
     }
@@ -261,7 +263,6 @@ export class ReelsController {
   }
 
   public stopSpin(): void {
-    console.log("ReelsController: Stopping all reels.");
     // Stop spin animation on the spin container
     if (this.reelsContainer) {
       const spinContainer = this.reelsContainer.getSpinContainer();
