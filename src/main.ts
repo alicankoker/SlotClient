@@ -123,6 +123,8 @@ export class DoodleV8Main {
       }
 
       eventBus.on("startSpin", async () => {
+        if (isKeyHeld || isSpinning) return;
+
         await spin();
       });
 
