@@ -12,6 +12,7 @@ import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { AnimationContainer } from '../components/AnimationContainer';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 import { GameDataManager } from '../data/GameDataManager';
+import { Helpers } from '../utils/Helpers';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -309,7 +310,7 @@ export class StaticContainer extends Container {
 
             await AnimationContainer.getInstance().playTotalWinAnimation(amount);
 
-            eventBus.emit("setWinBox", { variant: "default", amount: amount.toString() });
+            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.hideAllLines();

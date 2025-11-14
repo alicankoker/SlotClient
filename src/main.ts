@@ -22,6 +22,8 @@ import { FeatureScreen } from "./engine/components/FeatureScreen";
 import { SocketConnection } from "./communication/Connection/SocketConnection";
 import { WinLines } from "./engine/components/WinLines";
 import { Bonus } from "./engine/components/Bonus";
+import { Helpers } from "./engine/utils/Helpers";
+import { AutoPlayController } from "./engine/AutoPlay/AutoPlayController";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -108,12 +110,12 @@ export class DoodleV8Main {
           if (
             this.slotGameController.spinController.getIsSpinning() === false &&
             this.winEvent.isWinEventActive === false &&
-            this.slotGameController.spinController.getIsAutoPlaying() === false &&
+            this.slotGameController.getAutoPlayController().isRunning === false &&
             this.slotGameController.getFreeSpinController().isRunning === false &&
             Bonus.instance().isActive === false
           ) {
             isSpinning = true;
-            await this.slotGameController.executeGameSpin(10, "manual");
+            await this.slotGameController.executeGameSpin('spin');
             isSpinning = false;
             isKeyHeld = false;
           }
@@ -129,13 +131,13 @@ export class DoodleV8Main {
         if (
           this.slotGameController?.spinController &&
           this.slotGameController.spinController.getIsSpinning() === false &&
-          this.slotGameController.spinController.getIsAutoPlaying() === false &&
+          this.slotGameController.getAutoPlayController().isRunning === false &&
           this.winEvent.isWinEventActive === false &&
           this.slotGameController.getFreeSpinController().isRunning === false &&
           Bonus.instance().isActive === false
         ) {
           // usage: window.dispatchEvent(new CustomEvent("startAutoPlay", { detail: {numberOfAutoSpins: 5, selectedSpinType: "skip"} }));
-          await this.slotGameController.spinController.startAutoPlay(autoSpinCount);
+          await this.slotGameController.getAutoPlayController().startAutoPlay(autoSpinCount);
         }
       });
 
@@ -143,10 +145,10 @@ export class DoodleV8Main {
         debug.log("🛑 Stop auto-play triggered");
         if (
           this.slotGameController?.spinController &&
-          this.slotGameController.spinController.getIsAutoPlaying() &&
-          this.slotGameController.spinController.getAutoPlayCount() > 0
+          this.slotGameController.getAutoPlayController().isRunning &&
+          this.slotGameController.getAutoPlayController().autoPlayCount > 0
         ) {
-          this.slotGameController.spinController.stopAutoPlay();
+          this.slotGameController.getAutoPlayController().stopAutoPlay();
         }
       });
 
@@ -342,11 +344,21 @@ export class DoodleV8Main {
 
     const bonusScene = Bonus.getInstance(this.app);
     bonusScene.visible = GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus";
+    bonusScene.isActive = GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus";
+    if (bonusScene.isActive) {
+      bonusScene.setOnBonusCompleteCallback(async () => {
+        animationContainer.setBonusMode(false);
+        Bonus.instance().isActive = false;
+        eventBus.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
+        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
+        eventBus.emit("showUI");
+      });
+    }
     this.app.stage.addChild(bonusScene);
 
     const animationContainer = AnimationContainer.getInstance();
+    bonusScene.isActive && animationContainer.setBonusMode(true);
     this.app.stage.addChild(animationContainer);
-    animationContainer.getWinLines().visible = GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus";
 
     this.winEvent = AnimationContainer.getInstance().getWinEvent();
 

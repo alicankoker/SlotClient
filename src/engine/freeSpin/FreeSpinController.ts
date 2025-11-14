@@ -1,14 +1,14 @@
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
+import { SlotGameController } from "../../game/controllers/SlotGameController";
 import { GameServer } from "../../server/GameServer";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { GameDataManager } from "../data/GameDataManager";
-import { SpinController } from "../Spin/SpinController";
 import { Helpers } from "../utils/Helpers";
 
 export class FreeSpinController {
-    private static instance: FreeSpinController;
-    private spinController: SpinController;
+    private static _instance: FreeSpinController;
+    private slotGameController: SlotGameController;
     private animationContainer: AnimationContainer;
     private initialWin: number = 0;
     private totalWin: number = 0;
@@ -19,16 +19,20 @@ export class FreeSpinController {
     private resolvePromise?: (value: { totalWin: number, freeSpinCount: number }) => void;
     private rejectPromise?: (reason?: any) => void;
 
-    private constructor(spinController: SpinController) {
-        this.spinController = spinController;
+    private constructor(slotGameController: SlotGameController) {
+        this.slotGameController = slotGameController;
         this.animationContainer = AnimationContainer.getInstance();
     }
 
-    public static getInstance(spinController: SpinController): FreeSpinController {
-        if (!FreeSpinController.instance) {
-            FreeSpinController.instance = new FreeSpinController(spinController);
+    public static getInstance(slotGameController: SlotGameController): FreeSpinController {
+        if (!FreeSpinController._instance) {
+            FreeSpinController._instance = new FreeSpinController(slotGameController);
         }
-        return FreeSpinController.instance;
+        return FreeSpinController._instance;
+    }
+
+    public static instance(): FreeSpinController {
+        return FreeSpinController._instance;
     }
 
     /**
@@ -71,15 +75,15 @@ export class FreeSpinController {
 
         await Helpers.delay(1000);
 
-        const response = await GameServer.getInstance().processRequest("freeSpin");
+        await this.slotGameController.executeGameSpin('freeSpin');
 
-        this.totalWin = response.freeSpin?.featureWin + this.initialWin || 0;
+        const response = await GameDataManager.getInstance().getResponseData();
+
+        this.totalWin = response.freeSpin?.featureWin! + this.initialWin || 0;
 
         console.log("Free Spin Total Win:", this.totalWin);
 
         eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
-
-        await this.spinController.executeSpin();
 
         this.remainingSpins--;
 

@@ -1,7 +1,7 @@
 import { Nexus } from '../../nexus/Nexus';
 import { PlayerController } from '../../nexus/player/PlayerController';
 import { GameServer } from '../../server/GameServer';
-import { SpinResultData, CascadeStepData, GridData, IResponseData } from '../../engine/types/ICommunication';
+import { SpinResultData, CascadeStepData, GridData, IResponseData, IPayload } from '../../engine/types/ICommunication';
 import { INexusPlayerData, SpinTransaction } from '../../nexus/NexusInterfaces';
 import { debug } from '../../engine/utils/debug';
 import { SpinController } from '../../engine/Spin/SpinController';
@@ -20,6 +20,7 @@ import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpin
 import { Helpers } from '../../engine/utils/Helpers';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 import { Bonus } from '../../engine/components/Bonus';
+import { AutoPlayController } from '../../engine/AutoPlay/AutoPlayController';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -47,6 +48,7 @@ export class SlotGameController {
     public reelsContainer!: ReelsContainer;
     public reelsController!: ReelsController;
     public freeSpinController!: FreeSpinController;
+    private autoPlayController!: AutoPlayController;
     private background!: Background;
     private animationContainer!: AnimationContainer;
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
@@ -94,7 +96,9 @@ export class SlotGameController {
             reelsController: this.reelsController
         });
 
-        this.freeSpinController = FreeSpinController.getInstance(this.spinController);
+        this.freeSpinController = FreeSpinController.getInstance(this);
+
+        this.autoPlayController = AutoPlayController.getInstance(this, this.reelsController);
 
         this.connectControllers();
     }
@@ -185,21 +189,15 @@ export class SlotGameController {
     }
 
     // Convenience method for executing spins
-    public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
-        //const response = await this.gameServer.requestSpin(betAmount);
+    public async executeGameSpin(action: IPayload["action"]): Promise<void> {
+        const response = await this.gameServer.processRequest(action);
 
-        // const response = await this.gameServer.processSpinRequest({
-        //     betAmount,
-        //     gameMode,
-        //     forcedFS: GameDataManager.getInstance().freeSpinActive
-        // });
-
-        const response = await this.gameServer.processRequest("spin");
-
-        console.warn("Spin ID:", response._id);
         this.reelsContainer.spinId.text = response._id.toString();
 
         eventBus.emit("setBalance", response.balance.before);
+
+        console.log("Before:", response.balance.before);
+        console.log("After:", response.balance.after);
 
         if (this.spinController && response) {
             await this.spinController.executeSpin();
@@ -208,6 +206,14 @@ export class SlotGameController {
                 await this.startFreeSpinState(response.freeSpin.totalRounds, response.totalWin);
             } else if (response.bonus && GameDataManager.getInstance().checkBonus()) {
                 await this.startBonusState();
+            }
+
+            if (this.autoPlayController.isRunning && (GameConfig.AUTO_PLAY.stopOnWin || GameConfig.AUTO_PLAY.stopOnFeature)) {
+                this.autoPlayController.stopAutoPlay();
+            }
+
+            if (this.autoPlayController.isRunning && FreeSpinController.instance().isRunning === false && Bonus.instance().isActive === false) {
+                this.autoPlayController.continueAutoPlay();
             }
         }
     }
@@ -261,6 +267,12 @@ export class SlotGameController {
             eventBus.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
             eventBus.emit("showUI");
+
+            if (this.autoPlayController.isRunning && FreeSpinController.instance().isRunning === false && Bonus.instance().isActive === false) {
+                setTimeout(() => {
+                    this.autoPlayController.continueAutoPlay();
+                }, GameConfig.AUTO_PLAY.delay || 1000);
+            }
         });
     }
 
@@ -288,5 +300,9 @@ export class SlotGameController {
 
     public getFreeSpinController(): FreeSpinController {
         return this.freeSpinController;
+    }
+
+    public getAutoPlayController(): AutoPlayController {
+        return this.autoPlayController;
     }
 } 
