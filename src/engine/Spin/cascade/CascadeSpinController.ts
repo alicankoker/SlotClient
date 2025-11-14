@@ -9,6 +9,7 @@ import { ISpinState } from "../../types/ISpinConfig";
 import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
 import { AnimationContainer } from "../../components/AnimationContainer";
+import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
 
 export class CascadeSpinController extends SpinController {
     constructor(container: SpinContainer, config: SpinControllerConfig) {
@@ -90,8 +91,8 @@ export class CascadeSpinController extends SpinController {
             this.setState(ISpinState.IDLE);
 
             if (this.reelsController.checkWinCondition()) {
-                if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
-                    this.stopAutoPlay();
+                if (AutoPlayController.instance().isRunning && GameConfig.AUTO_PLAY.stopOnWin) {
+                    AutoPlayController.instance().stopAutoPlay();
                 }
 
                 if (GameConfig.WIN_EVENT.enabled && response.winEventType !== 'normal') {
@@ -102,7 +103,7 @@ export class CascadeSpinController extends SpinController {
                     await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
                 }
 
-                const isSkipped = (this._isAutoPlaying && GameDataManager.getInstance().isWinAnimationSkipped && this._autoPlayCount > 0);
+                const isSkipped = (AutoPlayController.instance().isRunning && GameDataManager.getInstance().isWinAnimationSkipped && AutoPlayController.instance().autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
             }
 
