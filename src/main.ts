@@ -123,6 +123,10 @@ export class DoodleV8Main {
       }
 
       eventBus.on("startSpin", async () => {
+        if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
+          this.slotGameController.reelsController.skipWinAnimations();
+        }
+
         if (isKeyHeld || isSpinning) return;
 
         await spin();
