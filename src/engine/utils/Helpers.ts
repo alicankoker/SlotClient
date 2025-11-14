@@ -33,6 +33,30 @@ export class Helpers {
     }
   }
 
+  public static copyToClipboard(text: string): Promise<void> {
+    // Modern approach
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+
+    // For older browsers
+    return new Promise((resolve, reject) => {
+      const input = document.createElement("input");
+      input.value = text;
+      document.body.appendChild(input);
+
+      input.select();
+      input.setSelectionRange(0, input.value.length); // for iOS
+
+      const success = document.execCommand("copy");
+
+      document.body.removeChild(input);
+
+      if (success) resolve();
+      else reject(new Error("execCommand('copy') failed"));
+    });
+  }
+
   /**
    * @description Calculate the X position of a symbol in the grid.
    * @param column The column index of the symbol.
@@ -138,23 +162,23 @@ export class Helpers {
    * @returns A promise that resolves after the delay.
    */
   public static delay(ms: number, signal?: AbortSignal): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const id = setTimeout(() => resolve(), ms);
+    return new Promise((resolve, reject) => {
+      const id = setTimeout(() => resolve(), ms);
 
-            if (signal) {
-                if (signal.aborted) {
-                    clearTimeout(id);
-                    resolve();
-                    return;
-                }
+      if (signal) {
+        if (signal.aborted) {
+          clearTimeout(id);
+          resolve();
+          return;
+        }
 
-                signal.addEventListener("abort", () => {
-                    clearTimeout(id);
-                    resolve();
-                }, { once: true });
-            }
-        });
-    }
+        signal.addEventListener("abort", () => {
+          clearTimeout(id);
+          resolve();
+        }, { once: true });
+      }
+    });
+  }
 
   /**
    * @description Generates a path for an arc.

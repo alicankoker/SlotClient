@@ -42,6 +42,7 @@ export class ReelsContainer extends Container {
   private _logo!: Sprite;
   private _isFreeSpinMode: boolean = false;
   private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+  private _spinId!: Text;
 
   private readonly numberOfReels: number;
   private readonly symbolsPerReel: number;
@@ -139,7 +140,7 @@ export class ReelsContainer extends Container {
     for (let cIndex = 0; cIndex < 6; cIndex++) {
       const floorChain = Spine.from({ atlas, skeleton });
       floorChain.label = `FloorChain_${cIndex}`;
-        floorChain.scale.set(0.5, 0.5);
+      floorChain.scale.set(0.5, 0.5);
       floorChain.position.set(355 + (cIndex * 242), 305);
       floorChain.state.setAnimation(0, 'Base_chain_hold', false);
       this.frameElementsContainer.addChild(floorChain);
@@ -184,6 +185,25 @@ export class ReelsContainer extends Container {
     this._reelFrame.scale.set(0.5, 0.5);
     this._reelFrame.position.set(965, 595);
     this.frameElementsContainer.addChild(this._reelFrame);
+
+    this._spinId = new Text({
+      text: '',
+      style: {
+        fontFamily: 'Arial',
+        fontSize: 20,
+        fill: 0xffffff
+      }
+    });
+    this._spinId.anchor.set(0.5, 0.5);
+    this._spinId.position.set(465, 120);
+    this._spinId.interactive = true;
+    this._spinId.cursor = 'pointer';
+    this._spinId.on('pointerdown', async () => {
+      if (this._spinId.text !== '') {
+        await Helpers.copyToClipboard(this._spinId.text);
+      }
+    });
+    this.frameElementsContainer.addChild(this._spinId);
 
     this._leftLantern = Spine.from({ atlas, skeleton });
     this._leftLantern.label = 'LeftLanternSpine';
@@ -468,5 +488,9 @@ export class ReelsContainer extends Container {
 
   public set spinMode(value: SpinMode) {
     this._spinMode = value;
+  }
+
+  public get spinId(): Text {
+    return this._spinId;
   }
 } 
