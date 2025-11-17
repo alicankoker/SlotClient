@@ -106,6 +106,10 @@ export class ClassicSpinContainer extends SpinContainer {
         }
     }
 
+    calculateSlowDownDelay(): number {
+        return 0;
+    }
+
     startReelSpin(reelId: number, spinData: IResponseData): void {
         this.reelsSpinStates[reelId].state = IReelSpinState.SPEEDING;
         this.reelsSpinStates[reelId].isSpinning = true;
