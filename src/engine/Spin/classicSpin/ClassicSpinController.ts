@@ -118,17 +118,8 @@ export class ClassicSpinController extends SpinController {
         await Utils.delay(SpinConfig.TURBO_SPIN_SPEED);
       }
 
-      //this.container.setMode(IReelMode.STOPPING);
-      //this.container.stopSpin();
-
-      this._soundManager.stop("spin");
-      this._soundManager.play("stop", false, 0.75); // Play stop sound effect
-
-      //await this.reelsController.setMode(ISpinState.IDLE);
-      this.setState(ISpinState.IDLE);
-
-      await this.onSpinCompleteCallback(response);
-
+      (this.container as ClassicSpinContainer).startStopSequence();
+      await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);

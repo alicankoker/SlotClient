@@ -14,5 +14,8 @@ export type IReelSpinStateData = {
     readyForStopping: boolean;
     readyForSlowingDown: boolean;
     isSpinning: boolean;
+    stopProgressStarted: boolean;
+    currentStopSymbolId: number;
+    stopSymbols: number[];
     callbackFunction?: () => void;
 }
