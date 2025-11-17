@@ -13,6 +13,8 @@ export class Background extends BackgroundContainer {
     private constructor(texture: Texture) {
         super();
 
+        this.position.set(0, 250);
+
         this.initialize(texture);
 
         this._controller = this.createController();

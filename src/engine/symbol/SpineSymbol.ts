@@ -19,7 +19,7 @@ export class SpineSymbol extends Spine {
 
     constructor(config: SymbolConfig) {
         debug.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
-        
+
         const { atlas, skeleton } = AssetsConfig.SYMBOL_SPINE_ASSET;
 
         const spine = Spine.from({ atlas, skeleton });
@@ -58,6 +58,7 @@ export class SpineSymbol extends Spine {
      * @returns void
      */
     public setIdle(): void {
+        this.state.timeScale = 1;
         this.state.setAnimation(0, `${this._prefix}_idle`, false);
     }
 
@@ -69,6 +70,11 @@ export class SpineSymbol extends Spine {
     public setLanding(onComplete?: () => void): Promise<void> {
         this.skeleton.setSlotsToSetupPose();
         this.state.clearTrack(0);
+        if (this._prefix === "10") {
+            this.state.timeScale = 1.5;
+        } else {
+            this.state.timeScale = 1;
+        }
         const track = this.state.setAnimation(0, `${this._prefix}_landing`, false);
         if (track) track.timeScale = 1;
 
@@ -101,6 +107,7 @@ export class SpineSymbol extends Spine {
         const animationName = `${this._prefix}_win`;
 
         this.state.clearTrack(0);
+        this.state.timeScale = 1;
         const track = this.state.setAnimation(0, animationName, loop);
         if (track) track.timeScale = 1;
 

@@ -1,9 +1,11 @@
+import { GameServer } from "../../server/GameServer";
+import { IBonusData } from "../types/ICommunication";
 import { debug } from "../utils/debug";
 import { BonusContainer } from "./BonusContainer";
 
 export abstract class BonusController<T extends BonusContainer> {
     protected view: T;
-    public data: any;
+    public data!: IBonusData;
 
     constructor(view: T) {
         this.view = view;
@@ -13,22 +15,18 @@ export abstract class BonusController<T extends BonusContainer> {
      * @description Send bonus data to the server
      * @param data The bonus data to send
      */
-    public async sendBonusData(data: any): Promise<void> {
-        // const response = await new Promise<any>((resolve, reject) => {
-        //     socket.emit("event", { action: "bonus", data }, (res: any) => {
-        //         if (!res.error) resolve(res);
-        //         else reject(res.error);
-        //     });
-        // });
+    public async sendBonusAction(): Promise<IBonusData> {
+        const response = await GameServer.getInstance().processRequest("bonus");
+        this.onDataReceived(response.bonus.history[0]);
 
-        // this.onDataReceived(response.data);
-    }
+        return response.bonus.history[0];
+    };
 
     /**
      * @description Handle received bonus data from the server
      * @param data The received bonus data
      */
-    public onDataReceived(data: any): void {
+    public onDataReceived(data: IBonusData): void {
         debug.log("Bonus data received:", data);
         this.data = data;
     }

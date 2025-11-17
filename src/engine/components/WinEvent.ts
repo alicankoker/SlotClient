@@ -1,4 +1,4 @@
-import { Graphics, Text } from "pixi.js";
+import { Graphics, Sprite, Text } from "pixi.js";
 import { WinEventContainer } from "../winEvent/WinEventContainer";
 import { WinEventController } from "../winEvent/WinEventController";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
@@ -8,6 +8,7 @@ import SoundManager from "../controllers/SoundManager";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { AssetsConfig } from "../../config/AssetsConfig";
 import { WinEventType } from "../types/IWinEvents";
+import { SpriteText } from "../utils/SpriteText";
 
 export class WinEvent extends WinEventContainer {
     private static _instance: WinEvent;
@@ -15,9 +16,11 @@ export class WinEvent extends WinEventContainer {
     private _soundManager: SoundManager;
     private _wins!: Spine;
     private _dimmer!: Graphics;
+    private _counterStrip!: Sprite;
 
     private constructor() {
         super();
+        this.position.set(0, -100);
         this._soundManager = SoundManager.getInstance();
         this._controller = this.createController();
         this.init();
@@ -60,7 +63,7 @@ export class WinEvent extends WinEventContainer {
         this.addChild(this._dimmer);
 
         // spine setup
-        const { atlas, skeleton } = AssetsConfig.WINS_SPINE_ASSET;
+        const { atlas, skeleton } = AssetsConfig.WINEVENT_SPINE_ASSET;
 
         this._wins = Spine.from({ atlas, skeleton });
         this._wins.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
@@ -68,14 +71,17 @@ export class WinEvent extends WinEventContainer {
         this._wins.state.data.defaultMix = 0;
         this.addChild(this._wins);
 
+        this._counterStrip = Sprite.from('win_event_strip');
+        this._counterStrip.label = 'counterStrip';
+        this._counterStrip.anchor.set(0.5, 0.5);
+        this._counterStrip.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 975);
+        this.addChild(this._counterStrip);
+
         // win amount
-        this._amountText = new Text({
-            text: "0",
-            style: GameConfig.style.clone(),
-        });
-        this._amountText.style.fontSize = 120;
-        this._amountText.anchor.set(0.5);
-        this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._amountText = new SpriteText("Numbers");
+        this._amountText.setAnchor(0.5, 0.5);
+        this._amountText.setScale(0.5, 0.5);
+        this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 910);
         this.addChild(this._amountText);
 
         // counter setup
@@ -88,29 +94,25 @@ export class WinEvent extends WinEventContainer {
     public playWinEventAnimation(): void {
         eventBus.emit("hideUI");
 
-        this._duration = GameConfig.WIN_EVENT.duration + this.winEventType * GameConfig.WIN_EVENT.duration;
+        this._duration = GameConfig.WIN_EVENT.duration + this._winEventType * GameConfig.WIN_EVENT.duration;
 
         this._soundManager.playFor("bigwin", this._duration, 0.5);
         this._soundManager.play("coin", false, 0.25);
 
-        this._wins.state.setAnimation(0, Object.values(WinEventType)[0] + "_Landing", false);
-        this._wins.state.addAnimation(0, Object.values(WinEventType)[0] + "_Loop", true);
+        this._wins.state.setAnimation(0, Object.values(WinEventType)[0] + "Win", false);
 
-        if (this.winEventType > 0) this.playAnimationCycle();
+        if (this._winEventType > 0) this.playAnimationCycle();
     }
 
     private playAnimationCycle(): void {
-        this._wins.state.data.defaultMix = 0.25;
-
-        for (let i = 1; i < this.winEventType + 1; i++) {
-            this._wins.state.addAnimation(0, Object.values(WinEventType)[i] + "_Landing", false, GameConfig.WIN_EVENT.duration / 2);
-            this._wins.state.addAnimation(0, Object.values(WinEventType)[i] + "_Loop", true);
+        for (let i = 1; i < this._winEventType + 1; i++) {
+            this._wins.state.addAnimation(0, Object.values(WinEventType)[i] + "Win", false, GameConfig.WIN_EVENT.duration);
         }
     }
 
     public override skipWinEvent(): void {
         super.skipWinEvent();
-        this._wins.state.setAnimation(0, Object.values(WinEventType)[this.winEventType] + "_Loop", true);
+        this._wins.state.setAnimation(0, Object.values(WinEventType)[this._winEventType] + "Win", true);
     }
 
     /** Dışarıdan çağırılacak tek method */

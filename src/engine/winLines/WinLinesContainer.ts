@@ -53,12 +53,15 @@ export abstract class WinLinesContainer extends Container {
         const texture = this._lineTextures[lineNumber - 1];
         if (!line || !texture) return;
 
-        line.visible = true;
-
         if (line instanceof Spine) {
             line.state.clearTrack(0);
+            line.state.clearTracks();
             line.state.setAnimation(0, lineNumber.toString(), false);
         }
+
+        setTimeout(() => {
+            line.visible = true;
+        }, 10);
 
         for (let i = 0; i < this._lineTextures.length; i++) {
             const t = this._lineTextures[i];
@@ -78,12 +81,15 @@ export abstract class WinLinesContainer extends Container {
             const texture = this._lineTextures[lineNumber - 1];
             if (!line || !texture) continue;
 
-            line.visible = true;
-
             if (line instanceof Spine) {
                 line.state.clearTrack(0);
+                line.state.clearTracks();
                 line.state.setAnimation(0, lineNumber.toString(), false);
             }
+
+            setTimeout(() => {
+                line.visible = true;
+            }, 10);
 
             texture.alpha = 1;
         }
@@ -95,7 +101,10 @@ export abstract class WinLinesContainer extends Container {
             const texture = this._lineTextures[i];
             if (!line || !texture) continue;
 
-            line.visible = true;
+            setTimeout(() => {
+                line.visible = true;
+            }, 10);
+
             texture.alpha = 1;
         }
     }
@@ -106,6 +115,11 @@ export abstract class WinLinesContainer extends Container {
         const line = this._winLine[lineNumber - 1];
         if (line) line.visible = false;
 
+        if (line instanceof Spine) {
+            line.state.clearTrack(0);
+            line.state.clearTracks();
+        }
+
         for (let i = 0; i < this._availableLines; i++) {
             this._lineTextures[i].alpha = 1;
         }
@@ -115,6 +129,10 @@ export abstract class WinLinesContainer extends Container {
         for (let i = 0; i < this._availableLines; i++) {
             const line = this._winLine[i];
             if (line) line.visible = false;
+            if (line instanceof Spine) {
+                line.state.clearTrack(0);
+                line.state.clearTracks();
+            }
             this._lineTextures[i].alpha = 1;
         }
 

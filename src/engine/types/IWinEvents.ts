@@ -5,16 +5,19 @@ export interface WinEventConfig {
   duration: number; // Duration of the big win animation in seconds
 }
 
+export type BackendWinEventType = 'normal' | 'big' | 'super' | 'mega' | 'epic';
+
 export enum WinEventType {
-  NICE = "Nice",
-  SENSATIONAL = "Sensetional", // Note: 'Sensational' is misspelled as 'Sensetional' to match the original animation names
-  MASSIVE = "Massive",
-  INSANE = "Insane",
+  BIG = "Big",
+  SUPER = "Super",
+  MEGA = "Mega",
+  EPIC = "Epic",
 }
 
-export const WinEventTypeValue: Record<WinEventType, number> = {
-  [WinEventType.NICE]: 0,
-  [WinEventType.SENSATIONAL]: 1,
-  [WinEventType.MASSIVE]: 2,
-  [WinEventType.INSANE]: 3,
+export const BackendToWinEventType: Record<BackendWinEventType, WinEventType | null> = {
+  normal: null,
+  big: WinEventType.BIG,
+  super: WinEventType.SUPER,
+  mega: WinEventType.MEGA,
+  epic: WinEventType.EPIC,
 };

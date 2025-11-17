@@ -57,6 +57,6 @@ export class GridSymbol extends Symbol {
     }
 
     public updateSymbolTexture(symbolId: number): void {
-        this.setSymbolId(symbolId);
+        this.setBlurred(symbolId); // TODO: Verify if blurred is intended
     }
 } 

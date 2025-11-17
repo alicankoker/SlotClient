@@ -353,9 +353,9 @@ export class CascadeSpinContainer extends SpinContainer {
     private createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
-        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 10;
+        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SPRITE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 10;
         // Height: cover visible rows with proper spacing
-        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount) - 5);
+        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SPRITE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount) - 5);
 
         // Center the mask
         const maskX = (GameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);

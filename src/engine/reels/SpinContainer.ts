@@ -87,7 +87,7 @@ export class SpinContainer extends Container {
 
     // Position calculation utilities
     protected calculateSymbolX(column: number = 0): number {
-        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+        const symbolWidth = GameConfig.REFERENCE_SPRITE_SYMBOL.width;
 
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
 
@@ -97,7 +97,7 @@ export class SpinContainer extends Container {
     }
 
     protected calculateSymbolY(row: number): number {
-        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+        const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
@@ -198,7 +198,7 @@ export class SpinContainer extends Container {
                     x: symbolX, // Offset for container position
                     y: symbolY // Offset for container position
                 },
-                scale: GameConfig.REFERENCE_SYMBOL.scale
+                scale: GameConfig.REFERENCE_SPRITE_SYMBOL.scale
             });
 
             // Add to container and grid
@@ -218,7 +218,7 @@ export class SpinContainer extends Container {
         const gridSymbol = new GridSymbol({
             symbolId: symbolData.symbolId,
             position: { x: symbolX, y: symbolY },
-            scale: GameConfig.REFERENCE_SYMBOL.scale, // Use reference scale
+            scale: GameConfig.REFERENCE_SPRITE_SYMBOL.scale, // Use reference scale
             gridX: column,
             gridY: row
         });

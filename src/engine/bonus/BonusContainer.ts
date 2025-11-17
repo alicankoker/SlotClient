@@ -13,6 +13,8 @@ export abstract class BonusContainer extends Container {
         });
     }
 
+    protected setupBonusElements(): void { }
+
     /**
      * @description Before a bonus is selected (e.g., setup animation)
      */
@@ -21,7 +23,7 @@ export abstract class BonusContainer extends Container {
     /**
      * @description When a bonus is selected (main animation)
      */
-    protected abstract onBonusSelected(): void;
+    protected onBonusSelected(): void {};
 
     /**
      * @description After a bonus is selected (e.g., transition out)

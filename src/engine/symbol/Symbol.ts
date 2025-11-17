@@ -44,7 +44,7 @@ export class Symbol extends Sprite {
 
     const extension = '.png'
 
-    const spritesheet = Assets.cache.get("symbols");
+    const spritesheet = Assets.cache.get("icons");
 
     if (!spritesheet) {
       debug.error("Symbol.getTextureForSymbol: Spritesheet not found in cache!");
@@ -56,6 +56,44 @@ export class Symbol extends Sprite {
     //debug.log("Available textures:", Object.keys(spritesheet.textures || {}));
 
     const symbolAssetName = AssetsConfig.getSymbolAsset(symbolId);
+    debug.log(`Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`);
+
+    const texture = spritesheet.textures[symbolAssetName];
+
+    if (!texture) {
+      debug.error("Texture not found for symbol:", symbolAssetName, "with ID:", symbolId);
+      debug.log("Available texture names:", Object.keys(spritesheet.textures));
+      // Fallback to first available texture
+      const firstTextureName = Object.keys(spritesheet.textures)[0];
+      if (firstTextureName) {
+        //debug.log("Using fallback texture:", firstTextureName);
+        return spritesheet.textures[firstTextureName];
+      } else {
+        throw new Error("No textures available in spritesheet");
+      }
+    }
+
+    debug.log(`Symbol.getTextureForSymbol: Successfully found texture for ${symbolAssetName}`);
+    return texture;
+  }
+
+  public static getBlurredTextureForSymbol(symbolId: number): any {
+    debug.log(`Symbol.getTextureForSymbol: Requesting texture for symbolId ${symbolId}`);
+
+    const extension = '.png'
+
+    const spritesheet = Assets.cache.get("icons");
+
+    if (!spritesheet) {
+      debug.error("Symbol.getTextureForSymbol: Spritesheet not found in cache!");
+      //debug.log("Cache lookup failed for: /assets/symbols/symbols.json");
+      throw new Error("Spritesheet not available");
+    }
+
+    debug.log("Symbol.getTextureForSymbol: Spritesheet found, checking textures...");
+    //debug.log("Available textures:", Object.keys(spritesheet.textures || {}));
+
+    const symbolAssetName = AssetsConfig.getBlurredSymbolAsset(symbolId);
     debug.log(`Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`);
 
     const texture = spritesheet.textures[symbolAssetName];
@@ -95,6 +133,16 @@ export class Symbol extends Sprite {
 
     // Update texture
     const newTexture = Symbol.getTextureForSymbol(newSymbolId);
+    this.texture = newTexture;
+    this.label = `Symbol_${newSymbolId}`;
+  }
+
+  public setBlurred(newSymbolId: number): void {
+    this._symbolId = newSymbolId;
+    this.config.symbolId = newSymbolId;
+
+    // Update texture
+    const newTexture = Symbol.getBlurredTextureForSymbol(newSymbolId);
     this.texture = newTexture;
     this.label = `Symbol_${newSymbolId}`;
   }

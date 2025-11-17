@@ -40,12 +40,7 @@ export abstract class SpinController {
   protected _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
   protected currentSpinId?: string;
   protected currentStepIndex: number = 0;
-  protected _autoPlayCount: number = 0;
-  protected _autoPlayed: number = 0;
-  protected _isAutoPlaying: boolean = false;
   protected _isForceStopped: boolean = false;
-  protected _autoPlayDuration: number = GameConfig.AUTO_PLAY.delay || 1000;
-  protected _autoPlayTimeoutID: ReturnType<typeof setTimeout> | null = null;
   protected _abortController: AbortController | null = null;
 
   // Spin data - store finalGrid for proper final symbol positioning
@@ -63,7 +58,7 @@ export abstract class SpinController {
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
-    this._winEvent = WinEvent.getInstance();
+    this._winEvent = AnimationContainer.getInstance().getWinEvent();
   }
 
   // Main spin orchestration methods
@@ -87,7 +82,7 @@ export abstract class SpinController {
       }
 
       // Simulate server request (replace with actual server call)
-      const response = GameDataManager.getInstance().getSpinData();
+      const response = GameDataManager.getInstance().getResponseData();
 
       if (!response) {
         this.handleError("Unknown server error");
@@ -142,21 +137,6 @@ export abstract class SpinController {
       await this.reelsController.setMode(ISpinState.IDLE);
       this.setState(ISpinState.IDLE);
 
-      if (this.reelsController.checkWinCondition()) {
-        if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
-          this.stopAutoPlay();
-        }
-
-        GameConfig.WIN_EVENT.enabled && (await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE)); // Example big win amount and type
-
-        const isSkipped = this._isAutoPlaying && GameDataManager.getInstance().isWinAnimationSkipped && this._autoPlayCount > 0;
-        GameConfig.WIN_ANIMATION.enabled && (await this.reelsController.setupWinAnimation(isSkipped));
-      }
-
-      /*if (this._isAutoPlaying) {
-                this.continueAutoPlay();
-            }*/
-
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
@@ -169,96 +149,6 @@ export abstract class SpinController {
 
   public startSpinAnimation(spinData: IResponseData): void {
     this.container.startSpin(spinData);
-  }
-
-  //TO-DO: This needs to be moved to somewhere else
-  /**
-   * @description Start auto play with a specified count.
-   * @param count The number of spins to auto play.
-   * @returns A promise that resolves when auto play starts.
-   */
-  public async startAutoPlay(count: number): Promise<void> {
-    if (this._isAutoPlaying || this.getIsSpinning()) {
-      return;
-    }
-
-    this._autoPlayCount = count;
-    this._autoPlayed = 0;
-    this._isAutoPlaying = true;
-
-    eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
-
-    const staticContainer = this.reelsController.getStaticContainer();
-    if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
-
-    void this.continueAutoPlay();
-
-    debug.log("Auto play started with count:", this._autoPlayCount);
-  }
-
-  //TO-DO: This needs to be moved to somewhere else
-  /**
-   * @description Continue auto play if conditions are met.
-   * @returns True if auto play continues, false otherwise.
-   */
-  public async continueAutoPlay(): Promise<boolean> {
-    if (!this._isAutoPlaying || this.getIsSpinning() || this._autoPlayCount <= 0) {
-      this.stopAutoPlay();
-      return false;
-    }
-
-    // Set up the auto play timeout
-    this._autoPlayTimeoutID = setTimeout(async () => {
-      const response = await this.executeSpin(); // Replace with actual bet amount
-
-      // Check if the spin was successful. If not, stop auto play.
-      if (!response) {
-        this.stopAutoPlay();
-        return false;
-      }
-
-      this._autoPlayCount -= 1;
-      this._autoPlayed += 1;
-
-      eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
-
-      if (this._autoPlayCount <= 0) {
-        const staticContainer = this.reelsController.getStaticContainer();
-        // Re-enable looped win animation after last auto play spin
-        if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
-      }
-
-      debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
-    }, this._autoPlayDuration);
-
-    return true;
-  }
-
-  /**
-   * @description Stop auto play.
-   */
-  public stopAutoPlay(): void {
-    if (!this._isAutoPlaying) {
-      return;
-    }
-
-    this._autoPlayCount = 0;
-    this._autoPlayed = 0;
-    this._isAutoPlaying = false;
-
-    eventBus.emit("setMessageBox");
-
-    const staticContainer = this.reelsController.getStaticContainer();
-    // Re-enable looped win animation after auto play stops
-    if (staticContainer)
-      staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
-
-    if (this._autoPlayTimeoutID) {
-      clearTimeout(this._autoPlayTimeoutID);
-      this._autoPlayTimeoutID = null;
-    }
-
-    debug.log("Auto play stopped");
   }
 
   // Process initial grid display
@@ -458,14 +348,6 @@ export abstract class SpinController {
     );
   }
 
-  public getIsAutoPlaying(): boolean {
-    return this._isAutoPlaying;
-  }
-
-  public getAutoPlayCount(): number {
-    return this._autoPlayCount;
-  }
-
   public getIsIdle(): boolean {
     return this.currentState === "idle";
   }
@@ -614,6 +496,7 @@ export abstract class SpinController {
   }
 
   public set spinMode(mode: SpinMode) {
+    this._spinMode = mode;
     this.setSpinMode(mode);
     this.container.spinMode = mode;
   }

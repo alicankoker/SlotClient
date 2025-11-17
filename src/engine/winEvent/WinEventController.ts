@@ -7,6 +7,7 @@ import { WinEventType } from "../types/IWinEvents";
 export abstract class WinEventController<T extends WinEventContainer> {
     protected view: T;
     private _onSkip: () => void;
+    private onWinEventCompleteCallback?: () => void;
 
     constructor(view: T) {
         this.view = view;
@@ -62,6 +63,10 @@ export abstract class WinEventController<T extends WinEventContainer> {
     protected async stopWinEventAnimation(): Promise<void> {
         window.removeEventListener("click", this._onSkip);
 
+        if (this.onWinEventCompleteCallback) {
+            this.onWinEventCompleteCallback();
+        }
+
         return new Promise((resolve) => {
             gsap.to(this.view, {
                 alpha: 0,
@@ -76,5 +81,9 @@ export abstract class WinEventController<T extends WinEventContainer> {
                 },
             });
         });
+    }
+
+    public onWinEventComplete(callback: () => void): void {
+        this.onWinEventCompleteCallback = callback;
     }
 }

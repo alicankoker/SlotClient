@@ -24,7 +24,6 @@ export interface GameState {
 export class GameDataManager {
     private static instance: GameDataManager;
     private gameState: GameState;
-    private _freeSpinActive: boolean = false; // temporary flag for manually triggering free spin state
     private _isFreeSpinning: boolean = false;
     private _isAutoPlaying: boolean = false;
     private _isSkippedWinAnimation: boolean = false;
@@ -81,7 +80,7 @@ export class GameDataManager {
         return this.gameState.initialData?.history.reels;
     }
 
-    public setSpinData(response: any): void {
+    public setResponseData(response: any): void {
         if (response) {
             this.gameState.initialData = undefined; // Clear initial data after first spin
 
@@ -105,12 +104,12 @@ export class GameDataManager {
                 this.gameState.symbolsBeforeSpin = symbolsBefore;
             }
 
-            this.gameState.lastResponseData = response.data as IResponseData;
-            this.gameState.currentResponseData = response.data as IResponseData;
+            this.gameState.lastResponseData = response as IResponseData;
+            this.gameState.currentResponseData = response as IResponseData;
         }
     }
 
-    public getSpinData(): IResponseData {
+    public getResponseData(): IResponseData {
         return this.gameState.lastResponseData as IResponseData;
     }
 
@@ -118,12 +117,8 @@ export class GameDataManager {
         return this.gameState.lastResponseData?.freeSpin !== undefined;
     }
 
-    public get freeSpinActive(): boolean {
-        return this._freeSpinActive;
-    }
-
-    public set freeSpinActive(value: boolean) {
-        this._freeSpinActive = value;
+    public checkBonus(): boolean {
+        return this.gameState.lastResponseData?.bonus !== undefined;
     }
 
     // Getters

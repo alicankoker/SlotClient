@@ -1,7 +1,7 @@
 import { Nexus } from '../../nexus/Nexus';
 import { PlayerController } from '../../nexus/player/PlayerController';
 import { GameServer } from '../../server/GameServer';
-import { SpinResultData, CascadeStepData, GridData, IResponseData } from '../../engine/types/ICommunication';
+import { SpinResultData, CascadeStepData, GridData, IResponseData, IPayload } from '../../engine/types/ICommunication';
 import { INexusPlayerData, SpinTransaction } from '../../nexus/NexusInterfaces';
 import { debug } from '../../engine/utils/debug';
 import { SpinController } from '../../engine/Spin/SpinController';
@@ -19,6 +19,8 @@ import { ClassicSpinContainer } from '../../engine/Spin/classicSpin/ClassicSpinC
 import { ClassicSpinController } from '../../engine/Spin/classicSpin/ClassicSpinController';
 import { Helpers } from '../../engine/utils/Helpers';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
+import { Bonus } from '../../engine/components/Bonus';
+import { AutoPlayController } from '../../engine/AutoPlay/AutoPlayController';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -46,6 +48,7 @@ export class SlotGameController {
     public reelsContainer!: ReelsContainer;
     public reelsController!: ReelsController;
     public freeSpinController!: FreeSpinController;
+    private autoPlayController!: AutoPlayController;
     private background!: Background;
     private animationContainer!: AnimationContainer;
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
@@ -71,7 +74,7 @@ export class SlotGameController {
         this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig) as ClassicSpinContainer;
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0,
-            symbolHeight: GameConfig.REFERENCE_SYMBOL.height,
+            symbolHeight: GameConfig.REFERENCE_SPRITE_SYMBOL.height,
             symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData as number[][]);
 
@@ -88,13 +91,14 @@ export class SlotGameController {
         this.spinContainer.mask = this.reelsContainer.getMask();
         this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
-        this.app.stage.addChild(this.animationContainer);
 
         this.spinController = new ClassicSpinController(this.spinContainer as SpinContainer, {
             reelsController: this.reelsController
         });
 
-        this.freeSpinController = FreeSpinController.getInstance(this.spinController);
+        this.freeSpinController = FreeSpinController.getInstance(this);
+
+        this.autoPlayController = AutoPlayController.getInstance(this, this.reelsController);
 
         this.connectControllers();
     }
@@ -185,67 +189,92 @@ export class SlotGameController {
     }
 
     // Convenience method for executing spins
-    public async executeGameSpin(betAmount: number = 10, gameMode: string = "manual"): Promise<void> {
-        //const response = await this.gameServer.requestSpin(betAmount);
+    public async executeGameSpin(action: IPayload["action"]): Promise<void> {
+        const response = await this.gameServer.processRequest(action);
 
-        // const response = await this.gameServer.processSpinRequest({
-        //     betAmount,
-        //     gameMode,
-        //     forcedFS: GameDataManager.getInstance().freeSpinActive
-        // });
-
-        const response = await this.gameServer.processRequest();
-
-        console.warn("Spin ID:", response._id);
-
+        eventBus.emit("setSpinId", response._id.toString());
         eventBus.emit("setBalance", response.balance.before);
 
         if (this.spinController && response) {
             await this.spinController.executeSpin();
 
             if (response.freeSpin && GameDataManager.getInstance().checkFreeSpins() && response.freeSpin.playedRounds === 0) {
-                await this.startFreeSpinState(response.freeSpin.totalRounds, response.totalWin);
+                await this.startFreeSpinState(response.freeSpin.totalRounds, response.freeSpin.totalRounds, response.totalWin);
+            } else if (response.bonus && GameDataManager.getInstance().checkBonus()) {
+                await this.startBonusState();
+            }
+
+            if (this.autoPlayController.isRunning && (GameConfig.AUTO_PLAY.stopOnWin || GameConfig.AUTO_PLAY.stopOnFeature)) {
+                this.autoPlayController.stopAutoPlay();
+            }
+
+            if (this.autoPlayController.isRunning && FreeSpinController.instance().isRunning === false && Bonus.instance().isActive === false) {
+                this.autoPlayController.continueAutoPlay();
             }
         }
     }
 
-    public async startFreeSpinState(initialFreeSpinCount: number, initialWin: number): Promise<void> {
-            this.freeSpinController.isRunning = true;
-            this.staticContainer.allowLoop = false;
-            this.staticContainer.isFreeSpinMode = true;
+    public async startFreeSpinState(totalRounds: number, remainRounds: number, initialWin: number): Promise<void> {
+        this.freeSpinController.isRunning = true;
+        this.staticContainer.allowLoop = false;
+        this.staticContainer.isFreeSpinMode = true;
 
-            await this.animationContainer.startTransitionAnimation(() => {
-                this.reelsContainer.setFreeSpinMode(true);
-                this.background.setFreeSpinMode(true);
+        await this.animationContainer.startTransitionAnimation(() => {
+            this.reelsContainer.setFreeSpinMode(true);
+            this.background.setFreeSpinMode(true);
+            this.animationContainer.getWinLines().setFreeSpinMode(true);
 
-                eventBus.emit("setMessageBox", { variant: "freeSpin", message: initialFreeSpinCount.toString() });
-                this.animationContainer.getBuyFreeSpinButton().visible = false;
-            });
+            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
+            eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
+        });
 
-            this.animationContainer.getPopupCountText().text = `${initialFreeSpinCount}`;
-            this.animationContainer.getPopupFreeSpinsText().text = `FREESPINS`;
-            await this.animationContainer.playFreeSpinPopupAnimation();
+        this.animationContainer.getPopupCountText().setText(`${remainRounds}`);
+        this.animationContainer.getPopupContentText().text = `FREESPINS`;
+        await this.animationContainer.playPopupAnimation();
 
-            const { totalWin, freeSpinCount } = await this.executeFreeSpin(initialFreeSpinCount, initialWin);
+        const { totalWin, freeSpinCount } = await this.executeFreeSpin(totalRounds, remainRounds, initialWin);
 
-            this.animationContainer.getPopupCountText().text = `$ ${Helpers.convertToDecimal(totalWin)}`;
-            this.animationContainer.getPopupFreeSpinsText().text = `IN ${freeSpinCount} FREESPINS`;
-            await this.animationContainer.playFreeSpinPopupAnimation();
+        this.animationContainer.getPopupCountText().setText(`$ ${Helpers.convertToDecimal(totalWin)}`);
+        this.animationContainer.getPopupContentText().text = `IN ${freeSpinCount} FREESPINS`;
+        await this.animationContainer.playPopupAnimation();
 
-            await this.animationContainer.startTransitionAnimation(() => {
-                this.reelsContainer.setFreeSpinMode(false);
-                this.background.setFreeSpinMode(false);
+        await this.animationContainer.startTransitionAnimation(() => {
+            this.reelsContainer.setFreeSpinMode(false);
+            this.background.setFreeSpinMode(false);
+            this.animationContainer.getWinLines().setFreeSpinMode(false);
+        });
 
-                this.animationContainer.getBuyFreeSpinButton().visible = true;
-            });
-
-            this.freeSpinController.isRunning = false;
-            this.staticContainer.allowLoop = true;
-            this.staticContainer.isFreeSpinMode = false;
+        this.freeSpinController.isRunning = false;
+        this.staticContainer.allowLoop = true;
+        this.staticContainer.isFreeSpinMode = false;
     }
 
-    public async executeFreeSpin(initialFreeSpinCount: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
-        return await this.freeSpinController.executeFreeSpin(initialFreeSpinCount, initialWin);
+    public async startBonusState(): Promise<void> {
+        eventBus.emit("hideUI");
+        Bonus.instance().isActive = true;
+        await this.staticContainer.playHighlightSymbols(GameDataManager.getInstance().getResponseData().bonus?.positions!);
+        await this.animationContainer.startTransitionAnimation(() => {
+            this.animationContainer.setBonusMode(true);
+            Bonus.instance().visible = true;
+        });
+
+        Bonus.instance().setOnBonusCompleteCallback(async () => {
+            this.animationContainer.setBonusMode(false);
+            Bonus.instance().isActive = false;
+            eventBus.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
+            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
+            eventBus.emit("showUI");
+
+            if (this.autoPlayController.isRunning && FreeSpinController.instance().isRunning === false && Bonus.instance().isActive === false) {
+                setTimeout(() => {
+                    this.autoPlayController.continueAutoPlay();
+                }, GameConfig.AUTO_PLAY.delay || 1000);
+            }
+        });
+    }
+
+    public async executeFreeSpin(totalRounds: number, remainRounds: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
+        return await this.freeSpinController.executeFreeSpin(totalRounds, remainRounds, initialWin);
     }
 
     //TODO: Needs to be moved to Nexus
@@ -268,5 +297,9 @@ export class SlotGameController {
 
     public getFreeSpinController(): FreeSpinController {
         return this.freeSpinController;
+    }
+
+    public getAutoPlayController(): AutoPlayController {
+        return this.autoPlayController;
     }
 } 

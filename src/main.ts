@@ -21,6 +21,9 @@ import { AnimationContainer } from "./engine/components/AnimationContainer";
 import { FeatureScreen } from "./engine/components/FeatureScreen";
 import { SocketConnection } from "./communication/Connection/SocketConnection";
 import { WinLines } from "./engine/components/WinLines";
+import { Bonus } from "./engine/components/Bonus";
+import { Helpers } from "./engine/utils/Helpers";
+import { AutoPlayController } from "./engine/AutoPlay/AutoPlayController";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -85,11 +88,6 @@ export class DoodleV8Main {
       // Step 5: Create scene/sprites
       this.createScene();
 
-      // const bonusScene = Bonus.getInstance();
-      // this.app.stage.addChild(bonusScene);
-
-      // localStorage.getItem('featureScreenDontShow') === 'true' && eventBus.emit("showUI");
-
       // Step 6: Start game systems (controllers handle the game loop)
 
       //TO-DO: this needs to be moved to a separate place
@@ -112,11 +110,12 @@ export class DoodleV8Main {
           if (
             this.slotGameController.spinController.getIsSpinning() === false &&
             this.winEvent.isWinEventActive === false &&
-            this.slotGameController.spinController.getIsAutoPlaying() === false &&
-            this.slotGameController.getFreeSpinController().isRunning === false
+            this.slotGameController.getAutoPlayController().isRunning === false &&
+            this.slotGameController.getFreeSpinController().isRunning === false &&
+            Bonus.instance().isActive === false
           ) {
             isSpinning = true;
-            await this.slotGameController.executeGameSpin(10, "manual");
+            await this.slotGameController.executeGameSpin('spin');
             isSpinning = false;
             isKeyHeld = false;
           }
@@ -124,6 +123,12 @@ export class DoodleV8Main {
       }
 
       eventBus.on("startSpin", async () => {
+        if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
+          this.slotGameController.reelsController.skipWinAnimations();
+        }
+
+        if (isKeyHeld || isSpinning) return;
+
         await spin();
       });
 
@@ -132,12 +137,13 @@ export class DoodleV8Main {
         if (
           this.slotGameController?.spinController &&
           this.slotGameController.spinController.getIsSpinning() === false &&
-          this.slotGameController.spinController.getIsAutoPlaying() === false &&
+          this.slotGameController.getAutoPlayController().isRunning === false &&
           this.winEvent.isWinEventActive === false &&
-          this.slotGameController.getFreeSpinController().isRunning === false
+          this.slotGameController.getFreeSpinController().isRunning === false &&
+          Bonus.instance().isActive === false
         ) {
           // usage: window.dispatchEvent(new CustomEvent("startAutoPlay", { detail: {numberOfAutoSpins: 5, selectedSpinType: "skip"} }));
-          await this.slotGameController.spinController.startAutoPlay(autoSpinCount);
+          await this.slotGameController.getAutoPlayController().startAutoPlay(autoSpinCount);
         }
       });
 
@@ -145,10 +151,10 @@ export class DoodleV8Main {
         debug.log("🛑 Stop auto-play triggered");
         if (
           this.slotGameController?.spinController &&
-          this.slotGameController.spinController.getIsAutoPlaying() &&
-          this.slotGameController.spinController.getAutoPlayCount() > 0
+          this.slotGameController.getAutoPlayController().isRunning &&
+          this.slotGameController.getAutoPlayController().autoPlayCount > 0
         ) {
-          this.slotGameController.spinController.stopAutoPlay();
+          this.slotGameController.getAutoPlayController().stopAutoPlay();
         }
       });
 
@@ -215,8 +221,16 @@ export class DoodleV8Main {
               GameConfig.WIN_EVENT.enabled &&
               !this.slotGameController?.reelsController?.getIsSpinning()
             ) {
-              this.winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
+              AnimationContainer.getInstance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
             }
+            break;
+          case "KeyS":
+            AnimationContainer.getInstance().getPopupCountText().setText("X$1354€");
+            AnimationContainer.getInstance().playPopupAnimation();
+            break;
+          case "KeyD":
+            AnimationContainer.getInstance().getDialogCountText().setText("+5");
+            AnimationContainer.getInstance().playDialogBoxAnimation();
             break;
         }
       });
@@ -261,6 +275,9 @@ export class DoodleV8Main {
       height: window.innerHeight,
       backgroundColor: 0x1099bb,
       resizeTo: window,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
+      antialias: true
     });
 
     // this.app.canvas.onclick = () => {
@@ -336,7 +353,26 @@ export class DoodleV8Main {
 
     // Add the reels container to the stage
     //this.app.stage.addChild(this.slotGameController!.reelsController.getReelsContainer());
+
     this.slotGameController!.initialize();
+
+    const bonusScene = Bonus.getInstance(this.app);
+    bonusScene.visible = GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus";
+    bonusScene.isActive = GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus";
+    if (bonusScene.isActive) {
+      bonusScene.setOnBonusCompleteCallback(async () => {
+        animationContainer.setBonusMode(false);
+        Bonus.instance().isActive = false;
+        eventBus.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
+        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
+        eventBus.emit("showUI");
+      });
+    }
+    this.app.stage.addChild(bonusScene);
+
+    const animationContainer = AnimationContainer.getInstance();
+    bonusScene.isActive && animationContainer.setBonusMode(true);
+    this.app.stage.addChild(animationContainer);
 
     this.winEvent = AnimationContainer.getInstance().getWinEvent();
 
@@ -346,18 +382,16 @@ export class DoodleV8Main {
     // Set initial mode to static
     this.slotGameController!.reelsController!.setMode(ISpinState.IDLE);
 
-    eventBus.emit("showUI");
+    GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus" && eventBus.emit("showUI");
     eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
 
     const response = GameDataManager.getInstance().getInitialData();
-    console.log("Initial Data:", response);
 
     if (this.slotGameController && response && response.history.freeSpin && response.history.freeSpin.totalRounds > response.history.freeSpin.playedRounds) {
-      console.log("Starting in free spins with data:", response);
-      const initialFreeSpinCount = response.history.freeSpin?.totalRounds - response.history.freeSpin.playedRounds;
-      const initialWin = response.history.freeSpin.featureWin + response.history.totalWin;
+      const remainRounds = response.history.freeSpin?.totalRounds - response.history.freeSpin.playedRounds;
+      const initialWin = response.history.freeSpin.featureWin;
 
-      this.slotGameController.startFreeSpinState(initialFreeSpinCount, initialWin);
+      this.slotGameController.startFreeSpinState(response.history.freeSpin.totalRounds, remainRounds, initialWin);
     }
   }
 }

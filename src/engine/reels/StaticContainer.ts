@@ -12,6 +12,10 @@ import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { AnimationContainer } from '../components/AnimationContainer';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 import { GameDataManager } from '../data/GameDataManager';
+import { Helpers } from '../utils/Helpers';
+import { FreeSpinController } from '../freeSpin/FreeSpinController';
+import { AutoPlayController } from '../AutoPlay/AutoPlayController';
+import { Bonus } from '../components/Bonus';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -33,6 +37,7 @@ export class StaticContainer extends Container {
     private _isSkipped: boolean = false;
     private _allowLoop: boolean = GameConfig.WIN_ANIMATION.winLoop ?? true;
     private _isFreeSpinMode: boolean = false;
+    private _isBonusMode: boolean = false;
     private _animationToken: number = 0;
     private _initialGrid: number[][];
     private _pendingResolvers: (() => void)[] = [];
@@ -106,7 +111,7 @@ export class StaticContainer extends Container {
                     x: reelX, // Offset for container position
                     y: symbolY // Offset for container position
                 },
-                scale: GameConfig.REFERENCE_SYMBOL.scale, // Use responsive scale
+                scale: GameConfig.REFERENCE_SPINE_SYMBOL.scale, // Use responsive scale
             });
 
             // Add to symbols container and array
@@ -149,11 +154,11 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas, token);
 
-        if (GameDataManager.getInstance().isFreeSpinning !== false && GameDataManager.getInstance().isAutoPlaying !== false) {
+        if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
             eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
         }
 
-        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false) {
+        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false && Bonus.instance().isActive === false) {
             this.playLoopAnimations(winDatas, token);
         }
     }
@@ -228,18 +233,18 @@ export class StaticContainer extends Container {
                 if (!this._isSkipped) {
                     this._pendingResolvers = [];
 
-                    symbolGroups.forEach((symbolIds, reelIndex) => {
-                        symbolIds.forEach((symbolId) => {
-                            if (symbolId === -1) return;
-
-                            this._symbols.get(reelIndex)?.[symbolId]?.setIdle();
-                        });
-                    });
-
                     if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                         this._winLines.hideLine(winData.line);
                     }
                 }
+            });
+
+            symbolGroups.forEach((symbolIds, reelIndex) => {
+                symbolIds.forEach((symbolId) => {
+                    if (symbolId === -1) return;
+
+                    this._symbols.get(reelIndex)?.[symbolId]?.setIdle();
+                });
             });
         }
 
@@ -263,7 +268,7 @@ export class StaticContainer extends Container {
         this._isLooping = true;
         this._isSkipped = false;
 
-        while (this._isLooping && this._animationToken === token && this._isFreeSpinMode === false) {
+        while (this._isLooping && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
             await this.playWinAnimations(winDatas, token);
             await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
         }
@@ -301,6 +306,7 @@ export class StaticContainer extends Container {
      * @returns A promise that resolves when the animation is complete.
      */
     public async playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
+        this._isPlaying = true;
         return new Promise(async (resolve) => {
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.showLines(lines);
@@ -308,11 +314,15 @@ export class StaticContainer extends Container {
 
             await AnimationContainer.getInstance().playTotalWinAnimation(amount);
 
-            eventBus.emit("setWinBox", { variant: "default", amount: amount.toString() });
+            if (FreeSpinController.instance().isRunning === false) {
+                eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
+            }
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.hideAllLines();
             }
+
+            this._isPlaying = false;
 
             resolve();
         });
@@ -344,6 +354,35 @@ export class StaticContainer extends Container {
                 symbol.setIdle();
             });
         });
+    }
+
+    public async playHighlightSymbols(positions: number[] | number[][]): Promise<void> {
+        this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.setBlackout()));
+
+        const symbolGroups: number[][] = Array.isArray(positions[0])
+            ? (positions as number[][])
+            : (positions as unknown as number[]).map((id) => [id]);
+
+        await Promise.all(symbolGroups.map(async (symbolIds, reelIndex) => {
+            return Promise.all(
+                symbolIds.map(async (symbolId) => {
+                    if (symbolId === -1) return;
+
+                    const symbol = this._symbols.get(reelIndex)?.[symbolId];
+                    if (!symbol) return;
+
+                    symbol.clearBlackout();
+
+                    await new Promise<void>((resolve) => {
+                        symbol.setWinAnimation(false, () => resolve());
+                    });
+
+                    symbol.setIdle();
+                })
+            );
+        }));
+
+        this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.clearBlackout()));
     }
 
     // Public symbol management methods
@@ -504,7 +543,7 @@ export class StaticContainer extends Container {
 
     // Position calculation utilities
     protected calculateSymbolX(column: number = 0): number {
-        const symbolWidth = GameConfig.REFERENCE_SYMBOL.width;
+        const symbolWidth = GameConfig.REFERENCE_SPINE_SYMBOL.width;
 
         const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
 
@@ -514,7 +553,7 @@ export class StaticContainer extends Container {
     }
 
     protected calculateSymbolY(row: number): number {
-        const symbolHeight = GameConfig.REFERENCE_SYMBOL.height;
+        const symbolHeight = GameConfig.REFERENCE_SPINE_SYMBOL.height;
 
         const spacingY = GameConfig.REFERENCE_SPACING.vertical;
 
@@ -558,6 +597,14 @@ export class StaticContainer extends Container {
 
     public set isFreeSpinMode(value: boolean) {
         this._isFreeSpinMode = value;
+    }
+
+    public get isBonusMode(): boolean {
+        return this._isBonusMode;
+    }
+
+    public set isBonusMode(value: boolean) {
+        this._isBonusMode = value;
     }
 
     public destroy(): void {

@@ -61,18 +61,18 @@ export class SocketConnection {
                 if (response.error) {
                     reject(response.error);
                 } else {
-                    resolve(response);
+                    resolve(response.data);
                 }
             });
         });
     }
 
-    // public reconnect(): void {
-    //     if (this._socket.connected) {
-    //         console.log("Socket already connected.");
-    //         return;
-    //     }
+    public reconnect(): void {
+        if (this._socket.connected) {
+            console.log("Socket already connected.");
+            return;
+        }
 
-    //     this._socket.connect();
-    // }
+        this._socket.connect();
+    }
 }

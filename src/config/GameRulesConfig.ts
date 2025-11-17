@@ -57,8 +57,8 @@ export class GameRulesConfig {
     };
     
     // Reference symbol dimensions at base resolution
-    private static sh = GameConfig.REFERENCE_SYMBOL.height + GameConfig.REFERENCE_SPACING.vertical;
-    private static sw = GameConfig.REFERENCE_SYMBOL.width + GameConfig.REFERENCE_SPACING.horizontal;
+    private static sh = GameConfig.REFERENCE_SPRITE_SYMBOL.height + GameConfig.REFERENCE_SPACING.vertical;
+    private static sw = GameConfig.REFERENCE_SPRITE_SYMBOL.width + GameConfig.REFERENCE_SPACING.horizontal;
 
     // Winning line symbol coordinates
     public static readonly COORDINATES: { [key: number]: { x: number, y: number } } = {

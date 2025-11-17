@@ -5,7 +5,7 @@ import { debug } from "../utils/debug";
 export class SymbolUtils {
   // Get texture for a symbol ID (static utility)
   public static getTextureForSymbol(symbolId: number): any {
-    const spritesheet = Assets.cache.get("/assets/symbols/symbols.json");
+    const spritesheet = Assets.cache.get("icons");
 
     if (!spritesheet) {
       debug.error("Spritesheet not found in cache!");
@@ -26,7 +26,7 @@ export class SymbolUtils {
   }
 
   public static getBlurredTextureForSymbol(symbolId: number): any {
-    const spritesheet = Assets.cache.get("/assets/symbols/symbols.json");
+    const spritesheet = Assets.cache.get("icons");
 
     if (!spritesheet) {
       debug.error("Spritesheet not found in cache!");

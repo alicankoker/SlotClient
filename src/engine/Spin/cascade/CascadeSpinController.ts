@@ -6,8 +6,10 @@ import { GameDataManager } from "../../data/GameDataManager";
 import { Utils } from "../../utils/Utils";
 import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
-import { WinEventType } from "../../types/IWinEvents";
+import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
+import { AnimationContainer } from "../../components/AnimationContainer";
+import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
 
 export class CascadeSpinController extends SpinController {
     constructor(container: SpinContainer, config: SpinControllerConfig) {
@@ -36,7 +38,7 @@ export class CascadeSpinController extends SpinController {
             }
 
             // Simulate server request (replace with actual server call)
-            const response = GameDataManager.getInstance().getSpinData();
+            const response = GameDataManager.getInstance().getResponseData();
 
             if (!response) {
                 this.handleError('Unknown server error');
@@ -89,13 +91,19 @@ export class CascadeSpinController extends SpinController {
             this.setState(ISpinState.IDLE);
 
             if (this.reelsController.checkWinCondition()) {
-                if (this._isAutoPlaying && GameConfig.AUTO_PLAY.stopOnWin) {
-                    this.stopAutoPlay();
+                if (AutoPlayController.instance().isRunning && GameConfig.AUTO_PLAY.stopOnWin) {
+                    AutoPlayController.instance().stopAutoPlay();
                 }
 
-                GameConfig.WIN_EVENT.enabled && await this._winEvent.getController().showWinEvent(15250, WinEventType.INSANE); // Example big win amount and type
+                if (GameConfig.WIN_EVENT.enabled && response.winEventType !== 'normal') {
+                    const winAmount = response.totalWin;
+                    const backendType = response.winEventType;
+                    const enumType = BackendToWinEventType[backendType]!;
 
-                const isSkipped = (this._isAutoPlaying && GameDataManager.getInstance().isWinAnimationSkipped && this._autoPlayCount > 0);
+                    await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+                }
+
+                const isSkipped = (AutoPlayController.instance().isRunning && GameDataManager.getInstance().isWinAnimationSkipped && AutoPlayController.instance().autoPlayCount > 0);
                 GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
             }
 

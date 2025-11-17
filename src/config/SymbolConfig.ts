@@ -47,7 +47,7 @@ export class SymbolConfig {
     // Calculated values (computed from other configs)
     public static getSpriteToReferenceScale(): number {
         // This replaces the hardcoded 487 calculation
-        return GameConfig.REFERENCE_SYMBOL.width / this.SPRITE_DIMENSIONS.width;
+        return GameConfig.REFERENCE_SPRITE_SYMBOL.width / this.SPRITE_DIMENSIONS.width;
     }
 
     public static getGridCenterRow(symbolsVisible: number): number {
