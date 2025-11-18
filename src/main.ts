@@ -26,6 +26,8 @@ import { Helpers } from "./engine/utils/Helpers";
 import { AutoPlayController } from "./engine/AutoPlay/AutoPlayController";
 import { signals } from "./engine/controllers/SignalManager";
 import SoundManager from "./engine/controllers/SoundManager";
+//@ts-ignore
+import Stats from "stats-js";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -298,6 +300,21 @@ export class DoodleV8Main {
 
     // Add global reference for debugging
     (globalThis as any).__PIXI_APP__ = this.app;
+
+    const stats = new Stats();
+    stats.showPanel(0);
+    stats.dom.style.position = "absolute";
+    stats.dom.style.top = "10px";
+    stats.dom.style.right = "10px";
+    stats.dom.style.left = "unset";
+
+    this.app.ticker.add(() => {
+      stats.begin();
+      stats.end();
+    });
+
+    // @ Append to body
+    document.body.appendChild(stats.dom);
 
     debug.log("PIXI Application initialized");
   }
