@@ -7,6 +7,7 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
     rollupOptions: {
+      external: ['stats-js'],
       output: {
         manualChunks: () => 'index',
         entryFileNames: 'index.js',
