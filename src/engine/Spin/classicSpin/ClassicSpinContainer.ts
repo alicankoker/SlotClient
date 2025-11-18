@@ -101,7 +101,7 @@ export class ClassicSpinContainer extends SpinContainer {
                 this.reelsSpinStates[reelId].state = IReelSpinState.SPINNING;
             }
         }
-        if (this.reelsSpinStates[reelId].state === IReelSpinState.STOPPING) {
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.STOPPING || (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false)) {
             this.reelsSpinStates[reelId].speed = SpinConfig.REEL_MAX_SPEED;
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);

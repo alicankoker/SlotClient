@@ -40,6 +40,7 @@ export class StaticContainer extends Container {
     private _isBonusMode: boolean = false;
     private _animationToken: number = 0;
     private _initialGrid: number[][];
+    private _adrenalinePhase: boolean = false;
     private _pendingResolvers: (() => void)[] = [];
 
     constructor(app: Application, config: StaticContainerConfig, initialGrid: number[][]) {
@@ -57,8 +58,6 @@ export class StaticContainer extends Container {
         initialGrid.forEach((symbolIds: number[], reelIndex: number) => {
             this.createSymbolsFromIds(symbolIds, reelIndex);
         });
-
-        //this.eventListeners();
     }
 
     /**
@@ -358,7 +357,7 @@ export class StaticContainer extends Container {
 
         this._symbols.forEach((reelSymbols) => {
             reelSymbols.forEach((symbol) => {
-                symbol.setIdle();
+                symbol.symbolId !== 10 && symbol.setIdle();
             });
         });
     }
@@ -390,6 +389,47 @@ export class StaticContainer extends Container {
         }));
 
         this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.clearBlackout()));
+    }
+
+    public playExpectedBonusAnimation(reelIndex: number, reel: number[]): void {
+        if (reelIndex === 1 || reelIndex === 3) return;
+
+        let bonusPosition = -1;
+
+        for (let sIndex = 0; sIndex < reel.length; sIndex++) {
+            if (reel[sIndex] === 10) {
+                bonusPosition = sIndex;
+            }
+        }
+
+        switch (reelIndex) {
+            case 0:
+                if (bonusPosition !== -1) {
+                    signals.emit("startAdrenalineEffect");
+                    this._adrenalinePhase = true;
+                }
+                break;
+
+            case 2:
+                if (this._adrenalinePhase && (bonusPosition === -1)) {
+                    this._adrenalinePhase = false;
+                }
+                break;
+            default:
+                if (this._adrenalinePhase) {
+                    signals.emit("stopAdrenalineEffect");
+                    this._adrenalinePhase = false;
+                }
+                break;
+        }
+
+        console.log("Reel Index:", reelIndex);
+        console.log("Bonus Position:", bonusPosition);
+
+        if (this._adrenalinePhase) {
+            this._symbols.get(reelIndex)?.[bonusPosition].state.addAnimation(0, "10_adrenaline_landing", false, 0.25);
+            this._symbols.get(reelIndex)?.[bonusPosition].state.addAnimation(0, "10_adrenaline_idle", true, 0.25);
+        }
     }
 
     // Public symbol management methods
@@ -612,6 +652,14 @@ export class StaticContainer extends Container {
 
     public set isBonusMode(value: boolean) {
         this._isBonusMode = value;
+    }
+
+    public get adrenalinePhase(): boolean {
+        return this._adrenalinePhase;
+    }
+
+    public set adrenalinePhase(value: boolean) {
+        this._adrenalinePhase = value;
     }
 
     public getSymbols(): Map<number, SpineSymbol[]> {

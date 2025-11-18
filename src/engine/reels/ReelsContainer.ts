@@ -14,6 +14,7 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { Helpers } from '../utils/Helpers';
 import { SpinMode } from '../types/ISpinConfig';
 import { FreeSpinController } from '../freeSpin/FreeSpinController';
+import { gsap } from 'gsap';
 
 export class ReelsContainer extends Container {
   private app: Application;
@@ -30,6 +31,7 @@ export class ReelsContainer extends Container {
   private chains: Spine[] = [];
   private floors: Sprite[] = [];
   private holes: Sprite[] = [];
+  private adrenalineStripes: Spine[] = [];
 
   // Position storage
   private reelXPositions: number[] = [];
@@ -71,7 +73,44 @@ export class ReelsContainer extends Container {
   private eventListeners(): void {
     signals.on("reelStopped", (reelIndex) => {
       this.setChainAnimation(false, false, reelIndex);
+
+      // if ((reelIndex === 2 || reelIndex === 4) && this.adrenalineStripes[reelIndex - 2].visible) {
+      //   gsap.fromTo([this.adrenalineStripes[reelIndex - 2], this.adrenalineStripes[reelIndex - 1]], { alpha: 1 }, {
+      //     alpha: 0, duration: 0.15, onComplete: () => {
+      //       this.adrenalineStripes[reelIndex - 2].visible = false;
+      //       this.adrenalineStripes[reelIndex - 2].state.clearTracks();
+      //       this.adrenalineStripes[reelIndex - 1].visible = false;
+      //       this.adrenalineStripes[reelIndex - 1].state.clearTracks();
+      //     }
+      //   });
+      // }
+
+      // if (reelIndex === 4) {
+      //   this.staticContainer!.adrenalinePhase = false;
+      // }
     });
+
+    // signals.on("startAdrenalineEffect", () => {
+    //   this.adrenalineStripes.forEach(stripe => {
+    //     gsap.fromTo(stripe, { alpha: 0 }, {
+    //       alpha: 1, duration: 0.15, onStart: () => {
+    //         stripe.visible = true
+    //         stripe.state.setAnimation(0, "Adrenalin_Glow", true);
+    //       }
+    //     });
+    //   });
+    // });
+
+    // signals.on("stopAdrenalineEffect", () => {
+    //   this.adrenalineStripes.forEach(stripe => {
+    //     gsap.fromTo(stripe, { alpha: 1 }, {
+    //       alpha: 0, duration: 0.15, onComplete: () => {
+    //         stripe.visible = false;
+    //         stripe.state.clearTracks();
+    //       }
+    //     });
+    //   });
+    // });
   }
 
   private createReelFrame(): void {
@@ -186,6 +225,17 @@ export class ReelsContainer extends Container {
         this.chains.push(floorChain);
       }
     }
+
+    // for (let index = 0; index < 4; index++) {
+    //   const { atlas, skeleton } = AssetsConfig.ENVIRONMENT_SPINE_ASSET;
+    //   const adrenalineStripe = Spine.from({ atlas, skeleton });
+    //   adrenalineStripe.label = `AdrenalineStripe_${index}`;
+    //   adrenalineStripe.position.set(836 + (index * 244), 555);
+    //   adrenalineStripe.state.setAnimation(0, "Adrenalin_Glow", true);
+    //   adrenalineStripe.visible = false;
+    //   this.adrenalineStripes.push(adrenalineStripe);
+    //   this.frameElementsContainer.addChild(adrenalineStripe);
+    // }
 
     this._reelFrame = Sprite.from('base_frame');
     this._reelFrame.label = 'ReelFrame';

@@ -91,7 +91,7 @@ export class ClassicSpinController extends SpinController {
       }
 
       (this.container as ClassicSpinContainer).startStopSequence();
-      this._spinMode === GameConfig.SPIN_MODES.NORMAL && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
+      (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
@@ -107,8 +107,9 @@ export class ClassicSpinController extends SpinController {
   }
 
   private eventListeners(): void {
-    signals.on("reelStopped", (reelIndex) => {
-      this.setReelToStaticContainer(this._symbols[reelIndex], reelIndex as number);
+    signals.on("reelStopped", async (reelIndex) => {
+      await this.setReelToStaticContainer(this._symbols[reelIndex], reelIndex as number);
+      //this.reelsController.getReelsContainer().getStaticContainer()?.playExpectedBonusAnimation(reelIndex, this._symbols[reelIndex]);
     });
   }
 
