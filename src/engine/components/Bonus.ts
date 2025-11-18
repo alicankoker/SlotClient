@@ -191,33 +191,13 @@ export class Bonus extends BonusContainer {
 
                 this._infoText2.visible = false;
 
-                // TODO: test response for undefined multiplier value
-                // const response = {
-                //     featureWin: 500,
-                //     selectedIndex: 0,
-                //     tier: 3,
-                //     values: ["GATE", 5, 10, 15, 20, 25] as (number | "GATE")[]
-                // }
-
-                //this._controller.data = response;
-
-                //console.log(response);
-
                 this._selectedItemIndex = index;
-
-                //console.log("Selected Dynamite Index:", this._selectedItemIndex);
 
                 this._selectedRewardIndex = response.selectedIndex;
 
-                //console.log("Selected Reward Index from Response:", this._selectedRewardIndex);
-
                 const value = response.values[response.selectedIndex];
 
-                //console.log("Selected Value:", value);
-
                 const selectedType = typeof value === 'number' ? 'multiplier' : 'key';
-
-                //console.log("Selected Type:", selectedType);
 
                 this.layoutRewards(index, this._bonusStage, selectedType);
 
@@ -225,11 +205,7 @@ export class Bonus extends BonusContainer {
                     this._bonusStage = response.tier;
                 }
 
-                //console.log("Current Bonus Stage:", this._bonusStage);
-
                 let reward: Sprite | SpriteText = this._rewards[index];
-
-                //console.log("Selected Reward Object:", reward);
 
                 this._zIndexCounter++;
                 this._dynamites[index].zIndex = this._zIndexCounter;
@@ -302,8 +278,6 @@ export class Bonus extends BonusContainer {
             keyCount -= 1;
         }
 
-        //console.log("Key Count:", keyCount, "Multiplier Count:", multiplierCount);
-
         this._rewards = [];
 
         for (let index = 0; index < keyCount; index++) {
@@ -355,18 +329,11 @@ export class Bonus extends BonusContainer {
             );
         }
 
-        //console.log("Shuffled Rewards Layout:", shuffled);
-
         this._rewards = shuffled;
 
         const multipliers = this._controller.data.values.filter(value => typeof value === 'number') as number[];
-        //console.log("Available Multipliers:", multipliers);
         const selectedMultiplier = this._controller.data.values[this._selectedRewardIndex] as number;
-        //console.log("Selected Multiplier:", selectedMultiplier);
         const otherMultipliers = multipliers.filter(mul => mul !== selectedMultiplier);
-        //console.log("Other Multipliers:", otherMultipliers);
-
-        //console.log("Other Multipliers:", otherMultipliers);
 
         for (let index = 0; index < this._rewards.length; index++) {
             if (this._rewards[index] instanceof SpriteText) {

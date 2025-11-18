@@ -91,7 +91,7 @@ export class ClassicSpinController extends SpinController {
       }
 
       (this.container as ClassicSpinContainer).startStopSequence();
-      this._spinMode !== GameConfig.SPIN_MODES.TURBO && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
+      this._spinMode === GameConfig.SPIN_MODES.NORMAL && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);

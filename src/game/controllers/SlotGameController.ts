@@ -269,6 +269,7 @@ export class SlotGameController {
             this.background.setFreeSpinMode(true);
             this.animationContainer.getWinLines().setFreeSpinMode(true);
 
+            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: true } });
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
             eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
         });
@@ -284,6 +285,7 @@ export class SlotGameController {
         await this.animationContainer.playPopupAnimation();
 
         await this.animationContainer.startTransitionAnimation(() => {
+            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: false } });
             this.reelsContainer.setFreeSpinMode(false);
             this.background.setFreeSpinMode(false);
             this.animationContainer.getWinLines().setFreeSpinMode(false);

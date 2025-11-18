@@ -147,8 +147,6 @@ export class ReelsController {
       }
     }
 
-    //console.log("winConfigs", winConfigs);
-
     const staticContainer = this.reelsContainer.getStaticContainer();
     const winLines = this.reelsContainer.getWinLines();
 
