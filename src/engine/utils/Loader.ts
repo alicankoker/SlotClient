@@ -25,7 +25,7 @@ export class Loader extends Container {
     private percentageLabel!: Text;
     private progressStatus!: Text;
 
-    private padding: number = 1420; //1533
+    private padding: number = 920; //1533
 
     private constructor(app: Application) {
         super();
@@ -134,7 +134,7 @@ export class Loader extends Container {
                     alpha: 1,
                     angle: Math.PI / 2
                 },
-                stroke:{
+                stroke: {
                     color: '#000000',
                     width: 1,
                     alpha: 0.5
@@ -161,7 +161,7 @@ export class Loader extends Container {
                     alpha: 1,
                     angle: Math.PI / 2
                 },
-                stroke:{
+                stroke: {
                     color: '#000000',
                     width: 1,
                     alpha: 0.5
@@ -188,7 +188,7 @@ export class Loader extends Container {
                     alpha: 1,
                     angle: Math.PI / 2
                 },
-                stroke:{
+                stroke: {
                     color: '#000000',
                     width: 1,
                     alpha: 0.5
@@ -222,7 +222,7 @@ export class Loader extends Container {
         if (!this.fill) return; // Guard against undefined fill
         const clamped = Math.max(0, Math.min(1, ratio01));
         const width = clamped * this.padding;
-        this.fill.position.x = width;
+        this.fill.position.x = (GameConfig.REFERENCE_RESOLUTION.width / 2 - this.background.width / 2) + width;
     }
 
     public mount() {

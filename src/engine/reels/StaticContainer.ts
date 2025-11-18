@@ -47,8 +47,6 @@ export class StaticContainer extends Container {
 
         this.position.set(0, 15); // Offset to avoid clipping issues
 
-        this.position.set(0, 15); // Offset to avoid clipping issues
-
         this.label = 'StaticContainer';
         this._app = app;
         this._soundManager = SoundManager.getInstance();
@@ -59,6 +57,8 @@ export class StaticContainer extends Container {
         initialGrid.forEach((symbolIds: number[], reelIndex: number) => {
             this.createSymbolsFromIds(symbolIds, reelIndex);
         });
+
+        //this.eventListeners();
     }
 
     /**
@@ -77,12 +77,19 @@ export class StaticContainer extends Container {
      * @param reelIndex - The index of the reel to update (optional).
      * @returns void
      */
-    public updateSymbols(symbolIds: number[]): Promise<void[]> {
-        return Promise.all(Array.from(this._symbols.values()).flat().map(async (symbol, index) => {
-            if (symbolIds[index] !== undefined) {
-                return symbol.setSymbol(symbolIds[index]);
-            }
-        }));
+    public updateSymbols(symbolIds: number[], reelIndex: number): Promise<void[]> {
+        const reelSymbols = this._symbols.get(reelIndex);
+        if (!reelSymbols) return Promise.resolve([]);
+
+        return Promise.all(
+            reelSymbols.map((symbol, index) => {
+                const newSymbolId = symbolIds[index];
+                if (newSymbolId !== undefined) {
+                    symbol.visible = true;
+                    return symbol.setSymbol(newSymbolId);
+                }
+            })
+        );
     }
 
     private createSymbolsFromIds(symbolIds: number[], reelIndex: number): void {
@@ -605,6 +612,10 @@ export class StaticContainer extends Container {
 
     public set isBonusMode(value: boolean) {
         this._isBonusMode = value;
+    }
+
+    public getSymbols(): Map<number, SpineSymbol[]> {
+        return this._symbols;
     }
 
     public destroy(): void {

@@ -15,7 +15,6 @@ export class WinEvent extends WinEventContainer {
     private _controller: WinEventController<WinEvent>;
     private _soundManager: SoundManager;
     private _wins!: Spine;
-    private _dimmer!: Graphics;
     private _counterStrip!: Sprite;
 
     private constructor() {
@@ -51,17 +50,6 @@ export class WinEvent extends WinEventContainer {
     }
 
     private init(): void {
-        // background dim
-        this._dimmer = new Graphics();
-        this._dimmer.beginPath();
-        this._dimmer.rect(0, 0, GameConfig.REFERENCE_RESOLUTION.width, GameConfig.REFERENCE_RESOLUTION.height);
-        this._dimmer.fill({ color: 0x000000, alpha: 0.75 });
-        this._dimmer.closePath();
-        this._dimmer.pivot.set(this._dimmer.width / 2, this._dimmer.height / 2);
-        this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._dimmer.scale.set(3, 3);
-        this.addChild(this._dimmer);
-
         // spine setup
         const { atlas, skeleton } = AssetsConfig.WINEVENT_SPINE_ASSET;
 
@@ -86,7 +74,7 @@ export class WinEvent extends WinEventContainer {
 
         // counter setup
         this._counter = new Counter({
-            text: this._amountText,
+            text: this._amountText
         });
     }
 
@@ -99,20 +87,21 @@ export class WinEvent extends WinEventContainer {
         this._soundManager.playFor("bigwin", this._duration, 0.5);
         this._soundManager.play("coin", false, 0.25);
 
-        this._wins.state.setAnimation(0, Object.values(WinEventType)[0] + "Win", false);
+        this._wins.state.setAnimation(0, "1", false);
 
         if (this._winEventType > 0) this.playAnimationCycle();
     }
 
     private playAnimationCycle(): void {
         for (let i = 1; i < this._winEventType + 1; i++) {
-            this._wins.state.addAnimation(0, Object.values(WinEventType)[i] + "Win", false, GameConfig.WIN_EVENT.duration);
+            this._wins.state.addAnimation(0, i + "-" + (i + 1), false, GameConfig.WIN_EVENT.duration);
+            this._wins.state.addAnimation(0, (i + 1).toString(), false);
         }
     }
 
     public override skipWinEvent(): void {
         super.skipWinEvent();
-        this._wins.state.setAnimation(0, Object.values(WinEventType)[this._winEventType] + "Win", true);
+        this._wins.state.setAnimation(0, (this._winEventType + 1).toString(), true);
     }
 
     /** Dışarıdan çağırılacak tek method */

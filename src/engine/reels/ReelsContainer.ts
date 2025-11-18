@@ -13,6 +13,7 @@ import { AssetsConfig } from '../../config/AssetsConfig';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { Helpers } from '../utils/Helpers';
 import { SpinMode } from '../types/ISpinConfig';
+import { FreeSpinController } from '../freeSpin/FreeSpinController';
 
 export class ReelsContainer extends Container {
   private app: Application;
@@ -63,6 +64,14 @@ export class ReelsContainer extends Container {
     this.initializeContainers();
 
     this.setupResizeHandler();
+
+    this.eventListeners();
+  }
+
+  private eventListeners(): void {
+    signals.on("reelStopped", (reelIndex) => {
+      this.setChainAnimation(false, false, reelIndex);
+    });
   }
 
   private createReelFrame(): void {
@@ -434,21 +443,32 @@ export class ReelsContainer extends Container {
     });
   }
 
-  public setChainAnimation(isSpinning: boolean, loop: boolean, isStart: boolean): void {
-    const chainAnimationName = isSpinning ? (this._isFreeSpinMode ? 'Free_chain' : 'Base_chain') : (this._isFreeSpinMode ? 'Free_chain_hold' : 'Base_chain_hold');
-    this.chains.forEach(async (chain, index) => {
-      if (isStart) {
+  public async setChainAnimation(isSpinning: boolean, loop: boolean, reelIndex?: number): Promise<void> {
+    const chainAnimationName = isSpinning
+      ? (this._isFreeSpinMode ? 'Free_chain' : 'Base_chain')
+      : (this._isFreeSpinMode ? 'Free_chain_hold' : 'Base_chain_hold');
+
+    if (reelIndex === undefined) {
+      this.chains.forEach(async (chain, index) => {
         if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
           await Helpers.delay(GameConfig.REFERENCE_REEL_DELAY * (index % 6));
-        } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
+        } else if (this._spinMode === GameConfig.SPIN_MODES.FAST && FreeSpinController.instance().isRunning === false) {
           await Helpers.delay(0);
-        } else if (this._spinMode === GameConfig.SPIN_MODES.TURBO) {
+        } else if (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false) {
           await Helpers.delay(0);
         }
-      }
 
-      chain.state.setAnimation(0, chainAnimationName, loop);
-    });
+        chain.state.setAnimation(0, chainAnimationName, loop);
+      });
+    } else {
+      const col = reelIndex % 6;
+
+      const targetIndices = reelIndex === 4 ? [col, col + 1, col + 6, col + 7, col + 12, col + 13] : [col, col + 6, col + 12];
+
+      for (const i of targetIndices) {
+        this.chains[i].state.setAnimation(0, chainAnimationName, loop);
+      }
+    }
   }
 
   public setAdrenalineMode(enabled: boolean, reelIndex: number): void {
@@ -468,5 +488,13 @@ export class ReelsContainer extends Container {
 
   public set spinMode(value: SpinMode) {
     this._spinMode = value;
+  }
+
+  public get isFreeSpinMode(): boolean {
+    return this._isFreeSpinMode;
+  }
+
+  public set isFreeSpinMode(value: boolean) {
+    this._isFreeSpinMode = value;
   }
 } 

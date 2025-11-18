@@ -283,11 +283,11 @@ export class GameConfig {
                     color: 0x895467
                 },
                 {
-                    offset: 0.9,
+                    offset: 0.6,
                     color: 0x4e0f52
                 },
                 {
-                    offset: 1.0,
+                    offset: 0.8,
                     color: 0xf8616c
                 }
             ]

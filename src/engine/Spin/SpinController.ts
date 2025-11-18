@@ -23,6 +23,8 @@ import { WinEventType } from "../types/IWinEvents";
 import { GameRulesConfig } from "../../config/GameRulesConfig";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
+import { signals } from "../controllers/SignalManager";
+import { FreeSpinController } from "../freeSpin/FreeSpinController";
 
 export interface SpinControllerConfig {
   reelsController: ReelsController;
@@ -42,6 +44,7 @@ export abstract class SpinController {
   protected currentStepIndex: number = 0;
   protected _isForceStopped: boolean = false;
   protected _abortController: AbortController | null = null;
+  protected _symbols: number[][] = [];
 
   // Spin data - store finalGrid for proper final symbol positioning
   protected currentCascadeSteps: CascadeStepData[] = [];
@@ -59,6 +62,7 @@ export abstract class SpinController {
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
     this._winEvent = AnimationContainer.getInstance().getWinEvent();
+    this._symbols = GameDataManager.getInstance().getInitialData()?.history.reels!;
   }
 
   // Main spin orchestration methods
@@ -281,7 +285,7 @@ export abstract class SpinController {
   }
 
   // State management
-  protected setState(newState: ISpinState): void {
+  public setState(newState: ISpinState): void {
     if (this.currentState === newState) return;
 
     debug.log(`SpinController: State ${this.currentState} -> ${newState}`);
@@ -374,73 +378,9 @@ export abstract class SpinController {
 
     debug.log(`SpinController: Spin mode set to ${mode}`);
 
-    if (this._spinMode === GameConfig.SPIN_MODES.TURBO && this.getIsSpinning()) {
+    if (this._spinMode === GameConfig.SPIN_MODES.TURBO && this.getIsSpinning() && FreeSpinController.instance().isRunning === false) {
       this.forceStop();
     }
-  }
-
-  // Symbol transfer methods
-  protected async transferSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
-    debug.log(
-      "SpinController: Transferring symbols from StaticContainer to SpinContainer"
-    );
-
-    const reelsContainer = this.reelsController.getReelsContainer();
-    if (!reelsContainer) {
-      debug.error(
-        "SpinController: No reels container available for symbol transfer"
-      );
-      return;
-    }
-
-    const staticContainer = reelsContainer?.getStaticContainer();
-    const spinContainer = this.container;
-
-    if (!staticContainer || !spinContainer) {
-      debug.error("SpinController: Missing containers for symbol transfer");
-      return;
-    }
-
-    // Hide static container symbols
-    staticContainer.visible = false;
-
-    debug.log("SpinController: StaticContainer hidden and cleared");
-    staticContainer.visible = false;
-
-    // Show spin container and display initial grid
-    spinContainer.visible = true;
-    debug.log("SpinController: SpinContainer shown");
-
-    if (spinContainer instanceof SpinContainer) {
-      (spinContainer as any).displayInitialGrid(initialGrid);
-      debug.log("SpinController: Initial grid displayed on SpinContainer");
-    }
-  }
-
-  protected async transferSymbolsToStaticContainer(finalGrid: number[][]): Promise<void> {
-    debug.log("SpinController: Transferring final symbols from SpinContainer to StaticContainer");
-    const reelsContainer = this.reelsController.getReelsContainer();
-    if (!reelsContainer) {
-      debug.error("SpinController: No reels container available for symbol transfer");
-      return;
-    }
-
-    const staticContainer = reelsContainer.getStaticContainer();
-    const spinContainer = this.container;
-
-    if (!staticContainer || !spinContainer) {
-      debug.error("SpinController: Missing containers for symbol transfer");
-      return;
-    }
-
-    // Hide spin container
-    spinContainer.visible = false;
-
-    // Show static container and update with final symbols
-    staticContainer.visible = true;
-    // Convert final grid to the format expected by StaticContainer
-    const finalSymbols: number[] = finalGrid.map((column: number[]) => column).flat();
-    await staticContainer.updateSymbols(finalSymbols); // Assuming single reel for now
   }
 
   // Cascade processing methods
@@ -499,6 +439,14 @@ export abstract class SpinController {
     this._spinMode = mode;
     this.setSpinMode(mode);
     this.container.spinMode = mode;
+  }
+
+  public get symbols(): number[][] {
+    return this._symbols;
+  }
+
+  public set symbols(symbols: number[][]) {
+    this._symbols = symbols;
   }
 
   // Cleanup

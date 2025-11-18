@@ -75,11 +75,6 @@ export class AnimationContainer extends Container {
         this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
         this.addChild(this._winLines);
 
-        this._particleContainer = new Container();
-        this._particleContainer.label = 'ParticleContainer';
-        this._particleContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
-        this.addChild(this._particleContainer);
-
         this._winContainer = new Container();
         this._winContainer.label = 'WinContainer';
         this._winContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
@@ -118,6 +113,11 @@ export class AnimationContainer extends Container {
         this._dimmer.visible = false;
         this._dimmer.alpha = 0;
         this.addChild(this._dimmer);
+
+        this._particleContainer = new Container();
+        this._particleContainer.label = 'ParticleContainer';
+        this._particleContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+        this.addChild(this._particleContainer);
 
         this._popup = new Container();
         this._popup.label = 'PopupContainer';
@@ -408,6 +408,9 @@ export class AnimationContainer extends Container {
     }
 
     public async playWinEventAnimation(winAmount: number, winEventType: WinEventType): Promise<void> {
+        this._dimmer.visible = true;
+        this._dimmer.alpha = 1;
+        
         const { atlas, skeleton } = AssetsConfig.WINEVENT_SPINE_ASSET;
         const particle = Spine.from({ atlas, skeleton });
         particle.state.setAnimation(0, "coin", true);
@@ -417,7 +420,11 @@ export class AnimationContainer extends Container {
         this._winEvent.getController().onWinEventComplete(() => {
             this.stopParticleAnimation();
         });
+
         await this._winEvent.show(winAmount, winEventType);
+
+        this._dimmer.visible = false;
+        this._dimmer.alpha = 0;
     }
 
     public async startTransitionAnimation(callback?: ((resolve?: () => void) => Promise<void> | void)): Promise<void> {

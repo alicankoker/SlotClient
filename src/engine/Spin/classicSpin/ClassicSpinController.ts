@@ -5,6 +5,7 @@ import { GameServer } from "../../../server/GameServer";
 import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
 import { AnimationContainer } from "../../components/AnimationContainer";
 import { Bonus } from "../../components/Bonus";
+import { signals } from "../../controllers/SignalManager";
 import { GameDataManager } from "../../data/GameDataManager";
 import { FreeSpinController } from "../../freeSpin/FreeSpinController";
 import { IReelMode } from "../../reels/ReelController";
@@ -21,6 +22,8 @@ import { ClassicSpinContainer } from "./ClassicSpinContainer";
 export class ClassicSpinController extends SpinController {
   constructor(container: SpinContainer, config: SpinControllerConfig) {
     super(container, config);
+
+    this.eventListeners();
   }
 
   // Main spin orchestration methods
@@ -41,7 +44,7 @@ export class ClassicSpinController extends SpinController {
 
       this.setState(ISpinState.SPINNING);
 
-      this.reelsController.getReelsContainer().setChainAnimation(true, true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
+      this.reelsController.getReelsContainer().setChainAnimation(true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
 
       if (this.onSpinStartCallback) {
         this.onSpinStartCallback();
@@ -65,46 +68,15 @@ export class ClassicSpinController extends SpinController {
         throw new Error("SpinController: No response from server");
       }
 
-      const initialGrid = GameDataManager.getInstance().getSymbolsBeforeSpin()!;
+      await this.setSymbolsToSpinContainer(this._symbols);
 
-      await this.transferSymbolsToSpinContainer(initialGrid);
-
-      const finalGrid = response.reels;
-
-      this.onSpinCompleteCallback = async (response: IResponseData) => {
-        FreeSpinController.instance().isRunning === false && (FreeSpinController.instance().isRunning = GameDataManager.getInstance().checkFreeSpins());
-        Bonus.instance().isActive = response.bonus ? true : false;
-
-        eventBus.emit('setComponentState', {
-          componentName: 'spinButton',
-          stateOrUpdates: 'default',
-        });
-
-        this.reelsController.getReelsContainer().setChainAnimation(false, false, false);
-
-        await this.transferSymbolsToStaticContainer(finalGrid);
-
-        if (GameConfig.WIN_EVENT.enabled && response.winEventType !== 'normal') {
-          const winAmount = response.totalWin;
-          const backendType = response.winEventType;
-          const enumType = BackendToWinEventType[backendType]!;
-
-          await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
-        }
-
-        const isSkipped = GameDataManager.getInstance().isWinAnimationSkipped && ((AutoPlayController.instance().isRunning && AutoPlayController.instance().autoPlayCount > 0) || (FreeSpinController.instance().isRunning === true));
-        GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
-
-        eventBus.emit("setBalance", response.balance.after);
-
-        return;
-      }
+      this._symbols = response.reels;
 
       this._soundManager.play("spin", true, 0.75); // Play spin sound effect
 
       this.startSpinAnimation(response);
 
-      if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+      if (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) {
         await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
         (this.container as ClassicSpinContainer).slowDown();
@@ -119,7 +91,7 @@ export class ClassicSpinController extends SpinController {
       }
 
       (this.container as ClassicSpinContainer).startStopSequence();
-      await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
+      this._spinMode !== GameConfig.SPIN_MODES.TURBO && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
@@ -134,34 +106,56 @@ export class ClassicSpinController extends SpinController {
     (this.container as ClassicSpinContainer).startSpin(spinData);
   }
 
+  private eventListeners(): void {
+    signals.on("reelStopped", (reelIndex) => {
+      this.setReelToStaticContainer(this._symbols[reelIndex], reelIndex as number);
+    });
+  }
+
   // Symbol transfer methods
-  protected async transferSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
-    debug.log("SpinController: Transferring symbols from StaticContainer to SpinContainer");
-
+  protected async setSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
     const reelsContainer = this.reelsController.getReelsContainer();
-    if (!reelsContainer) {
-      debug.error("SpinController: No reels container available for symbol transfer");
-      return;
-    }
-
-    const staticContainer = reelsContainer?.getStaticContainer();
+    const staticContainer = reelsContainer.getStaticContainer();
     const spinContainer = this.container;
 
-    if (!staticContainer || !spinContainer) {
-      debug.error("SpinController: Missing containers for symbol transfer");
+    if (!staticContainer || !spinContainer || !reelsContainer) {
       return;
     }
 
-    debug.log("SpinController: StaticContainer hidden and cleared");
-    staticContainer.visible = false;
+    // Show spin container symbols
+    spinContainer.getSymbols().forEach((column) => {
+      column.forEach((symbol) => {
+        if (symbol) symbol.visible = true;
+      });
+    });
 
-    // Show spin container and display initial grid
-    spinContainer.visible = true;
+    // Hide static container symbols
+    staticContainer.getSymbols().forEach((symbols) => {
+      symbols.forEach((symbol) => {
+        symbol.visible = false;
+      });
+    });
 
-    if (spinContainer instanceof SpinContainer) {
-      debug.log("SpinController: Displaying initial grid on SpinContainer: ", initialGrid);
-      await spinContainer.displayInitialGrid(initialGrid);
-      debug.log("SpinController: Initial grid displayed on SpinContainer");
+    spinContainer.displayInitialGrid(initialGrid);
+  }
+
+  // use for each reelstop
+  protected async setReelToStaticContainer(finalGrid: number[], reelIndex: number): Promise<void> {
+    const reelsContainer = this.reelsController.getReelsContainer();
+    const staticContainer = reelsContainer.getStaticContainer();
+    const spinContainer = this.container;
+
+    if (!staticContainer || !spinContainer || !reelsContainer) {
+      return;
     }
+
+    spinContainer.getSymbols()[reelIndex].forEach((symbol) => {
+      if (symbol) {
+        symbol.visible = false;
+      }
+    });
+
+    // Update symbols for the specific reel
+    await staticContainer.updateSymbols(finalGrid, reelIndex); // Assuming single reel
   }
 }

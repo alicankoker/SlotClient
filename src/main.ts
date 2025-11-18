@@ -24,6 +24,8 @@ import { WinLines } from "./engine/components/WinLines";
 import { Bonus } from "./engine/components/Bonus";
 import { Helpers } from "./engine/utils/Helpers";
 import { AutoPlayController } from "./engine/AutoPlay/AutoPlayController";
+import { signals } from "./engine/controllers/SignalManager";
+import SoundManager from "./engine/controllers/SoundManager";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -96,6 +98,10 @@ export class DoodleV8Main {
       let isKeyHeld = false;
       let isSpinning = false;
 
+      signals.on("spinCompleted", () => {
+        isSpinning = false;
+      })
+
       window.addEventListener("keyup", (event) => {
         if (event.code === "Space") isKeyHeld = false;
       });
@@ -116,7 +122,6 @@ export class DoodleV8Main {
           ) {
             isSpinning = true;
             await this.slotGameController.executeGameSpin('spin');
-            isSpinning = false;
             isKeyHeld = false;
           }
         }
@@ -190,6 +195,10 @@ export class DoodleV8Main {
             break;
         }
       });
+
+      eventBus.on("setVolume", (value) => {
+        SoundManager.getInstance().setVolume(value);
+      })
 
       window.addEventListener("keydown", async (event: KeyboardEvent) => {
         switch (event.code) {

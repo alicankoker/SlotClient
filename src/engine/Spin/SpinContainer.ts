@@ -53,7 +53,7 @@ export abstract class SpinContainer extends Container {
   // Animation state
   protected spinStartTime: number = 0;
   protected targetSymbols: number[] = [];
-  protected onSpinCompleteCallback?: () => void;
+  public onSpinCompleteCallback?: () => Promise<void>;
 
   constructor(app: Application, config: SpinContainerConfig) {
     super();
@@ -71,6 +71,7 @@ export abstract class SpinContainer extends Container {
 
     this.initializeGrid();
   }
+
   public abstract displayInitialGrid(initialGrid: number[][]): Promise<void>;
 
   protected async initializeGrid(): Promise<void> {
@@ -103,6 +104,7 @@ export abstract class SpinContainer extends Container {
       for (let row = 0; row < this.config.symbolsVisible + this.rowsBelowMask + this.rowsAboveMask; row++) {
         const symbol = this.createGridSymbol(symbolsBefore[col][row], col, row);
         this.symbols[col][row] = symbol;
+        this.symbols[col][row]!.visible = false;
       }
     }
   }
@@ -290,11 +292,10 @@ export abstract class SpinContainer extends Container {
   public abstract startSpin(spinData: IResponseData): Promise<void>;
 
   public stopSpin(): void {
-    this.isSpinning = false;
+  }
 
-    if (this.onSpinCompleteCallback) {
-      this.onSpinCompleteCallback();
-    }
+  public allReelsStopped(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   protected removeSymbolsFromIndices(indicesToRemove: number[]): void {
@@ -400,6 +401,16 @@ export abstract class SpinContainer extends Container {
 
   public set spinMode(mode: SpinMode) {
     this._spinMode = mode;
+  }
+
+  public getSymbols(): (GridSymbol | Sprite | null)[][] {
+    return this.symbols;
+  }
+
+  public getSymbolIds(): number[][] {
+    return this.symbols.map((reel) =>
+      reel.map((symbol) => (symbol instanceof GridSymbol ? symbol.symbolId : -1))
+    );
   }
 
   // Cleanup

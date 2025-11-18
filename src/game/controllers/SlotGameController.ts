@@ -21,6 +21,9 @@ import { Helpers } from '../../engine/utils/Helpers';
 import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 import { Bonus } from '../../engine/components/Bonus';
 import { AutoPlayController } from '../../engine/AutoPlay/AutoPlayController';
+import { signals } from '../../engine/controllers/SignalManager';
+import { BackendToWinEventType } from '../../engine/types/IWinEvents';
+import { ISpinState } from '../../engine/types/ISpinConfig';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -60,6 +63,8 @@ export class SlotGameController {
         this.nexusInstance = Nexus.getInstance();
         this.playerController = this.nexusInstance.getPlayerController();
         this.gameServer = GameServer.getInstance();
+
+        this.eventListeners();
     }
 
     public initialize(): void {
@@ -80,10 +85,6 @@ export class SlotGameController {
 
         this.background = Background.getInstance();
         this.animationContainer = AnimationContainer.getInstance();
-
-        // Set initial visibility - StaticContainer visible, SpinContainer hidden
-        this.staticContainer.visible = true;
-        this.spinContainer.visible = false;
 
         this.reelsContainer.addChild(this.spinContainer);
         this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
@@ -188,6 +189,9 @@ export class SlotGameController {
         return this.nexusInstance.getPlayerTransactions(playerId, limit);
     }
 
+    private eventListeners(): void {
+    }
+
     // Convenience method for executing spins
     public async executeGameSpin(action: IPayload["action"]): Promise<void> {
         const response = await this.gameServer.processRequest(action);
@@ -198,26 +202,67 @@ export class SlotGameController {
         if (this.spinController && response) {
             await this.spinController.executeSpin();
 
-            if (response.freeSpin && GameDataManager.getInstance().checkFreeSpins() && response.freeSpin.playedRounds === 0) {
-                await this.startFreeSpinState(response.freeSpin.totalRounds, response.freeSpin.totalRounds, response.totalWin);
-            } else if (response.bonus && GameDataManager.getInstance().checkBonus()) {
-                await this.startBonusState();
-            }
+            signals.once("allReelsStopped", async (response) => {
+                await this.onAllReelsStopped(response);
+            });
 
-            if (this.autoPlayController.isRunning && (GameConfig.AUTO_PLAY.stopOnWin || GameConfig.AUTO_PLAY.stopOnFeature)) {
-                this.autoPlayController.stopAutoPlay();
-            }
+            signals.once("afterSpin", async (response) => {
+                await this.onSpinComplete(response);
 
-            if (this.autoPlayController.isRunning && FreeSpinController.instance().isRunning === false && Bonus.instance().isActive === false) {
-                this.autoPlayController.continueAutoPlay();
-            }
+                signals.emit("spinCompleted", response);
+            });
         }
+    } //DOTO evenlerle haberleşeceğiz
+
+    private async onAllReelsStopped(response: IResponseData): Promise<void> {
+        this.spinController.setState(ISpinState.IDLE)
+        FreeSpinController.instance().isRunning === false && (FreeSpinController.instance().isRunning = GameDataManager.getInstance().checkFreeSpins());
+        Bonus.instance().isActive = (response as IResponseData).bonus ? true : false;
+
+        eventBus.emit('setComponentState', {
+            componentName: 'spinButton',
+            stateOrUpdates: 'default',
+        });
+
+        if (GameConfig.WIN_EVENT.enabled && (response as IResponseData).winEventType !== 'normal') {
+            const winAmount = (response as IResponseData).totalWin;
+            const backendType = (response as IResponseData).winEventType;
+            const enumType = BackendToWinEventType[backendType]!;
+
+            await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+        }
+
+        const isSkipped = GameDataManager.getInstance().isWinAnimationSkipped && ((AutoPlayController.instance().isRunning && AutoPlayController.instance().autoPlayCount > 0) || (FreeSpinController.instance().isRunning === true));
+        GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
+
+        eventBus.emit("setBalance", (response as IResponseData).balance.after);
+
+        signals.emit("afterSpin", response);
+    }
+
+    private async onSpinComplete(response: IResponseData): Promise<void> {
+        if (response.freeSpin && GameDataManager.getInstance().checkFreeSpins() && response.freeSpin.playedRounds === 0) {
+            await this.startFreeSpinState(response.freeSpin.totalRounds, response.freeSpin.totalRounds, response.totalWin);
+        } else if (response.bonus && GameDataManager.getInstance().checkBonus()) {
+            await this.startBonusState();
+        }
+
+        if (this.autoPlayController.isRunning && (GameConfig.AUTO_PLAY.stopOnWin || GameConfig.AUTO_PLAY.stopOnFeature)) {
+            this.autoPlayController.stopAutoPlay();
+        }
+
+        if (this.autoPlayController.isRunning && FreeSpinController.instance().isRunning === false && Bonus.instance().isActive === false) {
+            this.autoPlayController.continueAutoPlay();
+        }
+
+        return;
     }
 
     public async startFreeSpinState(totalRounds: number, remainRounds: number, initialWin: number): Promise<void> {
         this.freeSpinController.isRunning = true;
         this.staticContainer.allowLoop = false;
         this.staticContainer.isFreeSpinMode = true;
+        this.reelsContainer.isFreeSpinMode = true;
 
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(true);
@@ -247,6 +292,11 @@ export class SlotGameController {
         this.freeSpinController.isRunning = false;
         this.staticContainer.allowLoop = true;
         this.staticContainer.isFreeSpinMode = false;
+        this.reelsContainer.isFreeSpinMode = false;
+    }
+
+    public async executeFreeSpin(totalRounds: number, remainRounds: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
+        return await this.freeSpinController.executeFreeSpin(totalRounds, remainRounds, initialWin);
     }
 
     public async startBonusState(): Promise<void> {
@@ -271,10 +321,6 @@ export class SlotGameController {
                 }, GameConfig.AUTO_PLAY.delay || 1000);
             }
         });
-    }
-
-    public async executeFreeSpin(totalRounds: number, remainRounds: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
-        return await this.freeSpinController.executeFreeSpin(totalRounds, remainRounds, initialWin);
     }
 
     //TODO: Needs to be moved to Nexus

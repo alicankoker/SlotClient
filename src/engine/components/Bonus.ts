@@ -254,6 +254,7 @@ export class Bonus extends BonusContainer {
                     const backendType = GameDataManager.getInstance().getLastSpinResult()!.winEventType;
                     const enumType = BackendToWinEventType[backendType]!;
 
+                    await Helpers.delay(2500);
                     await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
                 }
 
@@ -277,7 +278,7 @@ export class Bonus extends BonusContainer {
                             });
                         }
                     });
-                }, 6000);
+                }, 3000);
             });
         }
     }

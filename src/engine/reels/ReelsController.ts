@@ -79,13 +79,7 @@ export class ReelsController {
     );
 
     if (mode === ISpinState.IDLE) {
-      this.reelsContainer.setChainAnimation(false, false, false);
       this.reelsContainer.chainSpeed = 1;
-      await this.reelsContainer.getStaticContainer()?.updateSymbols(this.reelControllers[0].getSymbols());
-    }
-
-    if (mode === ISpinState.SPINNING) {
-      this.reelsContainer.setChainAnimation(true, true, true);
     }
   }
 

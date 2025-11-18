@@ -78,28 +78,28 @@ export class FreeSpinController {
 
         await this.slotGameController.executeGameSpin('freeSpin');
 
-        const response = GameDataManager.getInstance().getResponseData();
+        signals.once("spinCompleted", async (response) => {
+            this.totalWin = response.freeSpin?.featureWin || 0;
 
-        this.totalWin = response.freeSpin?.featureWin|| 0;
+            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this.totalWin) as string });
 
-        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this.totalWin) as string });
+            this.remainingSpins--;
 
-        this.remainingSpins--;
+            if (response && response.freeSpin && response.freeSpin.extraRounds > 0) {
+                await this.addExtraFreeSpins(response.freeSpin.extraRounds);
+            }
 
-        if (response && response.freeSpin && response.freeSpin.extraRounds > 0) {
-            await this.addExtraFreeSpins(response.freeSpin.extraRounds);
-        }
+            signals.emit(SIGNAL_EVENTS.FREE_SPIN_AFTER_SPIN, {
+                remaining: this.remainingSpins,
+                total: this.totalFreeSpins,
+            });
 
-        signals.emit(SIGNAL_EVENTS.FREE_SPIN_AFTER_SPIN, {
-            remaining: this.remainingSpins,
-            total: this.totalFreeSpins,
+            if (this.remainingSpins > 0 && this.isActive) {
+                await this.playNext();
+            } else {
+                this.complete();
+            }
         });
-
-        if (this.remainingSpins > 0 && this.isActive) {
-            await this.playNext();
-        } else {
-            this.complete();
-        }
     }
 
     /**

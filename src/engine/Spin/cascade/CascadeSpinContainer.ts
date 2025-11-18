@@ -159,7 +159,7 @@ export class CascadeSpinContainer extends SpinContainer {
             try {
                 const symbolRef: GridSymbol = this.symbols[column][row] as GridSymbol;
                 if (symbolRef) {
-                    symbolRef.updateSymbolTexture(symbolId);
+                    symbolRef.updateSymbolTexture(symbolId, false);
                 } else {
                     // Process all columns since this container manages all reels
                     const gridIndex = row;

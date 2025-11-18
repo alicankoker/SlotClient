@@ -32,6 +32,7 @@ type eventType = {
   setMaxLine: number;
   setLine: number;
   setSpinId: string;
+  setVolume: number;
 };
 
 class EventManager<Events extends eventType> {

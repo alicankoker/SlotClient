@@ -1,4 +1,4 @@
-winevent.webp
+winevent.png
 size:2492,2284
 filter:Linear,Linear
 pma:true
@@ -49,7 +49,7 @@ rotate:90
 win
 bounds:1,941,744,423
 
-winevent_2.webp
+winevent_2.png
 size:1808,724
 filter:Linear,Linear
 pma:true

@@ -195,6 +195,10 @@ class SoundManager {
         return this._isMusicEnabled;
     }
 
+    public setVolume(volume: number) {
+        Howler.volume(volume / 100);
+    }
+
     /**
      * @description Internal method to update the mute state of all sounds based on current settings.
      */

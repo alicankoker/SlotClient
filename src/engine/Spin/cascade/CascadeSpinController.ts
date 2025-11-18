@@ -121,7 +121,7 @@ export class CascadeSpinController extends SpinController {
     }
 
     // Symbol transfer methods
-    protected async transferSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
+    protected async setSymbolsToSpinContainer(initialGrid: number[][]): Promise<void> {
         debug.log('SpinController: Transferring symbols from StaticContainer to SpinContainer');
 
 
