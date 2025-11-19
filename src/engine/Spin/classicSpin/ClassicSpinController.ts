@@ -106,7 +106,8 @@ export class ClassicSpinController extends SpinController {
 
   private eventListeners(): void {
     signals.on("reelStopped", async (reelIndex) => {
-      console.log("Reel stopped:", reelIndex);
+      this._soundManager.play("stop", false, 0.75); // Play stop sound effect
+      reelIndex === GameConfig.GAME_RULES.reelCount - 1 && this._soundManager.stop("spin");
       await this.setReelToStaticContainer(this._symbols[reelIndex], reelIndex as number);
       //this.reelsController.getReelsContainer().getStaticContainer()?.playExpectedBonusAnimation(reelIndex, this._symbols[reelIndex]);
     });
