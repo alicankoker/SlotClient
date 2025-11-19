@@ -208,6 +208,15 @@ export class DoodleV8Main {
               this.slotGameController.reelsController.skipWinAnimations();
             }
 
+            if (
+              this.slotGameController?.spinController &&
+              this.slotGameController.spinController.getIsSpinning() &&
+              this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL &&
+              GameConfig.FORCE_STOP.enabled
+            ) {
+              this.slotGameController.spinController.forceStop();
+            }
+
             if (isKeyHeld || isSpinning) return;
 
             isKeyHeld = true;

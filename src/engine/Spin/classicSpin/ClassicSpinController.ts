@@ -77,32 +77,19 @@ export class ClassicSpinController extends SpinController {
       this.startSpinAnimation(response);
 
       if (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) {
-        console.log("Normal spin mode delay");
         await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
-        console.log("Slowing down reels");
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
-        console.log("Initiating reel slow down");
         (this.container as ClassicSpinContainer).slowDown();
 
-        //this._isForceStopped === false && this.reelsController.slowDown();
-
-        console.log("Waiting for reel slow down duration");
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
       } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
-        console.log("Fast spin mode delay");
         await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
-        console.log("Initiating reel slow down");
       } else {
-        console.log("Turbo spin mode delay");
         await Utils.delay(SpinConfig.TURBO_SPIN_SPEED);
-        console.log("Initiating reel slow down");
       }
 
-      console.log("Starting reel stop sequence");
       (this.container as ClassicSpinContainer).startStopSequence();
-      console.log("Started reel stop sequence");
       (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
-      console.log("Reel stop sequence completed");
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);

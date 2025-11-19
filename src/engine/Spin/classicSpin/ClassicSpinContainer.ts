@@ -291,7 +291,6 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     startReelSpin(reelId: number, spinData: IResponseData): void {
-        this.reelsSpinStates[reelId].state = IReelSpinState.SPEEDING;
         this.reelsSpinStates[reelId].isSpinning = true;
         const reelSymbolsData = spinData.reels[reelId];
         const symbols = reelSymbolsData.map((symbol: number) => symbol);
@@ -361,6 +360,7 @@ export class ClassicSpinContainer extends SpinContainer {
     public async stopSpin(): Promise<void> {
         super.stopSpin();
         for (const state of this.reelsSpinStates) {
+            console.log(0)
             state.speed = 0;
             state.state = IReelSpinState.STOPPED;
 
