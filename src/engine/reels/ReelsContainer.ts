@@ -503,10 +503,8 @@ export class ReelsContainer extends Container {
       this.chains.forEach(async (chain, index) => {
         if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
           await Helpers.delay(SpinConfig.REEL_SPIN_DURATION * (index % 6));
-        } else if (this._spinMode === GameConfig.SPIN_MODES.FAST && FreeSpinController.instance().isRunning === false) {
-          await Helpers.delay(0);
-        } else if (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false) {
-          await Helpers.delay(0);
+        } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
+          await Helpers.delay((SpinConfig.REEL_SPIN_DURATION / 3) * (index % 6));
         }
 
         chain.state.setAnimation(0, chainAnimationName, loop);
@@ -533,11 +531,11 @@ export class ReelsContainer extends Container {
     return this.frameElementsContainer;
   }
 
-  public get spinMode(): SpinMode {
+  public getSpinMode(): SpinMode {
     return this._spinMode;
   }
 
-  public set spinMode(value: SpinMode) {
+  public setSpinMode(value: SpinMode) {
     this._spinMode = value;
   }
 

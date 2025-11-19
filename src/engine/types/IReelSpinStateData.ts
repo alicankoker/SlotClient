@@ -5,6 +5,8 @@ export enum IReelSpinState {
     STOPPED = 'stopped',
     SPEEDING = 'speeding',
     SLOWING = 'slowing',
+    FAST = 'fast',
+    TURBO = 'turbo',
     ANTICIPATING = 'anticipating',
 }
 

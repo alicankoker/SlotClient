@@ -113,11 +113,14 @@ export class ClassicSpinContainer extends SpinContainer {
         if (this.reelsSpinStates[reelId].state === IReelSpinState.ANTICIPATING) {
             this.reelsSpinStates[reelId].speed = SpinConfig.REEL_ANTICIPATION_SPEED;
         }
-        if ((this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false)) {
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.TURBO && FreeSpinController.instance().isRunning === false) {
             this.reelsSpinStates[reelId].speed = 0;
             this.reelsSpinStates[reelId].state = IReelSpinState.STOPPED;
             this.reelStopped(reelId);
             return;
+        }
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.FAST && FreeSpinController.instance().isRunning === false) {
+            this.reelsSpinStates[reelId].speed = SpinConfig.FAST_SPIN_SPEED;
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
     }
@@ -137,9 +140,12 @@ export class ClassicSpinContainer extends SpinContainer {
     protected reelStopped(reelId: number) {
         this.setFinalSymbols(reelId);
         signals.emit("reelStopped", reelId);
-        
-        // if(reelId === 2 && this.reelsSpinStates[4].anticipated)
-        //     this.anticipateReelSpin(4);
+
+        if ((reelId === 2) && this.checkForAnticipation()) {
+            this.anticipateReelSpin(this.columns - 1);
+
+            return;
+        }
 
         if (reelId === this.columns - 1) {
             if (this.reelsSpinStates[reelId].isAnticipating) {
@@ -172,13 +178,15 @@ export class ClassicSpinContainer extends SpinContainer {
                     if (this.reelsSpinStates[reelId].currentStopSymbolId == this.config.symbolsVisible - 1) {
                         this.reelsSpinStates[reelId].state = IReelSpinState.STOPPED;
                         this.reelsSpinStates[reelId].isSpinning = false;
-                        this.reelStopped(reelId);
                         this.reelsSpinStates[reelId].speed = 0;
+
                         if (this.currentStoppingReelId === this.config.numberOfReels! - 1) {
                             this.currentStoppingReelId = -1;
-                        }
-                        else
+                        } else {
                             this.currentStoppingReelId++;
+                        }
+
+                        this.reelStopped(reelId);
                     } else {
                         this.reelsSpinStates[reelId].currentStopSymbolId++;
                         const currentStopSymbolId = this.reelsSpinStates[reelId].currentStopSymbolId
@@ -228,13 +236,25 @@ export class ClassicSpinContainer extends SpinContainer {
     public async startSpin(spinData: IResponseData): Promise<void> {
         this.resetAllReelSpinStates();
 
-        // if(this.checkForAnticipation())
-        //     this.reelsSpinStates[this.columns - 1].anticipated = true;
-
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
             this.startReelSpin(i, spinData);
             this.assignStopSymbols(spinData.reels)
-            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? SpinConfig.REEL_SPIN_DURATION : 0;
+
+            let delay: number = SpinConfig.REEL_SPIN_DURATION;
+            switch (this._spinMode) {
+                case GameConfig.SPIN_MODES.FAST:
+                    this.fastSpinReel(i);
+                    delay = SpinConfig.REEL_SPIN_DURATION / 2;
+                    break;
+
+                case GameConfig.SPIN_MODES.TURBO:
+                    this.turboSpinReel(i);
+                    delay = 0;
+                    break;
+                default:
+                    this.defaultSpinReel(i);
+                    break;
+            }
 
             await Utils.delay(delay);
         }
@@ -251,7 +271,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
     public async slowDown() {
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
-            if (this.reelsSpinStates[i].anticipated || this.reelsSpinStates[i].isSpinning === false) {
+            if (this.reelsSpinStates[i].isAnticipating || this.reelsSpinStates[i].isSpinning === false) {
                 continue;
             }
 
@@ -292,17 +312,32 @@ export class ClassicSpinContainer extends SpinContainer {
         this.reelsSpinStates[reelId].state = IReelSpinState.ANTICIPATING;
         this.reelsSpinStates[reelId].isAnticipating = true;
 
-        await Utils.delay(2000);
+        await Utils.delay(SpinConfig.REEL_ANTICIPATION_DURATION);
         this.reelsSpinStates[reelId].isAnticipating = false;
         this.reelsSpinStates[reelId].anticipated = false;
         this.slowDown();
     }
 
+    fastSpinReel(reelId: number): void {
+        this.reelsSpinStates[reelId].state = IReelSpinState.FAST;
+    }
+
+    turboSpinReel(reelId: number): void {
+        this.reelsSpinStates[reelId].state = IReelSpinState.TURBO;
+    }
+
+    defaultSpinReel(reelId: number): void {
+        this.reelsSpinStates[reelId].state = IReelSpinState.SPEEDING;
+        this.reelsSpinStates[reelId].speed = SpinConfig.SPIN_SPEED;
+    }
+
     checkReelForAnticipation(reelId: number): boolean {
-        const reel = this.symbols[reelId];
+        const reel = GameDataManager.getInstance().getResponseData().reels[reelId];
+
         if (reel === undefined) return false;
-        return reel.some((symbol: GridSymbol | Sprite | null) => {
-            return (symbol as GridSymbol).getSymbolId() === 10;
+
+        return reel.some((symbol: number) => {
+            return symbol === 10;
         });
     }
 
@@ -314,15 +349,10 @@ export class ClassicSpinContainer extends SpinContainer {
             const reel = this.symbols[rIndex];
             if (reel === undefined) continue;
 
-            /*for (let sIndex = 0; sIndex < reel.length; sIndex++) {
-                if ((reel[sIndex] as GridSymbol).getSymbolId() === 10) {
-                    console.log(`Anticipation triggered by reel ${rIndex}, symbol index ${sIndex}`);
-                    count++;
-                }
-            }*/
-
-        if(this.checkReelForAnticipation(rIndex))
-            count++;
+            if (this.checkReelForAnticipation(rIndex)) {
+                count++;
+                console.log(`Reel ${rIndex} has anticipation symbol.`);
+            }
         }
 
         return count === 2;

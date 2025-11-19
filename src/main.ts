@@ -99,6 +99,7 @@ export class DoodleV8Main {
       let isSpinning = false;
 
       signals.on("spinCompleted", () => {
+        console.log("Spin completed signal received");
         isSpinning = false;
       })
 

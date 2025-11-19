@@ -400,11 +400,11 @@ export abstract class SpinContainer extends Container {
     return this.isSpinning;
   }
 
-  public get spinMode(): SpinMode {
+  public getSpinMode(): SpinMode {
     return this._spinMode;
   }
 
-  public set spinMode(mode: SpinMode) {
+  public setSpinMode(mode: SpinMode) {
     this._spinMode = mode;
   }
 

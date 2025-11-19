@@ -202,11 +202,13 @@ export class SlotGameController {
         if (this.spinController && response) {
             await this.spinController.executeSpin();
 
-            signals.once("allReelsStopped", async (response) => {
-                await this.onAllReelsStopped(response);
+            signals.once("allReelsLanded", async () => {
+                console.log("All reels landed");
+                await this.onAllReelsStopped();
             });
 
             signals.once("afterSpin", async (response) => {
+                console.log("After spin");
                 await this.onSpinComplete(response);
 
                 signals.emit("spinCompleted", response);
@@ -214,10 +216,11 @@ export class SlotGameController {
         }
     } //DOTO evenlerle haberleşeceğiz
 
-    private async onAllReelsStopped(response: IResponseData): Promise<void> {
+    private async onAllReelsStopped(): Promise<void> {
+        const response: IResponseData = GameDataManager.getInstance().getResponseData();
         this.spinController.setState(ISpinState.IDLE)
         FreeSpinController.instance().isRunning === false && (FreeSpinController.instance().isRunning = GameDataManager.getInstance().checkFreeSpins());
-        Bonus.instance().isActive = (response as IResponseData).bonus ? true : false;
+        Bonus.instance().isActive = (response as IResponseData).bonus !== undefined ? true : false;
 
         this.reelsContainer.setChainAnimation(false, false);
 

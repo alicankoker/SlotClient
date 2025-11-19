@@ -268,7 +268,7 @@ export abstract class SpinController {
 
   // Force stop current spin
   public forceStop(): void {
-    if (this.currentState === "idle" || this.currentState === "completed") {
+    if (this.currentState === "idle" || this.currentState === "completed" || this._spinMode !== GameConfig.SPIN_MODES.NORMAL) {
       return;
     }
 
@@ -372,15 +372,9 @@ export abstract class SpinController {
     if (this._spinMode === mode) return;
 
     this._spinMode = mode;
-    this.container.spinMode = mode;
+    this.container.setSpinMode(mode);
     this.reelsController.setSpinMode(mode);
-    this.reelsController.getReelsContainer().spinMode = mode;
-
-    debug.log(`SpinController: Spin mode set to ${mode}`);
-
-    if (this._spinMode === GameConfig.SPIN_MODES.TURBO && this.getIsSpinning() && FreeSpinController.instance().isRunning === false) {
-      this.forceStop();
-    }
+    this.reelsController.getReelsContainer().setSpinMode(mode);
   }
 
   // Cascade processing methods
@@ -429,16 +423,6 @@ export abstract class SpinController {
         "SpinController: Spin container does not support cascade processing"
       );
     }
-  }
-
-  public get spinMode(): SpinMode {
-    return this._spinMode;
-  }
-
-  public set spinMode(mode: SpinMode) {
-    this._spinMode = mode;
-    this.setSpinMode(mode);
-    this.container.spinMode = mode;
   }
 
   public get symbols(): number[][] {
