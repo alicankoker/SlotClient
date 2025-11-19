@@ -81,7 +81,7 @@ export class ClassicSpinController extends SpinController {
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
         (this.container as ClassicSpinContainer).slowDown();
 
-        this._isForceStopped === false && this.reelsController.slowDown();
+        //this._isForceStopped === false && this.reelsController.slowDown();
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
       } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {

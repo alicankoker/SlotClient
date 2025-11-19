@@ -48,7 +48,9 @@ export class ClassicSpinContainer extends SpinContainer {
             currentStopSymbolId: -1,
             stopSymbols: [],
             stopProgressStarted: false,
-            isSpinning: false
+            isSpinning: false,
+            anticipated: false,
+            isAnticipating: false,
         }));
     }
 
@@ -59,6 +61,8 @@ export class ClassicSpinContainer extends SpinContainer {
         this.reelsSpinStates[reelId].readyForStopping = false;
         this.reelsSpinStates[reelId].readyForSlowingDown = false;
         this.reelsSpinStates[reelId].currentStopSymbolId = -1;
+        this.reelsSpinStates[reelId].anticipated = false;
+        this.reelsSpinStates[reelId].isAnticipating = false;
     }
 
     resetAllReelSpinStates(): void {
@@ -87,6 +91,9 @@ export class ClassicSpinContainer extends SpinContainer {
 
     async updateSpinProgress(reelId: number, deltaTime: number): Promise<void> {
         const reelSymbols = this.symbols[reelId];
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.STOPPED || this.reelsSpinStates[reelId].state === IReelSpinState.IDLE) {
+            return;
+        }
         if (this.reelsSpinStates[reelId].state === IReelSpinState.SLOWING && this.reelsSpinStates[reelId].speed > SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
             this.reelsSpinStates[reelId].speed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT;
             if (this.reelsSpinStates[reelId].speed <= SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
@@ -96,13 +103,21 @@ export class ClassicSpinContainer extends SpinContainer {
         if (this.reelsSpinStates[reelId].state === IReelSpinState.SPEEDING) {
             if (this.reelsSpinStates[reelId].speed < SpinConfig.REEL_MAX_SPEED) {
                 this.reelsSpinStates[reelId].speed += SpinConfig.REEL_SPEED_UP_COEFFICIENT;
-            }
-            else {
+            } else {
                 this.reelsSpinStates[reelId].state = IReelSpinState.SPINNING;
             }
         }
-        if (this.reelsSpinStates[reelId].state === IReelSpinState.STOPPING || (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false)) {
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.STOPPING) {
             this.reelsSpinStates[reelId].speed = SpinConfig.REEL_MAX_SPEED;
+        }
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.ANTICIPATING) {
+            this.reelsSpinStates[reelId].speed = SpinConfig.REEL_ANTICIPATION_SPEED;
+        }
+        if ((this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false)) {
+            this.reelsSpinStates[reelId].speed = 0;
+            this.reelsSpinStates[reelId].state = IReelSpinState.STOPPED;
+            this.reelStopped(reelId);
+            return;
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
     }
@@ -120,13 +135,30 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     protected reelStopped(reelId: number) {
+        this.setFinalSymbols(reelId);
+        signals.emit("reelStopped", reelId);
+        
+        // if(reelId === 2 && this.reelsSpinStates[4].anticipated)
+        //     this.anticipateReelSpin(4);
+
+        if (reelId === this.columns - 1) {
+            if (this.reelsSpinStates[reelId].isAnticipating) {
+                this.reelsSpinStates[reelId].isAnticipating = false;
+                this.reelsSpinStates[reelId].anticipated = false;
+            }
+
+            this.allReelsStopped();
+        }
+        //dispatch to the whole game;
+    }
+
+    protected setFinalSymbols(reelId: number): void {
+        this.resetSymbolPositionsInCycle(this.symbols[reelId]);
         this.symbols[reelId].forEach((symbol) => {
             if (symbol) {
                 (symbol as GridSymbol).updateSymbolTexture((symbol as GridSymbol).getSymbolId(), false);
             }
         });
-        signals.emit("reelStopped", reelId);
-        //dispatch to the whole game;
     }
 
     protected progressReelSpin(reelSymbols: (GridSymbol | Sprite | null)[], reelId: number, deltaTime: number): void {
@@ -136,139 +168,53 @@ export class ClassicSpinContainer extends SpinContainer {
 
             let cycleEnded = this.checkCycleEndedForState(reelId);
             if (cycleEnded) {
-                const isTurbo = this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false;
-
-                const reelState = this.reelsSpinStates[reelId];
-                const isLastStopCycle = reelState.currentStopSymbolId === this.config.symbolsVisible - 1;
-
-                if (reelState.stopProgressStarted && (isTurbo || reelId === this.currentStoppingReelId)) {
-                    if (isLastStopCycle) {
-                        const visible = this.getVisibleWindowSymbols(reelSymbols);
-                        const stopSymbols = this.reelsSpinStates[reelId].stopSymbols;
-
-                        for (let i = 0; i < visible.length; i++) {
-                            visible[i].updateSymbolTexture(stopSymbols[i], true);
-                        }
-
-                        this.forceFinalStopLayout(reelSymbols, reelId);
-
-                        reelState.state = IReelSpinState.STOPPED;
-                        reelState.isSpinning = false;
-                        reelState.speed = 0;
-
+                if (this.reelsSpinStates[reelId].stopProgressStarted && reelId == this.currentStoppingReelId && this.reelsSpinStates[reelId].isAnticipating === false) {
+                    if (this.reelsSpinStates[reelId].currentStopSymbolId == this.config.symbolsVisible - 1) {
+                        this.reelsSpinStates[reelId].state = IReelSpinState.STOPPED;
+                        this.reelsSpinStates[reelId].isSpinning = false;
                         this.reelStopped(reelId);
-
-                        if (isTurbo) {
-                            let allStopped = true;
-                            for (let r = 0; r < this.reelsSpinStates.length; r++) {
-                                if (this.reelsSpinStates[r].state !== IReelSpinState.STOPPED) {
-                                    allStopped = false;
-                                    break;
-                                }
-                            }
-                            if (allStopped) {
-                                this.currentStoppingReelId = -1;
-                                this.allReelsStopped();
-                            }
+                        this.reelsSpinStates[reelId].speed = 0;
+                        if (this.currentStoppingReelId === this.config.numberOfReels! - 1) {
+                            this.currentStoppingReelId = -1;
                         }
-
-                        if (!isTurbo) {
-                            if (this.currentStoppingReelId === this.config.numberOfReels! - 1) {
-                                this.currentStoppingReelId = -1;
-                                this.allReelsStopped();
-                            } else {
-                                this.currentStoppingReelId++;
-                            }
-                        }
-
-                        break;
+                        else
+                            this.currentStoppingReelId++;
+                    } else {
+                        this.reelsSpinStates[reelId].currentStopSymbolId++;
+                        const currentStopSymbolId = this.reelsSpinStates[reelId].currentStopSymbolId
+                        const stopSymbolIndex = this.config.symbolsVisible - 1 - currentStopSymbolId;
+                        const stopSymbol = this.reelsSpinStates[reelId].stopSymbols[stopSymbolIndex]
+                        this.resetSymbolPositionsInCycle(reelSymbols, stopSymbol);
                     }
-
-                    const csId = reelState.currentStopSymbolId;
-                    const stopSymbolIndex = this.config.symbolsVisible - 1 - csId;
-                    const stopSymbol = reelState.stopSymbols[stopSymbolIndex];
-
-                    this.resetSymbolPositionsInCycle(reelSymbols, stopSymbol);
-
-                    reelState.currentStopSymbolId++;
-
                 } else {
                     this.resetSymbolPositionsInCycle(reelSymbols);
                 }
-
-                if (!isLastStopCycle) {
-                    reelSymbols.unshift(reelSymbols.pop()!);
-                }
-
                 cycleEnded = false;
+                reelSymbols.unshift(reelSymbols.pop()!);
                 break;
-
             } else {
                 symbol.position.y += deltaTime * this.reelsSpinStates[reelId].speed;
             }
         }
     }
 
-    protected getVisibleWindowSymbols(reelSymbols: (GridSymbol | Sprite | null)[]): GridSymbol[] {
-        const visibleY1 = this.defaultSymbolYPositions[this.config.rowsAboveMask!];
-        const visibleY2 = this.defaultSymbolYPositions[this.config.rowsAboveMask! + 1];
-        const visibleY3 = this.defaultSymbolYPositions[this.config.rowsAboveMask! + 2];
-
-        const targets = [visibleY1, visibleY2, visibleY3];
-
-        const result: GridSymbol[] = [];
-
-        for (const s of reelSymbols) {
-            if (!s) continue;
-            const y = (s as GridSymbol).position.y;
-            if (targets.includes(y)) result.push(s as GridSymbol);
-        }
-
-        return result;
-    }
-
-    protected forceFinalStopLayout(reelSymbols: (GridSymbol | Sprite | null)[], reelId: number): void {
-        const visibleCount = this.config.symbolsVisible; // 3
-        const stopSymbols = this.reelsSpinStates[reelId].stopSymbols;
-
-        for (let v = 0; v < visibleCount; v++) {
-            const s = reelSymbols[v + 1] as GridSymbol;
-            s.updateSymbolTexture(stopSymbols[v], true);
-            s.position.y = this.defaultSymbolYPositions[v + 1];
-            s.gridY = v + 1;
-        }
-
-        const topBuf = reelSymbols[0] as GridSymbol;
-        const botBuf = reelSymbols[reelSymbols.length - 1] as GridSymbol;
-
-        topBuf.position.y = this.defaultSymbolYPositions[0];
-        botBuf.position.y = this.defaultSymbolYPositions[visibleCount + 1];
-
-        topBuf.gridY = 0;
-        botBuf.gridY = visibleCount + 1;
-    }
-
     checkCycleEndedForState(reelId: number): boolean {
         const lastSymbolYPos = this.symbols[reelId][this.symbols[reelId].length - 2]?.position.y!;
-        return lastSymbolYPos >= this.bottomSymbolYPos;
+        let cycleEnded = lastSymbolYPos >= this.bottomSymbolYPos;
+        return cycleEnded;
     }
 
     protected resetSymbolPositionsInCycle(symbols: (GridSymbol | Sprite | null)[], nextSymbolId?: number): void {
-        symbols.forEach((s, idx) => {
-            const isLast = idx === symbols.length - 1;
-            const newIndex = isLast ? 0 : idx + 1;
-
-            if (isLast) {
-                (s as GridSymbol).position.y = this.defaultSymbolYPositions[0];
-                (s as GridSymbol).updateSymbolTexture(
-                    nextSymbolId ?? Utils.getRandomInt(0, 9),
-                    true
-                );
+        symbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
+            const isLastSymbol = symbolIndex === symbols.length - 1;
+            const indToChange: number = isLastSymbol ? 0 : symbolIndex + 1;
+            if (isLastSymbol) {
+                (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[0];
+                (symbol as GridSymbol).updateSymbolTexture(nextSymbolId !== undefined && nextSymbolId > -1 ? nextSymbolId : Utils.getRandomInt(0, 10), true);
             } else {
-                (s as GridSymbol).position.y = this.defaultSymbolYPositions[newIndex];
+                (symbol as GridSymbol).position.y = this.defaultSymbolYPositions[indToChange];
             }
-
-            (s as GridSymbol).gridY = newIndex;
+            (symbol as GridSymbol).gridY = indToChange;
         });
     }
 
@@ -282,21 +228,22 @@ export class ClassicSpinContainer extends SpinContainer {
     public async startSpin(spinData: IResponseData): Promise<void> {
         this.resetAllReelSpinStates();
 
-        this.assignStopSymbols(spinData.reels);
+        // if(this.checkForAnticipation())
+        //     this.reelsSpinStates[this.columns - 1].anticipated = true;
 
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
             this.startReelSpin(i, spinData);
+            this.assignStopSymbols(spinData.reels)
+            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? SpinConfig.REEL_SPIN_DURATION : 0;
 
-            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
             await Utils.delay(delay);
         }
     }
 
     protected assignStopSymbols(symbols: number[][]): void {
         symbols.forEach((reelSymbols: number[], reelIndex: number) => {
-            this.reelsSpinStates[reelIndex].stopSymbols = [];
-
-            for (let i = 0; i < this.config.symbolsVisible; i++) {
+            for (let i: number = 0; i < this.config.symbolsVisible; i++) {
+                const symInd: number = this.config.symbolsVisible - i - 1;
                 this.reelsSpinStates[reelIndex].stopSymbols.push(reelSymbols[i]);
             }
         });
@@ -304,8 +251,12 @@ export class ClassicSpinContainer extends SpinContainer {
 
     public async slowDown() {
         for (let i = 0; i < this.reelsSpinStates.length; i++) {
+            if (this.reelsSpinStates[i].anticipated || this.reelsSpinStates[i].isSpinning === false) {
+                continue;
+            }
+
             this.slowDownReelSpin(i);
-            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
+            let delay: number = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? SpinConfig.REEL_SPIN_DURATION : 0;
 
             await Utils.delay(delay);
         }
@@ -337,13 +288,53 @@ export class ClassicSpinContainer extends SpinContainer {
         this.reelsSpinStates[reelId].isSpinning = false;
     }
 
+    async anticipateReelSpin(reelId: number): Promise<void> {
+        this.reelsSpinStates[reelId].state = IReelSpinState.ANTICIPATING;
+        this.reelsSpinStates[reelId].isAnticipating = true;
+
+        await Utils.delay(2000);
+        this.reelsSpinStates[reelId].isAnticipating = false;
+        this.reelsSpinStates[reelId].anticipated = false;
+        this.slowDown();
+    }
+
+    checkReelForAnticipation(reelId: number): boolean {
+        const reel = this.symbols[reelId];
+        if (reel === undefined) return false;
+        return reel.some((symbol: GridSymbol | Sprite | null) => {
+            return (symbol as GridSymbol).getSymbolId() === 10;
+        });
+    }
+
+    checkForAnticipation(): boolean {
+        const targetReels = [0, 2];
+        let count = 0;
+
+        for (const rIndex of targetReels) {
+            const reel = this.symbols[rIndex];
+            if (reel === undefined) continue;
+
+            /*for (let sIndex = 0; sIndex < reel.length; sIndex++) {
+                if ((reel[sIndex] as GridSymbol).getSymbolId() === 10) {
+                    console.log(`Anticipation triggered by reel ${rIndex}, symbol index ${sIndex}`);
+                    count++;
+                }
+            }*/
+
+        if(this.checkReelForAnticipation(rIndex))
+            count++;
+        }
+
+        return count === 2;
+    }
+
     public async stopSpin(): Promise<void> {
         super.stopSpin();
         for (const state of this.reelsSpinStates) {
             state.speed = 0;
             state.state = IReelSpinState.STOPPED;
 
-            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? GameConfig.REFERENCE_REEL_DELAY : 0;
+            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? SpinConfig.REEL_SPIN_DURATION : 0;
 
             await Helpers.delay(delay);
         }

@@ -5,7 +5,6 @@ import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameConfig } from "../../config/GameConfig";
 import { Counter } from "../utils/Counter";
 import SoundManager from "../controllers/SoundManager";
-import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { AssetsConfig } from "../../config/AssetsConfig";
 import { WinEventType } from "../types/IWinEvents";
 import { SpriteText } from "../utils/SpriteText";
@@ -43,8 +42,6 @@ export class WinEvent extends WinEventContainer {
                 this.view._soundManager.stop("bigwin");
                 this.view._soundManager.stop("coin");
                 this.view._wins.state.data.defaultMix = 0;
-
-                eventBus.emit("showUI");
             }
         })(this);
     }
@@ -80,8 +77,6 @@ export class WinEvent extends WinEventContainer {
 
     // Görsel animasyon
     public playWinEventAnimation(): void {
-        eventBus.emit("hideUI");
-
         this._duration = GameConfig.WIN_EVENT.duration + this._winEventType * GameConfig.WIN_EVENT.duration;
 
         this._soundManager.playFor("bigwin", this._duration, 0.5);

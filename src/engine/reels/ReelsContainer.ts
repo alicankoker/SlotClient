@@ -15,6 +15,7 @@ import { Helpers } from '../utils/Helpers';
 import { SpinMode } from '../types/ISpinConfig';
 import { FreeSpinController } from '../freeSpin/FreeSpinController';
 import { gsap } from 'gsap';
+import { SpinConfig } from '../../config/SpinConfig';
 
 export class ReelsContainer extends Container {
   private app: Application;
@@ -501,7 +502,7 @@ export class ReelsContainer extends Container {
     if (reelIndex === undefined) {
       this.chains.forEach(async (chain, index) => {
         if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
-          await Helpers.delay(GameConfig.REFERENCE_REEL_DELAY * (index % 6));
+          await Helpers.delay(SpinConfig.REEL_SPIN_DURATION * (index % 6));
         } else if (this._spinMode === GameConfig.SPIN_MODES.FAST && FreeSpinController.instance().isRunning === false) {
           await Helpers.delay(0);
         } else if (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false) {

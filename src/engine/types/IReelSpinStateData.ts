@@ -5,6 +5,7 @@ export enum IReelSpinState {
     STOPPED = 'stopped',
     SPEEDING = 'speeding',
     SLOWING = 'slowing',
+    ANTICIPATING = 'anticipating',
 }
 
 export type IReelSpinStateData = {
@@ -17,5 +18,7 @@ export type IReelSpinStateData = {
     stopProgressStarted: boolean;
     currentStopSymbolId: number;
     stopSymbols: number[];
+    anticipated: boolean;
+    isAnticipating: boolean;
     callbackFunction?: () => void;
 }

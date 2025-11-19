@@ -55,8 +55,6 @@ export class GameConfig {
         scale: 0.20
     };
 
-    public static readonly REFERENCE_REEL_DELAY = 300; // milliseconds
-
     // Reference spacing at base resolution
     public static readonly REFERENCE_SPACING = {
         horizontal: 90,  // 10 pixels horizontal spacing at reference resolution

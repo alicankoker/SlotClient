@@ -292,6 +292,11 @@ export abstract class SpinContainer extends Container {
   public abstract startSpin(spinData: IResponseData): Promise<void>;
 
   public stopSpin(): void {
+    this.isSpinning = false;
+
+    if (this.onSpinCompleteCallback) {
+      this.onSpinCompleteCallback();
+    }
   }
 
   public allReelsStopped(): Promise<boolean> {

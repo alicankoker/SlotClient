@@ -219,6 +219,8 @@ export class SlotGameController {
         FreeSpinController.instance().isRunning === false && (FreeSpinController.instance().isRunning = GameDataManager.getInstance().checkFreeSpins());
         Bonus.instance().isActive = (response as IResponseData).bonus ? true : false;
 
+        this.reelsContainer.setChainAnimation(false, false);
+
         eventBus.emit('setComponentState', {
             componentName: 'spinButton',
             stateOrUpdates: 'default',
@@ -229,7 +231,9 @@ export class SlotGameController {
             const backendType = (response as IResponseData).winEventType;
             const enumType = BackendToWinEventType[backendType]!;
 
+            eventBus.emit("hideUI");
             await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+            eventBus.emit("showUI");
         }
 
         const isSkipped = GameDataManager.getInstance().isWinAnimationSkipped && ((AutoPlayController.instance().isRunning && AutoPlayController.instance().autoPlayCount > 0) || (FreeSpinController.instance().isRunning === true));
