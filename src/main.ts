@@ -207,6 +207,9 @@ export class DoodleV8Main {
         }
       });
 
+      eventBus.emit("setVolume", 50);
+      SoundManager.getInstance().setVolume(50)
+
       eventBus.on("setVolume", (value) => {
         SoundManager.getInstance().setVolume(value);
       })

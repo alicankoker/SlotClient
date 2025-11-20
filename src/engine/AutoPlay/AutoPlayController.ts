@@ -52,6 +52,10 @@ export class AutoPlayController {
             componentNames: ['autoplayButton', 'mobileAutoplayButton'],
             stateOrUpdates: 'spinning',
         })
+        eventBus.emit("setBatchComponentState", {
+            componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
+            stateOrUpdates: { disabled: true }
+        });
         eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
         const staticContainer = this._reelsController.getStaticContainer();
@@ -80,7 +84,7 @@ export class AutoPlayController {
             this._autoPlayCount -= 1;
             this._autoPlayed += 1;
 
-           this._autoPlayCount > 0 && eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
+            this._autoPlayCount > 0 && eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
             if (this._autoPlayCount <= 0) {
                 const staticContainer = this._reelsController.getStaticContainer();
@@ -110,6 +114,10 @@ export class AutoPlayController {
         eventBus.emit("setBatchComponentState", {
             componentNames: ['autoplayButton', 'mobileAutoplayButton'],
             stateOrUpdates: 'default',
+        });
+        eventBus.emit("setBatchComponentState", {
+            componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
+            stateOrUpdates: { disabled: false }
         });
         eventBus.emit("setMessageBox");
 

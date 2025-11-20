@@ -405,26 +405,24 @@ export class StaticContainer extends Container {
         switch (reelIndex) {
             case 0:
                 if (bonusPosition !== -1) {
-                    signals.emit("startAdrenalineEffect");
                     this._adrenalinePhase = true;
                 }
                 break;
-
             case 2:
-                if (this._adrenalinePhase && (bonusPosition === -1)) {
+                if (bonusPosition !== -1 && this._adrenalinePhase === true) {
+                    this._adrenalinePhase = true;
+                    signals.emit("startAdrenalineEffect");
+                } else {
                     this._adrenalinePhase = false;
                 }
                 break;
-            default:
+            case 4:
                 if (this._adrenalinePhase) {
-                    signals.emit("stopAdrenalineEffect");
                     this._adrenalinePhase = false;
+                    signals.emit("stopAdrenalineEffect");
                 }
                 break;
         }
-
-        console.log("Reel Index:", reelIndex);
-        console.log("Bonus Position:", bonusPosition);
 
         if (this._adrenalinePhase) {
             this._symbols.get(reelIndex)?.[bonusPosition].state.addAnimation(0, "10_adrenaline_landing", false, 0.25);

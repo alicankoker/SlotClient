@@ -206,7 +206,7 @@ export class SlotGameController {
 
     // Convenience method for executing spins
     public async executeGameSpin(action: IPayload["action"]): Promise<void> {
-        const response = await this.gameServer.processRequest(action);
+        const response: IResponseData = await this.gameServer.processRequest(action);
 
         eventBus.emit("setSpinId", response._id.toString());
         eventBus.emit("setBalance", response.balance.before);
