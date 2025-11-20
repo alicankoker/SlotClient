@@ -192,6 +192,7 @@ export class SlotGameController {
     private eventListeners(): void {
         signals.on("allReelsLanded", async () => {
             console.log("All reels landed");
+            this.reelsContainer.setChainAnimation(false, false);
             await this.onAllReelsStopped();
         });
 
@@ -220,8 +221,6 @@ export class SlotGameController {
         this.spinController.setState(ISpinState.IDLE)
         FreeSpinController.instance().isRunning === false && (FreeSpinController.instance().isRunning = GameDataManager.getInstance().checkFreeSpins());
         Bonus.instance().isActive = (response as IResponseData).bonus !== undefined ? true : false;
-
-        this.reelsContainer.setChainAnimation(false, false);
 
         eventBus.emit('setComponentState', {
             componentName: 'spinButton',

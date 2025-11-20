@@ -60,6 +60,7 @@ export class ClassicSpinContainer extends SpinContainer {
         this.reelsSpinStates[reelId].symbols = [];
         this.reelsSpinStates[reelId].readyForStopping = false;
         this.reelsSpinStates[reelId].readyForSlowingDown = false;
+        this.reelsSpinStates[reelId].stopProgressStarted = false;
         this.reelsSpinStates[reelId].currentStopSymbolId = -1;
         this.reelsSpinStates[reelId].anticipated = false;
         this.reelsSpinStates[reelId].isAnticipating = false;
@@ -113,14 +114,10 @@ export class ClassicSpinContainer extends SpinContainer {
         if (this.reelsSpinStates[reelId].state === IReelSpinState.ANTICIPATING) {
             this.reelsSpinStates[reelId].speed = SpinConfig.REEL_ANTICIPATION_SPEED;
         }
-        if (this.reelsSpinStates[reelId].state === IReelSpinState.TURBO && FreeSpinController.instance().isRunning === false) {
-            this.reelsSpinStates[reelId].speed = 0;
+        if (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false) {
             this.reelsSpinStates[reelId].state = IReelSpinState.STOPPED;
             this.reelStopped(reelId);
             return;
-        }
-        if (this.reelsSpinStates[reelId].state === IReelSpinState.FAST && FreeSpinController.instance().isRunning === false) {
-            this.reelsSpinStates[reelId].speed = SpinConfig.FAST_SPIN_SPEED;
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
     }
@@ -141,7 +138,7 @@ export class ClassicSpinContainer extends SpinContainer {
         this.setFinalSymbols(reelId);
         signals.emit("reelStopped", reelId);
 
-        if ((reelId === 2) && this.checkForAnticipation()) {
+        if ((reelId === 2) && this.checkForAnticipation() && this._spinMode !== GameConfig.SPIN_MODES.TURBO) {
             this.anticipateReelSpin(this.columns - 1);
 
             return;
@@ -241,19 +238,19 @@ export class ClassicSpinContainer extends SpinContainer {
             this.assignStopSymbols(spinData.reels)
 
             let delay: number = SpinConfig.REEL_SPIN_DURATION;
-            switch (this._spinMode) {
-                case GameConfig.SPIN_MODES.FAST:
-                    this.fastSpinReel(i);
-                    delay = SpinConfig.REEL_SPIN_DURATION / 2;
-                    break;
+            this.defaultSpinReel(i);
 
-                case GameConfig.SPIN_MODES.TURBO:
-                    this.turboSpinReel(i);
-                    delay = 0;
-                    break;
-                default:
-                    this.defaultSpinReel(i);
-                    break;
+            if (FreeSpinController.instance().isRunning === false) {
+                switch (this._spinMode) {
+                    case GameConfig.SPIN_MODES.FAST:
+                        this.fastSpinReel(i);
+                        delay = SpinConfig.REEL_SPIN_DURATION / 2;
+                        break;
+                    case GameConfig.SPIN_MODES.TURBO:
+                        this.turboSpinReel(i);
+                        delay = 0;
+                        break;
+                }
             }
 
             await Utils.delay(delay);
@@ -291,6 +288,7 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     startReelSpin(reelId: number, spinData: IResponseData): void {
+        this.reelsSpinStates[reelId].state = IReelSpinState.SPEEDING;
         this.reelsSpinStates[reelId].isSpinning = true;
         const reelSymbolsData = spinData.reels[reelId];
         const symbols = reelSymbolsData.map((symbol: number) => symbol);
@@ -318,15 +316,14 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     fastSpinReel(reelId: number): void {
-        this.reelsSpinStates[reelId].state = IReelSpinState.FAST;
+        this.reelsSpinStates[reelId].speed = SpinConfig.FAST_SPIN_SPEED;
     }
 
     turboSpinReel(reelId: number): void {
-        this.reelsSpinStates[reelId].state = IReelSpinState.TURBO;
+        this.reelsSpinStates[reelId].speed = 0;
     }
 
     defaultSpinReel(reelId: number): void {
-        this.reelsSpinStates[reelId].state = IReelSpinState.SPEEDING;
         this.reelsSpinStates[reelId].speed = SpinConfig.SPIN_SPEED;
     }
 
