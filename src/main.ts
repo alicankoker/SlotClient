@@ -99,7 +99,6 @@ export class DoodleV8Main {
       let isSpinning = false;
 
       signals.on("spinCompleted", () => {
-        console.log("Spin completed signal received");
         isSpinning = false;
       })
 
@@ -131,6 +130,15 @@ export class DoodleV8Main {
       eventBus.on("startSpin", async () => {
         if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
           this.slotGameController.reelsController.skipWinAnimations();
+        }
+
+        if (
+          this.slotGameController?.spinController &&
+          this.slotGameController.spinController.getIsSpinning() &&
+          this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL &&
+          GameConfig.FORCE_STOP.enabled
+        ) {
+          this.slotGameController.spinController.forceStop();
         }
 
         if (isKeyHeld || isSpinning) return;
@@ -186,11 +194,13 @@ export class DoodleV8Main {
             break;
           case 2:
             if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
+              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
             }
             break;
           case 3:
             if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.TURBO) {
+              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
             }
             break;

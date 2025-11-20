@@ -119,6 +119,9 @@ export class ClassicSpinContainer extends SpinContainer {
             this.reelStopped(reelId);
             return;
         }
+        if (this._spinMode === GameConfig.SPIN_MODES.FAST && FreeSpinController.instance().isRunning === false) {
+            this.reelsSpinStates[reelId].speed = SpinConfig.FAST_SPIN_SPEED;
+        }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
     }
 
@@ -237,14 +240,14 @@ export class ClassicSpinContainer extends SpinContainer {
             this.startReelSpin(i, spinData);
             this.assignStopSymbols(spinData.reels)
 
-            let delay: number = SpinConfig.REEL_SPIN_DURATION;
+            let delay: number = (SpinConfig.REEL_SPIN_DURATION - (i * (SpinConfig.REEL_SPIN_DURATION / this.reelsSpinStates.length - 1)));
             this.defaultSpinReel(i);
 
             if (FreeSpinController.instance().isRunning === false) {
                 switch (this._spinMode) {
                     case GameConfig.SPIN_MODES.FAST:
                         this.fastSpinReel(i);
-                        delay = SpinConfig.REEL_SPIN_DURATION / 2;
+                        delay = delay / 2;
                         break;
                     case GameConfig.SPIN_MODES.TURBO:
                         this.turboSpinReel(i);
@@ -267,13 +270,21 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     public async slowDown() {
-        for (let i = 0; i < this.reelsSpinStates.length; i++) {
+        const count = this.reelsSpinStates.length;
+
+        for (let i = 0; i < count; i++) {
             if (this.reelsSpinStates[i].isAnticipating || this.reelsSpinStates[i].isSpinning === false) {
                 continue;
             }
 
             this.slowDownReelSpin(i);
-            let delay: number = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? SpinConfig.REEL_SPIN_DURATION : 0;
+
+            // TERS DELAY HESABI
+            const reverseIndex = (count - 1) - i;
+
+            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL
+                ? (SpinConfig.REEL_SPIN_DURATION - (reverseIndex * (SpinConfig.REEL_SPIN_DURATION / count)))
+                : 0;
 
             await Utils.delay(delay);
         }
@@ -347,7 +358,6 @@ export class ClassicSpinContainer extends SpinContainer {
 
             if (this.checkReelForAnticipation(rIndex)) {
                 count++;
-                console.log(`Reel ${rIndex} has anticipation symbol.`);
             }
         }
 
@@ -357,7 +367,6 @@ export class ClassicSpinContainer extends SpinContainer {
     public async stopSpin(): Promise<void> {
         super.stopSpin();
         for (const state of this.reelsSpinStates) {
-            console.log(0)
             state.speed = 0;
             state.state = IReelSpinState.STOPPED;
 

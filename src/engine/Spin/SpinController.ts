@@ -268,20 +268,19 @@ export abstract class SpinController {
 
   // Force stop current spin
   public forceStop(): void {
-    if (this.currentState === "idle" || this.currentState === "completed" || this._spinMode !== GameConfig.SPIN_MODES.NORMAL) {
+    if (this.currentState === "idle" || this.currentState === "completed" || this._spinMode === GameConfig.SPIN_MODES.TURBO) {
       return;
     }
-
-    debug.log("SpinController: Force stopping spin");
 
     this._isForceStopped = true;
 
     this._abortController?.abort();
     this._abortController = null;
+    this.reelsController.getReelsContainer().forceStopChainAnimation();
 
-    this.reelsController.forceStopAllReels();
+    //this.reelsController.forceStopAllReels();
 
-    this.resetSpinData();
+    //this.resetSpinData();
   }
 
   // State management

@@ -46,6 +46,7 @@ export class ReelsContainer extends Container {
   private _logo!: Sprite;
   private _isFreeSpinMode: boolean = false;
   private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+  private _abortController: AbortController | null = null;
 
   private readonly numberOfReels: number;
   private readonly symbolsPerReel: number;
@@ -494,7 +495,10 @@ export class ReelsContainer extends Container {
     });
   }
 
-  public async setChainAnimation(isSpinning: boolean, loop: boolean, reelIndex?: number): Promise<void> {
+  public async setChainAnimation(isSpinning: boolean, loop: boolean, reelIndex?: number): Promise<void> {    
+    this._abortController = new AbortController();
+    const signal = this._abortController.signal;
+
     const chainAnimationName = isSpinning
       ? (this._isFreeSpinMode ? 'Free_chain' : 'Base_chain')
       : (this._isFreeSpinMode ? 'Free_chain_hold' : 'Base_chain_hold');
@@ -502,9 +506,9 @@ export class ReelsContainer extends Container {
     if (reelIndex === undefined) {
       this.chains.forEach(async (chain, index) => {
         if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
-          await Helpers.delay(SpinConfig.REEL_SPIN_DURATION * (index % 6));
+          await Helpers.delay(SpinConfig.REEL_SPIN_DURATION * (index % 6), signal);
         } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
-          await Helpers.delay((SpinConfig.REEL_SPIN_DURATION / 3) * (index % 6));
+          await Helpers.delay((SpinConfig.REEL_SPIN_DURATION / 3) * (index % 6), signal);
         }
 
         chain.state.setAnimation(0, chainAnimationName, loop);
@@ -518,6 +522,11 @@ export class ReelsContainer extends Container {
         this.chains[i].state.setAnimation(0, chainAnimationName, loop);
       }
     }
+  }
+
+  public forceStopChainAnimation(): void {
+    this._abortController?.abort();
+    this._abortController = null;
   }
 
   public setAdrenalineMode(enabled: boolean, reelIndex: number): void {
