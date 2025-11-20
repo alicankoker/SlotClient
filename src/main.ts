@@ -26,6 +26,7 @@ import { Helpers } from "./engine/utils/Helpers";
 import { AutoPlayController } from "./engine/AutoPlay/AutoPlayController";
 import { signals } from "./engine/controllers/SignalManager";
 import SoundManager from "./engine/controllers/SoundManager";
+import { FreeSpinController } from "./engine/freeSpin/FreeSpinController";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -194,13 +195,13 @@ export class DoodleV8Main {
             break;
           case 2:
             if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
-              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
+              (this.slotGameController.spinController.getIsSpinning() === true && FreeSpinController.instance().isRunning === false) && this.slotGameController.spinController.forceStop();
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
             }
             break;
           case 3:
             if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.TURBO) {
-              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
+              (this.slotGameController.spinController.getIsSpinning() === true && FreeSpinController.instance().isRunning === false) && this.slotGameController.spinController.forceStop();
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
             }
             break;

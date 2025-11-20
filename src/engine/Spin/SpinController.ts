@@ -273,14 +273,11 @@ export abstract class SpinController {
     }
 
     this._isForceStopped = true;
+    this.container.setForceStop(true);
 
     this._abortController?.abort();
     this._abortController = null;
     this.reelsController.getReelsContainer().forceStopChainAnimation();
-
-    //this.reelsController.forceStopAllReels();
-
-    //this.resetSpinData();
   }
 
   // State management

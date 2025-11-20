@@ -240,7 +240,7 @@ export class ClassicSpinContainer extends SpinContainer {
             this.startReelSpin(i, spinData);
             this.assignStopSymbols(spinData.reels)
 
-            let delay: number = (SpinConfig.REEL_SPIN_DURATION - (i * (SpinConfig.REEL_SPIN_DURATION / this.reelsSpinStates.length - 1)));
+            let delay: number = SpinConfig.REEL_SPIN_DURATION;
             this.defaultSpinReel(i);
 
             if (FreeSpinController.instance().isRunning === false) {
@@ -279,14 +279,12 @@ export class ClassicSpinContainer extends SpinContainer {
 
             this.slowDownReelSpin(i);
 
-            // TERS DELAY HESABI
-            const reverseIndex = (count - 1) - i;
+            this._abortController = new AbortController();
+            const signal = this._abortController.signal;
 
-            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL
-                ? (SpinConfig.REEL_SPIN_DURATION - (reverseIndex * (SpinConfig.REEL_SPIN_DURATION / count)))
-                : 0;
+            const delay = ((this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && this.isForceStopped() === false) ? SpinConfig.REEL_SPIN_DURATION : 0;
 
-            await Utils.delay(delay);
+            await Helpers.delay(delay, signal);
         }
     }
 
