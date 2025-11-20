@@ -190,6 +190,17 @@ export class SlotGameController {
     }
 
     private eventListeners(): void {
+        signals.on("allReelsLanded", async () => {
+            console.log("All reels landed");
+            await this.onAllReelsStopped();
+        });
+
+        signals.on("afterSpin", async (response) => {
+            console.log("After spin");
+            await this.onSpinComplete(response);
+
+            signals.emit("spinCompleted", response);
+        });
     }
 
     // Convenience method for executing spins
@@ -201,20 +212,8 @@ export class SlotGameController {
 
         if (this.spinController && response) {
             await this.spinController.executeSpin();
-
-            signals.once("allReelsLanded", async () => {
-                console.log("All reels landed");
-                await this.onAllReelsStopped();
-            });
-
-            signals.once("afterSpin", async (response) => {
-                console.log("After spin");
-                await this.onSpinComplete(response);
-
-                signals.emit("spinCompleted", response);
-            });
         }
-    } //DOTO evenlerle haberleşeceğiz
+    }
 
     private async onAllReelsStopped(): Promise<void> {
         const response: IResponseData = GameDataManager.getInstance().getResponseData();
