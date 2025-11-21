@@ -8,9 +8,9 @@ export class SpinConfig {
     public static readonly REEL_SLOW_DOWN_DURATION = 750;
     public static readonly REEL_STOPPING_DURATION = 200;
     public static readonly REEL_SLOW_DOWN_COEFFICIENT = .098;
-    public static readonly REEL_SLOW_DOWN_SPEED_LIMIT = 2;
+    public static readonly REEL_SLOW_DOWN_SPEED_LIMIT = 1.8;
     public static readonly REEL_SPEED_UP_COEFFICIENT = 0.1;
     public static readonly REEL_SPEED_UP_DURATION = 750;
-    public static readonly REEL_ANTICIPATION_DURATION = 3000;
+    public static readonly REEL_ANTICIPATION_DURATION = 1500;
     public static readonly REEL_ANTICIPATION_SPEED = 20;
 }
