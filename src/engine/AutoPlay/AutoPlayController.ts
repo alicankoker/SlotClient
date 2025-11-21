@@ -89,7 +89,12 @@ export class AutoPlayController {
 
         // Set up the auto play timeout
         this._autoPlayTimeoutID = setTimeout(async () => {
-            await this._slotGameController.executeGameSpin('spin');
+            const spinResult = await this._slotGameController.executeGameSpin('spin');
+            
+            if (spinResult === false) {
+                this.stopAutoPlay();
+                return;
+            }
 
             this._autoPlayCount -= 1;
             this._autoPlayed += 1;

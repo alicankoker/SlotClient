@@ -60,7 +60,6 @@ export class SocketConnection {
     public request(payload: IPayload): Promise<any> {
         return new Promise((resolve, reject) => {
             this._socket.emit("event", payload, (response: any) => {
-                console.log("Received response from server:", response);
                 if (response.error) {
                     reject(response.error);
                 } else {

@@ -205,7 +205,15 @@ export class SlotGameController {
     }
 
     // Convenience method for executing spins
-    public async executeGameSpin(action: IPayload["action"]): Promise<void> {
+    public async executeGameSpin(action: IPayload["action"]): Promise<void | boolean> {
+        const balance: number = GameDataManager.getInstance().getResponseData()?.balance.after ?? GameDataManager.getInstance().getInitialData()!.balance ?? 0;
+        if ((balance - (GameDataManager.getInstance().getCurrentBet() * GameDataManager.getInstance().getLine()) < 0)) {
+            console.log("Insufficient balance for spin");
+            eventBus.emit("setMessageBox", { variant: "default", message: "Insufficient Balance" });
+            signals.emit("spinCompleted");
+            return false;
+        }
+
         const response: IResponseData = await this.gameServer.processRequest(action);
 
         eventBus.emit("setSpinId", response._id.toString());
@@ -274,7 +282,10 @@ export class SlotGameController {
             this.background.setFreeSpinMode(true);
             this.animationContainer.getWinLines().setFreeSpinMode(true);
 
-            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: true } });
+            eventBus.emit("setBatchComponentState", {
+                componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                stateOrUpdates: { disabled: true }
+            });
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
             eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
         });
@@ -290,7 +301,17 @@ export class SlotGameController {
         await this.animationContainer.playPopupAnimation();
 
         await this.animationContainer.startTransitionAnimation(() => {
-            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: false } });
+            if (this.autoPlayController.isRunning) {
+                eventBus.emit("setBatchComponentState", {
+                    componentNames: ['autoplayButton', 'mobileAutoplayButton'],
+                    stateOrUpdates: { disabled: false }
+                });
+            } else {
+                eventBus.emit("setBatchComponentState", {
+                    componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                    stateOrUpdates: { disabled: false }
+                });
+            }
             this.reelsContainer.setFreeSpinMode(false);
             this.background.setFreeSpinMode(false);
             this.animationContainer.getWinLines().setFreeSpinMode(false);

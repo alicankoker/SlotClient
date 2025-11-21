@@ -101,7 +101,7 @@ export class DoodleV8Main {
 
       signals.on("spinCompleted", () => {
         isSpinning = false;
-      })
+      });
 
       window.addEventListener("keyup", (event) => {
         if (event.code === "Space") isKeyHeld = false;
