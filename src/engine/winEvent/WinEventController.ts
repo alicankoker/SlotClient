@@ -62,6 +62,7 @@ export abstract class WinEventController<T extends WinEventContainer> {
 
     protected async stopWinEventAnimation(): Promise<void> {
         window.removeEventListener("click", this._onSkip);
+        window.removeEventListener("keydown", this._onSkip);
 
         if (this.onWinEventCompleteCallback) {
             this.onWinEventCompleteCallback();

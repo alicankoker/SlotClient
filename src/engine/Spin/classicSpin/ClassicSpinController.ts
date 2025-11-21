@@ -135,6 +135,7 @@ export class ClassicSpinController extends SpinController {
     staticContainer.getSymbols().forEach((symbols) => {
       symbols.forEach((symbol) => {
         symbol.visible = false;
+        symbol.setIdle();
       });
     });
 

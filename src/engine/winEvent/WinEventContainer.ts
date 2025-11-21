@@ -45,8 +45,8 @@ export abstract class WinEventContainer extends Container {
             duration: this._duration,
             ease: "power1.out",
             currency: "$",
-            startScale: { x: 0.2, y: 0.2 },
-            endScale: { x: 0.5, y: 0.5 },
+            startScale: { x: 0.5, y: 0.5 },
+            endScale: { x: 0.75, y: 0.75 },
         });
     }
 

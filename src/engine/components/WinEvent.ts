@@ -14,7 +14,6 @@ export class WinEvent extends WinEventContainer {
     private _controller: WinEventController<WinEvent>;
     private _soundManager: SoundManager;
     private _wins!: Spine;
-    private _counterStrip!: Sprite;
 
     private constructor() {
         super();
@@ -56,17 +55,11 @@ export class WinEvent extends WinEventContainer {
         this._wins.state.data.defaultMix = 0;
         this.addChild(this._wins);
 
-        this._counterStrip = Sprite.from('win_event_strip');
-        this._counterStrip.label = 'counterStrip';
-        this._counterStrip.anchor.set(0.5, 0.5);
-        this._counterStrip.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 975);
-        this.addChild(this._counterStrip);
-
         // win amount
         this._amountText = new SpriteText("Numbers");
         this._amountText.setAnchor(0.5, 0.5);
-        this._amountText.setScale(0.5, 0.5);
-        this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 910);
+        this._amountText.setScale(0.75, 0.75);
+        this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
         this.addChild(this._amountText);
 
         // counter setup

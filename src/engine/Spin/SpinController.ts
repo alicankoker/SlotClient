@@ -371,6 +371,7 @@ export abstract class SpinController {
     this.container.setSpinMode(mode);
     this.reelsController.setSpinMode(mode);
     this.reelsController.getReelsContainer().setSpinMode(mode);
+    this.reelsController.getStaticContainer()!.setSpinMode(mode);
   }
 
   // Cascade processing methods

@@ -1,7 +1,7 @@
 import { eventBus } from "../../communication/EventManagers/WindowEventManager";
 import { GameConfig } from "../../config/GameConfig";
 import { SlotGameController } from "../../game/controllers/SlotGameController";
-import { GameServer } from "../../server/GameServer";
+import { signals } from "../controllers/SignalManager";
 import { GameDataManager } from "../data/GameDataManager";
 import { ReelsController } from "../reels/ReelsController";
 import { debug } from "../utils/debug";
@@ -20,6 +20,8 @@ export class AutoPlayController {
     private constructor(slotGameController: SlotGameController, reelsController: ReelsController) {
         this._slotGameController = slotGameController;
         this._reelsController = reelsController;
+
+        this.eventListeners();
     }
 
     public static getInstance(slotGameController: SlotGameController, reelsController: ReelsController): AutoPlayController {
@@ -31,6 +33,14 @@ export class AutoPlayController {
 
     public static instance(): AutoPlayController {
         return AutoPlayController._instance;
+    }
+
+    private eventListeners(): void {
+        signals.on("socketError", () => {
+            if (this._isAutoPlaying) {
+                this.stopAutoPlay();
+            }
+        });
     }
 
     /**

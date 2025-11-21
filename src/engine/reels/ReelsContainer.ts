@@ -299,6 +299,12 @@ export class ReelsContainer extends Container {
           stripe.state.setAnimation(0, "Adrenalin_Glow", true);
         });
 
+        this.chains.forEach((chain, index) => {
+          if (index === 4 || index === 5 || index === 10 || index === 11 || index === 166 || index === 17) {
+            chain.state.setAnimation(0, "Adrenalin_chain", true);
+          }
+        });
+
         this._sparkEnabled = true;
         this.setSparkEffect();
       }
