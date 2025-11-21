@@ -64,22 +64,33 @@ export abstract class WinEventController<T extends WinEventContainer> {
         window.removeEventListener("click", this._onSkip);
         window.removeEventListener("keydown", this._onSkip);
 
-        if (this.onWinEventCompleteCallback) {
-            this.onWinEventCompleteCallback();
-        }
-
         return new Promise((resolve) => {
-            gsap.to(this.view, {
-                alpha: 0,
-                duration: 0.25,
-                ease: "none",
-                delay: 2,
-                onComplete: () => {
-                    this.view.resetScene().then(() => {
-                        debug.log("WinEvent", "Win Event animation stopped.");
-                        resolve();
-                    });
-                },
+            const hideWinEvent = async () => {
+                window.removeEventListener("click", hideWinEvent);
+                window.removeEventListener("keydown", hideWinEvent);
+
+                if (this.onWinEventCompleteCallback) {
+                    this.onWinEventCompleteCallback();
+                }
+
+                gsap.to(this.view, {
+                    alpha: 0,
+                    duration: 0.25,
+                    ease: "none",
+                    onComplete: () => {
+                        this.view.resetScene().then(() => {
+                            debug.log("WinEvent", "Win Event animation stopped.");
+                            resolve();
+                        });
+                    },
+                });
+            };
+
+            window.addEventListener("click", hideWinEvent);
+            window.addEventListener("keydown", (key) => {
+                if (key.code === "Space") {
+                    hideWinEvent();
+                }
             });
         });
     }
