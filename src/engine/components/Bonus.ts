@@ -237,10 +237,12 @@ export class Bonus extends BonusContainer {
                     const enumType = BackendToWinEventType[backendType]!;
 
                     await Helpers.delay(2500);
-                    await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+                    await AnimationContainer.instance().playWinEventAnimation(winAmount, enumType);
                 }
 
-                window.addEventListener("click", async () => {
+                this._app.canvas.onpointerdown = () => {
+                    this._app.canvas.onpointerdown = null;
+
                     this._infoText1.visible = false;
                     this._infoText2.visible = false;
 
@@ -263,7 +265,7 @@ export class Bonus extends BonusContainer {
                             });
                         }
                     });
-                }, { once: true });
+                };
             });
         }
     }
@@ -366,12 +368,12 @@ export class Bonus extends BonusContainer {
         if (GameDataManager.getInstance().getResponseData().nextAction !== "bonus") {
             this.onBonusCompleted();
         } else {
-            this._app.canvas.onclick = async () => {
-                await AnimationContainer.getInstance().startTransitionAnimation(() => {
+            this._app.canvas.onpointerdown = async () => {
+                await AnimationContainer.instance().startTransitionAnimation(() => {
                     this.resetScene();
-                    this._app.canvas.onclick = null;
+                    this._app.canvas.onpointerdown = null;
                 });
-            }
+            };
         }
     }
 
@@ -405,13 +407,13 @@ export class Bonus extends BonusContainer {
         this._infoText2.text = CLICK_TO_COLLECT_TEXT;
         this._infoText2.visible = true;
 
-        this._app.canvas.onclick = async () => {
+        this._app.canvas.onpointerdown = async () => {
             this._infoText2.visible = false;
-            this._app.canvas.onclick = null;
-            AnimationContainer.getInstance().getPopupCountText().setText(`$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string);
-            AnimationContainer.getInstance().getPopupContentText().text = ``;
-            await AnimationContainer.getInstance().playPopupAnimation();
-            await AnimationContainer.getInstance().startTransitionAnimation(() => {
+            this._app.canvas.onpointerdown = null;
+            AnimationContainer.instance().getPopupCountText().setText(`$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string);
+            AnimationContainer.instance().getPopupContentText().text = ``;
+            await AnimationContainer.instance().playPopupAnimation();
+            await AnimationContainer.instance().startTransitionAnimation(() => {
                 this.resetScene();
                 this.visible = false;
 
@@ -419,7 +421,7 @@ export class Bonus extends BonusContainer {
                     this.onBonusCompleteCallback();
                 }
             });
-        }
+        };
     }
 
     public setOnBonusCompleteCallback(callback: () => void): void {

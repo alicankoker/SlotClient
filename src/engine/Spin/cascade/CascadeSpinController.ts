@@ -100,7 +100,7 @@ export class CascadeSpinController extends SpinController {
                     const backendType = response.winEventType;
                     const enumType = BackendToWinEventType[backendType]!;
 
-                    await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+                    await AnimationContainer.instance().playWinEventAnimation(winAmount, enumType);
                 }
 
                 const isSkipped = (AutoPlayController.instance().isRunning && GameDataManager.getInstance().isWinAnimationSkipped && AutoPlayController.instance().autoPlayCount > 0);

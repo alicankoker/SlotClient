@@ -20,7 +20,7 @@ export abstract class WinEventController<T extends WinEventContainer> {
         this.view.targetWinAmount = amount;
         this.view.winEventType = Object.values(WinEventType).indexOf(type);
 
-        window.addEventListener("click", this._onSkip, { once: true });
+        this.view.app.canvas.onpointerdown = this._onSkip;
         window.addEventListener("keydown", (e: KeyboardEvent) => {
             if (e.code === "Space") {
                 this._onSkip();
@@ -60,13 +60,13 @@ export abstract class WinEventController<T extends WinEventContainer> {
         this.view.skipWinEvent();
     }
 
-    protected async stopWinEventAnimation(): Promise<void> {
-        window.removeEventListener("click", this._onSkip);
+    protected async stopWinEventAnimation(): Promise<void> {        
+        this.view.app.canvas.onpointerdown = null;
         window.removeEventListener("keydown", this._onSkip);
 
         return new Promise((resolve) => {
             const hideWinEvent = async () => {
-                window.removeEventListener("click", hideWinEvent);
+                this.view.app.canvas.onpointerdown = null;
                 window.removeEventListener("keydown", hideWinEvent);
 
                 if (this.onWinEventCompleteCallback) {
@@ -86,7 +86,7 @@ export abstract class WinEventController<T extends WinEventContainer> {
                 });
             };
 
-            window.addEventListener("click", hideWinEvent);
+            this.view.app.canvas.onpointerdown = hideWinEvent;
             window.addEventListener("keydown", (key) => {
                 if (key.code === "Space") {
                     hideWinEvent();

@@ -22,7 +22,7 @@ import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 import { Bonus } from '../../engine/components/Bonus';
 import { AutoPlayController } from '../../engine/AutoPlay/AutoPlayController';
 import { signals } from '../../engine/controllers/SignalManager';
-import { BackendToWinEventType } from '../../engine/types/IWinEvents';
+import { BackendToWinEventType, WinEventType } from '../../engine/types/IWinEvents';
 import { ISpinState } from '../../engine/types/ISpinConfig';
 
 export interface SlotSpinRequest {
@@ -84,7 +84,7 @@ export class SlotGameController {
         }, initialGridData as number[][]);
 
         this.background = Background.getInstance();
-        this.animationContainer = AnimationContainer.getInstance();
+        this.animationContainer = AnimationContainer.getInstance(this.app);
 
         this.reelsContainer.addChild(this.spinContainer);
         this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
@@ -241,7 +241,7 @@ export class SlotGameController {
             const enumType = BackendToWinEventType[backendType]!;
 
             eventBus.emit("hideUI");
-            await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+            await this.animationContainer.playWinEventAnimation(winAmount, enumType);
             eventBus.emit("showUI");
         }
 

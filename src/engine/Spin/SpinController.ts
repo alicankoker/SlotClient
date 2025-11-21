@@ -61,7 +61,7 @@ export abstract class SpinController {
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
-    this._winEvent = AnimationContainer.getInstance().getWinEvent();
+    this._winEvent = AnimationContainer.instance().getWinEvent();
     this._symbols = GameDataManager.getInstance().getInitialData()?.history.reels!;
   }
 

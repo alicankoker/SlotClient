@@ -20,7 +20,7 @@ export class FreeSpinController {
 
     private constructor(slotGameController: SlotGameController) {
         this.slotGameController = slotGameController;
-        this.animationContainer = AnimationContainer.getInstance();
+        this.animationContainer = AnimationContainer.instance();
     }
 
     public static getInstance(slotGameController: SlotGameController): FreeSpinController {

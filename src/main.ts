@@ -254,16 +254,16 @@ export class DoodleV8Main {
               GameConfig.WIN_EVENT.enabled &&
               !this.slotGameController?.reelsController?.getIsSpinning()
             ) {
-              AnimationContainer.getInstance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
+              AnimationContainer.instance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
             }
             break;
           case "KeyS":
-            AnimationContainer.getInstance().getPopupCountText().setText("X$1354€");
-            AnimationContainer.getInstance().playPopupAnimation();
+            AnimationContainer.instance().getPopupCountText().setText("X$1354€");
+            AnimationContainer.instance().playPopupAnimation();
             break;
           case "KeyD":
-            AnimationContainer.getInstance().getDialogCountText().setText("+5");
-            AnimationContainer.getInstance().playDialogBoxAnimation();
+            AnimationContainer.instance().getDialogCountText().setText("+5");
+            AnimationContainer.instance().playDialogBoxAnimation();
             break;
         }
       });
@@ -420,11 +420,11 @@ export class DoodleV8Main {
     }
     this.app.stage.addChild(bonusScene);
 
-    const animationContainer = AnimationContainer.getInstance();
+    const animationContainer = AnimationContainer.instance();
     bonusScene.isActive && animationContainer.setBonusMode(true);
     this.app.stage.addChild(animationContainer);
 
-    this.winEvent = AnimationContainer.getInstance().getWinEvent();
+    this.winEvent = AnimationContainer.instance().getWinEvent();
 
     //TO-DO: this needs to be moved to Nexus
     const defaultPlayer = this.slotGameController?.getDefaultPlayer();

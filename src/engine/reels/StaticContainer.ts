@@ -156,7 +156,7 @@ export class StaticContainer extends Container {
             this._winLines.showLines(lines);
         }
 
-        await AnimationContainer.getInstance().playTotalWinAnimation(totalWinAmount);
+        await AnimationContainer.instance().playTotalWinAnimation(totalWinAmount);
 
         this._winLines.hideAllLines();
 
@@ -320,7 +320,7 @@ export class StaticContainer extends Container {
                 this._winLines.showLines(lines);
             }
 
-            await AnimationContainer.getInstance().playTotalWinAnimation(amount);
+            await AnimationContainer.instance().playTotalWinAnimation(amount);
 
             if (FreeSpinController.instance().isRunning === false) {
                 eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });

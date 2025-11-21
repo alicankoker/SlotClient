@@ -1,4 +1,4 @@
-import { Graphics, Sprite, Text } from "pixi.js";
+import { Application, Graphics, Sprite, Text } from "pixi.js";
 import { WinEventContainer } from "../winEvent/WinEventContainer";
 import { WinEventController } from "../winEvent/WinEventController";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
@@ -15,17 +15,17 @@ export class WinEvent extends WinEventContainer {
     private _soundManager: SoundManager;
     private _wins!: Spine;
 
-    private constructor() {
-        super();
+    private constructor(app: Application) {
+        super(app);
         this.position.set(0, -100);
         this._soundManager = SoundManager.getInstance();
         this._controller = this.createController();
         this.init();
     }
 
-    public static getInstance(): WinEvent {
+    public static getInstance(app: Application): WinEvent {
         if (!WinEvent._instance) {
-            WinEvent._instance = new WinEvent();
+            WinEvent._instance = new WinEvent(app);
         }
         return WinEvent._instance;
     }

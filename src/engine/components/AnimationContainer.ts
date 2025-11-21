@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, Text, Ticker } from "pixi.js";
+import { Application, Container, Graphics, Sprite, Text, Ticker } from "pixi.js";
 import { WinLines } from "./WinLines";
 import { WinEvent } from "./WinEvent";
 import { GameConfig } from "../../config/GameConfig";
@@ -40,7 +40,8 @@ interface InternalParticle {
 
 export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
-    protected _resizeSubscription?: SignalSubscription;
+    private _app: Application;
+    private _resizeSubscription?: SignalSubscription;
 
     private _winLines: WinLines;
     private _particleContainer: Container;
@@ -69,8 +70,10 @@ export class AnimationContainer extends Container {
     private totalWinTween?: gsap.core.Tween;
     private totalWinResolver?: () => void;
 
-    private constructor() {
+    private constructor(app: Application) {
         super();
+
+        this._app = app;
 
         this._winLines = WinLines.getInstance();
         this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
@@ -206,7 +209,7 @@ export class AnimationContainer extends Container {
         this._dialogContentText.position.set(0, 60);
         this._dialogBox.addChild(this._dialogContentText);
 
-        this._winEvent = WinEvent.getInstance();
+        this._winEvent = WinEvent.getInstance(this._app);
         this.addChild(this._winEvent);
 
         const { atlas, skeleton } = AssetsConfig.TRANSITION_SPINE_ASSET;
@@ -222,10 +225,14 @@ export class AnimationContainer extends Container {
         this.eventListeners();
     }
 
-    public static getInstance(): AnimationContainer {
+    public static getInstance(app: Application): AnimationContainer {
         if (!AnimationContainer._instance) {
-            AnimationContainer._instance = new AnimationContainer();
+            AnimationContainer._instance = new AnimationContainer(app);
         }
+        return AnimationContainer._instance;
+    }
+
+    public static instance(): AnimationContainer {
         return AnimationContainer._instance;
     }
 
