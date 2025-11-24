@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "pnpm --filter @slotclient/diamond-diggers start",
     "dev": "pnpm --filter @slotclient/diamond-diggers start",
     "build": "pnpm --recursive build",
     "build:types": "pnpm --filter @slotclient/types build",
