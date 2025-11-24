@@ -1,0 +1,36 @@
+{
+  "name": "@slotclient/server",
+  "version": "1.0.0",
+  "description": "Server-side game logic and game implementations",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@slotclient/engine": "workspace:*",
+    "@slotclient/config": "workspace:*",
+    "@slotclient/communication": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.0",
+    "typescript": "^4.9.0"
+  },
+  "peerDependencies": {},
+  "files": [
+    "dist",
+    "src"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+

@@ -1,0 +1,21 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": false,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@slotclient/engine": ["../../engine/src"],
+      "@slotclient/nexus": ["../../nexus/src"],
+      "@slotclient/communication": ["../../communication/src"],
+      "@slotclient/config": ["../../config/src"],
+      "@slotclient/server": ["../../server/src"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+  "references": []
+}
+

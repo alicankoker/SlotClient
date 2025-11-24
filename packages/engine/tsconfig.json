@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    "noEmit": false,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@slotclient/config": ["../config/src"],
+      "@slotclient/config/*": ["../config/src/*"],
+      "@slotclient/types": ["../types/src"],
+      "@slotclient/types/*": ["../types/src/*"]
+    }
+  },
+  "references": [
+    { "path": "../types" },
+    { "path": "../config" }
+  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+}
+

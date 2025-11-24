@@ -3,6 +3,7 @@ node_modules/
 npm-console.log*
 yarn-console.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Build outputs
 dist/
