@@ -17,11 +17,6 @@ export abstract class WinLinesContainer extends Container {
         this._lineTextures = [];
         this._winLine = [];
 
-        this.createLineMask();
-        this.createLineNumbers();
-        this.createWinLines();
-        this.setAvailableLines(this._lineTextures.length);
-
         this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
             this.onResize(responsiveConfig);
         });

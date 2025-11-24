@@ -15,10 +15,12 @@ import { Helpers } from "../utils/Helpers";
 import { BackendToWinEventType } from "../types/IWinEvents";
 import { SpriteText } from "../utils/SpriteText";
 
-const SELECT_TEXT: string = "PLEASE SELECT";
-const PRESS_TEXT: string = "PRESS ANYWHERE";
-const CONTINUE_TEXT: string = "CONTINUE TO STAGE ";
-const COLLECT_TEXT: string = "CLICK TO COLLECT";
+const PLEASE_SELECT_TEXT: string = "PLEASE SELECT";
+const YOU_WON_TEXT: string = "YOU WON X";
+const CLICK_ANYWHERE_TEXT: string = "CLICK ANYWHERE";
+const CONTINUE_TO_STAGE_TEXT: string = "CONTINUE TO STAGE ";
+const CLICK_TO_COLLECT_TEXT: string = "CLICK TO COLLECT";
+const CLICK_TO_CONTINUE_TEXT: string = "CLICK TO CONTINUE";
 
 const BonusElementsPositions = [
     { x: 575, y: 365 },
@@ -164,7 +166,7 @@ export class Bonus extends BonusContainer {
         this.addChild(this._infoText1);
 
         this._infoText2 = new Text({
-            text: SELECT_TEXT,
+            text: PLEASE_SELECT_TEXT,
             style: GameConfig.style_5,
         });
         this._infoText2.label = `InfoText2`;
@@ -222,6 +224,10 @@ export class Bonus extends BonusContainer {
                     alpha: 1, duration: 0.25, delay: 2, onStart: () => {
                         (reward instanceof Text) && reward.scale.set(1.5, 1.5);
                         reward.visible = true;
+                        typeof value === 'number' && (this._infoText1.text = YOU_WON_TEXT + `${value}`);
+                        typeof value === 'number' && (this._infoText1.visible = true);
+                        this._infoText2.text = CLICK_TO_CONTINUE_TEXT;
+                        this._infoText2.visible = true;
                     }
                 });
 
@@ -231,10 +237,15 @@ export class Bonus extends BonusContainer {
                     const enumType = BackendToWinEventType[backendType]!;
 
                     await Helpers.delay(2500);
-                    await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+                    await AnimationContainer.instance().playWinEventAnimation(winAmount, enumType);
                 }
 
-                setTimeout(() => {
+                this._app.canvas.onpointerdown = () => {
+                    this._app.canvas.onpointerdown = null;
+
+                    this._infoText1.visible = false;
+                    this._infoText2.visible = false;
+
                     this._dynamites.forEach((element, index) => {
                         if (index !== this._selectedItemIndex) {
                             element.state.setAnimation(0, this._isLandcape ? `Horizontal_Bonus_${index + 1}` : `Vertical_Bonus_${index + 1}`, false);
@@ -244,17 +255,17 @@ export class Bonus extends BonusContainer {
                                     this._rewards[index].visible = true;
                                 },
                                 onComplete: () => {
+                                    this._infoText1.text = CLICK_ANYWHERE_TEXT;
                                     this._infoText1.visible = true;
-                                    this._infoText1.text = PRESS_TEXT;
+                                    this._infoText2.text = CONTINUE_TO_STAGE_TEXT + this._bonusStage;
                                     this._infoText2.visible = true;
-                                    this._infoText2.text = CONTINUE_TEXT + this._bonusStage;
 
                                     this.afterSelect();
                                 }
                             });
                         }
                     });
-                }, 3000);
+                };
             });
         }
     }
@@ -357,12 +368,12 @@ export class Bonus extends BonusContainer {
         if (GameDataManager.getInstance().getResponseData().nextAction !== "bonus") {
             this.onBonusCompleted();
         } else {
-            this._app.canvas.onclick = async () => {
-                await AnimationContainer.getInstance().startTransitionAnimation(() => {
+            this._app.canvas.onpointerdown = async () => {
+                await AnimationContainer.instance().startTransitionAnimation(() => {
                     this.resetScene();
-                    this._app.canvas.onclick = null;
+                    this._app.canvas.onpointerdown = null;
                 });
-            }
+            };
         }
     }
 
@@ -376,7 +387,7 @@ export class Bonus extends BonusContainer {
         this._infoText1.visible = false;
         this._infoText1.text = "";
         this._infoText2.visible = true;
-        this._infoText2.text = SELECT_TEXT;
+        this._infoText2.text = PLEASE_SELECT_TEXT;
 
         this._rewards.forEach(reward => {
             this._rewardContainer.removeChild(reward);
@@ -393,16 +404,16 @@ export class Bonus extends BonusContainer {
     protected onBonusCompleted(): void {
         // Logic when bonus is completed visually
         this._infoText1.visible = false;
-        this._infoText2.text = COLLECT_TEXT;
+        this._infoText2.text = CLICK_TO_COLLECT_TEXT;
         this._infoText2.visible = true;
 
-        this._app.canvas.onclick = async () => {
+        this._app.canvas.onpointerdown = async () => {
             this._infoText2.visible = false;
-            this._app.canvas.onclick = null;
-            AnimationContainer.getInstance().getPopupCountText().setText(`$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string);
-            AnimationContainer.getInstance().getPopupContentText().text = ``;
-            await AnimationContainer.getInstance().playPopupAnimation();
-            await AnimationContainer.getInstance().startTransitionAnimation(() => {
+            this._app.canvas.onpointerdown = null;
+            AnimationContainer.instance().getPopupCountText().setText(`$` + Helpers.convertToDecimal(this._controller.data.featureWin) as string);
+            AnimationContainer.instance().getPopupContentText().text = ``;
+            await AnimationContainer.instance().playPopupAnimation();
+            await AnimationContainer.instance().startTransitionAnimation(() => {
                 this.resetScene();
                 this.visible = false;
 
@@ -410,7 +421,7 @@ export class Bonus extends BonusContainer {
                     this.onBonusCompleteCallback();
                 }
             });
-        }
+        };
     }
 
     public setOnBonusCompleteCallback(callback: () => void): void {

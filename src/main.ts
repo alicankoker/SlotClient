@@ -26,6 +26,7 @@ import { Helpers } from "./engine/utils/Helpers";
 import { AutoPlayController } from "./engine/AutoPlay/AutoPlayController";
 import { signals } from "./engine/controllers/SignalManager";
 import SoundManager from "./engine/controllers/SoundManager";
+import { FreeSpinController } from "./engine/freeSpin/FreeSpinController";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -100,7 +101,7 @@ export class DoodleV8Main {
 
       signals.on("spinCompleted", () => {
         isSpinning = false;
-      })
+      });
 
       window.addEventListener("keyup", (event) => {
         if (event.code === "Space") isKeyHeld = false;
@@ -194,18 +195,21 @@ export class DoodleV8Main {
             break;
           case 2:
             if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
-              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
+              (this.slotGameController.spinController.getIsSpinning() === true && FreeSpinController.instance().isRunning === false) && this.slotGameController.spinController.forceStop();
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
             }
             break;
           case 3:
             if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.TURBO) {
-              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
+              (this.slotGameController.spinController.getIsSpinning() === true && FreeSpinController.instance().isRunning === false) && this.slotGameController.spinController.forceStop();
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
             }
             break;
         }
       });
+
+      eventBus.emit("setVolume", 50);
+      SoundManager.getInstance().setVolume(50)
 
       eventBus.on("setVolume", (value) => {
         SoundManager.getInstance().setVolume(value);
@@ -250,16 +254,16 @@ export class DoodleV8Main {
               GameConfig.WIN_EVENT.enabled &&
               !this.slotGameController?.reelsController?.getIsSpinning()
             ) {
-              AnimationContainer.getInstance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
+              AnimationContainer.instance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
             }
             break;
           case "KeyS":
-            AnimationContainer.getInstance().getPopupCountText().setText("X$1354€");
-            AnimationContainer.getInstance().playPopupAnimation();
+            AnimationContainer.instance().getPopupCountText().setText("X$1354€");
+            AnimationContainer.instance().playPopupAnimation();
             break;
           case "KeyD":
-            AnimationContainer.getInstance().getDialogCountText().setText("+5");
-            AnimationContainer.getInstance().playDialogBoxAnimation();
+            AnimationContainer.instance().getDialogCountText().setText("+5");
+            AnimationContainer.instance().playDialogBoxAnimation();
             break;
         }
       });
@@ -416,11 +420,11 @@ export class DoodleV8Main {
     }
     this.app.stage.addChild(bonusScene);
 
-    const animationContainer = AnimationContainer.getInstance();
+    const animationContainer = AnimationContainer.instance();
     bonusScene.isActive && animationContainer.setBonusMode(true);
     this.app.stage.addChild(animationContainer);
 
-    this.winEvent = AnimationContainer.getInstance().getWinEvent();
+    this.winEvent = AnimationContainer.instance().getWinEvent();
 
     //TO-DO: this needs to be moved to Nexus
     const defaultPlayer = this.slotGameController?.getDefaultPlayer();

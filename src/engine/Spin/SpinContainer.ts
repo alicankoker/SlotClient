@@ -45,7 +45,9 @@ export abstract class SpinContainer extends Container {
   protected rowsAboveMask: number;
   protected rowsBelowMask: number;
   protected totalRows: number;
+  protected _abortController: AbortController | null = null;
   protected _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+  protected _forceStop: boolean = false;
 
   // Symbol storage - unified approach
   public symbols: (GridSymbol | Sprite | null)[][] = [];
@@ -416,6 +418,16 @@ export abstract class SpinContainer extends Container {
     return this.symbols.map((reel) =>
       reel.map((symbol) => (symbol instanceof GridSymbol ? symbol.symbolId : -1))
     );
+  }
+
+  public isForceStopped(): boolean {
+    return this._forceStop;
+  }
+
+  public setForceStop(forceStop: boolean): void {
+    this._abortController?.abort();
+    this._abortController = null;
+    this._forceStop = forceStop;
   }
 
   // Cleanup

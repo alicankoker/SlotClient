@@ -61,7 +61,7 @@ export abstract class SpinController {
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
-    this._winEvent = AnimationContainer.getInstance().getWinEvent();
+    this._winEvent = AnimationContainer.instance().getWinEvent();
     this._symbols = GameDataManager.getInstance().getInitialData()?.history.reels!;
   }
 
@@ -273,14 +273,11 @@ export abstract class SpinController {
     }
 
     this._isForceStopped = true;
+    this.container.setForceStop(true);
 
     this._abortController?.abort();
     this._abortController = null;
     this.reelsController.getReelsContainer().forceStopChainAnimation();
-
-    //this.reelsController.forceStopAllReels();
-
-    //this.resetSpinData();
   }
 
   // State management
@@ -374,6 +371,7 @@ export abstract class SpinController {
     this.container.setSpinMode(mode);
     this.reelsController.setSpinMode(mode);
     this.reelsController.getReelsContainer().setSpinMode(mode);
+    this.reelsController.getStaticContainer()!.setSpinMode(mode);
   }
 
   // Cascade processing methods

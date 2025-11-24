@@ -230,6 +230,7 @@ export class GameDataManager {
 
     public setBetValueIndex(index: number): void {
         this.gameState.betValueIndex = index;
+        this.setCurrentBet(this.gameState.betValues[index]);
         debug.log('GameDataManager: Bet value index set to', index);
     }
 

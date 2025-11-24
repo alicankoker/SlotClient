@@ -16,6 +16,7 @@ import { Helpers } from '../utils/Helpers';
 import { FreeSpinController } from '../freeSpin/FreeSpinController';
 import { AutoPlayController } from '../AutoPlay/AutoPlayController';
 import { Bonus } from '../components/Bonus';
+import { SpinMode } from '../types/ISpinConfig';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -41,6 +42,7 @@ export class StaticContainer extends Container {
     private _animationToken: number = 0;
     private _initialGrid: number[][];
     private _adrenalinePhase: boolean = false;
+    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
     private _pendingResolvers: (() => void)[] = [];
 
     constructor(app: Application, config: StaticContainerConfig, initialGrid: number[][]) {
@@ -154,7 +156,7 @@ export class StaticContainer extends Container {
             this._winLines.showLines(lines);
         }
 
-        await AnimationContainer.getInstance().playTotalWinAnimation(totalWinAmount);
+        await AnimationContainer.instance().playTotalWinAnimation(totalWinAmount);
 
         this._winLines.hideAllLines();
 
@@ -318,7 +320,7 @@ export class StaticContainer extends Container {
                 this._winLines.showLines(lines);
             }
 
-            await AnimationContainer.getInstance().playTotalWinAnimation(amount);
+            await AnimationContainer.instance().playTotalWinAnimation(amount);
 
             if (FreeSpinController.instance().isRunning === false) {
                 eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
@@ -405,28 +407,26 @@ export class StaticContainer extends Container {
         switch (reelIndex) {
             case 0:
                 if (bonusPosition !== -1) {
-                    signals.emit("startAdrenalineEffect");
                     this._adrenalinePhase = true;
                 }
                 break;
-
             case 2:
-                if (this._adrenalinePhase && (bonusPosition === -1)) {
+                if (bonusPosition !== -1 && this._adrenalinePhase === true && this._spinMode !== GameConfig.SPIN_MODES.TURBO) {
+                    this._adrenalinePhase = true;
+                    signals.emit("startAdrenalineEffect");
+                } else {
                     this._adrenalinePhase = false;
                 }
                 break;
-            default:
+            case 4:
                 if (this._adrenalinePhase) {
-                    signals.emit("stopAdrenalineEffect");
                     this._adrenalinePhase = false;
+                    signals.emit("stopAdrenalineEffect");
                 }
                 break;
         }
 
-        console.log("Reel Index:", reelIndex);
-        console.log("Bonus Position:", bonusPosition);
-
-        if (this._adrenalinePhase) {
+        if (this._adrenalinePhase && this._spinMode !== GameConfig.SPIN_MODES.TURBO) {
             this._symbols.get(reelIndex)?.[bonusPosition].state.addAnimation(0, "10_adrenaline_landing", false, 0.25);
             this._symbols.get(reelIndex)?.[bonusPosition].state.addAnimation(0, "10_adrenaline_idle", true, 0.25);
         }
@@ -664,6 +664,14 @@ export class StaticContainer extends Container {
 
     public getSymbols(): Map<number, SpineSymbol[]> {
         return this._symbols;
+    }
+
+    public getSpinMode(): SpinMode {
+        return this._spinMode;
+    }
+
+    public setSpinMode(mode: SpinMode): void {
+        this._spinMode = mode;
     }
 
     public destroy(): void {

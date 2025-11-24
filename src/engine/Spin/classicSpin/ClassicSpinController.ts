@@ -38,6 +38,7 @@ export class ClassicSpinController extends SpinController {
     const signal = this._abortController.signal;
 
     this._isForceStopped = false;
+    this.container.setForceStop(false);
 
     try {
       this.reelsController.resetWinAnimations();
@@ -79,7 +80,7 @@ export class ClassicSpinController extends SpinController {
       if (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) {
         await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
-        (this.container as ClassicSpinContainer).slowDown();
+        this._isForceStopped === false && (this.container as ClassicSpinContainer).slowDown();
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
       } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
@@ -134,6 +135,7 @@ export class ClassicSpinController extends SpinController {
     staticContainer.getSymbols().forEach((symbols) => {
       symbols.forEach((symbol) => {
         symbol.visible = false;
+        symbol.setIdle();
       });
     });
 

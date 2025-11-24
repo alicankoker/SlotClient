@@ -29,10 +29,12 @@ export class ReelsContainer extends Container {
   private staticContainer?: StaticContainer;
   private winLines?: WinLines;
   private frameElementsContainer?: Container;
+  private adrenalineElementsContainer!: Container;
   private chains: Spine[] = [];
   private floors: Sprite[] = [];
   private holes: Sprite[] = [];
   private adrenalineStripes: Spine[] = [];
+  private spark!: Spine;
 
   // Position storage
   private reelXPositions: number[] = [];
@@ -45,6 +47,7 @@ export class ReelsContainer extends Container {
   private _headerBackground!: Sprite;
   private _logo!: Sprite;
   private _isFreeSpinMode: boolean = false;
+  private _sparkEnabled: boolean = false;
   private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
   private _abortController: AbortController | null = null;
 
@@ -75,44 +78,15 @@ export class ReelsContainer extends Container {
   private eventListeners(): void {
     signals.on("reelStopped", (reelIndex) => {
       this.setChainAnimation(false, false, reelIndex);
-
-      // if ((reelIndex === 2 || reelIndex === 4) && this.adrenalineStripes[reelIndex - 2].visible) {
-      //   gsap.fromTo([this.adrenalineStripes[reelIndex - 2], this.adrenalineStripes[reelIndex - 1]], { alpha: 1 }, {
-      //     alpha: 0, duration: 0.15, onComplete: () => {
-      //       this.adrenalineStripes[reelIndex - 2].visible = false;
-      //       this.adrenalineStripes[reelIndex - 2].state.clearTracks();
-      //       this.adrenalineStripes[reelIndex - 1].visible = false;
-      //       this.adrenalineStripes[reelIndex - 1].state.clearTracks();
-      //     }
-      //   });
-      // }
-
-      // if (reelIndex === 4) {
-      //   this.staticContainer!.adrenalinePhase = false;
-      // }
     });
 
-    // signals.on("startAdrenalineEffect", () => {
-    //   this.adrenalineStripes.forEach(stripe => {
-    //     gsap.fromTo(stripe, { alpha: 0 }, {
-    //       alpha: 1, duration: 0.15, onStart: () => {
-    //         stripe.visible = true
-    //         stripe.state.setAnimation(0, "Adrenalin_Glow", true);
-    //       }
-    //     });
-    //   });
-    // });
+    signals.on("startAdrenalineEffect", () => {
+      this.startAnticipationEffect();
+    });
 
-    // signals.on("stopAdrenalineEffect", () => {
-    //   this.adrenalineStripes.forEach(stripe => {
-    //     gsap.fromTo(stripe, { alpha: 1 }, {
-    //       alpha: 0, duration: 0.15, onComplete: () => {
-    //         stripe.visible = false;
-    //         stripe.state.clearTracks();
-    //       }
-    //     });
-    //   });
-    // });
+    signals.on("stopAdrenalineEffect", () => {
+      this.stopAnticipationEffect();
+    });
   }
 
   private createReelFrame(): void {
@@ -228,16 +202,7 @@ export class ReelsContainer extends Container {
       }
     }
 
-    // for (let index = 0; index < 4; index++) {
-    //   const { atlas, skeleton } = AssetsConfig.ENVIRONMENT_SPINE_ASSET;
-    //   const adrenalineStripe = Spine.from({ atlas, skeleton });
-    //   adrenalineStripe.label = `AdrenalineStripe_${index}`;
-    //   adrenalineStripe.position.set(836 + (index * 244), 555);
-    //   adrenalineStripe.state.setAnimation(0, "Adrenalin_Glow", true);
-    //   adrenalineStripe.visible = false;
-    //   this.adrenalineStripes.push(adrenalineStripe);
-    //   this.frameElementsContainer.addChild(adrenalineStripe);
-    // }
+    this.createAdrenalineElements();
 
     this._reelFrame = Sprite.from('base_frame');
     this._reelFrame.label = 'ReelFrame';
@@ -275,6 +240,112 @@ export class ReelsContainer extends Container {
     this._logo.scale.set(0.33, 0.33);
     this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 120);
     this.frameElementsContainer.addChild(this._logo);
+  }
+
+  private createAdrenalineElements(): void {
+    this.adrenalineElementsContainer = new Container();
+    this.adrenalineElementsContainer.label = 'AdrenalineElementsContainer';
+    this.adrenalineElementsContainer.visible = false;
+    this.frameElementsContainer!.addChild(this.adrenalineElementsContainer);
+
+    const { atlas, skeleton } = AssetsConfig.ENVIRONMENT_SPINE_ASSET;
+
+    const adrenalineStripeLeft = Spine.from({ atlas, skeleton });
+    adrenalineStripeLeft.label = `AdrenalineStripe_Left`;
+    adrenalineStripeLeft.position.set(1324, 555);
+    adrenalineStripeLeft.state.setAnimation(0, "Adrenalin_Glow", true);
+    this.adrenalineStripes.push(adrenalineStripeLeft);
+    this.adrenalineElementsContainer.addChild(adrenalineStripeLeft);
+
+    const adrenalineStripeRight = Spine.from({ atlas, skeleton });
+    adrenalineStripeRight.label = `AdrenalineStripe_Right`;
+    adrenalineStripeRight.position.set(1568, 555);
+    adrenalineStripeRight.state.setAnimation(0, "Adrenalin_Glow", true);
+    this.adrenalineStripes.push(adrenalineStripeRight);
+    this.adrenalineElementsContainer.addChild(adrenalineStripeRight);
+
+    const adrenalineStripeTop = Spine.from({ atlas, skeleton });
+    adrenalineStripeTop.label = `AdrenalineStripe_Top`;
+    adrenalineStripeTop.scale.set(0.6, 0.4);
+    adrenalineStripeTop.position.set(1450, 200);
+    adrenalineStripeTop.angle = 90;
+    adrenalineStripeTop.state.setAnimation(0, "Adrenalin_Glow", true);
+    this.adrenalineStripes.push(adrenalineStripeTop);
+    this.adrenalineElementsContainer.addChild(adrenalineStripeTop);
+
+    const adrenalineStripeBottom = Spine.from({ atlas, skeleton });
+    adrenalineStripeBottom.label = `AdrenalineStripe_Bottom`;
+    adrenalineStripeBottom.scale.set(0.6, 0.4);
+    adrenalineStripeBottom.position.set(1450, 900);
+    adrenalineStripeBottom.angle = 90;
+    adrenalineStripeBottom.state.setAnimation(0, "Adrenalin_Glow", true);
+    this.adrenalineStripes.push(adrenalineStripeBottom);
+    this.adrenalineElementsContainer.addChild(adrenalineStripeBottom);
+
+    this.spark = Spine.from({ atlas, skeleton });
+    this.spark.label = `AdrenalineSpark`;
+    this.spark.scale.set(0.3, 0.3);
+    this.spark.position.set(1325, 200);
+    this.spark.state.setAnimation(0, "Spark", true);
+    this.adrenalineElementsContainer.addChild(this.spark);
+  }
+
+  private startAnticipationEffect(): void {
+    gsap.fromTo(this.adrenalineElementsContainer, { alpha: 0 }, {
+      alpha: 1, duration: 0.25, onStart: () => {
+        this.adrenalineElementsContainer.visible = true;
+
+        this.adrenalineStripes.forEach(stripe => {
+          stripe.state.setAnimation(0, "Adrenalin_Glow", true);
+        });
+
+        this.chains.forEach((chain, index) => {
+          if (index === 4 || index === 5 || index === 10 || index === 11 || index === 166 || index === 17) {
+            chain.state.setAnimation(0, "Adrenalin_chain", true);
+          }
+        });
+
+        this._sparkEnabled = true;
+        this.setSparkEffect();
+      }
+    });
+  }
+
+  private setSparkEffect(): void {
+    if (this._sparkEnabled === false) return;
+
+    const positionX = Math.random() < 0.5 ? 1325 : 1570;
+    const positionY = 200 + Math.random() * (900 - 200);
+    const scaleX = positionX === 1325 ? 0.3 : -0.3;
+    const scaleY = positionY < 700 ? 0.3 : -0.3;
+    const speed = Math.random() + 0.5;
+
+    this.spark.position.set(positionX, positionY);
+    this.spark.scale.set(scaleX, scaleY);
+    this.spark.state.timeScale = speed;
+
+    const entry = this.spark.state.setAnimation(0, "Spark", false);
+
+    entry.listener = {
+      complete: () => {
+        if (this._sparkEnabled) {
+          this.setSparkEffect();
+        }
+      }
+    };
+  }
+
+  private stopAnticipationEffect(): void {
+    gsap.fromTo(this.adrenalineElementsContainer, { alpha: 1 }, {
+      alpha: 0, duration: 0.25, onComplete: () => {
+        this.adrenalineElementsContainer.visible = false;
+
+        this._sparkEnabled = false;
+        this.adrenalineStripes.forEach(stripe => {
+          stripe.state.setAnimation(0, "Adrenalin_Glow", false);
+        });
+      }
+    });
   }
 
   private createReelAreaMask(): void {
@@ -495,7 +566,7 @@ export class ReelsContainer extends Container {
     });
   }
 
-  public async setChainAnimation(isSpinning: boolean, loop: boolean, reelIndex?: number): Promise<void> {    
+  public async setChainAnimation(isSpinning: boolean, loop: boolean, reelIndex?: number): Promise<void> {
     this._abortController = new AbortController();
     const signal = this._abortController.signal;
 

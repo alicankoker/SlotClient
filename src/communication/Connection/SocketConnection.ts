@@ -3,6 +3,7 @@ import { IPayload } from "../../engine/types/ICommunication";
 import config from "../../game/config";
 import { io, Socket } from "socket.io-client";
 import { Nexus } from "../../nexus/Nexus";
+import { signals } from "../../engine/controllers/SignalManager";
 
 export class SocketConnection {
     private static instance: SocketConnection;
@@ -37,6 +38,7 @@ export class SocketConnection {
 
                 this._socket.on("error", (error) => {
                     reject(new Error(`Socket error: ${error}`));
+                    signals.emit("socketError", error);
                     console.error("Socket error:", error);
                 });
 

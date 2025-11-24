@@ -22,7 +22,7 @@ import { eventBus } from '../../communication/EventManagers/WindowEventManager';
 import { Bonus } from '../../engine/components/Bonus';
 import { AutoPlayController } from '../../engine/AutoPlay/AutoPlayController';
 import { signals } from '../../engine/controllers/SignalManager';
-import { BackendToWinEventType } from '../../engine/types/IWinEvents';
+import { BackendToWinEventType, WinEventType } from '../../engine/types/IWinEvents';
 import { ISpinState } from '../../engine/types/ISpinConfig';
 
 export interface SlotSpinRequest {
@@ -84,7 +84,7 @@ export class SlotGameController {
         }, initialGridData as number[][]);
 
         this.background = Background.getInstance();
-        this.animationContainer = AnimationContainer.getInstance();
+        this.animationContainer = AnimationContainer.getInstance(this.app);
 
         this.reelsContainer.addChild(this.spinContainer);
         this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
@@ -205,8 +205,16 @@ export class SlotGameController {
     }
 
     // Convenience method for executing spins
-    public async executeGameSpin(action: IPayload["action"]): Promise<void> {
-        const response = await this.gameServer.processRequest(action);
+    public async executeGameSpin(action: IPayload["action"]): Promise<void | boolean> {
+        const balance: number = GameDataManager.getInstance().getResponseData()?.balance.after ?? GameDataManager.getInstance().getInitialData()!.balance ?? 0;
+        if ((balance - (GameDataManager.getInstance().getCurrentBet() * GameDataManager.getInstance().getLine()) < 0)) {
+            console.log("Insufficient balance for spin");
+            eventBus.emit("setMessageBox", { variant: "default", message: "Insufficient Balance" });
+            signals.emit("spinCompleted");
+            return false;
+        }
+
+        const response: IResponseData = await this.gameServer.processRequest(action);
 
         eventBus.emit("setSpinId", response._id.toString());
         eventBus.emit("setBalance", response.balance.before);
@@ -233,7 +241,7 @@ export class SlotGameController {
             const enumType = BackendToWinEventType[backendType]!;
 
             eventBus.emit("hideUI");
-            await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+            await this.animationContainer.playWinEventAnimation(winAmount, enumType);
             eventBus.emit("showUI");
         }
 
@@ -274,7 +282,10 @@ export class SlotGameController {
             this.background.setFreeSpinMode(true);
             this.animationContainer.getWinLines().setFreeSpinMode(true);
 
-            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: true } });
+            eventBus.emit("setBatchComponentState", {
+                componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                stateOrUpdates: { disabled: true }
+            });
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
             eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
         });
@@ -290,7 +301,17 @@ export class SlotGameController {
         await this.animationContainer.playPopupAnimation();
 
         await this.animationContainer.startTransitionAnimation(() => {
-            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: false } });
+            if (this.autoPlayController.isRunning) {
+                eventBus.emit("setBatchComponentState", {
+                    componentNames: ['autoplayButton', 'mobileAutoplayButton'],
+                    stateOrUpdates: { disabled: false }
+                });
+            } else {
+                eventBus.emit("setBatchComponentState", {
+                    componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                    stateOrUpdates: { disabled: false }
+                });
+            }
             this.reelsContainer.setFreeSpinMode(false);
             this.background.setFreeSpinMode(false);
             this.animationContainer.getWinLines().setFreeSpinMode(false);
