@@ -7,12 +7,15 @@
     "composite": true,
     "noEmit": false,
     "skipLibCheck": true,
+    "rootDir": "../../",
     "baseUrl": ".",
     "paths": {
       "@slotclient/engine": ["../engine/src"],
       "@slotclient/engine/*": ["../engine/src/*"],
       "@slotclient/nexus": ["../nexus/src"],
       "@slotclient/nexus/*": ["../nexus/src/*"],
+      "@slotclient/config": ["../config/src"],
+      "@slotclient/config/*": ["../config/src/*"],
       "@slotclient/diamond-diggers": ["../games/diamondDiggers/src"],
       "@slotclient/diamond-diggers/*": ["../games/diamondDiggers/src/*"],
       "@slotclient/server": ["../server/src"],
@@ -22,6 +25,9 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
   "references": [
-    { "path": "../engine" }
+    { "path": "../engine" },
+    { "path": "../nexus" },
+    { "path": "../config" },
+    { "path": "../types" }
   ]
 }
