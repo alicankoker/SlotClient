@@ -1,6 +1,6 @@
 {
   "name": "slotclient-monorepo",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "description": "Slot Client Monorepo - Engine, Nexus, and Game packages",
   "private": true,
   "type": "module",
