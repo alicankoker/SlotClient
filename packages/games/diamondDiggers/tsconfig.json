@@ -2,20 +2,26 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
     "declaration": false,
     "noEmit": true,
-    "baseUrl": ".",
+    "skipLibCheck": true,
+    "baseUrl": "../../..",
+    "moduleResolution": "bundler",
     "paths": {
-      "@slotclient/engine": ["../../engine/src"],
-      "@slotclient/nexus": ["../../nexus/src"],
-      "@slotclient/communication": ["../../communication/src"],
-      "@slotclient/config": ["../../config/src"],
-      "@slotclient/server": ["../../server/src"]
+      "@slotclient/types": ["./packages/types/src/index.ts"],
+      "@slotclient/types/*": ["./packages/types/src/*"],
+      "@slotclient/engine": ["./packages/engine/src/index.ts"],
+      "@slotclient/engine/*": ["./packages/engine/src/*"],
+      "@slotclient/nexus": ["./packages/nexus/src/index.ts"],
+      "@slotclient/nexus/*": ["./packages/nexus/src/*"],
+      "@slotclient/communication": ["./packages/communication/src/index.ts"],
+      "@slotclient/communication/*": ["./packages/communication/src/*"],
+      "@slotclient/config": ["./packages/config/src/index.ts"],
+      "@slotclient/config/*": ["./packages/config/src/*"],
+      "@slotclient/server": ["./packages/server/src/index.ts"],
+      "@slotclient/server/*": ["./packages/server/src/*"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
-  "references": []
+  "include": ["src/**/*", "../../../packages/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }
-

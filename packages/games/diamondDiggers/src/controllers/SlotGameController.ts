@@ -1,29 +1,33 @@
-import { Nexus } from '@slotclient/nexus';
-import { PlayerController } from '@slotclient/nexus';
+import { Nexus, PlayerController, INexusPlayerData, SpinTransaction } from '@slotclient/nexus';
 import { GameServer } from '@slotclient/server';
-import { SpinResultData, CascadeStepData, GridData, IResponseData, IPayload } from '@slotclient/engine/types/ICommunication';
-import { INexusPlayerData, SpinTransaction } from '@slotclient/nexus/NexusInterfaces';
-import { debug } from '@slotclient/engine/utils/debug';
-import { SpinController } from '@slotclient/engine/Spin/SpinController';
-import { SpinContainer } from '@slotclient/engine/Spin/SpinContainer';
-import { ReelsController } from '@slotclient/engine/reels/ReelsController';
-import { Application } from 'pixi.js/lib/app/Application';
+import { 
+    SpinResultData, 
+    CascadeStepData, 
+    GridData, 
+    IResponseData, 
+    IPayload,
+    SpinController,
+    SpinContainer,
+    ReelsController,
+    StaticContainer,
+    ReelsContainer,
+    GameDataManager,
+    AnimationContainer,
+    FreeSpinController,
+    Background,
+    ClassicSpinContainer,
+    ClassicSpinController,
+    Helpers,
+    Bonus,
+    AutoPlayController,
+    signals,
+    BackendToWinEventType,
+    ISpinState,
+    debug
+} from '@slotclient/engine';
+import { Application } from 'pixi.js';
 import { GameConfig, spinContainerConfig } from '@slotclient/config/GameConfig';
-import { StaticContainer } from '@slotclient/engine/reels/StaticContainer';
-import { ReelsContainer } from '@slotclient/engine/reels/ReelsContainer';
-import { GameDataManager } from '@slotclient/engine/data/GameDataManager';
-import { AnimationContainer } from '@slotclient/engine/components/AnimationContainer';
-import { FreeSpinController } from '@slotclient/engine/freeSpin/FreeSpinController';
-import { Background } from '@slotclient/engine/components/Background';
-import { ClassicSpinContainer } from '@slotclient/engine/Spin/classicSpin/ClassicSpinContainer';
-import { ClassicSpinController } from '@slotclient/engine/Spin/classicSpin/ClassicSpinController';
-import { Helpers } from '@slotclient/engine/utils/Helpers';
 import { eventBus } from '@slotclient/types';
-import { Bonus } from '@slotclient/engine/components/Bonus';
-import { AutoPlayController } from '@slotclient/engine/AutoPlay/AutoPlayController';
-import { signals } from '@slotclient/engine/controllers/SignalManager';
-import { BackendToWinEventType } from '@slotclient/engine/types/IWinEvents';
-import { ISpinState } from '@slotclient/engine/types/ISpinConfig';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -196,7 +200,8 @@ export class SlotGameController {
             await this.onAllReelsStopped();
         });
 
-        signals.on("afterSpin", async (response) => {
+        signals.on("afterSpin", async (response?: IResponseData) => {
+            if (!response) return;
             console.log("After spin");
             await this.onSpinComplete(response);
 
