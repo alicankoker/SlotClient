@@ -114,10 +114,6 @@ export class AssetsConfig {
             alias: 'base_line_holder',
             src: PATH + '/assets/raw/base_line_holder.png'
           },
-          {
-            alias: 'base_logo',
-            src: PATH + '/assets/raw/base_logo.png'
-          },
           // #endregion
           // #region Freespin Frame and UI Assets
           {
@@ -242,10 +238,6 @@ export class AssetsConfig {
       {
         name: 'backgrounds',
         assets: [
-          {
-            alias: ['base_background'],
-            src: PATH + '/assets/images/base_background.jpg'
-          },
           {
             alias: ['freespin_background'],
             src: PATH + '/assets/images/freespin_background.jpg'
@@ -383,14 +375,6 @@ export class AssetsConfig {
         name: "fonts",
         assets: [
           {
-            alias: "MikadoBlack",
-            src: PATHS.ROOT + `fonts/MikadoBlack.otf`,
-          },
-          {
-            alias: "MikadoMedium",
-            src: PATHS.ROOT + `fonts/MikadoMedium.otf`,
-          },
-          {
             alias: "Numbers",
             src: `${PATHS.ROOT}/spritesheets/numbers/numbers.json`,
           }
@@ -438,12 +422,16 @@ export class AssetsConfig {
         ...this.SPRITESHEETS.bundles,
         ...this.IMAGES.bundles,
         ...this.ANIMATIONS.bundles,
-        ...this.AUDIO.bundles,
+        // Audio is handled separately by SoundManager, not through PixiJS Assets
         ...this.FONTS.bundles,
       ],
     };
 
     return allAssets;
+  }
+
+  public static getAudioAssets(): BundleFile {
+    return this.AUDIO;
   }
 
   private static setResolution() {

@@ -15,7 +15,7 @@ export * from './reels/StaticContainer';
 
 // Spin
 export * from './Spin/SpinController';
-export { SpinContainer as AbstractSpinContainer } from './Spin/SpinContainer';
+export { SpinContainer as AbstractSpinContainer, SpinContainer } from './Spin/SpinContainer';
 export * from './Spin/classicSpin/ClassicSpinController';
 export * from './Spin/classicSpin/ClassicSpinContainer';
 export * from './Spin/cascade/CascadeSpinController';
@@ -47,6 +47,9 @@ export type { GameState } from './data/GameDataManager';
 // Types
 export * from './types/ICommunication';
 export * from './types/IReelSpinStateData';
+export * from './types/ISpinConfig';
+export * from './types/IWinEvents';
+export * from './types/IAssetLoader';
 // Re-export shared types from @slotclient/types for convenience
 export type { 
   LoaderDurations,

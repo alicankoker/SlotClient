@@ -14,6 +14,7 @@ import { gsap } from "gsap";
 import { Storage } from "@slotclient/engine/utils/Storage";
 import { eventBus } from "@slotclient/types";
 import { SpinEventTypes } from "@slotclient/communication";
+import type { AudioBundle } from "@slotclient/engine";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { CascadeStepData, GridData, IResponseData, SpinResponseData, } from "@slotclient/engine/types/ICommunication";
 import { ISpinState, SpinMode } from "@slotclient/engine/types/ISpinConfig";
@@ -64,6 +65,7 @@ export class DoodleV8Main {
       // Step 3: Load assets with progress bar BEFORE creating controllers (symbols need textures)
       await Promise.all([
         this.loadAssets(this.assetResolutionChooser.assetSize.name),
+        this.loadAudioAssets(),
         this.startLoader(),
       ]);
 
@@ -397,6 +399,26 @@ export class DoodleV8Main {
 
   private async loadAssets(res: string): Promise<void> {
     await this.assetLoader.loadBundles(AssetsConfig.getAllAssets(res));
+  }
+
+  private async loadAudioAssets(): Promise<void> {
+    // Load audio separately through SoundManager (not PixiJS Assets)
+    const audioBundle = AssetsConfig.getAudioAssets();
+    const soundBundle = audioBundle.bundles.find((bundle) => bundle.name === "audio");
+    if (soundBundle) {
+      const soundManager = SoundManager.getInstance();
+      const { assets } = soundBundle as { assets: AudioBundle };
+      assets.forEach((asset) => {
+        soundManager.add([
+          {
+            alias: Array.isArray(asset.alias) ? asset.alias[0] : asset.alias,
+            src: Array.isArray(asset.src) ? asset.src[0] : asset.src,
+            channel: (asset.channel as "sfx" | "music") || "sfx",
+          },
+        ]);
+      });
+      debug.log("Audio assets loaded via SoundManager");
+    }
   }
 
   private async createScene(): Promise<void> {

@@ -93,26 +93,8 @@ export class AssetLoader implements IAssetLoader {
 
     debug.log("AssetLoader", "bundles loaded");
 
-    const soundBundle = bundles.find((bundle) => bundle.name === "audio");
-    if (!soundBundle) {
-      debug.warn("AssetLoader", "No 'audio' bundle found");
-      return;
-    }
-
-    const soundManager = SoundManager.getInstance();
-    const { assets } = soundBundle as { assets: AudioBundle };
-
-    assets.forEach((asset) => {
-      soundManager.add([
-        {
-          alias: Array.isArray(asset.alias) ? asset.alias[0] : asset.alias,
-          src: Array.isArray(asset.src) ? asset.src[0] : asset.src,
-          channel: (asset.channel as "sfx" | "music") || "sfx",
-        },
-      ]);
-    });
-
-    debug.log("AssetLoader", "'audio' bundles added to SoundManager");
+    // Note: Audio is now handled separately in main.ts via SoundManager
+    // to avoid PixiJS Assets trying to parse MP3 files
   }
 
   public getAsset(key: string): Texture | undefined {
