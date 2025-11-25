@@ -6,6 +6,7 @@
     "declarationMap": true,
     "composite": true,
     "noEmit": false,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@slotclient/engine": ["../engine/src"],
@@ -17,7 +18,8 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
   "references": [
-    { "path": "../engine" }
+    { "path": "../engine" },
+    { "path": "../communication" }
   ]
 }
 

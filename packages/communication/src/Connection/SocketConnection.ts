@@ -2,7 +2,7 @@ import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { IPayload } from "@slotclient/engine/types/ICommunication";
 import { getConnectionConfig } from "@slotclient/config";
 import { io, Socket } from "socket.io-client";
-import { Nexus } from "@slotclient/nexus/Nexus";
+import { Nexus } from "@slotclient/nexus";
 
 export class SocketConnection {
     private static instance: SocketConnection;

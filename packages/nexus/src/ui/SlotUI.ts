@@ -1,5 +1,4 @@
 
-import Communication from '@slotclient/communication';
 import { debug } from '@slotclient/engine/utils/debug';
 
 export class SlotUI {
@@ -8,10 +7,12 @@ export class SlotUI {
     private constructor() {
         // Initialize UI components
         // Add keyboard handlers
-        window.addEventListener('keydown', (event) => {
+        window.addEventListener('keydown', async (event) => {
             switch (event.key.toLowerCase()) {
                 case ' ':
                     debug.log('🎲 Manual spin triggered');
+                    // Lazy import to avoid circular dependency
+                    const Communication = (await import('@slotclient/communication')).default;
                     Communication.getInstance().requestSpin();
                     break;
                 case 'a':

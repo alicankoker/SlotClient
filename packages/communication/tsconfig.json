@@ -7,7 +7,6 @@
     "composite": true,
     "noEmit": false,
     "skipLibCheck": true,
-    "rootDir": "../../",
     "baseUrl": ".",
     "paths": {
       "@slotclient/engine": ["../engine/src"],
@@ -28,6 +27,7 @@
     { "path": "../engine" },
     { "path": "../nexus" },
     { "path": "../config" },
-    { "path": "../types" }
+    { "path": "../types" },
+    { "path": "../server" }
   ]
 }

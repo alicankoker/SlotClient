@@ -1,5 +1,5 @@
 import { Assets } from "pixi.js";
-import { BundleFile, SpineAsset, SpineAssetData, SpineData } from "@slotclient/types";
+import { BundleFile, SpineAsset, SpineAssetData, SpineData, Bundle, AssetBundle, AudioBundle } from "@slotclient/types";
 
 const PATH = document.body.dataset.path;
 
@@ -439,10 +439,17 @@ export class AssetsConfig {
       bundles: [...AssetsConfig.SPRITESHEETS.bundles],
     };
 
-    multiResolutionAssets.bundles.forEach((bundle) => {
-      bundle.assets.forEach((asset) => {
-        asset.src = (asset.src as string).replace("{{resolution}}", this.RES);
-      });
+    multiResolutionAssets.bundles.forEach((bundle: Bundle) => {
+      // Only process AssetBundle (not AudioBundle) for resolution replacement
+      if (Array.isArray(bundle.assets) && bundle.assets.length > 0) {
+        const firstAsset = bundle.assets[0];
+        // Check if it's AssetBundle (has src as string) vs AudioBundle (has channel)
+        if ('src' in firstAsset && typeof firstAsset.src === 'string' && !('channel' in firstAsset)) {
+          (bundle.assets as AssetBundle).forEach((asset: AssetBundle[number]) => {
+            asset.src = asset.src.replace("{{resolution}}", this.RES);
+          });
+        }
+      }
     });
   }
 

@@ -7,6 +7,7 @@
     "composite": true,
     "noEmit": false,
     "skipLibCheck": true,
+    "rootDir": "../../",
     "baseUrl": ".",
     "paths": {
       "@slotclient/engine": ["../engine/src"],
@@ -14,9 +15,20 @@
       "@slotclient/config": ["../config/src"],
       "@slotclient/config/*": ["../config/src/*"],
       "@slotclient/communication": ["../communication/src"],
-      "@slotclient/communication/*": ["../communication/src/*"]
+      "@slotclient/communication/*": ["../communication/src/*"],
+      "@slotclient/nexus": ["../nexus/src"],
+      "@slotclient/nexus/*": ["../nexus/src/*"],
+      "@slotclient/types": ["../types/src"],
+      "@slotclient/types/*": ["../types/src/*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"],
+  "references": [
+    { "path": "../engine" },
+    { "path": "../config" },
+    { "path": "../communication" },
+    { "path": "../nexus" },
+    { "path": "../types" }
+  ]
 }
