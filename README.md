@@ -164,45 +164,95 @@ pnpm --filter @slotclient/diamond-diggers type-check
 pnpm clean
 ```
 
-## 🎯 Adding a New Game
+## 🎯 Creating a New Game
+
+The easiest way to create a new game is using the built-in `create-game` script:
+
+### Quick Start
+
+```bash
+# From the root directory
+pnpm create-game <game-name>
+```
+
+**Example:**
+```bash
+pnpm create-game my-awesome-game
+```
+
+This will create a new game project with all necessary files and folder structure.
+
+### What Gets Created
+
+The script automatically creates:
+- ✅ Complete directory structure (`src/`, `public/assets/`, `controllers/`)
+- ✅ `package.json` with all required dependencies
+- ✅ `tsconfig.json` with proper TypeScript configuration
+- ✅ `vite.config.ts` with build configuration
+- ✅ `index.html` entry point
+- ✅ `vite-env.d.ts` for TypeScript types
+- ✅ Starter source files (`main.ts`, `config.ts`, `SlotGame.ts`, `SlotGameController.ts`)
+
+### Next Steps After Creating a Game
+
+1. **Install dependencies:**
+   ```bash
+   # Option 1: From root using pnpm filter
+   pnpm install --filter @slotclient/<game-name>
+   
+   # Option 2: Navigate to game directory
+   cd packages/games/<game-name>
+   pnpm install
+   ```
+
+2. **Add your game assets:**
+   - Place assets in `packages/games/<game-name>/public/assets/`
+   - Follow the same structure as `diamondDiggers` (animations, art, fonts, sounds, etc.)
+
+3. **Start developing:**
+   ```bash
+   # From root
+   pnpm --filter @slotclient/<game-name> start
+   
+   # Or from game directory
+   cd packages/games/<game-name>
+   pnpm start
+   ```
+
+4. **Customize your game:**
+   - Edit `src/main.ts` to customize initialization
+   - Edit `src/config.ts` for game-specific configuration
+   - Implement your game logic in `src/SlotGame.ts` and `src/controllers/SlotGameController.ts`
+
+### Game Naming Convention
+
+- The script automatically converts your game name to:
+  - **kebab-case** for package name: `my-awesome-game` → `@slotclient/my-awesome-game`
+  - **PascalCase** for class names: `my-awesome-game` → `MyAwesomeGameMain`
+
+### Manual Game Creation (Alternative)
+
+If you prefer to create a game manually:
 
 1. Create a new directory in `packages/games/`:
    ```bash
    mkdir -p packages/games/yourGameName
    ```
 
-2. Create `package.json`:
-   ```json
-   {
-     "name": "@slotclient/your-game-name",
-     "version": "1.0.0",
-     "type": "module",
-     "scripts": {
-       "start": "vite",
-       "dev": "vite",
-       "build": "tsc && vite build"
-     },
-     "dependencies": {
-       "@slotclient/types": "workspace:*",
-       "@slotclient/engine": "workspace:*",
-       "@slotclient/nexus": "workspace:*",
-       "@slotclient/communication": "workspace:*",
-       "@slotclient/config": "workspace:*"
-     }
-   }
-   ```
+2. Copy the structure from an existing game (e.g., `diamondDiggers`)
 
-3. Create a symlink in `src/games/`:
+3. Update `package.json` with your game name and dependencies
+
+4. Install dependencies:
    ```bash
-   ln -s ../../packages/games/yourGameName src/games/yourGameName
+   pnpm install --filter @slotclient/your-game-name
    ```
-
-4. Update root `package.json` scripts if needed
 
 ## 📝 Scripts
 
 ### Root Level Scripts
 
+- `pnpm create-game <game-name>` - Create a new game project with all necessary files
 - `pnpm start` - Start the default game (diamond-diggers)
 - `pnpm dev` - Alias for start
 - `pnpm build` - Build all packages
