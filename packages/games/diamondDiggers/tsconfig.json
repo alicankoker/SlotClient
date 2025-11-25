@@ -23,6 +23,6 @@
       "@slotclient/server/*": ["./packages/server/src/*"]
     }
   },
-  "include": ["src/**/*", "../../../packages/**/*"],
+  "include": ["src/**/*", "vite-env.d.ts", "../../../packages/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
 }

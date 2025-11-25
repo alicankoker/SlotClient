@@ -2,10 +2,10 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 export default defineConfig({
-  root: '.',
-  publicDir: 'public',
+  root: __dirname,
+  publicDir: path.resolve(__dirname, 'public'),
   build: {
-    outDir: 'dist',
+    outDir: path.resolve(__dirname, 'dist'),
     sourcemap: false,
     target: 'es2020',
     rollupOptions: {
