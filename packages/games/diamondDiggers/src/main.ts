@@ -329,6 +329,8 @@ export class DoodleV8Main {
       const grayFilter = new ColorMatrixFilter();
       grayFilter.matrix = matrix as any;
       this.app.stage.filters = [grayFilter];
+      this.app.stage.interactive = false;
+      this.app.stage.interactiveChildren = false;
     });
 
     // Add to DOM
