@@ -158,7 +158,7 @@ export class Nexus {
         GameDataManager.getInstance().setBetValues(data.betLevels);
         GameDataManager.getInstance().setBetValueIndex(data.betLevelIndex);
         GameDataManager.getInstance().setMaxLine(data.lines);
-        GameDataManager.getInstance().setLine(data.lines);
+        GameDataManager.getInstance().setCurrentLine(data.lines);
         GameDataManager.getInstance().setPlayerBalance(data.balance);
         debug.log('Nexus: Game data defaults set from initial data');
     }

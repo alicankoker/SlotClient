@@ -61,7 +61,7 @@ export abstract class SpinController {
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
-    this._winEvent = AnimationContainer.getInstance().getWinEvent();
+    this._winEvent = AnimationContainer.instance().getWinEvent();
     this._symbols = GameDataManager.getInstance().getInitialData()?.history.reels!;
   }
 
@@ -102,7 +102,7 @@ export abstract class SpinController {
       //   response.result.steps[0].gridBefore
       // );
 
-      this._soundManager.play("spin", true, 0.75); // Play spin sound effect
+      // this._soundManager.play("spin", true, 0.75); // Play spin sound effect
 
       // Step 2: Start spinning animation
       // this.startSpinAnimation(response.result);
@@ -131,8 +131,8 @@ export abstract class SpinController {
       this.setState(ISpinState.COMPLETED);
       this.reelsController.getReelsContainer()?.getSpinContainer()?.stopSpin();
 
-      this._soundManager.stop("spin");
-      this._soundManager.play("stop", false, 0.75); // Play stop sound effect
+      // this._soundManager.stop("spin");
+      // this._soundManager.play("stop", false, 0.75); // Play stop sound effect
 
       // if (this.onSpinCompleteCallback) {
       //   this.onSpinCompleteCallback(response);
@@ -273,14 +273,17 @@ export abstract class SpinController {
     }
 
     this._isForceStopped = true;
+    this.container.setForceStop(true);
 
     this._abortController?.abort();
     this._abortController = null;
+    this.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
     this.reelsController.getReelsContainer().forceStopChainAnimation();
 
-    //this.reelsController.forceStopAllReels();
-
-    //this.resetSpinData();
+    eventBus.emit("setBatchComponentState", {
+      componentNames: ['spinButton'],
+      stateOrUpdates: { disabled: true }
+    });
   }
 
   // State management
@@ -374,6 +377,7 @@ export abstract class SpinController {
     this.container.setSpinMode(mode);
     this.reelsController.setSpinMode(mode);
     this.reelsController.getReelsContainer().setSpinMode(mode);
+    this.reelsController.getStaticContainer()!.setSpinMode(mode);
   }
 
   // Cascade processing methods

@@ -1,14 +1,7 @@
-// TODO: Use dependency injection instead of direct imports
-// import { GameServer } from "@slotclient/server/GameServer";
+import { GameServer } from "@slotclient/server/GameServer";
 import { IBonusData } from "../types/ICommunication";
 import { debug } from "../utils/debug";
 import { BonusContainer } from "./BonusContainer";
-
-// Temporary type declaration until proper dependency injection is implemented
-declare class GameServer {
-    static getInstance(): GameServer;
-    processRequest(type: string): Promise<any>;
-}
 
 export abstract class BonusController<T extends BonusContainer> {
     protected view: T;
@@ -23,7 +16,6 @@ export abstract class BonusController<T extends BonusContainer> {
      * @param data The bonus data to send
      */
     public async sendBonusAction(): Promise<IBonusData> {
-        // @ts-ignore - Temporary until dependency injection is implemented
         const response = await GameServer.getInstance().processRequest("bonus");
         this.onDataReceived(response.bonus.history[0]);
 
