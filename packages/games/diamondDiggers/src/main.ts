@@ -1,4 +1,4 @@
-import { Application, ColorMatrixFilter, Text } from "pixi.js";
+import { Application, ColorMatrixFilter } from "pixi.js";
 import { SlotGameController } from "./controllers/SlotGameController";
 import { ReelsController } from "@slotclient/engine/reels/ReelsController";
 import { ResponsiveManager } from "@slotclient/engine/utils/ResponsiveManager";
@@ -10,23 +10,17 @@ import { setConnectionConfig } from "@slotclient/config/ConnectionConfig";
 import gameConfig from "./config";
 import { Loader } from "@slotclient/engine/utils/Loader";
 import { debug } from "@slotclient/engine/utils/debug";
-import { gsap } from "gsap";
 import { Storage } from "@slotclient/engine/utils/Storage";
-import { eventBus } from "@slotclient/types";
-import { SpinEventTypes } from "@slotclient/communication";
 import type { AudioBundle } from "@slotclient/engine";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { CascadeStepData, GridData, IResponseData, SpinResponseData, } from "@slotclient/engine/types/ICommunication";
 import { ISpinState, SpinMode } from "@slotclient/engine/types/ISpinConfig";
 import { WinEvent } from "@slotclient/engine/components/WinEvent";
-import { WinEventType } from "@slotclient/engine/types/IWinEvents";
 import { AnimationContainer } from "@slotclient/engine/components/AnimationContainer";
 import { FeatureScreen } from "@slotclient/engine/components/FeatureScreen";
 import { SocketConnection } from "@slotclient/communication/Connection/SocketConnection";
-import { WinLines } from "@slotclient/engine/components/WinLines";
 import { Bonus } from "@slotclient/engine/components/Bonus";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
-import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayController";
 import { signals } from "@slotclient/engine/controllers/SignalManager";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
 import payoutData from "./payout.json";
@@ -108,167 +102,7 @@ export class DoodleV8Main {
 
       // Step 6: Start game systems (controllers handle the game loop)
 
-      //TO-DO: this needs to be moved to a separate place
-      // Add keyboard handlers
-
-      let isKeyHeld = false;
-      let isSpinning = false;
-      let currentSpinSpeed = 1; // Track current spin speed
-
-      signals.on("spinCompleted", () => {
-        isSpinning = false;
-
-        // Restore the last set spin speed
-        spinSpeed(currentSpinSpeed);
-
-        if (this.slotGameController && this.slotGameController.getFreeSpinController().isRunning === false) {
-          eventBus.emit("setBatchComponentState", {
-            componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton', 'spinButton'],
-            stateOrUpdates: { disabled: false }
-          });
-        }
-      });
-
-      window.addEventListener("keyup", (event) => {
-        if (event.code === "Space") isKeyHeld = false;
-      });
-
-      window.addEventListener("blur", () => {
-        isKeyHeld = false;
-      });
-
-      const spin = async () => {
-        debug.log("🎲 Manual spin triggered");
-        if (this.slotGameController?.spinController &&
-          this.slotGameController.spinController.getIsSpinning() === false &&
-          this.winEvent.isWinEventActive === false &&
-          this.slotGameController.getAutoPlayController().isRunning === false &&
-          this.slotGameController.getFreeSpinController().isRunning === false &&
-          Bonus.instance().isActive === false
-        ) {
-          isSpinning = true;
-          await this.slotGameController.executeGameSpin('spin');
-          isKeyHeld = false;
-        }
-      }
-
-      eventBus.on("startSpin", async () => {
-        if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
-          this.slotGameController.reelsController.skipWinAnimations();
-        }
-
-        if (isKeyHeld || isSpinning) return;
-
-        await spin();
-      });
-
-      eventBus.on("stopSpin", () => {
-        if (
-          this.slotGameController?.spinController &&
-          this.slotGameController.spinController.getIsSpinning() &&
-          (this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
-          GameConfig.FORCE_STOP.enabled
-        ) {
-          this.slotGameController.spinController.forceStop();
-        }
-      });
-
-      eventBus.on("startAutoPlay", async (autoSpinCount) => {
-        debug.log("🔄 Auto-play triggered");
-        if (
-          this.slotGameController?.spinController &&
-          this.slotGameController.spinController.getIsSpinning() === false &&
-          this.slotGameController.getAutoPlayController().isRunning === false &&
-          this.winEvent.isWinEventActive === false &&
-          this.slotGameController.getFreeSpinController().isRunning === false &&
-          Bonus.instance().isActive === false
-        ) {
-          await this.slotGameController.getAutoPlayController().startAutoPlay(autoSpinCount);
-        }
-      });
-
-      eventBus.on("stopAutoPlay", () => {
-        debug.log("🛑 Stop auto-play triggered");
-        if (
-          this.slotGameController?.spinController &&
-          this.slotGameController.getAutoPlayController().isRunning &&
-          this.slotGameController.getAutoPlayController().autoPlayCount > 0
-        ) {
-          this.slotGameController.getAutoPlayController().stopAutoPlay();
-        }
-      });
-
-      eventBus.on("setBetValueIndex", (index) => {
-        gameDataManager.setBetValueIndex(index);
-      });
-
-      eventBus.on("setLine", (line) => {
-        gameDataManager.setCurrentLine(line);
-        WinLines.getInstance().setAvailableLines(line);
-      });
-
-      eventBus.on("skipWin", (isSkipped: boolean) => {
-        gameDataManager.setIsWinAnimationSkipped(isSkipped);
-      });
-
-      eventBus.on("setSpinSpeed", (phase) => {
-        currentSpinSpeed = phase; // Save the current spin speed
-        spinSpeed(phase);
-      });
-
-      const spinSpeed = (phase: number) => {
-        switch (phase) {
-          case 1:
-            if (this.slotGameController?.spinController) {
-              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.NORMAL as SpinMode);
-            }
-            break;
-          case 2:
-            if (this.slotGameController?.spinController) {
-              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
-            }
-            break;
-          case 3:
-            if (this.slotGameController?.spinController) {
-              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
-            }
-            break;
-        }
-      }
-
-      eventBus.emit("setPaytable", payoutData);
-
-      eventBus.emit("setVolume", 50);
-      SoundManager.getInstance().setVolume(50);
-
-      eventBus.on("setVolume", (value) => {
-        SoundManager.getInstance().setVolume(value);
-      });
-
-      window.addEventListener("keydown", async (event: KeyboardEvent) => {
-        switch (event.code) {
-          case "Space":
-            if (this.slotGameController?.reelsController && this.slotGameController.reelsController.getStaticContainer()?.isPlaying === true) {
-              this.slotGameController.reelsController.skipWinAnimations();
-            }
-
-            if (
-              this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getIsSpinning() &&
-              (this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
-              GameConfig.FORCE_STOP.enabled
-            ) {
-              this.slotGameController.spinController.forceStop();
-            }
-
-            if (isKeyHeld || isSpinning) return;
-
-            isKeyHeld = true;
-
-            await spin();
-            break;
-        }
-      });
+      signals.emit("setPaytable", payoutData);
 
       // Step 7: Start the main game loop
       this.startGameLoop();
@@ -319,7 +153,7 @@ export class DoodleV8Main {
     //   alert("Canvas clicked!");
     // }
 
-    signals.on("socketError", (reason) => {
+    signals.on("showErrorPopup", (reason) => {
       const matrix = [
         0.3, 0.6, 0.1, 0, 0,
         0.3, 0.6, 0.1, 0, 0,
@@ -398,7 +232,7 @@ export class DoodleV8Main {
     const loader = Loader.getInstance(this.app);
     await loader.create();
     loader.mount();
-    eventBus.emit("closeWrapperLoading");
+    signals.emit("closeWrapperLoading");
     // set custom loader timings (milliseconds)
     loader.setTimings(GameConfig.LOADER_DEFAULT_TIMINGS);
     await Promise.all([
@@ -449,9 +283,9 @@ export class DoodleV8Main {
       bonusScene.setOnBonusCompleteCallback(async () => {
         animationContainer.setBonusMode(false);
         Bonus.instance().isActive = false;
-        eventBus.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
-        eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
-        eventBus.emit("showUI");
+        signals.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
+        signals.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
+        signals.emit("showUI");
       });
     }
     this.app.stage.addChild(bonusScene);
@@ -468,8 +302,8 @@ export class DoodleV8Main {
     // Set initial mode to static
     this.slotGameController!.reelsController!.setMode(ISpinState.IDLE);
 
-    GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus" && eventBus.emit("showUI");
-    eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+    GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus" && signals.emit("showUI");
+    signals.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
 
     const response = GameDataManager.getInstance().getInitialData();
 
