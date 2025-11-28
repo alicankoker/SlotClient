@@ -1,4 +1,5 @@
 import { Howl, Howler } from "howler";
+import { signals } from "./SignalManager";
 
 class SoundManager {
     private static _instance: SoundManager;
@@ -7,13 +8,24 @@ class SoundManager {
     private _isSoundFXEnabled: boolean = true;
     private _isMusicEnabled: boolean = true;
 
-    private constructor() { }
+    private constructor() {
+        this.eventListeners();
+     }
 
     public static getInstance(): SoundManager {
         if (!SoundManager._instance) {
             SoundManager._instance = new SoundManager();
         }
         return SoundManager._instance;
+    }
+
+    private eventListeners(): void {
+      signals.emit("setVolume", 50);
+      this.setVolume(50);
+
+      signals.on("setVolume", (value) => {
+        this.setVolume(value);
+      });
     }
 
     /**

@@ -15,16 +15,10 @@ import {
   GridData,
   IResponseData,
   MatchData,
-  SpinResponseData,
-  SpinResultData,
   SymbolData,
 } from "../types/ICommunication";
-import { WinEventType } from "../types/IWinEvents";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 import { AnimationContainer } from "../components/AnimationContainer";
-import { eventBus } from "@slotclient/types";
 import { signals } from "../controllers/SignalManager";
-import { FreeSpinController } from "../freeSpin/FreeSpinController";
 
 export interface SpinControllerConfig {
   reelsController: ReelsController;
@@ -280,7 +274,7 @@ export abstract class SpinController {
     this.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
     this.reelsController.getReelsContainer().forceStopChainAnimation();
 
-    eventBus.emit("setBatchComponentState", {
+    signals.emit("setBatchComponentState", {
       componentNames: ['spinButton'],
       stateOrUpdates: { disabled: true }
     });

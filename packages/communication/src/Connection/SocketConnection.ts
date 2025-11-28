@@ -1,9 +1,6 @@
-import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { IPayload } from "@slotclient/engine/types/ICommunication";
 import { getConnectionConfig } from "@slotclient/config";
 import { io, Socket } from "socket.io-client";
-import { Nexus } from "@slotclient/nexus";
-import { eventBus } from '@slotclient/types';
 import { signals } from "@slotclient/engine/controllers/SignalManager";
 
 export class SocketConnection {
@@ -40,40 +37,34 @@ export class SocketConnection {
 
                 this._socket.on("disconnect", () => {
                     // disconnected
-                    eventBus.emit("showErrorPopup", { code: "disconnected" });
-                    signals.emit("socketError", "disconnected");
+                    signals.emit("showErrorPopup", { code: "disconnected" });
                     console.warn("Socket error:", "disconnected");
                     reject(new Error(`Socket error: disconnected`));
                 });
 
                 this._socket.on("error", (status) => {
                     // invalid session - session expired
-                    eventBus.emit("showErrorPopup", { code: status.code });
-                    signals.emit("socketError", status.message);
+                    signals.emit("showErrorPopup", { code: status.code });
                     console.warn("Socket error:", status.code);
                     reject(new Error(`Socket error: ${status.message}`));
                 });
 
                 this._socket.on("duplicate_session", (status) => {
                     // duplicate session
-                    eventBus.emit("showErrorPopup", { code: status.code });
-                    signals.emit("socketError", status.message);
+                    signals.emit("showErrorPopup", { code: status.code });
                     console.warn("Socket error:", status.code);
                     reject(new Error(`Socket error: ${status.message}`));
                 });
 
                 this._socket.once("ready", (data: any) => {
+                    signals.emit("socketReady", data);
                     console.log("Socket ready:", data.data);
-                    GameDataManager.getInstance().setInitialData(data.data);
-                    Nexus.getInstance().setGameDefaults(data.data);
-                    Nexus.getInstance().setUIDefaults(data.data);
                     resolve();
                 });
             });
 
             this._socket.on("connect_error", (status) => {
-                eventBus.emit("showErrorPopup", { code: "connect_error" });
-                signals.emit("socketError", status.message);
+                signals.emit("showErrorPopup", { code: "connect_error" });
                 console.warn("Connection error:", status.message);
                 reject(new Error(`Connection error: ${status.message}`));
             });

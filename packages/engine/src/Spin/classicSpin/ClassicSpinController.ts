@@ -1,18 +1,11 @@
-import { eventBus } from "@slotclient/types";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
-import { GameServer } from "@slotclient/server/GameServer";
 import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
-import { AnimationContainer } from "../../components/AnimationContainer";
-import { Bonus } from "../../components/Bonus";
 import { signals } from "../../controllers/SignalManager";
 import { GameDataManager } from "../../data/GameDataManager";
 import { FreeSpinController } from "../../freeSpin/FreeSpinController";
-import { IReelMode } from "../../reels/ReelController";
-import { StaticContainer } from "../../reels/StaticContainer";
-import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
-import { ISpinState, SpinMode } from "../../types/ISpinConfig";
-import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
+import { IResponseData } from "../../types/ICommunication";
+import { ISpinState } from "../../types/ISpinConfig";
 import { debug } from "../../utils/debug";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
@@ -53,12 +46,12 @@ export class ClassicSpinController extends SpinController {
         this.onSpinStartCallback();
       }
 
-      if (FreeSpinController.instance().isRunning === false) {
-        eventBus.emit("setWinBox");
-        AutoPlayController.instance().isRunning === false && eventBus.emit("setMessageBox", { variant: "default", message: "GOOD LUCK!" });
+      if (FreeSpinController.getInstance().isRunning === false) {
+        signals.emit("setWinBox");
+        AutoPlayController.getInstance().isRunning === false && signals.emit("setMessageBox", { variant: "default", message: "GOOD LUCK!" });
       }
 
-      eventBus.emit('setComponentState', {
+      signals.emit('setComponentState', {
         componentName: 'spinButton',
         stateOrUpdates: 'spinning',
       });
@@ -79,7 +72,7 @@ export class ClassicSpinController extends SpinController {
 
       this.startSpinAnimation(response);
 
-      if (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) {
+      if (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.getInstance().isRunning) {
         await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
         this._isForceStopped === false && (this.container as ClassicSpinContainer).slowDown();
@@ -92,7 +85,7 @@ export class ClassicSpinController extends SpinController {
       }
 
       (this.container as ClassicSpinContainer).startStopSequence();
-      (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
+      (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.getInstance().isRunning) && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);

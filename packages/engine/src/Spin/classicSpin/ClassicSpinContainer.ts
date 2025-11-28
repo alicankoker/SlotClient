@@ -116,12 +116,12 @@ export class ClassicSpinContainer extends SpinContainer {
         if (this.reelsSpinStates[reelId].state === IReelSpinState.ANTICIPATING) {
             this.reelsSpinStates[reelId].speed = SpinConfig.REEL_ANTICIPATION_SPEED;
         }
-        if (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false) {
+        if (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.getInstance().isRunning === false) {
             this.reelsSpinStates[reelId].state = IReelSpinState.STOPPED;
             this.reelStopped(reelId);
             return;
         }
-        if (this._spinMode === GameConfig.SPIN_MODES.FAST && this.reelsSpinStates[reelId].isAnticipating === true && FreeSpinController.instance().isRunning === false) {
+        if (this._spinMode === GameConfig.SPIN_MODES.FAST && this.reelsSpinStates[reelId].isAnticipating === true && FreeSpinController.getInstance().isRunning === false) {
             this.reelsSpinStates[reelId].speed = SpinConfig.FAST_SPIN_SPEED;
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
@@ -244,7 +244,7 @@ export class ClassicSpinContainer extends SpinContainer {
             let delay: number = SpinConfig.REEL_SPIN_DURATION;
             this.defaultSpinReel(i);
 
-            if (FreeSpinController.instance().isRunning === false) {
+            if (FreeSpinController.getInstance().isRunning === false) {
                 switch (this._spinMode) {
                     case GameConfig.SPIN_MODES.FAST:
                         this.fastSpinReel(i);
@@ -283,7 +283,7 @@ export class ClassicSpinContainer extends SpinContainer {
             this._abortController = new AbortController();
             const signal = this._abortController.signal;
 
-            const delay = ((this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && this.isForceStopped() === false) ? SpinConfig.REEL_SPIN_DURATION : 0;
+            const delay = ((this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.getInstance().isRunning) && this.isForceStopped() === false) ? SpinConfig.REEL_SPIN_DURATION : 0;
 
             await Helpers.delay(delay, signal);
         }

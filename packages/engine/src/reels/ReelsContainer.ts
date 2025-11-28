@@ -336,7 +336,7 @@ export class ReelsContainer extends Container {
   }
 
   private stopAnticipationEffect(): void {
-    gsap.fromTo(this.adrenalineElementsContainer, { alpha: 1 }, {
+    gsap.to(this.adrenalineElementsContainer, {
       alpha: 0, duration: 0.25, onComplete: () => {
         this.adrenalineElementsContainer.visible = false;
 

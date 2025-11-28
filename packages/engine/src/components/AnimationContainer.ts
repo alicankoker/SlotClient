@@ -9,7 +9,6 @@ import { AssetsConfig } from "@slotclient/config/AssetsConfig";
 import { MeshAttachment, RegionAttachment, Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameDataManager } from "../data/GameDataManager";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
-import { eventBus } from "@slotclient/types";
 import { WinEventType } from "../types/IWinEvents";
 import { SpriteText } from "../utils/SpriteText";
 import { AutoPlayController } from "../AutoPlay/AutoPlayController";
@@ -253,7 +252,7 @@ export class AnimationContainer extends Container {
     }
 
     public playTotalWinAnimation(totalWinAmount: number): Promise<void> {
-        const isShow = (FreeSpinController.instance().isRunning === false);
+        const isShow = (FreeSpinController.getInstance().isRunning === false);
         this._totalWinAmount = totalWinAmount;
 
         return new Promise((resolve) => {
@@ -261,7 +260,7 @@ export class AnimationContainer extends Container {
 
             if (!GameConfig.WIN_ANIMATION.winTextVisibility) {
                 if (isShow) {
-                    eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+                    signals.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
                 }
                 resolve();
                 return;
@@ -273,9 +272,9 @@ export class AnimationContainer extends Container {
             }
 
             if (isShow) {
-                eventBus.emit("setWinBox", { variant: "default", amount: "0" });
+                signals.emit("setWinBox", { variant: "default", amount: "0" });
 
-                AutoPlayController.instance().isRunning === false && eventBus.emit("setMessageBox", { variant: "default", message: "" });
+                AutoPlayController.getInstance().isRunning === false && signals.emit("setMessageBox", { variant: "default", message: "" });
             }
 
             const particle = Sprite.from('win_strap_particle');
@@ -294,7 +293,7 @@ export class AnimationContainer extends Container {
                 onUpdate: () => {
                     if (!this.totalWinResolver) {
                         if (isShow) {
-                            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+                            signals.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
                         }
                         gsap.killTweensOf(tweenObj);
                         this._totalWinAmount = 0;
@@ -304,7 +303,7 @@ export class AnimationContainer extends Container {
 
                     if (isShow) {
                         currentAmount = Helpers.convertToDecimal(Math.floor(tweenObj.value)) as string;
-                        eventBus.emit("setWinBox", { variant: "default", amount: currentAmount });
+                        signals.emit("setWinBox", { variant: "default", amount: currentAmount });
                     }
                 }
             });
@@ -349,10 +348,10 @@ export class AnimationContainer extends Container {
     }
 
     public stopTotalWinAnimation(): void {
-        const isShow = (FreeSpinController.instance().isRunning === false);
+        const isShow = (FreeSpinController.getInstance().isRunning === false);
 
         if (isShow) {
-            eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
+            signals.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
         }
 
         this._totalWinAmount = 0;
@@ -478,8 +477,6 @@ export class AnimationContainer extends Container {
                 window.removeEventListener("keydown", onKeyDown);
                 this._popup.off('pointerdown', closePopup);
                 this._dimmer.off('pointerdown', closePopup);
-                eventBus.off("startSpin", closePopup);
-                eventBus.off("onScreenClick", closePopup);
 
                 gsap.to([this._dimmer], {
                     alpha: 0,
@@ -518,8 +515,6 @@ export class AnimationContainer extends Container {
                     window.addEventListener('keydown', onKeyDown);
                     this._popup.once('pointerdown', closePopup);
                     this._dimmer.once('pointerdown', closePopup);
-                    eventBus.on("startSpin", closePopup);
-                    eventBus.on("onScreenClick", closePopup);
                 }
             });
         });
@@ -544,8 +539,6 @@ export class AnimationContainer extends Container {
                 window.removeEventListener("keydown", onKeyDown);
                 this._dialogBox.off('pointerdown', closePopup);
                 this._dimmer.off('pointerdown', closePopup);
-                eventBus.off("startSpin", closePopup);
-                eventBus.off("onScreenClick", closePopup);
 
                 gsap.to([this._dimmer], {
                     alpha: 0,
@@ -584,8 +577,6 @@ export class AnimationContainer extends Container {
                     window.addEventListener('keydown', onKeyDown);
                     this._dialogBox.once('pointerdown', closePopup);
                     this._dimmer.once('pointerdown', closePopup);
-                    eventBus.on("startSpin", closePopup);
-                    eventBus.on("onScreenClick", closePopup);
                 }
             });
         });

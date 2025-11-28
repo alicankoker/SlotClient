@@ -9,13 +9,12 @@ import { debug } from "../utils/debug";
 import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 import { SpinContainer } from "./SpinContainer";
 import { ISpinState, SpinMode } from "../types/ISpinConfig";
-import { GridData } from "../types/ICommunication";
 import { WinConfig } from "../types/IWinPresentation";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { GameDataManager } from "../data/GameDataManager";
-import { eventBus } from "@slotclient/types";
 import { AutoPlayController } from "../AutoPlay/AutoPlayController";
 import { FreeSpinController } from "../freeSpin/FreeSpinController";
+import { signals } from "../controllers/SignalManager";
 
 export class ReelsController {
   private app: Application;
@@ -126,8 +125,8 @@ export class ReelsController {
     let winConfigs: WinConfig[] = [];
 
     if (spinResultData?.ws.length! <= 0) {
-      if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
-        eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+      if (FreeSpinController.getInstance().isRunning === false && AutoPlayController.getInstance().isRunning === false) {
+        signals.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
       }
 
       this.resetWinAnimations();
@@ -158,7 +157,7 @@ export class ReelsController {
     const amount = winConfigs.reduce((sum, win) => sum + win.amount, 0);
     const lines = winConfigs.map(win => win.line);
 
-    eventBus.emit("onWin", amount);
+    signals.emit("onWin", amount);
 
     // Play the win animations. If skipped, play the skipped animation, otherwise play the full animation.
     if (isSkipped) {

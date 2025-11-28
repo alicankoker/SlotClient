@@ -1,32 +1,24 @@
-import type { ISlotGameController } from "@slotclient/types/ISlotGameController";
-import { eventBus } from "@slotclient/types";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { GameDataManager } from "../data/GameDataManager";
-import { ReelsController } from "../reels/ReelsController";
 import { debug } from "../utils/debug";
 import { signals } from "../controllers/SignalManager";
 
 export class AutoPlayController {
     private static _instance: AutoPlayController;
 
-    private _slotGameController: ISlotGameController
-    private _reelsController: ReelsController;
     protected _autoPlayCount: number = 0;
     protected _autoPlayed: number = 0;
     protected _isAutoPlaying: boolean = false;
     protected _autoPlayDuration: number = GameConfig.AUTO_PLAY.delay || 1000;
     protected _autoPlayTimeoutID: ReturnType<typeof setTimeout> | null = null;
 
-    private constructor(slotGameController: ISlotGameController, reelsController: ReelsController) {
-        this._slotGameController = slotGameController;
-        this._reelsController = reelsController;
-
+    private constructor() {
         this.eventListeners();
     }
 
-    public static getInstance(slotGameController: ISlotGameController, reelsController: ReelsController): AutoPlayController {
+    public static getInstance(): AutoPlayController {
         if (!AutoPlayController._instance) {
-            AutoPlayController._instance = new AutoPlayController(slotGameController, reelsController);
+            AutoPlayController._instance = new AutoPlayController();
         }
         return AutoPlayController._instance;
     }
@@ -49,7 +41,7 @@ export class AutoPlayController {
      * @returns A promise that resolves when auto play starts.
      */
     public async startAutoPlay(count: number): Promise<void> {
-        if (this._isAutoPlaying || this._reelsController.getIsSpinning()) {
+        if (this._isAutoPlaying || GameDataManager.getInstance().isSpinning) {
             return;
         }
 
@@ -58,18 +50,15 @@ export class AutoPlayController {
         this._isAutoPlaying = true;
         GameDataManager.getInstance().isAutoPlaying = true;
 
-        eventBus.emit("setBatchComponentState", {
+        signals.emit("setBatchComponentState", {
             componentNames: ['autoplayButton', 'mobileAutoplayButton'],
             stateOrUpdates: 'spinning',
         })
-        eventBus.emit("setBatchComponentState", {
+        signals.emit("setBatchComponentState", {
             componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
             stateOrUpdates: { disabled: true }
         });
-        eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
-
-        const staticContainer = this._reelsController.getStaticContainer();
-        if (staticContainer) staticContainer.allowLoop = false; // Disable looped win animation during auto play
+        signals.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
         void this.continueAutoPlay();
 
@@ -82,32 +71,28 @@ export class AutoPlayController {
      * @returns True if auto play continues, false otherwise.
      */
     public async continueAutoPlay(): Promise<boolean> {
-        if (!this._isAutoPlaying || this._reelsController.getIsSpinning() || this._autoPlayCount <= 0) {
+        if (!this._isAutoPlaying || GameDataManager.getInstance().isSpinning || this._autoPlayCount <= 0) {
             this.stopAutoPlay();
             return false;
         }
 
         // Set up the auto play timeout
-        this._autoPlayTimeoutID = setTimeout(async () => {
-            const spinResult = await this._slotGameController.executeGameSpin('spin');
-            
-            if (spinResult === false) {
-                this.stopAutoPlay();
-                return;
-            }
+        this._autoPlayTimeoutID = setTimeout(() => {
+            signals.emit('startSpin', 'spin');
 
-            this._autoPlayCount -= 1;
-            this._autoPlayed += 1;
+            signals.once("spinCompleted", (spinResult) => {
+                if ((spinResult as boolean) === false) {
+                    this.stopAutoPlay();
+                    return;
+                }
 
-            this._autoPlayCount > 0 && eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
+                this._autoPlayCount -= 1;
+                this._autoPlayed += 1;
 
-            if (this._autoPlayCount <= 0) {
-                const staticContainer = this._reelsController.getStaticContainer();
-                // Re-enable looped win animation after last auto play spin
-                if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
-            }
+                this._autoPlayCount > 0 && signals.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
-            debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
+                debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
+            });
         }, this._autoPlayDuration);
 
         return true;
@@ -124,22 +109,20 @@ export class AutoPlayController {
         this._autoPlayCount = 0;
         this._autoPlayed = 0;
         this._isAutoPlaying = false;
+
         GameDataManager.getInstance().isAutoPlaying = false;
 
-        eventBus.emit("setBatchComponentState", {
+        signals.emit("setBatchComponentState", {
             componentNames: ['autoplayButton', 'mobileAutoplayButton'],
             stateOrUpdates: 'default',
         });
-        eventBus.emit("setBatchComponentState", {
+
+        signals.emit("setBatchComponentState", {
             componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
             stateOrUpdates: { disabled: false }
         });
-        eventBus.emit("setMessageBox");
 
-        const staticContainer = this._reelsController.getStaticContainer();
-        // Re-enable looped win animation after auto play stops
-        if (staticContainer)
-            staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
+        signals.emit("setMessageBox");
 
         if (this._autoPlayTimeoutID) {
             clearTimeout(this._autoPlayTimeoutID);

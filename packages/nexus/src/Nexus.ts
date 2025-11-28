@@ -1,18 +1,40 @@
-import { eventBus, eventType } from '@slotclient/types';
-import { GameDataManager } from '@slotclient/engine/data/GameDataManager';
-import { debug } from '@slotclient/engine/utils/debug';
+import { eventType } from '@slotclient/types';
 import { SpinTransaction, NexusSpinRequest } from './NexusInterfaces';
 import { PlayerController } from './player/PlayerController';
+import { EventDistributor } from './EventDistributor';
+import { WinLines } from '@slotclient/engine/components/WinLines';
+import {
+    IResponseData,
+    GameDataManager,
+    AnimationContainer,
+    FreeSpinController,
+    AutoPlayController,
+    signals,
+    debug,
+    IPayload
+} from '@slotclient/engine';
+import { GameServer } from '../../server/src/GameServer';
 
 export class Nexus {
     private static instance: Nexus;
     private playerController: PlayerController;
+    private eventDistributor: EventDistributor;
+    private gameDataManager: GameDataManager;
+    private autoPlayController: AutoPlayController;
+    private freeSpinController: FreeSpinController;
     private transactions: Map<string, SpinTransaction> = new Map();
     private transactionCounter: number = 0;
 
     private constructor() {
         // Initialize PlayerController which handles all player management
         this.playerController = new PlayerController();
+        this.eventDistributor = EventDistributor.getInstance();
+        this.gameDataManager = GameDataManager.getInstance();
+        this.autoPlayController = AutoPlayController.getInstance();
+        this.freeSpinController = FreeSpinController.getInstance();
+
+        this.setUIDefaults(this.gameDataManager.getGameDefaults());
+        this.eventListeners();
     }
 
     public static getInstance(): Nexus {
@@ -22,9 +44,100 @@ export class Nexus {
         return Nexus.instance;
     }
 
+    private eventListeners(): void {
+        signals.on('startSpin', (action) => {
+            this.progressSpin(action);
+        });
+    }
+
+    public async progressSpin(action: IPayload["action"] = 'spin'): Promise<void> {
+        if (this.gameDataManager.isSpinning ||
+            AnimationContainer.instance().getWinEvent().isWinEventActive === true ||
+            this.gameDataManager.isWinAnimationPlaying === true
+        ) {
+            debug.warn("Nexus: Spin already in progress. Ignoring new spin request.");
+            return;
+        }
+
+        if (action === undefined || action === null) {
+            action = 'spin';
+        }
+
+        const balance: number = GameDataManager.getInstance().getResponseData()?.balance.after ?? GameDataManager.getInstance().getInitialData()!.balance ?? 0;
+        const betValues: number[] = GameDataManager.getInstance().getBetValues();
+        const betValueIndex: number = GameDataManager.getInstance().getBetValueIndex();
+        const maxLines: number = GameDataManager.getInstance().getMaxLine();
+        const line: number = GameDataManager.getInstance().getCurrentLine();
+        const bet: number = betValues[betValueIndex] * line;
+
+        if ((balance - bet) < 0) {
+            for (let betIndex = betValues.length - 1; betIndex >= 0; betIndex--) {
+                const betValue = betValues[betIndex];
+
+                for (let lineIndex = maxLines; lineIndex > 0; lineIndex--) {
+                    const adjustedBet = betValue * lineIndex;
+
+                    if (balance - adjustedBet >= 0) {
+                        WinLines.getInstance().setAvailableLines(lineIndex);
+                        this.gameDataManager.setCurrentLine(lineIndex);
+                        this.gameDataManager.setBetValueIndex(betIndex);
+
+                        this.emitToUI("setLine", lineIndex);
+                        this.emitToUI("setBetValueIndex", betIndex);
+                        this.emitToUI("showToast", { type: "info", message: "Bet adjusted due to insufficient balance!" });
+                        this.emitToUI("setMessageBox");
+
+                        signals.emit("spinCompleted", false);
+                    }
+                }
+            }
+
+            this.emitToUI("showToast", { type: "warning", message: "Insufficient Balance to place a spin!" });
+            this.emitToUI("setMessageBox");
+
+            signals.emit("spinCompleted", false);
+        } else {
+            console.log("Nexus: Processing spin with action:", action);
+            const response: IResponseData = await GameServer.getInstance().processRequest(action);
+
+            this.emitToUI("setSpinId", response._id.toString());
+            this.emitToUI("setBalance", response.balance.before);
+
+            if (response) {
+                if (this.autoPlayController.isRunning) {
+                    this.emitToUI("setBatchComponentState", {
+                        componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
+                        stateOrUpdates: { disabled: true }
+                    });
+                } else {
+                    this.emitToUI("setBatchComponentState", {
+                        componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                        stateOrUpdates: { disabled: true }
+                    });
+                }
+
+                signals.emit("executeSpin");
+            }
+        }
+    }
+
     // Access to PlayerController for all player operations
     public getPlayerController(): PlayerController {
         return this.playerController;
+    }
+
+    public getEventDistributor(): EventDistributor {
+        return this.eventDistributor;
+    }
+
+    public emitToUI<K extends keyof eventType>(eventName: K, data?: eventType[K]): void {
+        signals.emit(eventName, data);
+        debug.log(`Nexus → UI: ${eventName}`, data);
+    }
+
+    public emitToEngine<K extends keyof eventType>(eventName: K, data?: eventType[K]): void {
+        signals.emit(eventName, data);
+        debug.log(`Nexus → Engine: ${eventName}`, data);
     }
 
     // Transaction management methods - core Nexus responsibility
@@ -55,10 +168,10 @@ export class Nexus {
             debug.error('Nexus: Failed to deduct bet amount');
             return null;
         }
-        
+
         this.transactions.set(transaction.transactionId, transaction);
         debug.log('Nexus: Created spin transaction:', transaction);
-        
+
         return transaction;
     }
 
@@ -145,22 +258,13 @@ export class Nexus {
         };
     }
 
-    public setUIDefaults(data: any): void {
-        eventBus.emit('setBetValues', data.betLevels);
-        eventBus.emit('setBetValueIndex', data.betLevelIndex);
-        eventBus.emit('setMaxLine', data.lines);
-        eventBus.emit('setLine', data.lines);
-        eventBus.emit('setBalance', data.balance);
-        debug.log('Nexus: Game UI defaults set from initial data');
-    }
-
-    public setGameDefaults(data: any): void {
-        GameDataManager.getInstance().setBetValues(data.betLevels);
-        GameDataManager.getInstance().setBetValueIndex(data.betLevelIndex);
-        GameDataManager.getInstance().setMaxLine(data.lines);
-        GameDataManager.getInstance().setCurrentLine(data.lines);
-        GameDataManager.getInstance().setPlayerBalance(data.balance);
-        debug.log('Nexus: Game data defaults set from initial data');
+    public setUIDefaults(data: { betLevels: number[]; betLevelIndex: number; maxLines: number; currentLine: number; balance: number }): void {
+        console.log("Nexus: Setting UI defaults with data:", data);
+        signals.emit('setBetValues', data.betLevels);
+        signals.emit('setBetValueIndex', data.betLevelIndex);
+        signals.emit('setMaxLine', data.maxLines);
+        signals.emit('setLine', data.currentLine);
+        signals.emit('setBalance', data.balance);
     }
 
     // Future API integration points

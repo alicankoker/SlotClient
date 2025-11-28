@@ -1,21 +1,19 @@
-import { Container, Application, Text } from 'pixi.js';
+import { Container, Application } from 'pixi.js';
 import { GameConfig } from '@slotclient/config/GameConfig';
 import { SpineSymbol } from '../symbol/SpineSymbol';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { debug } from '../utils/debug';
-import { gsap } from 'gsap';
 import { WinLines } from '../components/WinLines';
 import SoundManager from '../controllers/SoundManager';
 import { WinConfig } from '../types/IWinPresentation';
-import { GridData } from '../types/ICommunication';
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { AnimationContainer } from '../components/AnimationContainer';
-import { eventBus, SpinMode } from '@slotclient/types';
-import { GameDataManager } from '../data/GameDataManager';
+import { SpinMode } from '@slotclient/types';
 import { Helpers } from '../utils/Helpers';
 import { FreeSpinController } from '../freeSpin/FreeSpinController';
 import { AutoPlayController } from '../AutoPlay/AutoPlayController';
 import { Bonus } from '../components/Bonus';
+import { GameDataManager } from '../data/GameDataManager';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -147,6 +145,7 @@ export class StaticContainer extends Container {
         this._winDatas = winDatas;
 
         this._isPlaying = true;
+        GameDataManager.getInstance().isWinAnimationPlaying = true;
         this._isSkipped = false;
         this._isLooping = false;
 
@@ -161,11 +160,17 @@ export class StaticContainer extends Container {
 
         await this.playWinAnimations(winDatas, token);
 
-        if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
-            eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+        if (FreeSpinController.getInstance().isRunning === false && AutoPlayController.getInstance().isRunning === false) {
+            signals.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
         }
 
-        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false && Bonus.instance().isActive === false) {
+        if (this._allowLoop &&
+            this._animationToken === token &&
+            this._isFreeSpinMode === false &&
+            this._isBonusMode === false &&
+            Bonus.instance().isActive === false &&
+            AutoPlayController.getInstance().isRunning === false
+        ) {
             this.playLoopAnimations(winDatas, token);
         }
     }
@@ -261,6 +266,7 @@ export class StaticContainer extends Container {
 
         signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE);
         this._isPlaying = false;
+        GameDataManager.getInstance().isWinAnimationPlaying = false;
     }
 
     /**
@@ -314,6 +320,7 @@ export class StaticContainer extends Container {
      */
     public async playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
         this._isPlaying = true;
+        GameDataManager.getInstance().isWinAnimationPlaying = true;
         return new Promise(async (resolve) => {
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
                 this._winLines.showLines(lines);
@@ -321,8 +328,8 @@ export class StaticContainer extends Container {
 
             await AnimationContainer.instance().playTotalWinAnimation(amount);
 
-            if (FreeSpinController.instance().isRunning === false) {
-                eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
+            if (FreeSpinController.getInstance().isRunning === false) {
+                signals.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
             }
 
             if (GameConfig.WIN_ANIMATION.winlineVisibility) {
@@ -330,6 +337,7 @@ export class StaticContainer extends Container {
             }
 
             this._isPlaying = false;
+            GameDataManager.getInstance().isWinAnimationPlaying = false;
 
             resolve();
         });
@@ -339,6 +347,7 @@ export class StaticContainer extends Container {
         this._animationToken++;
 
         this._isPlaying = false;
+        GameDataManager.getInstance().isWinAnimationPlaying = false;
         this._isLooping = false;
         this._isSkipped = false;
         this._winDatas = [];
@@ -418,10 +427,8 @@ export class StaticContainer extends Container {
                 }
                 break;
             case 4:
-                if (this._adrenalinePhase) {
-                    this._adrenalinePhase = false;
-                    signals.emit("stopAdrenalineEffect");
-                }
+                this._adrenalinePhase = false;
+                signals.emit("stopAdrenalineEffect");
                 break;
         }
 

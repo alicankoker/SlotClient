@@ -1,3 +1,4 @@
+import { signals } from '../controllers/SignalManager';
 import { GridData, CascadeStepData, SpinResultData, SpinResponseData, IResponseData, IData } from '../types/ICommunication';
 import { debug } from '../utils/debug';
 
@@ -24,8 +25,10 @@ export interface GameState {
 export class GameDataManager {
     private static instance: GameDataManager;
     private gameState: GameState;
+    private _isSpinning: boolean = false;
     private _isFreeSpinning: boolean = false;
     private _isAutoPlaying: boolean = false;
+    private _isWinAnimationPlaying: boolean = false;
     private _isSkippedWinAnimation: boolean = false;
 
     private constructor() {
@@ -38,6 +41,8 @@ export class GameDataManager {
             maxLine: 25,
             line: 1
         };
+
+        this.eventListeners();
     }
 
     public static getInstance(): GameDataManager {
@@ -47,6 +52,25 @@ export class GameDataManager {
         return GameDataManager.instance;
     }
 
+    private eventListeners(): void {
+        signals.on("socketReady", (data) => {
+            this.setInitialData(data.data);
+            this.setGameDefaults(data.data);
+        });
+
+        signals.on("setBetValueIndex", (index) => {
+            this.setBetValueIndex(index);
+        });
+
+        signals.on("setLine", (line) => {
+            this.setCurrentLine(line);
+        });
+
+        signals.on("skipWin", (isSkipped) => {
+            this.setIsWinAnimationSkipped(isSkipped);
+        });
+    }
+
     public setInitialData(data: IData): void {
         this.gameState.initialData = data;
         this.setInitialSymbols(data.history.reels);
@@ -54,6 +78,24 @@ export class GameDataManager {
 
     public getInitialData(): IData | undefined {
         return this.gameState.initialData;
+    }
+
+    public setGameDefaults(data: any): void {
+        this.setBetValues(data.betLevels);
+        this.setBetValueIndex(data.betLevelIndex);
+        this.setMaxLine(data.lines);
+        this.setCurrentLine(data.lines);
+        this.setPlayerBalance(data.balance);
+    }
+
+    public getGameDefaults(): { betLevels: number[]; betLevelIndex: number; maxLines: number; currentLine: number; balance: number } {
+        return {
+            betLevels: this.getBetValues(),
+            betLevelIndex: this.getBetValueIndex(),
+            maxLines: this.getMaxLine(),
+            currentLine: this.getCurrentLine(),
+            balance: this.getPlayerBalance()
+        };
     }
 
     public setInitialSymbols(initialGrid: number[][]): void {
@@ -277,6 +319,22 @@ export class GameDataManager {
 
     public setIsWinAnimationSkipped(value: boolean): void {
         this._isSkippedWinAnimation = value;
+    }
+
+    public get isSpinning(): boolean {
+        return this._isSpinning;
+    }
+
+    public set isSpinning(value: boolean) {
+        this._isSpinning = value;
+    }
+
+    public get isWinAnimationPlaying(): boolean {
+        return this._isWinAnimationPlaying;
+    }
+
+    public set isWinAnimationPlaying(value: boolean) {
+        this._isWinAnimationPlaying = value;
     }
 
     // Update multiple properties at once

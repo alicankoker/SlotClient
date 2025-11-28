@@ -6,6 +6,7 @@ import { WinLinesContainer } from "../winLines/WinLinesContainer";
 import { WinLinesController } from "../winLines/WinLinesController";
 import { AssetsConfig } from "@slotclient/config/AssetsConfig";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { signals } from "../controllers/SignalManager";
 
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
@@ -21,6 +22,8 @@ export class WinLines extends WinLinesContainer {
         this.createLineNumbers();
         this.createWinLines();
         this.setAvailableLines(this._lineTextures.length);
+
+        this.eventListeners();
     }
 
     public static getInstance(): WinLines {
@@ -32,6 +35,12 @@ export class WinLines extends WinLinesContainer {
 
     private createController(): WinLinesController<WinLines> {
         return new (class extends WinLinesController<WinLines> { })(this);
+    }
+
+    private eventListeners(): void {
+        signals.on("setLine", (line) => {
+            this.setAvailableLines(line);
+        });
     }
 
     protected override createLineMask(): void {

@@ -10,7 +10,6 @@ import { IBonusData } from "../types/ICommunication";
 import { gsap } from "gsap";
 import { AnimationContainer } from "./AnimationContainer";
 import { GameDataManager } from "../data/GameDataManager";
-import { eventBus } from "@slotclient/types";
 import { Helpers } from "../utils/Helpers";
 import { BackendToWinEventType } from "../types/IWinEvents";
 import { SpriteText } from "../utils/SpriteText";
