@@ -1,4 +1,4 @@
-import { Container, Text } from "pixi.js";
+import { Application, Container, Text } from "pixi.js";
 import { Counter } from "../utils/Counter";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
@@ -6,6 +6,7 @@ import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/Signa
 import { SpriteText } from "../utils/SpriteText";
 
 export abstract class WinEventContainer extends Container {
+    protected _app: Application;
     protected _resizeSubscription?: SignalSubscription;
     protected _counter!: Counter;
     protected _amountText!: SpriteText;
@@ -17,9 +18,11 @@ export abstract class WinEventContainer extends Container {
     protected _duration: number = GameConfig.WIN_EVENT.duration;
     protected _tweenObj: { value: number } = { value: 0 };
 
-    constructor() {
+    constructor(app: Application) {
         super();
         
+        this._app = app;
+
         this.alpha = 0;
         this.visible = false;
         this.interactive = true;
@@ -45,8 +48,8 @@ export abstract class WinEventContainer extends Container {
             duration: this._duration,
             ease: "power1.out",
             currency: "$",
-            startScale: { x: 0.2, y: 0.2 },
-            endScale: { x: 0.5, y: 0.5 },
+            startScale: { x: 0.5, y: 0.5 },
+            endScale: { x: 0.75, y: 0.75 },
         });
     }
 
@@ -86,6 +89,10 @@ export abstract class WinEventContainer extends Container {
     }
 
     //#region Getters/Setters
+    public get app(): Application {
+        return this._app;
+    }
+    
     public get isWinEventActive(): boolean {
         return this._isAnimating;
     }

@@ -20,6 +20,7 @@
     "@esotericsoftware/spine-pixi-v8": "~4.2.0",
     "@slotclient/config": "workspace:*",
     "@slotclient/types": "workspace:*",
+    "@slotclient/server": "workspace:*",
     "gsap": "^3.13.0",
     "howler": "^2.2.4",
     "pixi.js": "^8.4.0"

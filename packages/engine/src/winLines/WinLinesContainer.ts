@@ -2,7 +2,6 @@ import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 
 export abstract class WinLinesContainer extends Container {
     protected _resizeSubscription?: SignalSubscription;
@@ -16,11 +15,6 @@ export abstract class WinLinesContainer extends Container {
 
         this._lineTextures = [];
         this._winLine = [];
-
-        this.createLineMask();
-        this.createLineNumbers();
-        this.createWinLines();
-        this.setAvailableLines(this._lineTextures.length);
 
         this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
             this.onResize(responsiveConfig);

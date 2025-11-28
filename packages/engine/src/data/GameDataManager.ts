@@ -246,12 +246,12 @@ export class GameDataManager {
         return this.gameState.maxLine;
     }
 
-    public setLine(line: number): void {
+    public setCurrentLine(line: number): void {
         this.gameState.line = line;
         debug.log('GameDataManager: Line set to', line);
     }
 
-    public getLine(): number {
+    public getCurrentLine(): number {
         return this.gameState.line;
     }
 

@@ -3,7 +3,6 @@ import { GameConfig } from "@slotclient/config/GameConfig";
 import { GridSymbol } from "../symbol/GridSymbol";
 import { Symbol } from "../symbol/Symbol";
 import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
-import { SpinContainerConfig } from "@slotclient/types";
 import {
   signals,
   SIGNAL_EVENTS,
@@ -21,6 +20,17 @@ import { debug } from "../utils/debug";
 import { GameDataManager } from "../data/GameDataManager";
 import { SpinMode } from "../types/ISpinConfig";
 
+export interface SpinContainerConfig {
+  reelIndex: number; // TODO: Remove when refactoring to single container
+  symbolHeight: number;
+  symbolsVisible: number;
+  numberOfReels?: number; // TODO: Use this for single container approach
+  rowsAboveMask?: number;
+  rowsBelowMask?: number;
+  spinSpeed?: number;
+  spinDuration?: number;
+}
+
 export abstract class SpinContainer extends Container {
   protected app: Application;
   protected config: SpinContainerConfig;
@@ -35,7 +45,9 @@ export abstract class SpinContainer extends Container {
   protected rowsAboveMask: number;
   protected rowsBelowMask: number;
   protected totalRows: number;
+  protected _abortController: AbortController | null = null;
   protected _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+  protected _forceStop: boolean = false;
 
   // Symbol storage - unified approach
   public symbols: (GridSymbol | Sprite | null)[][] = [];
@@ -406,6 +418,16 @@ export abstract class SpinContainer extends Container {
     return this.symbols.map((reel) =>
       reel.map((symbol) => (symbol instanceof GridSymbol ? symbol.symbolId : -1))
     );
+  }
+
+  public isForceStopped(): boolean {
+    return this._forceStop;
+  }
+
+  public setForceStop(forceStop: boolean): void {
+    this._abortController?.abort();
+    this._abortController = null;
+    this._forceStop = forceStop;
   }
 
   // Cleanup

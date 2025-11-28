@@ -96,7 +96,7 @@ export class GameServer {
   }
 
   public async processRequest(action: IPayload["action"]): Promise<any> {
-    const payload: IPayload = { action: action, data: { lines: GameDataManager.getInstance().getLine(), betIndex: GameDataManager.getInstance().getBetValueIndex()} }
+    const payload: IPayload = { action: action, data: { lines: GameDataManager.getInstance().getCurrentLine(), betIndex: GameDataManager.getInstance().getBetValueIndex()} }
     const response: IResponseData = await this.socket.request(payload);
 
     GameDataManager.getInstance().setResponseData(response);

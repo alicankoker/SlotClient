@@ -10,11 +10,17 @@ import { Spine } from "@esotericsoftware/spine-pixi-v8";
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
     private _controller: WinLinesController<WinLines>;
+    private _lineChains: Sprite[] = [];
 
     private constructor() {
         super();
 
         this._controller = this.createController();
+
+        this.createLineMask();
+        this.createLineNumbers();
+        this.createWinLines();
+        this.setAvailableLines(this._lineTextures.length);
     }
 
     public static getInstance(): WinLines {
@@ -93,6 +99,7 @@ export class WinLines extends WinLinesContainer {
             chain.anchor.set(0.5);
             chain.scale.set(0.5, 0.5);
             chain.position.set(318 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
+            this._lineChains.push(chain);
             this.addChild(chain);
         }
 
@@ -132,11 +139,15 @@ export class WinLines extends WinLinesContainer {
             });
         }
     }
-    
+
     public setFreeSpinMode(enabled: boolean): void {
         this._lineTextures.forEach((texture) => {
             const textureName = enabled ? 'freespin_line_holder' : 'base_line_holder';
             texture.texture = Texture.from(textureName);
+        });
+        this._lineChains.forEach((chain) => {
+            const chainTextureName = enabled ? 'freespin_line_chain' : 'base_line_chain';
+            chain.texture = Texture.from(chainTextureName);
         });
     }
 

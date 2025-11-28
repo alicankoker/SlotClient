@@ -17,9 +17,10 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@slotclient/config": "workspace:*",
     "@slotclient/engine": "workspace:*",
     "@slotclient/nexus": "workspace:*",
-    "@slotclient/diamond-diggers": "workspace:*",
+    "@slotclient/types": "workspace:*",
     "@slotclient/server": "workspace:*",
     "socket.io-client": "^4.8.1"
   },

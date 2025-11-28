@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, Text, Ticker } from "pixi.js";
+import { Application, Container, Graphics, Sprite, Text, Ticker } from "pixi.js";
 import { WinLines } from "./WinLines";
 import { WinEvent } from "./WinEvent";
 import { GameConfig } from "@slotclient/config/GameConfig";
@@ -20,6 +20,7 @@ interface ParticleAnimationOptions {
     life: number;
     maxLife: number;
     maxCount: number;
+    maxOnScreen?: number;
     spawnInterval?: number;
     rotationSpeed?: number;
     gravity?: number;
@@ -39,7 +40,8 @@ interface InternalParticle {
 
 export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
-    protected _resizeSubscription?: SignalSubscription;
+    private _app: Application;
+    private _resizeSubscription?: SignalSubscription;
 
     private _winLines: WinLines;
     private _particleContainer: Container;
@@ -68,8 +70,10 @@ export class AnimationContainer extends Container {
     private totalWinTween?: gsap.core.Tween;
     private totalWinResolver?: () => void;
 
-    private constructor() {
+    private constructor(app: Application) {
         super();
+
+        this._app = app;
 
         this._winLines = WinLines.getInstance();
         this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
@@ -205,7 +209,7 @@ export class AnimationContainer extends Container {
         this._dialogContentText.position.set(0, 60);
         this._dialogBox.addChild(this._dialogContentText);
 
-        this._winEvent = WinEvent.getInstance();
+        this._winEvent = WinEvent.getInstance(this._app);
         this.addChild(this._winEvent);
 
         const { atlas, skeleton } = AssetsConfig.TRANSITION_SPINE_ASSET;
@@ -221,10 +225,14 @@ export class AnimationContainer extends Container {
         this.eventListeners();
     }
 
-    public static getInstance(): AnimationContainer {
+    public static getInstance(app: Application): AnimationContainer {
         if (!AnimationContainer._instance) {
-            AnimationContainer._instance = new AnimationContainer();
+            AnimationContainer._instance = new AnimationContainer(app);
         }
+        return AnimationContainer._instance;
+    }
+
+    public static instance(): AnimationContainer {
         return AnimationContainer._instance;
     }
 
@@ -274,7 +282,7 @@ export class AnimationContainer extends Container {
             particle.anchor.set(0.5, 0.5);
 
             this.stopParticleAnimation();
-            this.startParticleAnimation({ element: particle, life: 75, maxLife: 150, maxCount: 50, friction: 0.97, spawnInterval: 15 });
+            this.startParticleAnimation({ element: particle, life: 75, maxLife: 150, maxCount: 50, friction: 0.97, spawnInterval: 15, maxOnScreen: 50 });
 
             let tweenObj = { value: 0 };
             let currentAmount = "0";
@@ -383,7 +391,7 @@ export class AnimationContainer extends Container {
             particle.anchor.set(0.5, 0.5);
 
             this.stopParticleAnimation();
-            this.startParticleAnimation({ element: particle, life: 75, maxLife: 150, maxCount: 50, friction: 0.97, spawnInterval: 15 });
+            this.startParticleAnimation({ element: particle, life: 75, maxLife: 150, maxCount: 50, friction: 0.97, spawnInterval: 15, maxOnScreen: 50 });
             // Play single win text animation
             gsap.fromTo(this._winContainer.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
@@ -410,13 +418,13 @@ export class AnimationContainer extends Container {
     public async playWinEventAnimation(winAmount: number, winEventType: WinEventType): Promise<void> {
         this._dimmer.visible = true;
         this._dimmer.alpha = 1;
-        
+
         const { atlas, skeleton } = AssetsConfig.WINEVENT_SPINE_ASSET;
         const particle = Spine.from({ atlas, skeleton });
         particle.state.setAnimation(0, "coin", true);
 
         this.stopParticleAnimation();
-        this.startParticleAnimation({ element: particle, life: 450, maxLife: 500, maxCount: 20, friction: 1, rotationSpeed: 0.1, spawnInterval: 50 });
+        this.startParticleAnimation({ element: particle, life: 200, maxLife: 350, maxCount: 20, friction: 1, rotationSpeed: 0.1, spawnInterval: 50, maxOnScreen: 50 });
         this._winEvent.getController().onWinEventComplete(() => {
             this.stopParticleAnimation();
         });
@@ -583,6 +591,90 @@ export class AnimationContainer extends Container {
         });
     }
 
+    public startParticleAnimation(options: ParticleAnimationOptions): void {
+        this.stopParticleAnimation();
+
+        this._particleList = [];
+        this._spawnTimer = 0;
+        this._currentOptions = options;
+
+        this._particleTicker = new Ticker();
+        this._particleTicker.add(this._updateParticleAnimation);
+        this._particleTicker.start();
+    }
+
+    private _cloneSpine(source: Spine): Spine {
+        const clone = new Spine(source.skeleton.data);
+
+        for (let i = 0; i < source.skeleton.slots.length; i++) {
+            const sourceSlot = source.skeleton.slots[i];
+            const cloneSlot = clone.skeleton.slots[i];
+
+            const srcAttachment = sourceSlot.getAttachment();
+            const cloneAttachment = cloneSlot.getAttachment();
+
+            if (!srcAttachment || !cloneAttachment) continue;
+
+            if (srcAttachment instanceof RegionAttachment &&
+                cloneAttachment instanceof RegionAttachment) {
+
+                cloneAttachment.region = srcAttachment.region;
+                continue;
+            }
+
+            if (srcAttachment instanceof MeshAttachment &&
+                cloneAttachment instanceof MeshAttachment) {
+
+                cloneAttachment.region = srcAttachment.region;
+                continue;
+            }
+        }
+
+        clone.skeleton.setToSetupPose();
+        return clone;
+    }
+
+    private _updateParticleAnimation = (ticker: Ticker) => {
+        const delta = ticker.deltaTime;
+
+        const interval = this._currentOptions.spawnInterval ?? 10;
+
+        this._spawnTimer += delta;
+        if (this._spawnTimer >= interval) {
+            this._spawnTimer = 0;
+
+            if (this._currentOptions.maxOnScreen && this._particleList.length >= this._currentOptions.maxOnScreen) {
+                return;
+            }
+
+            for (let i = 0; i < this._currentOptions.maxCount; i++) {
+                this._spawnParticle(this._currentOptions);
+            }
+        }
+
+        for (let i = this._particleList.length - 1; i >= 0; i--) {
+            const p = this._particleList[i];
+
+            p.vx *= p.friction;
+            p.vy = p.vy * p.friction + p.gravity;
+
+            p.sprite.x += p.vx * delta;
+            p.sprite.y += p.vy * delta;
+
+            p.sprite.rotation += p.rotationSpeed * delta;
+
+            p.life--;
+            p.sprite.alpha = Math.max(0, Math.min(1, p.life / p.maxLife));
+
+            if (p.life <= 0) {
+                p.sprite.alpha = 0;
+                this._particleContainer.removeChild(p.sprite);
+                p.sprite.destroy();
+                this._particleList.splice(i, 1);
+            }
+        }
+    };
+
     private _spawnParticle(options: ParticleAnimationOptions) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 3 + Math.random() * 5;
@@ -624,103 +716,13 @@ export class AnimationContainer extends Container {
         });
     }
 
-    public startParticleAnimation(options: ParticleAnimationOptions): void {
-        this.stopParticleAnimation();
-
-        this._particleList = [];
-        this._spawnTimer = 0;
-        this._currentOptions = options; // → bu önemli!
-
-        this._particleTicker = new Ticker();
-        this._particleTicker.add(this._updateParticleAnimation);
-        this._particleTicker.start();
-    }
-
-    private _cloneSpine(source: Spine): Spine {
-        const clone = new Spine(source.skeleton.data);
-
-        for (let i = 0; i < source.skeleton.slots.length; i++) {
-            const sourceSlot = source.skeleton.slots[i];
-            const cloneSlot = clone.skeleton.slots[i];
-
-            const srcAttachment = sourceSlot.getAttachment();
-            const cloneAttachment = cloneSlot.getAttachment();
-
-            // Hiç attachment yoksa geç
-            if (!srcAttachment || !cloneAttachment) continue;
-
-            // REGION ATTACHMENT → region property var
-            if (srcAttachment instanceof RegionAttachment &&
-                cloneAttachment instanceof RegionAttachment) {
-
-                cloneAttachment.region = srcAttachment.region;
-                continue;
-            }
-
-            // MESH ATTACHMENT → region burada da var
-            if (srcAttachment instanceof MeshAttachment &&
-                cloneAttachment instanceof MeshAttachment) {
-
-                cloneAttachment.region = srcAttachment.region;
-                continue;
-            }
-
-            // Diğer attachment türlerinde region bulunmaz → geç
-        }
-
-        clone.skeleton.setToSetupPose();
-        return clone;
-    }
-
-    private _updateParticleAnimation = (ticker: Ticker) => {
-        const delta = ticker.deltaTime;
-
-        // SPAWN KONTROL
-        const interval = this._currentOptions.spawnInterval ?? 10; // varsayılan: 10 frame
-
-        this._spawnTimer += delta;
-        if (this._spawnTimer >= interval) {
-            this._spawnTimer = 0;
-
-            // sürekli üret
-            for (let i = 0; i < this._currentOptions.maxCount; i++) {
-                this._spawnParticle(this._currentOptions);
-            }
-        }
-
-        // PARTICLE UPDATE
-        for (let i = this._particleList.length - 1; i >= 0; i--) {
-            const p = this._particleList[i];
-
-            p.vx *= p.friction;
-            p.vy = p.vy * p.friction + p.gravity;
-
-            p.sprite.x += p.vx * delta;
-            p.sprite.y += p.vy * delta;
-
-            p.sprite.rotation += p.rotationSpeed * delta;
-
-            p.life--;
-            p.sprite.alpha = Math.max(0, Math.min(1, p.life / p.maxLife));
-
-            if (p.life <= 0) {
-                p.sprite.alpha = 0;
-                this._particleContainer.removeChild(p.sprite);
-                p.sprite.destroy();
-                this._particleList.splice(i, 1);
-            }
-        }
-    };
-
     public stopParticleAnimation(): void {
-        // ticker durdur
         if (this._particleTicker) {
             this._particleTicker.stop();
             this._particleTicker.destroy();
             this._particleTicker = undefined;
         }
 
-        // particle temizle
         for (const p of this._particleList) {
             p.sprite.parent?.removeChild(p.sprite);
             p.sprite.destroy();

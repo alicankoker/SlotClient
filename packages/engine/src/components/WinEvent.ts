@@ -1,4 +1,4 @@
-import { Graphics, Sprite, Text } from "pixi.js";
+import { Application, Graphics, Sprite, Text } from "pixi.js";
 import { WinEventContainer } from "../winEvent/WinEventContainer";
 import { WinEventController } from "../winEvent/WinEventController";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
@@ -14,19 +14,18 @@ export class WinEvent extends WinEventContainer {
     private _controller: WinEventController<WinEvent>;
     private _soundManager: SoundManager;
     private _wins!: Spine;
-    private _counterStrip!: Sprite;
 
-    private constructor() {
-        super();
+    private constructor(app: Application) {
+        super(app);
         this.position.set(0, -100);
         this._soundManager = SoundManager.getInstance();
         this._controller = this.createController();
         this.init();
     }
 
-    public static getInstance(): WinEvent {
+    public static getInstance(app: Application): WinEvent {
         if (!WinEvent._instance) {
-            WinEvent._instance = new WinEvent();
+            WinEvent._instance = new WinEvent(app);
         }
         return WinEvent._instance;
     }
@@ -34,13 +33,13 @@ export class WinEvent extends WinEventContainer {
     private createController(): WinEventController<WinEvent> {
         return new (class extends WinEventController<WinEvent> {
             protected override async stopWinEventAnimation(): Promise<void> {
-                this.view._soundManager.fade("bigwin", 0.5, 0, 0.5);
-                this.view._soundManager.fade("coin", 0.25, 0, 0.5);
+                // this.view._soundManager.fade("bigwin", 0.5, 0, 0.5);
+                // this.view._soundManager.fade("coin", 0.25, 0, 0.5);
 
                 await super.stopWinEventAnimation();
 
-                this.view._soundManager.stop("bigwin");
-                this.view._soundManager.stop("coin");
+                // this.view._soundManager.stop("bigwin");
+                // this.view._soundManager.stop("coin");
                 this.view._wins.state.data.defaultMix = 0;
             }
         })(this);
@@ -56,17 +55,11 @@ export class WinEvent extends WinEventContainer {
         this._wins.state.data.defaultMix = 0;
         this.addChild(this._wins);
 
-        this._counterStrip = Sprite.from('win_event_strip');
-        this._counterStrip.label = 'counterStrip';
-        this._counterStrip.anchor.set(0.5, 0.5);
-        this._counterStrip.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 975);
-        this.addChild(this._counterStrip);
-
         // win amount
         this._amountText = new SpriteText("Numbers");
         this._amountText.setAnchor(0.5, 0.5);
-        this._amountText.setScale(0.5, 0.5);
-        this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 910);
+        this._amountText.setScale(0.75, 0.75);
+        this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
         this.addChild(this._amountText);
 
         // counter setup
@@ -79,8 +72,8 @@ export class WinEvent extends WinEventContainer {
     public playWinEventAnimation(): void {
         this._duration = GameConfig.WIN_EVENT.duration + this._winEventType * GameConfig.WIN_EVENT.duration;
 
-        this._soundManager.playFor("bigwin", this._duration, 0.5);
-        this._soundManager.play("coin", false, 0.25);
+        // this._soundManager.playFor("bigwin", this._duration, 0.5);
+        // this._soundManager.play("coin", false, 0.25);
 
         this._wins.state.setAnimation(0, "1", false);
 

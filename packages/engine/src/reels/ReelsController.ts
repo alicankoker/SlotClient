@@ -172,7 +172,7 @@ export class ReelsController {
    * @description Skip all win animations.
    */
   public skipWinAnimations(): void {
-    AnimationContainer.getInstance().stopTotalWinAnimation();
+    AnimationContainer.instance().stopTotalWinAnimation();
     this.reelsContainer.getStaticContainer()?.skipWinAnimations();
   }
 
@@ -187,7 +187,7 @@ export class ReelsController {
       return;
     }
 
-    const animationContainer = AnimationContainer.getInstance();
+    const animationContainer = AnimationContainer.instance();
 
     animationContainer.stopWinTextAnimation();
 

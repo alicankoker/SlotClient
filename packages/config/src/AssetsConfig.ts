@@ -1,11 +1,11 @@
 import { Assets } from "pixi.js";
-import { BundleFile, SpineAsset, SpineAssetData, SpineData, Bundle, AssetBundle, AudioBundle } from "@slotclient/types";
+import { BundleFile, SpineAsset, SpineAssetData, SpineData } from "@slotclient/types/IAssetLoader";
 
 const PATH = document.body.dataset.path;
 
 const PATHS = {
   ART: PATH + "/assets/art/",
-  RAW: PATH + "/assets/raw/",
+  RAW: PATH + "/assets/raw/environment/",
   SOUNDS: PATH + "/assets/sounds/",
   ROOT: PATH + "/assets/",
 };
@@ -46,27 +46,27 @@ export class AssetsConfig {
           },
           {
             alias: 'base_logo',
-            src: PATH + '/assets/raw/Logo_Base_Game_Vertical.png'
+            src: PATH + '/assets/raw/environment/base_logo.png'
           },
           {
             alias: 'loading_bar_bg',
-            src: PATH + '/assets/raw/loading_bar_bg.png'
+            src: PATH + '/assets/raw/environment/loading_bar_bg.png'
           },
           {
             alias: 'loading_bar_fill',
-            src: PATH + '/assets/raw/loading_bar_fill.png'
+            src: PATH + '/assets/raw/environment/loading_bar_fill.png'
           },
           {
             alias: 'loading_bar_shadow',
-            src: PATH + '/assets/raw/loading_bar_shadow.png'
+            src: PATH + '/assets/raw/environment/loading_bar_shadow.png'
           },
           {
             alias: 'loading_bar_stroke_front',
-            src: PATH + '/assets/raw/loading_bar_stroke_front.png'
+            src: PATH + '/assets/raw/environment/loading_bar_stroke_front.png'
           },
           {
             alias: 'loading_bar_stroke_back',
-            src: PATH + '/assets/raw/loading_bar_stroke_back.png'
+            src: PATH + '/assets/raw/environment/loading_bar_stroke_back.png'
           },
           {
             alias: "MikadoBlack",
@@ -83,161 +83,181 @@ export class AssetsConfig {
         assets: [
           // #region Base Frame and UI Assets
           {
+            alias: 'base_chain',
+            src: PATH + '/assets/raw/environment/base_chain.png'
+          },
+          {
             alias: 'base_chain_hole',
-            src: PATH + '/assets/raw/base_chain_hole.png'
+            src: PATH + '/assets/raw/environment/base_chain_hole.png'
           },
           {
             alias: 'base_fixed_lines_holder',
-            src: PATH + '/assets/raw/base_fixed_lines_holder.png'
+            src: PATH + '/assets/raw/environment/base_fixed_lines_holder.png'
           },
           {
             alias: 'base_floor',
-            src: PATH + '/assets/raw/base_floor.png'
+            src: PATH + '/assets/raw/environment/base_floor.png'
           },
           {
             alias: 'base_frame',
-            src: PATH + '/assets/raw/base_frame.png'
+            src: PATH + '/assets/raw/environment/base_frame.png'
           },
           {
             alias: 'base_frame_background',
-            src: PATH + '/assets/raw/base_frame_background.png'
+            src: PATH + '/assets/raw/environment/base_frame_background.png'
           },
           {
             alias: 'base_header_background',
-            src: PATH + '/assets/raw/base_header_background.png'
+            src: PATH + '/assets/raw/environment/base_header_background.png'
           },
           {
             alias: 'base_line_chain',
-            src: PATH + '/assets/raw/base_line_chain.png'
+            src: PATH + '/assets/raw/environment/base_line_chain.png'
           },
           {
             alias: 'base_line_holder',
-            src: PATH + '/assets/raw/base_line_holder.png'
+            src: PATH + '/assets/raw/environment/base_line_holder.png'
+          },
+          {
+            alias: 'base_logo',
+            src: PATH + '/assets/raw/environment/base_logo.png'
           },
           // #endregion
           // #region Freespin Frame and UI Assets
           {
+            alias: 'freespin_chain',
+            src: PATH + '/assets/raw/environment/freespin_chain.png'
+          },
+          {
             alias: 'freespin_chain_hole',
-            src: PATH + '/assets/raw/freespin_chain_hole.png'
+            src: PATH + '/assets/raw/environment/freespin_chain_hole.png'
           },
           {
             alias: 'freespin_fixed_lines_holder',
-            src: PATH + '/assets/raw/freespin_fixed_lines_holder.png'
+            src: PATH + '/assets/raw/environment/freespin_fixed_lines_holder.png'
           },
           {
             alias: 'freespin_floor',
-            src: PATH + '/assets/raw/freespin_floor.png'
+            src: PATH + '/assets/raw/environment/freespin_floor.png'
           },
           {
             alias: 'freespin_frame',
-            src: PATH + '/assets/raw/freespin_frame.png'
+            src: PATH + '/assets/raw/environment/freespin_frame.png'
           },
           {
             alias: 'freespin_frame_background',
-            src: PATH + '/assets/raw/freespin_frame_background.png'
+            src: PATH + '/assets/raw/environment/freespin_frame_background.png'
           },
           {
             alias: 'freespin_header_background',
-            src: PATH + '/assets/raw/freespin_header_background.png'
+            src: PATH + '/assets/raw/environment/freespin_header_background.png'
           },
           {
             alias: 'freespin_line_chain',
-            src: PATH + '/assets/raw/freespin_line_chain.png'
+            src: PATH + '/assets/raw/environment/freespin_line_chain.png'
           },
           {
             alias: 'freespin_line_holder',
-            src: PATH + '/assets/raw/freespin_line_holder.png'
+            src: PATH + '/assets/raw/environment/freespin_line_holder.png'
           },
           {
             alias: 'freespin_logo',
-            src: PATH + '/assets/raw/freespin_logo.png'
+            src: PATH + '/assets/raw/environment/freespin_logo.png'
           },
           {
             alias: 'freespin_remaining_strip',
-            src: PATH + '/assets/raw/freespin_remaining_strip.png'
+            src: PATH + '/assets/raw/environment/freespin_remaining_strip.png'
           },
           // #endregion
           {
-            alias: 'bet_area',
-            src: PATH + '/assets/raw/Bet_Amount_Area.png'
-          },
-          {
-            alias: 'game_logo_1000',
-            src: PATH + '/assets/raw/Logo_1000_Game.png'
-          },
-          {
-            alias: 'game_logo_super_scatter',
-            src: PATH + '/assets/raw/Logo_Super_Scatter_Game.png'
-          },
-          {
             alias: 'popup_frame',
-            src: PATH + '/assets/raw/popup_frame.png'
+            src: PATH + '/assets/raw/environment/popup_frame.png'
           },
           {
             alias: 'popup_header',
-            src: PATH + '/assets/raw/popup_header.png'
+            src: PATH + '/assets/raw/environment/popup_header.png'
           },
           {
             alias: 'dialog_box',
-            src: PATH + '/assets/raw/dialog_box.png'
+            src: PATH + '/assets/raw/environment/dialog_box.png'
           },
           {
-            alias: 'slider_button_frame',
-            src: PATH + '/assets/raw/Slider_Button_Frame_Splash_Scene.png'
+            alias: 'splash_volatility_holder',
+            src: PATH + '/assets/raw/environment/splash_volatility_holder.png'
           },
           {
-            alias: 'slider_button',
-            src: PATH + '/assets/raw/Slider_Button_Splash_Scene.png'
+            alias: 'splash_tick_holder',
+            src: PATH + '/assets/raw/environment/splash_tick_holder.png'
           },
           {
-            alias: 'spin_button',
-            src: PATH + '/assets/raw/Spin_Button.png'
+            alias: 'splash_radiobutton_outside',
+            src: PATH + '/assets/raw/environment/splash_radiobutton_outside.png'
           },
           {
-            alias: 'spin_button_icon',
-            src: PATH + '/assets/raw/Spin_Button_Icon.png'
+            alias: 'splash_radiobutton_inside',
+            src: PATH + '/assets/raw/environment/splash_radiobutton_inside.png'
           },
           {
-            alias: 'volatility_arrow',
-            src: PATH + '/assets/raw/Volatility_Arrow.png'
+            alias: 'splash_spin_button',
+            src: PATH + '/assets/raw/environment/splash_spin_button.png'
+          },
+          {
+            alias: 'splash_spin_button_icon',
+            src: PATH + '/assets/raw/environment/splash_spin_button_icon.png'
+          },
+          {
+            alias: 'splash_ticked',
+            src: PATH + '/assets/raw/environment/splash_ticked.png'
+          },
+          {
+            alias: 'splash_ticked_bg',
+            src: PATH + '/assets/raw/environment/splash_ticked_bg.png'
+          },
+          {
+            alias: 'splash_volatility_arrow',
+            src: PATH + '/assets/raw/environment/splash_volatility_arrow.png'
           },
           {
             alias: 'line_mask',
-            src: PATH + '/assets/raw/line_mask.png'
+            src: PATH + '/assets/raw/environment/line_mask.png'
           },
           {
             alias: 'tnt_cable_landscape',
-            src: PATH + '/assets/raw/tnt_cable_landscape.png'
+            src: PATH + '/assets/raw/environment/tnt_cable_landscape.png'
           },
           {
             alias: 'tnt_cable_portrait',
-            src: PATH + '/assets/raw/tnt_cable_portrait.png'
+            src: PATH + '/assets/raw/environment/tnt_cable_portrait.png'
           },
           {
             alias: 'golden_key',
-            src: PATH + '/assets/raw/golden_key.png'
+            src: PATH + '/assets/raw/environment/golden_key.png'
           },
           {
             alias: 'win_event_strip',
-            src: PATH + '/assets/raw/win_event_strip.png'
+            src: PATH + '/assets/raw/environment/win_event_strip.png'
           },
           {
             alias: 'win_strap',
-            src: PATH + '/assets/raw/win_strap.png'
+            src: PATH + '/assets/raw/environment/win_strap.png'
           },
           {
             alias: 'win_strap_line',
-            src: PATH + '/assets/raw/win_strap_line.png'
+            src: PATH + '/assets/raw/environment/win_strap_line.png'
           },
           {
             alias: 'win_strap_particle',
-            src: PATH + '/assets/raw/win_strap_particle.png'
+            src: PATH + '/assets/raw/environment/win_strap_particle.png'
           }
         ]
       },
       {
         name: 'backgrounds',
         assets: [
+          {
+            alias: ['base_background'],
+            src: PATH + '/assets/images/base_background.jpg'
+          },
           {
             alias: ['freespin_background'],
             src: PATH + '/assets/images/freespin_background.jpg'
@@ -375,6 +395,14 @@ export class AssetsConfig {
         name: "fonts",
         assets: [
           {
+            alias: "MikadoBlack",
+            src: PATHS.ROOT + `fonts/MikadoBlack.otf`,
+          },
+          {
+            alias: "MikadoMedium",
+            src: PATHS.ROOT + `fonts/MikadoMedium.otf`,
+          },
+          {
             alias: "Numbers",
             src: `${PATHS.ROOT}/spritesheets/numbers/numbers.json`,
           }
@@ -422,7 +450,7 @@ export class AssetsConfig {
         ...this.SPRITESHEETS.bundles,
         ...this.IMAGES.bundles,
         ...this.ANIMATIONS.bundles,
-        // Audio is handled separately by SoundManager, not through PixiJS Assets
+        ...this.AUDIO.bundles,
         ...this.FONTS.bundles,
       ],
     };
@@ -430,26 +458,15 @@ export class AssetsConfig {
     return allAssets;
   }
 
-  public static getAudioAssets(): BundleFile {
-    return this.AUDIO;
-  }
-
   private static setResolution() {
     const multiResolutionAssets: BundleFile = {
       bundles: [...AssetsConfig.SPRITESHEETS.bundles],
     };
 
-    multiResolutionAssets.bundles.forEach((bundle: Bundle) => {
-      // Only process AssetBundle (not AudioBundle) for resolution replacement
-      if (Array.isArray(bundle.assets) && bundle.assets.length > 0) {
-        const firstAsset = bundle.assets[0];
-        // Check if it's AssetBundle (has src as string) vs AudioBundle (has channel)
-        if ('src' in firstAsset && typeof firstAsset.src === 'string' && !('channel' in firstAsset)) {
-          (bundle.assets as AssetBundle).forEach((asset: AssetBundle[number]) => {
-            asset.src = asset.src.replace("{{resolution}}", this.RES);
-          });
-        }
-      }
+    multiResolutionAssets.bundles.forEach((bundle: any) => {
+      bundle.assets.forEach((asset: any) => {
+        asset.src = (asset.src as string).replace("{{resolution}}", this.RES);
+      });
     });
   }
 
