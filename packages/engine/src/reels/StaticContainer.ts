@@ -418,10 +418,8 @@ export class StaticContainer extends Container {
                 }
                 break;
             case 4:
-                if (this._adrenalinePhase) {
-                    this._adrenalinePhase = false;
-                    signals.emit("stopAdrenalineEffect");
-                }
+                this._adrenalinePhase = false;
+                signals.emit("stopAdrenalineEffect");
                 break;
         }
 
