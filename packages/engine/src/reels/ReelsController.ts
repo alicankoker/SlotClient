@@ -1,21 +1,13 @@
 import { Application } from "pixi.js";
 import { ReelsContainer } from "./ReelsContainer";
-import { ReelController, IReelMode } from "./ReelController";
+import { ReelController } from "./ReelController";
 import { StaticContainer } from "./StaticContainer";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { Helpers } from "../utils/Helpers";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
 import { debug } from "../utils/debug";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 import { SpinContainer } from "./SpinContainer";
 import { ISpinState, SpinMode } from "../types/ISpinConfig";
-import { GridData } from "../types/ICommunication";
-import { WinConfig } from "../types/IWinPresentation";
-import { AnimationContainer } from "../components/AnimationContainer";
-import { GameDataManager } from "../data/GameDataManager";
-import { eventBus } from "@slotclient/types";
-import { AutoPlayController } from "../AutoPlay/AutoPlayController";
-import { FreeSpinController } from "../freeSpin/FreeSpinController";
 
 export class ReelsController {
   private app: Application;
@@ -59,6 +51,7 @@ export class ReelsController {
   public setReelsContainer(reelsContainer: ReelsContainer): void {
     this.reelsContainer = reelsContainer;
   }
+
   // Mode management
   public async setMode(mode: ISpinState): Promise<void> {
     if (this.currentMode === mode) return;
@@ -83,119 +76,6 @@ export class ReelsController {
     }
   }
 
-  /**
-   * @description Check the win condition for the current spin. Currently, it always returns true. It must be implemented.
-   * @returns True if the win condition is met, false otherwise.
-   */
-  public checkWinCondition(): boolean {
-    // Implement win condition logic
-    return true; // Placeholder
-  }
-
-  /**
-   * @description Set random win display data.
-   * @returns The win configuration data.
-   */
-  private setWinDisplayData(): WinConfig {
-    // Implement win display data logic
-    const multiplier: number = Math.max(1, Math.floor(Math.random() * 5)); // Placeholder for multiplier
-    const amount: number = Math.round(Math.random() * 100) * multiplier; // Placeholder for win amount with multiplier (if multiplier bigger than 1)
-    const line: number = Math.floor(Math.random() * 25) + 1; // Placeholder for line
-    const length = Math.max(
-      Math.round(Math.random() * GameRulesConfig.GRID.reelCount),
-      3
-    );
-    const baseLine = GameRulesConfig.WINNING_LINES[line];
-    const symbolIds: number[] = baseLine.slice(0, length); // Placeholder for symbol IDs
-
-    return {
-      multiplier,
-      amount,
-      line,
-      symbolIds,
-    };
-  }
-
-  /**
-   * @description Play a random win animation.
-   * @param isSkipped Whether the animation is skipped.
-   */
-  public async setupWinAnimation(isSkipped: boolean = false): Promise<void> {
-    // set win display datas
-    const spinResultData = GameDataManager.getInstance().getLastSpinResult();
-    let winConfigs: WinConfig[] = [];
-
-    if (spinResultData?.ws.length! <= 0) {
-      if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
-        eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
-      }
-
-      this.resetWinAnimations();
-      return;
-    }
-
-    if (spinResultData) {
-      for (const winData of spinResultData.ws) {
-        const winConfig: WinConfig = {
-          symbolIds: winData.positions,
-          line: winData.line,
-          amount: winData.payout,
-          multiplier: Math.max(1, Math.floor(Math.random() * 5))
-        }
-
-        winConfigs.push(winConfig);
-      }
-    }
-
-    const staticContainer = this.reelsContainer.getStaticContainer();
-    const winLines = this.reelsContainer.getWinLines();
-
-    if (winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
-      winLines.visible = true;
-    }
-
-    const winDatas = [...winConfigs];
-    const amount = winConfigs.reduce((sum, win) => sum + win.amount, 0);
-    const lines = winConfigs.map(win => win.line);
-
-    eventBus.emit("onWin", amount);
-
-    // Play the win animations. If skipped, play the skipped animation, otherwise play the full animation.
-    if (isSkipped) {
-      await staticContainer?.playSkippedWinAnimation(amount, lines);
-    } else {
-      await staticContainer?.setupAnimation(winDatas);
-    }
-  }
-
-  /**
-   * @description Skip all win animations.
-   */
-  public skipWinAnimations(): void {
-    AnimationContainer.instance().stopTotalWinAnimation();
-    this.reelsContainer.getStaticContainer()?.skipWinAnimations();
-  }
-
-  /**
-   * @description Reset all win animations.
-   */
-  public resetWinAnimations(): void {
-    if (!this.reelsContainer) {
-      debug.warn(
-        "ReelsController: reelsContainer not set, skipping resetWinAnimations"
-      );
-      return;
-    }
-
-    const animationContainer = AnimationContainer.instance();
-
-    animationContainer.stopWinTextAnimation();
-
-    const staticContainer = this.reelsContainer.getStaticContainer();
-
-    staticContainer?.resetWinAnimations();
-  }
-
   public getMode(): ISpinState {
     return this.currentMode;
   }
@@ -207,7 +87,7 @@ export class ReelsController {
       return;
     }
 
-    this.resetWinAnimations();
+    //this.resetWinAnimations();
 
     this.isSpinning = true;
     this.spinStartTime = Date.now();

@@ -41,6 +41,7 @@ type eventType = {
     code: string
   };
   setPaytable: any;
+  setFixedLine: number;
 };
 
 class EventManager<Events extends eventType> {

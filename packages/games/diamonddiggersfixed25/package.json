@@ -1,0 +1,39 @@
+{
+  "name": "@slotclient/diamonddiggersfixed25",
+  "version": "1.0.0",
+  "description": "Diamonddiggersfixed25 game implementation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@slotclient/types": "workspace:*",
+    "@slotclient/engine": "workspace:*",
+    "@slotclient/nexus": "workspace:*",
+    "@slotclient/communication": "workspace:*",
+    "@slotclient/config": "workspace:*",
+    "@slotclient/server": "workspace:*",
+    "@esotericsoftware/spine-pixi-v8": "~4.2.0",
+    "gsap": "^3.13.0",
+    "howler": "^2.2.4",
+    "pixi.js": "^8.4.0",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.0",
+    "@types/stats": "^0.16.30",
+    "@types/howler": "^2.2.12",
+    "stats-js": "^1.0.1",
+    "typescript": "^4.9.0",
+    "vite": "^3.2.10"
+  },
+  "peerDependencies": {},
+  "author": "",
+  "license": "ISC"
+}

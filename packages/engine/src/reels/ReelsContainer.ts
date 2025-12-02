@@ -7,7 +7,6 @@ import { GridSymbol } from '../symbol/GridSymbol';
 import { IReelMode } from './ReelController';
 import { debug } from '../utils/debug';
 import { GameRulesConfig } from '@slotclient/config/GameRulesConfig';
-import { WinLines } from '../components/WinLines';
 import { ResponsiveConfig } from '../utils/ResponsiveManager';
 import { AssetsConfig } from '@slotclient/config/AssetsConfig';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
@@ -27,7 +26,6 @@ export class ReelsContainer extends Container {
   // ONE SpinContainer and ONE StaticContainer for entire game
   private spinContainer?: SpinContainer;
   private staticContainer?: StaticContainer;
-  private winLines?: WinLines;
   private frameElementsContainer?: Container;
   private adrenalineElementsContainer!: Container;
   private chains: Spine[] = [];
@@ -118,8 +116,6 @@ export class ReelsContainer extends Container {
     // Create ONE StaticContainer for entire game
     //this.createStaticContainer(symbolHeight);
 
-    this.createWinLines();
-
     if (this.spinContainer) {
       this.spinContainer.mask = this.reelAreaMask;
     }
@@ -149,10 +145,6 @@ export class ReelsContainer extends Container {
         // Add to display
         this.addChild(this.staticContainer);
     }*/
-
-  private createWinLines(): void {
-    this.winLines = WinLines.getInstance();
-  }
 
   private createFrameElements(): void {
     this.frameElementsContainer = new Container();
@@ -378,10 +370,6 @@ export class ReelsContainer extends Container {
     return this.getChildByLabel("StaticContainer") as StaticContainer;
   }
 
-  public getWinLines(): WinLines | undefined {
-    return this.winLines;
-  }
-
   public getAllStaticContainers(): StaticContainer[] {
     return this.staticContainer ? [this.staticContainer] : [];
   }
@@ -410,11 +398,6 @@ export class ReelsContainer extends Container {
     if (this.staticContainer) {
       this.staticContainer.visible = mode === IReelMode.STATIC;
       debug.log("ReelsContainer: Static container visible set to:", this.staticContainer.visible);
-    }
-
-    if (mode === IReelMode.SPINNING && this.winLines) {
-      this.winLines.hideAllLines();
-      debug.log('ReelsContainer: Win lines container visible set to:', this.winLines.visible);
     }
   }
 

@@ -24,6 +24,9 @@
     { "path": "./packages/communication" },
     { "path": "./packages/nexus" },
     { "path": "./packages/server" },
-    { "path": "./packages/games/diamondDiggers" }
+    { "path": "./packages/games/diamonddiggers1" },
+    { "path": "./packages/games/diamonddiggersfixed10" },
+    { "path": "./packages/games/diamonddiggersfixed25" },
+    { "path": "./packages/games/junglejane1" }
   ]
 }

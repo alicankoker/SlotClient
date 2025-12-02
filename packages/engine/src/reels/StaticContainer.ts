@@ -4,18 +4,15 @@ import { SpineSymbol } from '../symbol/SpineSymbol';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { debug } from '../utils/debug';
 import { gsap } from 'gsap';
-import { WinLines } from '../components/WinLines';
 import SoundManager from '../controllers/SoundManager';
 import { WinConfig } from '../types/IWinPresentation';
 import { GridData } from '../types/ICommunication';
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
-import { AnimationContainer } from '../components/AnimationContainer';
 import { eventBus, SpinMode } from '@slotclient/types';
 import { GameDataManager } from '../data/GameDataManager';
 import { Helpers } from '../utils/Helpers';
 import { FreeSpinController } from '../freeSpin/FreeSpinController';
 import { AutoPlayController } from '../AutoPlay/AutoPlayController';
-import { Bonus } from '../components/Bonus';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -28,7 +25,6 @@ export interface StaticContainerConfig {
 export class StaticContainer extends Container {
     private _app: Application;
     private _soundManager: SoundManager;
-    private _winLines: WinLines;
     private _config: StaticContainerConfig;
     private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
     private _winDatas: WinConfig[] = [];
@@ -52,7 +48,6 @@ export class StaticContainer extends Container {
         this.label = 'StaticContainer';
         this._app = app;
         this._soundManager = SoundManager.getInstance();
-        this._winLines = WinLines.getInstance();
         this._config = config;
         this._initialGrid = initialGrid;
 
@@ -151,13 +146,14 @@ export class StaticContainer extends Container {
         this._isLooping = false;
 
         const lines = winDatas.map(winData => winData.line);
-        if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-            this._winLines.showLines(lines);
-        }
 
-        await AnimationContainer.instance().playTotalWinAnimation(totalWinAmount);
+        signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_TOTAL_PLAY, totalWinAmount);
 
-        this._winLines.hideAllLines();
+        signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_SHOW_ALL_LINES, lines);
+
+        await new Promise<void>((resolve) => {
+            signals.once(SIGNAL_EVENTS.WIN_ANIMATION_TOTAL_PLAY_COMPLETE, () => resolve());
+        });
 
         await this.playWinAnimations(winDatas, token);
 
@@ -165,7 +161,7 @@ export class StaticContainer extends Container {
             eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
         }
 
-        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false && Bonus.instance().isActive === false) {
+        if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
             this.playLoopAnimations(winDatas, token);
         }
     }
@@ -198,14 +194,11 @@ export class StaticContainer extends Container {
         for (const winData of winDatas) {
             if (this._animationToken !== token) return;
 
+            await Helpers.delay(100);
             // this._isLooping === false && this._soundManager.play("win", false, 0.75);
-            signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, winData.amount);
+            (GameConfig.WIN_ANIMATION.winlineVisibility && this._isSkipped === false) && signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, winData);
 
-            if (GameConfig.WIN_ANIMATION.winlineVisibility && !this._isSkipped) {
-                this._winLines.showLine(winData.line);
-            }
-
-            this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.setBlackout()));
+            this._isSkipped === false && this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.setBlackout()));
 
             const symbolGroups: number[][] = Array.isArray(winData.symbolIds[0])
                 ? (winData.symbolIds as number[][])
@@ -240,9 +233,7 @@ export class StaticContainer extends Container {
                 if (!this._isSkipped) {
                     this._pendingResolvers = [];
 
-                    if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-                        this._winLines.hideLine(winData.line);
-                    }
+                    signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE);
                 }
             });
 
@@ -295,9 +286,7 @@ export class StaticContainer extends Container {
         this._pendingResolvers.forEach(resolve => resolve());
         this._pendingResolvers = [];
 
-        if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-            this._winLines.hideAllLines();
-        }
+        signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE);
 
         this._symbols.forEach((reelSymbols) => {
             reelSymbols.forEach((symbol) => {
@@ -314,24 +303,21 @@ export class StaticContainer extends Container {
      */
     public async playSkippedWinAnimation(amount: number, lines: number[]): Promise<void> {
         this._isPlaying = true;
+
         return new Promise(async (resolve) => {
-            if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-                this._winLines.showLines(lines);
-            }
+            signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_TOTAL_PLAY, amount);
 
-            await AnimationContainer.instance().playTotalWinAnimation(amount);
+            signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_SHOW_ALL_LINES, lines);
 
-            if (FreeSpinController.instance().isRunning === false) {
-                eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
-            }
+            signals.once(SIGNAL_EVENTS.WIN_ANIMATION_TOTAL_PLAY_COMPLETE, () => {
+                if (FreeSpinController.instance().isRunning === false) {
+                    eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(amount) as string });
+                }
 
-            if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-                this._winLines.hideAllLines();
-            }
+                this._isPlaying = false;
 
-            this._isPlaying = false;
-
-            resolve();
+                resolve();
+            });
         });
     }
 
@@ -342,10 +328,6 @@ export class StaticContainer extends Container {
         this._isLooping = false;
         this._isSkipped = false;
         this._winDatas = [];
-
-        if (GameConfig.WIN_ANIMATION.winlineVisibility) {
-            this._winLines.hideAllLines();
-        }
 
         this._pendingResolvers.forEach(resolve => resolve());
         this._pendingResolvers = [];

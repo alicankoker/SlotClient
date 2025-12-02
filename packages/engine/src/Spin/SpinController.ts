@@ -1,7 +1,6 @@
 // SpinContainer import removed - not directly used in this controller
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
-import { WinEvent } from "../components/WinEvent";
 import { ReelsController } from "../reels/ReelsController";
 import { debug } from "../utils/debug";
 import SoundManager from "../controllers/SoundManager";
@@ -15,16 +14,9 @@ import {
   GridData,
   IResponseData,
   MatchData,
-  SpinResponseData,
-  SpinResultData,
   SymbolData,
 } from "../types/ICommunication";
-import { WinEventType } from "../types/IWinEvents";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
-import { AnimationContainer } from "../components/AnimationContainer";
 import { eventBus } from "@slotclient/types";
-import { signals } from "../controllers/SignalManager";
-import { FreeSpinController } from "../freeSpin/FreeSpinController";
 
 export interface SpinControllerConfig {
   reelsController: ReelsController;
@@ -35,7 +27,6 @@ export interface SpinControllerConfig {
 export abstract class SpinController {
   protected reelsController: ReelsController;
   protected _soundManager: SoundManager;
-  protected _winEvent: WinEvent;
 
   // State management
   protected currentState: ISpinState = ISpinState.IDLE;
@@ -61,7 +52,6 @@ export abstract class SpinController {
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
-    this._winEvent = AnimationContainer.instance().getWinEvent();
     this._symbols = GameDataManager.getInstance().getInitialData()?.history.reels!;
   }
 

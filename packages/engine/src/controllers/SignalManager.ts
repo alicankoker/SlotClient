@@ -156,6 +156,9 @@ export const SIGNAL_EVENTS = {
     WIN_ANIMATION_START: 'win:animation:start',
     WIN_ANIMATION_COMPLETE: 'win:animation:complete',
     WIN_ANIMATION_PLAY: 'win:animation:play',
+    WIN_ANIMATION_SHOW_ALL_LINES: 'win:animation:show_all_lines',
+    WIN_ANIMATION_TOTAL_PLAY: 'win:animation:total_play',
+    WIN_ANIMATION_TOTAL_PLAY_COMPLETE: 'win:animation:total_play:complete',
     
     // System signals
     SCREEN_RESIZE: 'system:resize',
@@ -172,6 +175,7 @@ export const SIGNAL_EVENTS = {
     FREE_SPIN_BEFORE_SPIN: 'freespin:before_spin',
     FREE_SPIN_AFTER_SPIN: 'freespin:after_spin',
     FREE_SPIN_RETRIGGER: 'freespin:retrigger',
+    FREE_SPIN_RETRIGGERED: 'freespin:retriggered',
 } as const;
 
 // Export singleton instance for convenience

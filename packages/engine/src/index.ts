@@ -21,14 +21,6 @@ export * from './Spin/classicSpin/ClassicSpinContainer';
 export * from './Spin/cascade/CascadeSpinController';
 export * from './Spin/cascade/CascadeSpinContainer';
 
-// Components
-export * from './components/AnimationContainer';
-export * from './components/Background';
-export * from './components/Bonus';
-export * from './components/FeatureScreen';
-export * from './components/WinEvent';
-export * from './components/WinLines';
-
 // Utils
 export * from './utils/AssetLoader';
 export * from './utils/Counter';

@@ -8,7 +8,6 @@ import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../..
 import { ISpinState } from "../../types/ISpinConfig";
 import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
-import { AnimationContainer } from "../../components/AnimationContainer";
 import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
 
 export class CascadeSpinController extends SpinController {
@@ -89,23 +88,6 @@ export class CascadeSpinController extends SpinController {
 
             await this.reelsController.setMode(ISpinState.IDLE);
             this.setState(ISpinState.IDLE);
-
-            if (this.reelsController.checkWinCondition()) {
-                if (AutoPlayController.instance().isRunning && GameConfig.AUTO_PLAY.stopOnWin) {
-                    AutoPlayController.instance().stopAutoPlay();
-                }
-
-                if (GameConfig.WIN_EVENT.enabled && response.winEventType !== 'normal') {
-                    const winAmount = response.totalWin;
-                    const backendType = response.winEventType;
-                    const enumType = BackendToWinEventType[backendType]!;
-
-                    await AnimationContainer.instance().playWinEventAnimation(winAmount, enumType);
-                }
-
-                const isSkipped = (AutoPlayController.instance().isRunning && GameDataManager.getInstance().isWinAnimationSkipped && AutoPlayController.instance().autoPlayCount > 0);
-                GameConfig.WIN_ANIMATION.enabled && await this.reelsController.setupWinAnimation(isSkipped);
-            }
 
             /*if (this._isAutoPlaying) {
                 this.continueAutoPlay();

@@ -3,7 +3,6 @@ import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import { GameConfig } from "@slotclient/config/GameConfig";
-import { Background } from "../components/Background";
 
 export class Loader extends Container {
     private static _instance: Loader;
@@ -27,10 +26,13 @@ export class Loader extends Container {
 
     private padding: number = 920; //1533
 
-    private constructor(app: Application) {
+    private constructor(app: Application, background: Container) {
         super();
 
         this.app = app;
+
+        const backgroundContainer = background;
+        this.app?.stage.addChildAt(backgroundContainer, 0);
 
         this.completionPromise = new Promise<void>((resolve) => (this.resolveCompletion = resolve));
         signals.on(SIGNAL_EVENTS.ASSETS_LOADED, this.handleAssetsLoaded);
@@ -40,15 +42,14 @@ export class Loader extends Container {
         this.zIndex = 9999;
     }
 
-    public static getInstance(app: Application): Loader {
+    public static getInstance(app: Application, background: Container): Loader {
         if (!Loader._instance) {
-            Loader._instance = new Loader(app);
+            Loader._instance = new Loader(app, background);
         }
         return Loader._instance;
     }
 
     public async create(): Promise<void> {
-        const backgroundTexture = await Assets.load('base_background');
         const logoTexture = await Assets.load('base_logo');
 
         const fShadow = await Assets.load('loading_bar_shadow');
@@ -56,9 +57,6 @@ export class Loader extends Container {
         const fStrokeBack = await Assets.load('loading_bar_stroke_back');
         const fStrokeFront = await Assets.load('loading_bar_stroke_front');
         const fFill = await Assets.load('loading_bar_fill');
-
-        const backgroundContainer = Background.getInstance(backgroundTexture);
-        this.app?.stage.addChildAt(backgroundContainer, 0);
 
         const logo = Sprite.from(logoTexture);
         logo.label = "LoaderLogo";

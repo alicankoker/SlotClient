@@ -1,6 +1,5 @@
 import type { ISlotGameController } from "@slotclient/types/ISlotGameController";
 import { eventBus } from "@slotclient/types";
-import { AnimationContainer } from "../components/AnimationContainer";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { GameDataManager } from "../data/GameDataManager";
 import { Helpers } from "../utils/Helpers";
@@ -8,7 +7,6 @@ import { Helpers } from "../utils/Helpers";
 export class FreeSpinController {
     private static _instance: FreeSpinController;
     private slotGameController: ISlotGameController;
-    private animationContainer: AnimationContainer;
     private totalWin: number = 0;
     private totalFreeSpins: number = 0;
     private remainingSpins: number = 0;
@@ -19,7 +17,6 @@ export class FreeSpinController {
 
     private constructor(slotGameController: ISlotGameController) {
         this.slotGameController = slotGameController;
-        this.animationContainer = AnimationContainer.instance();
     }
 
     public static getInstance(slotGameController: ISlotGameController): FreeSpinController {
@@ -110,17 +107,17 @@ export class FreeSpinController {
         this.totalFreeSpins += extraCount;
         this.remainingSpins += extraCount;
 
-        this.animationContainer.getDialogCountText().setText(`+${extraCount}`);
-
-        await this.animationContainer.playDialogBoxAnimation();
-
-        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
-
         signals.emit(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, {
             added: extraCount,
             newTotal: this.totalFreeSpins,
             remaining: this.remainingSpins,
         });
+
+        await new Promise<void>((resolve) => {
+            signals.once(SIGNAL_EVENTS.FREE_SPIN_RETRIGGERED, () => resolve());
+        });
+
+        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
     }
 
     /**

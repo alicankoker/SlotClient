@@ -1,18 +1,12 @@
 import { eventBus } from "@slotclient/types";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
-import { GameServer } from "@slotclient/server/GameServer";
 import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
-import { AnimationContainer } from "../../components/AnimationContainer";
-import { Bonus } from "../../components/Bonus";
 import { signals } from "../../controllers/SignalManager";
 import { GameDataManager } from "../../data/GameDataManager";
 import { FreeSpinController } from "../../freeSpin/FreeSpinController";
-import { IReelMode } from "../../reels/ReelController";
-import { StaticContainer } from "../../reels/StaticContainer";
-import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
-import { ISpinState, SpinMode } from "../../types/ISpinConfig";
-import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
+import { IResponseData } from "../../types/ICommunication";
+import { ISpinState } from "../../types/ISpinConfig";
 import { debug } from "../../utils/debug";
 import { Utils } from "../../utils/Utils";
 import { SpinContainer } from "../SpinContainer";
@@ -43,8 +37,6 @@ export class ClassicSpinController extends SpinController {
     }
 
     try {
-      this.reelsController.resetWinAnimations();
-
       this.setState(ISpinState.SPINNING);
 
       this.reelsController.getReelsContainer().setChainAnimation(true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
