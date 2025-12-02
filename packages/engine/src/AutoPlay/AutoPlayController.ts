@@ -1,24 +1,15 @@
+import type { ISlotGameController } from "@slotclient/types/ISlotGameController";
 import { eventBus } from "@slotclient/types";
 import { GameConfig } from "@slotclient/config/GameConfig";
-// TODO: Use dependency injection instead of direct imports
-// import { SlotGameController } from "@slotclient/game/controllers/SlotGameController";
-// import { GameServer } from "@slotclient/server/GameServer";
 import { GameDataManager } from "../data/GameDataManager";
 import { ReelsController } from "../reels/ReelsController";
 import { debug } from "../utils/debug";
-
-// Temporary type declarations until proper dependency injection is implemented
-declare class SlotGameController {
-    executeGameSpin(type: string): Promise<any>;
-}
-declare class GameServer {
-    static getInstance(): GameServer;
-}
+import { signals } from "../controllers/SignalManager";
 
 export class AutoPlayController {
     private static _instance: AutoPlayController;
 
-    private _slotGameController: SlotGameController
+    private _slotGameController: ISlotGameController
     private _reelsController: ReelsController;
     protected _autoPlayCount: number = 0;
     protected _autoPlayed: number = 0;
@@ -26,12 +17,14 @@ export class AutoPlayController {
     protected _autoPlayDuration: number = GameConfig.AUTO_PLAY.delay || 1000;
     protected _autoPlayTimeoutID: ReturnType<typeof setTimeout> | null = null;
 
-    private constructor(slotGameController: SlotGameController, reelsController: ReelsController) {
+    private constructor(slotGameController: ISlotGameController, reelsController: ReelsController) {
         this._slotGameController = slotGameController;
         this._reelsController = reelsController;
+
+        this.eventListeners();
     }
 
-    public static getInstance(slotGameController: SlotGameController, reelsController: ReelsController): AutoPlayController {
+    public static getInstance(slotGameController: ISlotGameController, reelsController: ReelsController): AutoPlayController {
         if (!AutoPlayController._instance) {
             AutoPlayController._instance = new AutoPlayController(slotGameController, reelsController);
         }
@@ -40,6 +33,14 @@ export class AutoPlayController {
 
     public static instance(): AutoPlayController {
         return AutoPlayController._instance;
+    }
+
+    private eventListeners(): void {
+        signals.on("socketError", () => {
+            if (this._isAutoPlaying) {
+                this.stopAutoPlay();
+            }
+        });
     }
 
     /**
@@ -61,6 +62,10 @@ export class AutoPlayController {
             componentNames: ['autoplayButton', 'mobileAutoplayButton'],
             stateOrUpdates: 'spinning',
         })
+        eventBus.emit("setBatchComponentState", {
+            componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
+            stateOrUpdates: { disabled: true }
+        });
         eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
         const staticContainer = this._reelsController.getStaticContainer();
@@ -84,12 +89,17 @@ export class AutoPlayController {
 
         // Set up the auto play timeout
         this._autoPlayTimeoutID = setTimeout(async () => {
-            await this._slotGameController.executeGameSpin('spin');
+            const spinResult = await this._slotGameController.executeGameSpin('spin');
+            
+            if (spinResult === false) {
+                this.stopAutoPlay();
+                return;
+            }
 
             this._autoPlayCount -= 1;
             this._autoPlayed += 1;
 
-           this._autoPlayCount > 0 && eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
+            this._autoPlayCount > 0 && eventBus.emit("setMessageBox", { variant: "autoPlay", message: this._autoPlayCount.toString() });
 
             if (this._autoPlayCount <= 0) {
                 const staticContainer = this._reelsController.getStaticContainer();
@@ -119,6 +129,10 @@ export class AutoPlayController {
         eventBus.emit("setBatchComponentState", {
             componentNames: ['autoplayButton', 'mobileAutoplayButton'],
             stateOrUpdates: 'default',
+        });
+        eventBus.emit("setBatchComponentState", {
+            componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
+            stateOrUpdates: { disabled: false }
         });
         eventBus.emit("setMessageBox");
 

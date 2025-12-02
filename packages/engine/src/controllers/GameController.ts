@@ -1,15 +1,9 @@
 // TODO: Use dependency injection instead of direct imports
-// import { GameServer } from '@slotclient/server/GameServer';
+import { GameServer } from '@slotclient/server/GameServer';
 import { GameConfig } from '@slotclient/config/GameConfig';
 import { debug } from '../utils/debug';
 import { SpinResultData, CascadeStepData, SpinRequestData } from '../types/ICommunication';
 import { GameState } from '../types/IGameStates';
-
-// Temporary type declaration until proper dependency injection is implemented
-declare class GameServer {
-    static getInstance(): GameServer;
-    processRequest(type: string, data?: any): Promise<any>;
-}
 
 export class GameController {
     private static instance: GameController;
@@ -20,7 +14,6 @@ export class GameController {
     private onCascadeStepCallback?: (step: CascadeStepData) => void;
 
     private constructor() {
-        // @ts-ignore - Temporary until dependency injection is implemented
         this.gameServer = GameServer.getInstance();
         this.gameState = {
             currentStep: 0,

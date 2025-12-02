@@ -1,4 +1,4 @@
-import { Application, Text } from "pixi.js";
+import { Application, ColorMatrixFilter, Text } from "pixi.js";
 import { SlotGameController } from "./controllers/SlotGameController";
 import { ReelsController } from "@slotclient/engine/reels/ReelsController";
 import { ResponsiveManager } from "@slotclient/engine/utils/ResponsiveManager";
@@ -29,6 +29,7 @@ import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayController";
 import { signals } from "@slotclient/engine/controllers/SignalManager";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
+import payoutData from "./payout.json";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -63,11 +64,16 @@ export class DoodleV8Main {
       const gameDataManager = GameDataManager.getInstance();
 
       // Step 3: Load assets with progress bar BEFORE creating controllers (symbols need textures)
-      await Promise.all([
-        this.loadAssets(this.assetResolutionChooser.assetSize.name),
-        this.loadAudioAssets(),
-        this.startLoader(),
-      ]);
+      try {
+        await Promise.all([
+          this.loadAssets(this.assetResolutionChooser.assetSize.name),
+          //this.loadAudioAssets(),
+          this.startLoader(),
+        ]);
+      } catch (err) {
+        console.error("Game failed to start:", err);
+        return;
+      }
 
       // Initialize SlotGameController first (needed for grid generation)
       this.slotGameController = new SlotGameController(this.app);
@@ -83,14 +89,14 @@ export class DoodleV8Main {
       const storage = Storage.getInstance();
       storage.setItem("player_balance", 1000);
 
-      // if (localStorage.getItem('featureScreenDontShow') !== 'true') {
-      //   const featureScreen = new FeatureScreen(this.app);
-      //   this.app.stage.addChildAt(featureScreen, this.app.stage.children.length);
+      if (localStorage.getItem('featureScreenDontShow') !== 'true') {
+        const featureScreen = new FeatureScreen(this.app);
+        this.app.stage.addChildAt(featureScreen, this.app.stage.children.length);
 
-      //   this.responsiveManager.onResize();
+        this.responsiveManager.onResize();
 
-      //   await featureScreen.waitForClose();
-      // }
+        await featureScreen.waitForClose();
+      }
 
       // Step 4: Initialize controllers (now that assets are loaded)
       this.initializeControllers(initData as GridData);
@@ -107,10 +113,21 @@ export class DoodleV8Main {
 
       let isKeyHeld = false;
       let isSpinning = false;
+      let currentSpinSpeed = 1; // Track current spin speed
 
       signals.on("spinCompleted", () => {
         isSpinning = false;
-      })
+
+        // Restore the last set spin speed
+        spinSpeed(currentSpinSpeed);
+
+        if (this.slotGameController && this.slotGameController.getFreeSpinController().isRunning === false) {
+          eventBus.emit("setBatchComponentState", {
+            componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton', 'spinButton'],
+            stateOrUpdates: { disabled: false }
+          });
+        }
+      });
 
       window.addEventListener("keyup", (event) => {
         if (event.code === "Space") isKeyHeld = false;
@@ -122,18 +139,16 @@ export class DoodleV8Main {
 
       const spin = async () => {
         debug.log("🎲 Manual spin triggered");
-        if (this.slotGameController?.spinController) {
-          if (
-            this.slotGameController.spinController.getIsSpinning() === false &&
-            this.winEvent.isWinEventActive === false &&
-            this.slotGameController.getAutoPlayController().isRunning === false &&
-            this.slotGameController.getFreeSpinController().isRunning === false &&
-            Bonus.instance().isActive === false
-          ) {
-            isSpinning = true;
-            await this.slotGameController.executeGameSpin('spin');
-            isKeyHeld = false;
-          }
+        if (this.slotGameController?.spinController &&
+          this.slotGameController.spinController.getIsSpinning() === false &&
+          this.winEvent.isWinEventActive === false &&
+          this.slotGameController.getAutoPlayController().isRunning === false &&
+          this.slotGameController.getFreeSpinController().isRunning === false &&
+          Bonus.instance().isActive === false
+        ) {
+          isSpinning = true;
+          await this.slotGameController.executeGameSpin('spin');
+          isKeyHeld = false;
         }
       }
 
@@ -142,18 +157,20 @@ export class DoodleV8Main {
           this.slotGameController.reelsController.skipWinAnimations();
         }
 
+        if (isKeyHeld || isSpinning) return;
+
+        await spin();
+      });
+
+      eventBus.on("stopSpin", () => {
         if (
           this.slotGameController?.spinController &&
           this.slotGameController.spinController.getIsSpinning() &&
-          this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL &&
+          (this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
           GameConfig.FORCE_STOP.enabled
         ) {
           this.slotGameController.spinController.forceStop();
         }
-
-        if (isKeyHeld || isSpinning) return;
-
-        await spin();
       });
 
       eventBus.on("startAutoPlay", async (autoSpinCount) => {
@@ -166,7 +183,6 @@ export class DoodleV8Main {
           this.slotGameController.getFreeSpinController().isRunning === false &&
           Bonus.instance().isActive === false
         ) {
-          // usage: window.dispatchEvent(new CustomEvent("startAutoPlay", { detail: {numberOfAutoSpins: 5, selectedSpinType: "skip"} }));
           await this.slotGameController.getAutoPlayController().startAutoPlay(autoSpinCount);
         }
       });
@@ -187,7 +203,7 @@ export class DoodleV8Main {
       });
 
       eventBus.on("setLine", (line) => {
-        gameDataManager.setLine(line);
+        gameDataManager.setCurrentLine(line);
         WinLines.getInstance().setAvailableLines(line);
       });
 
@@ -196,30 +212,38 @@ export class DoodleV8Main {
       });
 
       eventBus.on("setSpinSpeed", (phase) => {
+        currentSpinSpeed = phase; // Save the current spin speed
+        spinSpeed(phase);
+      });
+
+      const spinSpeed = (phase: number) => {
         switch (phase) {
           case 1:
-            if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.NORMAL) {
+            if (this.slotGameController?.spinController) {
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.NORMAL as SpinMode);
             }
             break;
           case 2:
-            if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.FAST) {
-              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
+            if (this.slotGameController?.spinController) {
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
             }
             break;
           case 3:
-            if (this.slotGameController?.spinController && this.slotGameController.spinController.getSpinMode() !== GameConfig.SPIN_MODES.TURBO) {
-              this.slotGameController.spinController.getIsSpinning() === true && this.slotGameController.spinController.forceStop();
+            if (this.slotGameController?.spinController) {
               this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
             }
             break;
         }
-      });
+      }
+
+      eventBus.emit("setPaytable", payoutData);
+
+      eventBus.emit("setVolume", 50);
+      SoundManager.getInstance().setVolume(50);
 
       eventBus.on("setVolume", (value) => {
         SoundManager.getInstance().setVolume(value);
-      })
+      });
 
       window.addEventListener("keydown", async (event: KeyboardEvent) => {
         switch (event.code) {
@@ -231,7 +255,7 @@ export class DoodleV8Main {
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getIsSpinning() &&
-              this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL &&
+              (this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
               GameConfig.FORCE_STOP.enabled
             ) {
               this.slotGameController.spinController.forceStop();
@@ -242,34 +266,6 @@ export class DoodleV8Main {
             isKeyHeld = true;
 
             await spin();
-            break;
-          case "KeyF":
-            debug.log("🔄 Force stop triggered");
-            if (
-              this.slotGameController?.spinController &&
-              this.slotGameController.spinController.getIsSpinning() &&
-              GameConfig.FORCE_STOP.enabled
-            ) {
-              this.slotGameController.spinController.forceStop();
-            }
-            break;
-          case "KeyB":
-            debug.log("🎉 Show big win animation");
-            if (
-              this.winEvent &&
-              GameConfig.WIN_EVENT.enabled &&
-              !this.slotGameController?.reelsController?.getIsSpinning()
-            ) {
-              AnimationContainer.getInstance().playWinEventAnimation(15250, WinEventType.EPIC); // Example big win amount and type
-            }
-            break;
-          case "KeyS":
-            AnimationContainer.getInstance().getPopupCountText().setText("X$1354€");
-            AnimationContainer.getInstance().playPopupAnimation();
-            break;
-          case "KeyD":
-            AnimationContainer.getInstance().getDialogCountText().setText("+5");
-            AnimationContainer.getInstance().playDialogBoxAnimation();
             break;
         }
       });
@@ -322,6 +318,20 @@ export class DoodleV8Main {
     // this.app.canvas.onclick = () => {
     //   alert("Canvas clicked!");
     // }
+
+    signals.on("socketError", (reason) => {
+      const matrix = [
+        0.3, 0.6, 0.1, 0, 0,
+        0.3, 0.6, 0.1, 0, 0,
+        0.3, 0.6, 0.1, 0, 0,
+        0, 0, 0, 1, 0,
+      ] as const;
+      const grayFilter = new ColorMatrixFilter();
+      grayFilter.matrix = matrix as any;
+      this.app.stage.filters = [grayFilter];
+      this.app.stage.interactive = false;
+      this.app.stage.interactiveChildren = false;
+    });
 
     // Add to DOM
     document.getElementById("pixi-container")?.appendChild(this.app.canvas);
@@ -401,25 +411,25 @@ export class DoodleV8Main {
     await this.assetLoader.loadBundles(AssetsConfig.getAllAssets(res));
   }
 
-  private async loadAudioAssets(): Promise<void> {
-    // Load audio separately through SoundManager (not PixiJS Assets)
-    const audioBundle = AssetsConfig.getAudioAssets();
-    const soundBundle = audioBundle.bundles.find((bundle) => bundle.name === "audio");
-    if (soundBundle) {
-      const soundManager = SoundManager.getInstance();
-      const { assets } = soundBundle as { assets: AudioBundle };
-      assets.forEach((asset) => {
-        soundManager.add([
-          {
-            alias: Array.isArray(asset.alias) ? asset.alias[0] : asset.alias,
-            src: Array.isArray(asset.src) ? asset.src[0] : asset.src,
-            channel: (asset.channel as "sfx" | "music") || "sfx",
-          },
-        ]);
-      });
-      debug.log("Audio assets loaded via SoundManager");
-    }
-  }
+  // private async loadAudioAssets(): Promise<void> {
+  //   // Load audio separately through SoundManager (not PixiJS Assets)
+  //   const audioBundle = AssetsConfig.getAudioAssets();
+  //   const soundBundle = audioBundle.bundles.find((bundle) => bundle.name === "audio");
+  //   if (soundBundle) {
+  //     const soundManager = SoundManager.getInstance();
+  //     const { assets } = soundBundle as { assets: AudioBundle };
+  //     assets.forEach((asset) => {
+  //       soundManager.add([
+  //         {
+  //           alias: Array.isArray(asset.alias) ? asset.alias[0] : asset.alias,
+  //           src: Array.isArray(asset.src) ? asset.src[0] : asset.src,
+  //           channel: (asset.channel as "sfx" | "music") || "sfx",
+  //         },
+  //       ]);
+  //     });
+  //     debug.log("Audio assets loaded via SoundManager");
+  //   }
+  // }
 
   private async createScene(): Promise<void> {
     //if (!this.reelsController) return;
@@ -446,11 +456,11 @@ export class DoodleV8Main {
     }
     this.app.stage.addChild(bonusScene);
 
-    const animationContainer = AnimationContainer.getInstance();
+    const animationContainer = AnimationContainer.instance();
     bonusScene.isActive && animationContainer.setBonusMode(true);
     this.app.stage.addChild(animationContainer);
 
-    this.winEvent = AnimationContainer.getInstance().getWinEvent();
+    this.winEvent = AnimationContainer.instance().getWinEvent();
 
     //TO-DO: this needs to be moved to Nexus
     const defaultPlayer = this.slotGameController?.getDefaultPlayer();

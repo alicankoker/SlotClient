@@ -80,8 +80,8 @@ export class CascadeSpinController extends SpinController {
             this.setState(ISpinState.COMPLETED);
             this.reelsController.getReelsContainer()?.getSpinContainer()?.stopSpin();
 
-            this._soundManager.stop('spin');
-            this._soundManager.play('stop', false, 0.75); // Play stop sound effect
+            // this._soundManager.stop('spin');
+            // this._soundManager.play('stop', false, 0.75); // Play stop sound effect
 
             // if (this.onSpinCompleteCallback) {
             //     this.onSpinCompleteCallback(response);
@@ -100,7 +100,7 @@ export class CascadeSpinController extends SpinController {
                     const backendType = response.winEventType;
                     const enumType = BackendToWinEventType[backendType]!;
 
-                    await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+                    await AnimationContainer.instance().playWinEventAnimation(winAmount, enumType);
                 }
 
                 const isSkipped = (AutoPlayController.instance().isRunning && GameDataManager.getInstance().isWinAnimationSkipped && AutoPlayController.instance().autoPlayCount > 0);

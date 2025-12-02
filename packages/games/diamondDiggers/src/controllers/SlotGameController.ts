@@ -1,10 +1,10 @@
 import { Nexus, PlayerController, INexusPlayerData, SpinTransaction } from '@slotclient/nexus';
 import { GameServer } from '@slotclient/server';
-import { 
-    SpinResultData, 
-    CascadeStepData, 
-    GridData, 
-    IResponseData, 
+import {
+    SpinResultData,
+    CascadeStepData,
+    GridData,
+    IResponseData,
     IPayload,
     SpinController,
     SpinContainer,
@@ -28,6 +28,8 @@ import {
 import { Application } from 'pixi.js';
 import { GameConfig, spinContainerConfig } from '@slotclient/config/GameConfig';
 import { eventBus } from '@slotclient/types';
+import { WinLines } from '@slotclient/engine/components/WinLines';
+import { ISlotGameController } from '@slotclient/types/ISlotGameController';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -43,7 +45,7 @@ export interface SlotSpinResponse {
     playerState?: INexusPlayerData;
 }
 
-export class SlotGameController {
+export class SlotGameController implements ISlotGameController {
     private static slotGameInstance: SlotGameController;
     private nexusInstance: Nexus;
     private playerController: PlayerController;
@@ -88,7 +90,7 @@ export class SlotGameController {
         }, initialGridData as number[][]);
 
         this.background = Background.getInstance();
-        this.animationContainer = AnimationContainer.getInstance();
+        this.animationContainer = AnimationContainer.getInstance(this.app);
 
         this.reelsContainer.addChild(this.spinContainer);
         this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
@@ -195,14 +197,11 @@ export class SlotGameController {
 
     private eventListeners(): void {
         signals.on("allReelsLanded", async () => {
-            console.log("All reels landed");
             this.reelsContainer.setChainAnimation(false, false);
             await this.onAllReelsStopped();
         });
 
-        signals.on("afterSpin", async (response?: IResponseData) => {
-            if (!response) return;
-            console.log("After spin");
+        signals.on("afterSpin", async (response) => {
             await this.onSpinComplete(response);
 
             signals.emit("spinCompleted", response);
@@ -210,14 +209,65 @@ export class SlotGameController {
     }
 
     // Convenience method for executing spins
-    public async executeGameSpin(action: IPayload["action"]): Promise<void> {
-        const response = await this.gameServer.processRequest(action);
+    public async executeGameSpin(action: IPayload["action"]): Promise<void | boolean> {
+        const balance: number = GameDataManager.getInstance().getResponseData()?.balance.after ?? GameDataManager.getInstance().getInitialData()!.balance ?? 0;
+        const betValues: number[] = GameDataManager.getInstance().getBetValues();
+        const betValueIndex: number = GameDataManager.getInstance().getBetValueIndex();
+        const maxLines: number = GameDataManager.getInstance().getMaxLine();
+        const line: number = GameDataManager.getInstance().getCurrentLine();
+        const bet: number = betValues[betValueIndex] * line;
 
-        eventBus.emit("setSpinId", response._id.toString());
-        eventBus.emit("setBalance", response.balance.before);
+        if ((balance - bet) < 0) {
+            for (let betIndex = betValues.length - 1; betIndex >= 0; betIndex--) {
+                const betValue = betValues[betIndex];
 
-        if (this.spinController && response) {
-            await this.spinController.executeSpin();
+                for (let lineIndex = maxLines; lineIndex > 0; lineIndex--) {
+                    const adjustedBet = betValue * lineIndex;
+
+                    if (balance - adjustedBet >= 0) {
+                        WinLines.getInstance().setAvailableLines(lineIndex);
+                        GameDataManager.getInstance().setCurrentLine(lineIndex);
+                        GameDataManager.getInstance().setBetValueIndex(betIndex);
+
+                        eventBus.emit("setLine", lineIndex);
+                        eventBus.emit("setBetValueIndex", betIndex);
+                        eventBus.emit("showToast", { type: "info", message: "Bet adjusted due to insufficient balance!" });
+                        eventBus.emit("setMessageBox");
+
+                        signals.emit("spinCompleted");
+
+                        return false;
+                    }
+                }
+            }
+
+            eventBus.emit("showToast", { type: "warning", message: "Insufficient Balance to place a spin!" });
+            eventBus.emit("setMessageBox");
+
+            signals.emit("spinCompleted");
+
+            return false;
+        } else {
+            const response: IResponseData = await this.gameServer.processRequest(action);
+
+            eventBus.emit("setSpinId", response._id.toString());
+            eventBus.emit("setBalance", response.balance.before);
+
+            if (this.spinController && response) {
+                if (this.autoPlayController.isRunning) {
+                    eventBus.emit("setBatchComponentState", {
+                        componentNames: ['mobileBetButton', 'betButton', 'settingsButton', 'creditButton'],
+                        stateOrUpdates: { disabled: true }
+                    });
+                } else {
+                    eventBus.emit("setBatchComponentState", {
+                        componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                        stateOrUpdates: { disabled: true }
+                    });
+                }
+
+                await this.spinController.executeSpin();
+            }
         }
     }
 
@@ -238,7 +288,7 @@ export class SlotGameController {
             const enumType = BackendToWinEventType[backendType]!;
 
             eventBus.emit("hideUI");
-            await AnimationContainer.getInstance().playWinEventAnimation(winAmount, enumType);
+            await this.animationContainer.playWinEventAnimation(winAmount, enumType);
             eventBus.emit("showUI");
         }
 
@@ -279,7 +329,10 @@ export class SlotGameController {
             this.background.setFreeSpinMode(true);
             this.animationContainer.getWinLines().setFreeSpinMode(true);
 
-            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: true } });
+            eventBus.emit("setBatchComponentState", {
+                componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                stateOrUpdates: { disabled: true }
+            });
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
             eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
         });
@@ -295,7 +348,17 @@ export class SlotGameController {
         await this.animationContainer.playPopupAnimation();
 
         await this.animationContainer.startTransitionAnimation(() => {
-            eventBus.emit("setBatchComponentState", { componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton'], stateOrUpdates: { disabled: false } });
+            if (this.autoPlayController.isRunning) {
+                eventBus.emit("setBatchComponentState", {
+                    componentNames: ['autoplayButton', 'mobileAutoplayButton'],
+                    stateOrUpdates: { disabled: false }
+                });
+            } else {
+                eventBus.emit("setBatchComponentState", {
+                    componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
+                    stateOrUpdates: { disabled: false }
+                });
+            }
             this.reelsContainer.setFreeSpinMode(false);
             this.background.setFreeSpinMode(false);
             this.animationContainer.getWinLines().setFreeSpinMode(false);
@@ -360,4 +423,4 @@ export class SlotGameController {
     public getAutoPlayController(): AutoPlayController {
         return this.autoPlayController;
     }
-} 
+}

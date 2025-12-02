@@ -3,6 +3,8 @@ import { IPayload } from "@slotclient/engine/types/ICommunication";
 import { getConnectionConfig } from "@slotclient/config";
 import { io, Socket } from "socket.io-client";
 import { Nexus } from "@slotclient/nexus";
+import { eventBus } from '@slotclient/types';
+import { signals } from "@slotclient/engine/controllers/SignalManager";
 
 export class SocketConnection {
     private static instance: SocketConnection;
@@ -28,22 +30,36 @@ export class SocketConnection {
             this._socket.on("connect", () => {
                 console.log("Connected to backend via Socket.IO:", this._socket.id);
 
-                this._socket.on("disconnect", (reason) => {
-                    reject(new Error(`Disconnected: ${reason}`));
-                });
-
-                this._socket.on("connect_error", (err) => {
-                    reject(new Error(`Connection error: ${err.message}`));
-                });
-
-                this._socket.on("error", (error: any) => {
-                    const errorMessage = error?.message || error?.toString() || String(error) || 'Unknown socket error';
-                    reject(new Error(`Socket error: ${errorMessage}`));
-                    console.error("Socket error:", error);
+                this._socket.on("connect_error", (status) => {
+                    reject(new Error(`Connection error: ${status.message}`));
                 });
 
                 this._socket.on("reconnect", (attemptNumber) => {
                     console.log(`Reconnected after ${attemptNumber} attempts`);
+                });
+
+                this._socket.on("disconnect", () => {
+                    // disconnected
+                    eventBus.emit("showErrorPopup", { code: "disconnected" });
+                    signals.emit("socketError", "disconnected");
+                    console.warn("Socket error:", "disconnected");
+                    reject(new Error(`Socket error: disconnected`));
+                });
+
+                this._socket.on("error", (status) => {
+                    // invalid session - session expired
+                    eventBus.emit("showErrorPopup", { code: status.code });
+                    signals.emit("socketError", status.message);
+                    console.warn("Socket error:", status.code);
+                    reject(new Error(`Socket error: ${status.message}`));
+                });
+
+                this._socket.on("duplicate_session", (status) => {
+                    // duplicate session
+                    eventBus.emit("showErrorPopup", { code: status.code });
+                    signals.emit("socketError", status.message);
+                    console.warn("Socket error:", status.code);
+                    reject(new Error(`Socket error: ${status.message}`));
                 });
 
                 this._socket.once("ready", (data: any) => {
@@ -53,6 +69,13 @@ export class SocketConnection {
                     Nexus.getInstance().setUIDefaults(data.data);
                     resolve();
                 });
+            });
+
+            this._socket.on("connect_error", (status) => {
+                eventBus.emit("showErrorPopup", { code: "connect_error" });
+                signals.emit("socketError", status.message);
+                console.warn("Connection error:", status.message);
+                reject(new Error(`Connection error: ${status.message}`));
             });
         });
     }

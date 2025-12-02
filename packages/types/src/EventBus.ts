@@ -33,6 +33,14 @@ type eventType = {
   setLine: number;
   setSpinId: string;
   setVolume: number;
+  showToast: {
+    type: 'info' | 'error' | 'success' | 'warning';
+    message: string;
+  }
+  showErrorPopup: {
+    code: string
+  };
+  setPaytable: any;
 };
 
 class EventManager<Events extends eventType> {

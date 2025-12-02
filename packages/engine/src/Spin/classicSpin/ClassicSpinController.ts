@@ -1,12 +1,7 @@
 import { eventBus } from "@slotclient/types";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
-// TODO: Use dependency injection instead of direct imports
-// import { GameServer } from "@slotclient/server/GameServer";
-// Temporary type declaration until proper dependency injection is implemented
-declare class GameServer {
-    static getInstance(): GameServer;
-}
+import { GameServer } from "@slotclient/server/GameServer";
 import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
 import { AnimationContainer } from "../../components/AnimationContainer";
 import { Bonus } from "../../components/Bonus";
@@ -42,7 +37,10 @@ export class ClassicSpinController extends SpinController {
     this._abortController = new AbortController();
     const signal = this._abortController.signal;
 
-    this._isForceStopped = false;
+    if (this._isForceStopped) {
+      this._isForceStopped = false;
+      this.container.setForceStop(false);
+    }
 
     try {
       this.reelsController.resetWinAnimations();
@@ -77,14 +75,14 @@ export class ClassicSpinController extends SpinController {
 
       this._symbols = response.reels;
 
-      this._soundManager.play("spin", true, 0.75); // Play spin sound effect
+      // this._soundManager.play("spin", true, 0.75); // Play spin sound effect
 
       this.startSpinAnimation(response);
 
       if (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) {
         await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
-        (this.container as ClassicSpinContainer).slowDown();
+        this._isForceStopped === false && (this.container as ClassicSpinContainer).slowDown();
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
       } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
@@ -111,8 +109,8 @@ export class ClassicSpinController extends SpinController {
 
   private eventListeners(): void {
     signals.on("reelStopped", async (reelIndex) => {
-      this._soundManager.play("stop", false, 0.75); // Play stop sound effect
-      reelIndex === GameConfig.GAME_RULES.reelCount - 1 && this._soundManager.stop("spin");
+      // this._soundManager.play("stop", false, 0.75); // Play stop sound effect
+      // reelIndex === GameConfig.GAME_RULES.reelCount - 1 && this._soundManager.stop("spin");
       await this.setReelToStaticContainer(this._symbols[reelIndex], reelIndex as number);
       this.reelsController.getReelsContainer().getStaticContainer()?.playExpectedBonusAnimation(reelIndex, this._symbols[reelIndex]);
     });
@@ -139,6 +137,7 @@ export class ClassicSpinController extends SpinController {
     staticContainer.getSymbols().forEach((symbols) => {
       symbols.forEach((symbol) => {
         symbol.visible = false;
+        symbol.setIdle();
       });
     });
 

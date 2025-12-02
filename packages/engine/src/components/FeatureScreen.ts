@@ -6,17 +6,22 @@ import { FeatureScreenController } from "../featureScreen/FeatureScreenControlle
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import gsap from "gsap";
 import { Helpers } from "../utils/Helpers";
-import { SpriteText } from "../utils/SpriteText";
+import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { AssetsConfig } from "@slotclient/config/AssetsConfig";
+import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 
 export class FeatureScreen extends FeatureScreenContainer {
     private _controller: FeatureScreenController<FeatureScreen>;
     private _logo!: Sprite;
     private _previewContainer!: Container;
+    private _reelContainer!: Container;
+    private _linesContainer!: Container;
     private _spinButtonContainer!: Container;
     private _volatilityContainer!: Container;
     private _dontShowContainer!: Container;
-    private _previewElements: any[][] = [];
-    private _previewText!: SpriteText;
+    private _previewSymbols: Sprite[] = [];
+    private _previewSpecialSymbols: Spine[] = [];
+    private _previewText!: Text;
     private _previewButton!: Sprite;
     private _dontShow: boolean = false;
     private _buttonIndex: number = 0;
@@ -52,170 +57,214 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     protected setupFeatureElements(): void {
+        this.setupPreviewElements();
         this.setupLogo();
-        this.setupPreview();
         this.setupSpinButton();
         this.setupVolatilityIndicator();
         this.setupDontShowButton();
 
+        this.setupPreviewTransition();
+
         this.startPreviewCycle();
     }
-    private setupLogo(): void {
-        this._logo = Sprite.from('base_logo');
-        this._logo.label = 'GameLogo';
-        this._logo.anchor.set(0.5, 0.5);
-        this._logo.position.set(1550, 260);
-        this.addChild(this._logo);
-    }
 
-    private setupPreview(): void {
+    private setupPreviewElements(): void {
         this._previewContainer = new Container();
         this._previewContainer.label = "PreviewContainer";
-        this._previewContainer.position.set(690, 460);
+        this._previewContainer.position.set(690, 540);
         this.addChild(this._previewContainer);
+
+        this._reelContainer = new Container();
+        this._reelContainer.label = "ReelContainer";
+        this._previewContainer.addChild(this._reelContainer);
 
         const previewGridBg = Sprite.from("base_frame_background");
         previewGridBg.label = "PreviewGridBackground";
         previewGridBg.anchor.set(0.5, 0.5);
-        previewGridBg.scale.set(0.75, 0.75);
-        this._previewContainer.addChild(previewGridBg);
+        previewGridBg.position.set(0, -8);
+        previewGridBg.scale.set(0.4, 0.4);
+        this._reelContainer.addChild(previewGridBg);
+
+        const frameElements: Container = new Container();
+        frameElements.label = "FrameElements";
+        this._reelContainer.addChild(frameElements);
+
+        for (let cIndex = 0; cIndex < 6; cIndex++) {
+            const floorChain = Sprite.from("base_chain");
+            floorChain.label = `FloorChain_${cIndex}`;
+            floorChain.anchor.set(0.5, 0.5);
+            floorChain.scale.set(0.4, 0.4);
+            floorChain.position.set(-485 + (cIndex * 194), -205);
+            frameElements.addChild(floorChain);
+        }
+
+        for (let fIndex = 0; fIndex < 2; fIndex++) {
+            const floor = Sprite.from('base_floor');
+            floor.label = `FloorBase_${fIndex}`;
+            floor.anchor.set(0.5, 0.5);
+            floor.scale.set(0.4, 0.4);
+            floor.position.set(0, -110 + (fIndex * 195));
+            frameElements.addChild(floor);
+
+            for (let cIndex = 0; cIndex < 6; cIndex++) {
+                const hole = Sprite.from('base_chain_hole');
+                hole.label = `ChainHole_${fIndex}_${cIndex}`;
+                hole.anchor.set(0.5, 0.5);
+                hole.scale.set(0.5, 0.5);
+                hole.position.set(-485 + (cIndex * 194), -93 + (fIndex * 195));
+                frameElements.addChild(hole);
+
+                const floorChain = Sprite.from("base_chain");
+                floorChain.label = `FloorChain_${cIndex}`;
+                floorChain.anchor.set(0.5, 0.5);
+                floorChain.scale.set(0.4, 0.4);
+                floorChain.position.set(-485 + (cIndex * 194), 0 + (fIndex * 195));
+                frameElements.addChild(floorChain);
+            }
+        }
 
         const previewGridFrame = Sprite.from("base_frame");
         previewGridFrame.label = 'PreviewGridFrame';
         previewGridFrame.anchor.set(0.5, 0.5);
-        previewGridFrame.position.set(8, 11);
-        previewGridFrame.scale.set(0.745, 0.745);
-        this._previewContainer.addChild(previewGridFrame);
+        previewGridFrame.position.set(5, 30);
+        previewGridFrame.scale.set(0.4, 0.4);
+        this._reelContainer.addChild(previewGridFrame);
 
-        this._previewElements.push([previewGridBg, previewGridFrame, this.setupPreviewSymbols()]);
+        this._setupPreviewSymbols(this._reelContainer);
 
-        const feature1000: Sprite = Sprite.from("game_logo_1000");
-        feature1000.label = "FeatureLogo1000";
-        feature1000.anchor.set(0.5, 0.5);
-        feature1000.position.set(0, 0);
-        feature1000.visible = false;
-        this._previewContainer.addChild(feature1000);
+        this._linesContainer = new Container();
+        this._linesContainer.label = "LinesContainer";
+        this._linesContainer.position.set(-790, -450);
+        this._linesContainer.scale.set(0.82, 0.82);
+        this._linesContainer.visible = false;
+        this._reelContainer.addChild(this._linesContainer);
 
-        this._previewElements.push([feature1000]);
+        this._setupLines(this._linesContainer);
 
-        const featureScatter: Sprite = Sprite.from("game_logo_super_scatter");
-        featureScatter.label = "FeatureLogoSuperScatter";
-        featureScatter.anchor.set(0.5, 0.5);
-        featureScatter.position.set(0, 0);
-        featureScatter.visible = false;
-        this._previewContainer.addChild(featureScatter);
-
-        this._previewElements.push([featureScatter]);
-
-        this._previewText = new SpriteText("Numbers");
+        this._previewText = new Text({
+            text: "",
+            style: GameConfig.style_2.clone()
+        });
         this._previewText.label = "PreviewText";
-        this._previewText.setAnchor(0.5, 0.5);
+        this._previewText.anchor.set(0.5, 0.5);
         this._previewText.position.set(0, 470);
         this._previewContainer.addChild(this._previewText);
 
-        this.setupPreviewTransition();
+        this._previewText.text = this.setPreviewText(0);
     }
 
-    private setupPreviewTransition(): void {
-        const buttonContainer: Container = new Container();
-        buttonContainer.label = "ButtonContainer";
-        buttonContainer.position.set(0, 370);
-        this._previewContainer.addChild(buttonContainer);
-
-        this._previewButton = Sprite.from("slider_button");
-        this._previewButton.label = "Button";
-        this._previewButton.anchor.set(0.5, 0.5);
-        this._previewButton.position.set(-85 + this._buttonIndex * 85, 0);
-        buttonContainer.addChild(this._previewButton);
-
-        for (let index = 0; index < 3; index++) {
-            const buttonFrame = Sprite.from("slider_button_frame");
-            buttonFrame.label = `ButtonFrame${index + 1}`;
-            buttonFrame.anchor.set(0.5, 0.5);
-            buttonFrame.position.set(-85 + index * 85, 0);
-            buttonFrame.interactive = true;
-            buttonFrame.cursor = "pointer";
-            buttonFrame.hitArea = new Circle(0, 0, 30);
-            buttonContainer.addChild(buttonFrame);
-
-            buttonFrame.on("pointerover", () => {
-                gsap.killTweensOf(buttonFrame);
-
-                if (this._buttonIndex === index) return;
-
-                gsap.to(buttonFrame, {
-                    angle: 360,
-                    duration: 2,
-                    ease: "none",
-                    repeat: -1,
-                });
-            });
-            buttonFrame.on("pointerout", () => {
-                gsap.killTweensOf(buttonFrame);
-
-                if (this._buttonIndex === index) return;
-
-                buttonFrame.angle = 0;
-            });
-            buttonFrame.on("pointerup", () => {
-                this.setButtonIndex(index);
-
-                if (this._buttonIndex === index) return;
-
-                gsap.killTweensOf(buttonFrame);
-                buttonFrame.angle = 0;
-            });
-        }
-    }
-
-    private setupPreviewSymbols(): Container {
+    private _setupPreviewSymbols(parent: Container): Container {
         const symbolsContainer = new Container();
         symbolsContainer.label = "SymbolsContainer";
-        this._previewContainer.addChild(symbolsContainer);
+        parent.addChild(symbolsContainer);
 
-        const grid = Helpers.createGrid(6, 5, 0, 0, 15, -20);
-        const symbolNames = Array.from({ length: grid.length }, () => `Symbol_${Math.floor(Math.random() * 11) + 1}`);
+        const grid = Helpers.createGrid(5, 3, 0, 0, 45, 40);
+        const forbidden = [8, 10];
+        const allowed = Array.from({ length: 10 }, (_, i) => i + 1).filter(n => !forbidden.includes(n));
+
+        const symbolNames = Array.from({ length: grid.length }, () => {
+            const random = allowed[Math.floor(Math.random() * allowed.length)];
+            return `${random}`;
+        });
 
         for (let index = 0; index < grid.length; index++) {
             const position = grid[index];
             const symbol = Sprite.from(symbolNames[index]);
             symbol.label = "Preview" + symbolNames[index];
             symbol.anchor.set(0.5, 0.5);
-            symbol.scale.set(0.75, 0.75);
+            symbol.scale.set(0.15, 0.15);
             symbol.position.set(position.x, position.y);
             symbolsContainer.addChild(symbol);
+
+            this._previewSymbols.push(symbol);
         }
 
+        const specialSymbolContainer = new Container();
+        specialSymbolContainer.label = "SpecialSymbolContainer";
+        parent.addChild(specialSymbolContainer);
+
+        for (let index = 0; index < 6; index++) {
+            const { atlas, skeleton } = AssetsConfig.SYMBOL_SPINE_ASSET;
+            const specialSymbol = Spine.from({ atlas, skeleton });
+            specialSymbol.label = "PreviewSpecialSymbol" + index;
+            specialSymbol.scale.set(0.15, 0.15);
+            specialSymbol.visible = false;
+            specialSymbolContainer.addChild(specialSymbol);
+
+            this._previewSpecialSymbols.push(specialSymbol);
+        }
+
+        this.setSpecialSymbolVisibility(0);
+
         return symbolsContainer;
+    }
+
+    private _setupLines(parent: Container): void {
+        for (let index = 0; index < 2; index++) {
+            const chain = Sprite.from(`base_line_chain`);
+            chain.label = `LineChain_${index}`;
+            chain.anchor.set(0.5, 0.5);
+            chain.scale.set(0.5, 0.5);
+            chain.position.set(318 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
+            parent.addChild(chain);
+        }
+
+        for (const key of Object.keys(GameRulesConfig.LINE_NUMBER_POSITION)) {
+            const position = GameRulesConfig.LINE_NUMBER_POSITION[Number(key)];
+            const texture = Sprite.from(`base_line_holder`);
+            texture.label = `LineHolderTexture_${key}`;
+            texture.anchor.set(0.5, 0.5);
+            texture.scale.set(0.5, 0.5);
+            texture.position.set((GameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (GameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
+            parent.addChild(texture);
+
+            const text = new Text({
+                text: key.toString(),
+                style: GameConfig.style_1.clone()
+            });
+            text.style.fontSize = 56;
+            text.anchor.set(0.5, 0.5);
+            text.position.set(0, -10);
+            texture.addChild(text);
+        }
+    }
+
+    private setupLogo(): void {
+        this._logo = Sprite.from('base_logo');
+        this._logo.label = 'GameLogo';
+        this._logo.anchor.set(0.5, 0.5);
+        this._logo.scale.set(0.5, 0.5);
+        this._logo.position.set(1615, 280);
+        this.addChild(this._logo);
     }
 
     private setupSpinButton(): void {
         this._spinButtonContainer = new Container();
         this._spinButtonContainer.label = "SpinButtonContainer";
-        this._spinButtonContainer.position.set(1550, 620);
+        this._spinButtonContainer.position.set(1615, 560);
         this._spinButtonContainer.interactive = true;
         this._spinButtonContainer.cursor = "pointer";
         this.addChild(this._spinButtonContainer);
 
-        const spinButtonFrame = Sprite.from("spin_button");
+        const spinButtonFrame = Sprite.from("splash_spin_button");
         spinButtonFrame.label = "SpinButtonFrame";
         spinButtonFrame.anchor.set(0.5, 0.5);
         spinButtonFrame.hitArea = new Circle(0, 0, 91);
         this._spinButtonContainer.addChild(spinButtonFrame);
 
-        const spinButton = Sprite.from("spin_button");
+        const spinButton = Sprite.from("splash_spin_button");
         spinButton.label = "SpinButton";
         spinButton.anchor.set(0.5, 0.5);
         spinButton.scale.set(0.97, 0.97);
         spinButton.tint = 0x30343c;
         this._spinButtonContainer.addChild(spinButton);
 
-        const spinButtonIcon = Sprite.from("spin_button_icon");
+        const spinButtonIcon = Sprite.from("splash_spin_button_icon");
         spinButtonIcon.label = "SpinButtonIcon";
         spinButtonIcon.anchor.set(0.5, 0.5);
         this._spinButtonContainer.addChild(spinButtonIcon);
 
-        const spinButtonTextPlace = Sprite.from("spin_button");
+        const spinButtonTextPlace = Sprite.from("splash_spin_button");
         spinButtonTextPlace.label = "SpinButtonTextPlace";
         spinButtonTextPlace.anchor.set(0.5, 0.5);
         spinButtonTextPlace.scale.set(0.55, 0.55);
@@ -251,7 +300,7 @@ export class FeatureScreen extends FeatureScreenContainer {
             this._spinButtonContainer.off("pointerover");
             this._spinButtonContainer.off("pointerout");
             this._spinButtonContainer.off("pointerup");
-            this._spinButtonContainer.interactive = false;            
+            this._spinButtonContainer.interactive = false;
 
             const element = document.documentElement;
             if (!document.fullscreenElement && element.requestFullscreen) {
@@ -265,18 +314,11 @@ export class FeatureScreen extends FeatureScreenContainer {
     private setupVolatilityIndicator(): void {
         this._volatilityContainer = new Container();
         this._volatilityContainer.label = "VolatilityContainer";
-        this._volatilityContainer.position.set(1550, 760);
+        this._volatilityContainer.position.set(1615, 700);
         this.addChild(this._volatilityContainer);
-    }
 
-    private setupDontShowButton(): void {
-        this._dontShowContainer = new Container();
-        this._dontShowContainer.label = "DontShowContainer";
-        this._dontShowContainer.position.set(1550, 900);
-        this.addChild(this._dontShowContainer);
-
-        const dontShowTextBg = new NineSliceSprite({
-            texture: Texture.from("bet_area"),
+        const volatilityBg = new NineSliceSprite({
+            texture: Texture.from('splash_volatility_holder'),
             leftWidth: 100, // Width of the left edge
             rightWidth: 100, // Width of the right edge
             topHeight: 0, // Height of the top edge
@@ -284,14 +326,71 @@ export class FeatureScreen extends FeatureScreenContainer {
 
             anchor: 0.5, // Center the sprite's anchor point
 
-            x: -10,
+            x: 0,
+            y: 0,
+        });
+        volatilityBg.width = 390;
+        volatilityBg.label = 'VolatilityBackground';
+        this._volatilityContainer.addChild(volatilityBg);
+
+        const volatilityText = new Text({
+            text: 'VOLATILITY',
+            style: {
+                fontFamily: 'MikadoMedium',
+                fontSize: 20,
+                fill: 0xFFFFFF,
+                align: 'center',
+                trim: true,
+                padding: 40
+            }
+        });
+        volatilityText.label = 'VolatilityText';
+        volatilityText.anchor.set(0, 0.5);
+        volatilityText.position.set(-150, 0);
+        this._volatilityContainer.addChild(volatilityText);
+
+        const inactiveArrows = 2;
+        for (let index = 0; index < 5; index++) {
+            const element = Sprite.from('splash_spin_button');
+            element.label = 'VolatilityIndicator' + index;
+            element.anchor.set(0.5, 0.5);
+            element.scale.set(0.17, 0.17);
+            element.position.set(167 - index * 40, 0);
+            element.tint = index < inactiveArrows ? 0x939598 : 0xFBBC31;
+            this._volatilityContainer.addChild(element);
+
+            const arrow = Sprite.from('splash_volatility_arrow');
+            arrow.label = 'VolatilityArrow' + index;
+            arrow.anchor.set(0.5, 0.5);
+            arrow.position.set(167 - index * 40, -1);
+            arrow.tint = 0x30343C;
+            this._volatilityContainer.addChild(arrow);
+        }
+    }
+
+    private setupDontShowButton(): void {
+        this._dontShowContainer = new Container();
+        this._dontShowContainer.label = "DontShowContainer";
+        this._dontShowContainer.position.set(1585, 950);
+        this.addChild(this._dontShowContainer);
+
+        const dontShowTextBg = new NineSliceSprite({
+            texture: Texture.from("splash_tick_holder"),
+            leftWidth: 5, // Width of the left edge
+            rightWidth: 25, // Width of the right edge
+            topHeight: 0, // Height of the top edge
+            bottomHeight: 0, // Height of the bottom edge
+
+            anchor: 0.5, // Center the sprite's anchor point
+
+            x: 15,
             y: 0,
         });
         dontShowTextBg.width = 575;
         dontShowTextBg.label = "DontShowTextBg";
         this._dontShowContainer.addChild(dontShowTextBg);
 
-        const dontShowButton = Sprite.from("slider_button_frame");
+        const dontShowButton = Sprite.from("splash_ticked_bg");
         dontShowButton.label = "DontShowButton";
         dontShowButton.anchor.set(0.5, 0.5);
         dontShowButton.position.set(-270, 0);
@@ -300,7 +399,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         dontShowButton.hitArea = new Circle(0, 0, 30);
         this._dontShowContainer.addChild(dontShowButton);
 
-        const dontShowButtonIcon = Sprite.from("slider_button");
+        const dontShowButtonIcon = Sprite.from("splash_ticked");
         dontShowButtonIcon.label = "DontShowButtonIcon";
         dontShowButtonIcon.anchor.set(0.5, 0.5);
         dontShowButtonIcon.visible = false;
@@ -309,12 +408,13 @@ export class FeatureScreen extends FeatureScreenContainer {
         const dontShowText = new Text({
             text: "DON'T SHOW NEXT TIME",
             style: {
-                fontFamily: "MikadoBlack",
-                fontSize: 32,
-                fill: 0xffffff,
-                align: "center",
+                fontFamily: 'MikadoMedium',
+                fontSize: 40,
+                fill: 0x000000,
+                align: 'center',
                 trim: true,
-            },
+                padding: 40
+            }
         });
         dontShowText.label = "DontShowText";
         dontShowText.anchor.set(0, 0.5);
@@ -325,6 +425,36 @@ export class FeatureScreen extends FeatureScreenContainer {
             dontShowButtonIcon.visible = !dontShowButtonIcon.visible;
             this._dontShow = !this._dontShow;
         });
+    }
+
+    private setupPreviewTransition(): void {
+        const buttonContainer: Container = new Container();
+        buttonContainer.label = "ButtonContainer";
+        buttonContainer.position.set(0, 370);
+        this._previewContainer.addChild(buttonContainer);
+
+        this._previewButton = Sprite.from("splash_radiobutton_inside");
+        this._previewButton.label = "Button";
+        this._previewButton.anchor.set(0.5, 0.5);
+        this._previewButton.position.set(-85 + this._buttonIndex * 85, 0);
+        buttonContainer.addChild(this._previewButton);
+
+        for (let index = 0; index < 3; index++) {
+            const buttonFrame = Sprite.from("splash_radiobutton_outside");
+            buttonFrame.label = `ButtonFrame${index + 1}`;
+            buttonFrame.anchor.set(0.5, 0.5);
+            buttonFrame.position.set(-85 + index * 85, 0);
+            buttonFrame.interactive = true;
+            buttonFrame.cursor = "pointer";
+            buttonFrame.hitArea = new Circle(0, 0, 30);
+            buttonContainer.addChild(buttonFrame);
+
+            buttonFrame.on("pointerup", () => {
+                if (this._buttonIndex === index) return;
+
+                this.manualChange(index);
+            });
+        }
     }
 
     protected startPreviewCycle() {
@@ -345,7 +475,9 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     private nextButton() {
-        if (this._buttonIndex < this._previewElements.length - 1) {
+        const totalPreviews = 3;
+
+        if (this._buttonIndex < totalPreviews - 1) {
             this.setButtonIndex(this._buttonIndex + 1);
         } else {
             this.setButtonIndex(0);
@@ -356,6 +488,143 @@ export class FeatureScreen extends FeatureScreenContainer {
         this.setButtonIndex(index);
 
         this._lastTime = performance.now();
+    }
+
+    private setButtonIndex(index: number) {
+        if (this._buttonIndex === index) return;
+
+        gsap.to(this._previewButton.position, {
+            x: -85 + index * 85,
+            duration: 0.4,
+            ease: "power1.out",
+        });
+
+        gsap.to(this._previewButton.scale, {
+            x: 0.5,
+            y: 0.5,
+            duration: 0.2,
+            ease: "power1.out",
+            onComplete: () => {
+                gsap.to(this._previewButton.scale, {
+                    x: 1,
+                    y: 1,
+                    duration: 0.2,
+                    ease: "power1.out",
+                });
+            },
+        });
+
+        gsap.killTweensOf(this._reelContainer);
+        gsap.fromTo(this._reelContainer, { alpha: 1 }, {
+            alpha: 0, duration: 0.2, ease: "none", onComplete: () => {
+                this.setSpecialSymbolVisibility(index);
+
+                this._linesContainer.visible = index === 2;
+
+                gsap.to(this._reelContainer, { alpha: 1, duration: 0.2, ease: "none" });
+            }
+        });
+
+        this._buttonIndex = index;
+
+        gsap.killTweensOf(this._previewText);
+        gsap.to(this._previewText, {
+            alpha: 0,
+            duration: 0.2,
+            ease: "none",
+            onComplete: () => {
+                this._previewText.text = this.setPreviewText(index);
+
+                gsap.to(this._previewText, { alpha: 1, duration: 0.2, ease: "none" });
+            },
+        });
+    }
+
+    private setPreviewText(index: number): string {
+        let text = "";
+        switch (index) {
+            case 0:
+                text = `3 OR MORE SCATTER SYMBOLS\nSTART FREESPIN FEATURE`;
+                break;
+            case 1:
+                text = `WIN UP TO 1000X\nIN THE BONUS FEATURE`;
+                break;
+            case 2:
+                text = `WINS ARE CALCULATED\nON 25 LINES`;
+                break;
+        }
+
+        return text;
+    }
+
+    private setSpecialSymbolVisibility(index: number): void {
+        // First hide all special symbols
+        for (const s of this._previewSpecialSymbols) {
+            s.visible = false;
+        }
+
+        // Show normal symbols
+        for (const s of this._previewSymbols) {
+            s.visible = true;
+        }
+
+        // index = 2 show nothing
+        if (index === 2) return;
+
+        // reels to consider
+        const selectedReels = index === 1
+            ? [0, 2, 4]   // total 3 reels
+            : [0, 1, 2, 3, 4]; // total 5 reels
+
+        // start position for special symbols
+        const specialStart = 0;
+
+        // Number of specials to use
+        const specialLimit = index === 1 ? 3 : 5;
+
+        let specialCounter = 0;
+
+        for (const reel of selectedReels) {
+
+            if (specialCounter >= specialLimit) break;
+
+            const start = reel * 3;
+
+            // select random slot between 0 and 2
+            const randomOffset = Math.floor(Math.random() * 3);
+            const posIndex = start + randomOffset;
+
+            const normalSymbol = this._previewSymbols[posIndex];
+            normalSymbol.visible = false;
+
+            // correct special symbol
+            const specialSymbol = this._previewSpecialSymbols[specialStart + specialCounter];
+            specialCounter++;
+
+            // set position of special symbol
+            specialSymbol.position.set(normalSymbol.x, normalSymbol.y);
+
+            // animation name to play
+            const animationName = index === 1 ? "10_win" : "8_win";
+
+            // show and play animation
+            specialSymbol.visible = true;
+            specialSymbol.state.setAnimation(0, animationName, true);
+        }
+    }
+
+    protected closeFeatureScreen(): void {
+        localStorage.setItem(
+            "featureScreenDontShow",
+            this._dontShow ? "true" : "false"
+        );
+
+        this.destroy();
+
+        if (this._resolveClose) {
+            this._resolveClose();
+            this._resolveClose = undefined;
+        }
     }
 
     protected onResize(config?: ResponsiveConfig): void {
@@ -370,11 +639,11 @@ export class FeatureScreen extends FeatureScreenContainer {
                         this._dontShowContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1250);
                         break;
                     case GameConfig.ORIENTATION.landscape:
-                        this._logo.position.set(1550, 260);
-                        this._previewContainer.position.set(690, 460);
-                        this._spinButtonContainer.position.set(1550, 620);
-                        this._volatilityContainer.position.set(1550, 760);
-                        this._dontShowContainer.position.set(1550, 900);
+                        this._logo.position.set(1615, 260);
+                        this._previewContainer.position.set(690, 540);
+                        this._spinButtonContainer.position.set(1615, 620);
+                        this._volatilityContainer.position.set(1615, 760);
+                        this._dontShowContainer.position.set(1585, 900);
                         break;
                 }
                 break;
@@ -392,105 +661,6 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         // Call parent destroy
         super.destroy();
-    }
-
-    private setButtonIndex(index: number) {
-        if (this._buttonIndex === index) return;
-
-        gsap.to(this._previewButton.position, {
-            x: -85 + index * 85,
-            duration: 0.4,
-            ease: "power1.out",
-        });
-        gsap.to(this._previewButton.scale, {
-            x: 0.5,
-            y: 0.5,
-            duration: 0.2,
-            ease: "power1.out",
-            onComplete: () => {
-                gsap.to(this._previewButton.scale, {
-                    x: 1,
-                    y: 1,
-                    duration: 0.2,
-                    ease: "power1.out",
-                });
-            },
-        });
-
-        this._previewElements[this._buttonIndex].forEach((element) => {
-            gsap.killTweensOf(element);
-            gsap.fromTo(
-                element,
-                { alpha: 1 },
-                {
-                    alpha: 0,
-                    duration: 0.4,
-                    ease: "none",
-                    onComplete: () => {
-                        element.visible = false;
-                    },
-                }
-            );
-        });
-        this._previewElements[index].forEach((element) => {
-            gsap.killTweensOf(element);
-            gsap.fromTo(element, { alpha: 0 }, {
-                alpha: 1,
-                duration: 0.4,
-                ease: "none",
-                onStart: () => {
-                    element.visible = true;
-                },
-            }
-            );
-        });
-
-        this._buttonIndex = index;
-
-        gsap.killTweensOf(this._previewText);
-        gsap.to(this._previewText, {
-            alpha: 0,
-            duration: 0.2,
-            ease: "none",
-            onComplete: () => {
-                this._previewText.setText(this.setPreviewText(index));
-
-                gsap.to(this._previewText, { alpha: 1, duration: 0.2, ease: "none" });
-            },
-        });
-
-        this.manualChange(index);
-    }
-
-    private setPreviewText(index: number): string {
-        let text = "";
-        switch (index) {
-            case 0:
-                text = `SYMBOLS PAY ANYWHERE ON THE SCREEN!`;
-                break;
-            case 1:
-                text = `EARN 1000x FROM WIN BIG!`;
-                break;
-            case 2:
-                text = `LAND 3 OR MORE SCATTERS TO TRIGGER FREE SPINS!`;
-                break;
-        }
-
-        return text;
-    }
-
-    protected closeFeatureScreen(): void {
-        localStorage.setItem(
-            "featureScreenDontShow",
-            this._dontShow ? "true" : "false"
-        );
-
-        this.destroy();
-
-        if (this._resolveClose) {
-            this._resolveClose();
-            this._resolveClose = undefined;
-        }
     }
 
     public getController(): FeatureScreenController<FeatureScreen> {

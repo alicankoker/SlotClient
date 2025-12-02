@@ -15,8 +15,8 @@
       "@slotclient/nexus/*": ["../nexus/src/*"],
       "@slotclient/config": ["../config/src"],
       "@slotclient/config/*": ["../config/src/*"],
-      "@slotclient/diamond-diggers": ["../games/diamondDiggers/src"],
-      "@slotclient/diamond-diggers/*": ["../games/diamondDiggers/src/*"],
+      "@slotclient/types": ["../types/src"],
+      "@slotclient/types/*": ["../types/src/*"],
       "@slotclient/server": ["../server/src"],
       "@slotclient/server/*": ["../server/src/*"]
     }

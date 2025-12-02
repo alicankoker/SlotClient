@@ -1,23 +1,13 @@
+import type { ISlotGameController } from "@slotclient/types/ISlotGameController";
 import { eventBus } from "@slotclient/types";
-// TODO: Use dependency injection instead of direct imports
-// import { SlotGameController } from "@slotclient/game/controllers/SlotGameController";
-// import { GameServer } from "@slotclient/server/GameServer";
 import { AnimationContainer } from "../components/AnimationContainer";
 import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { GameDataManager } from "../data/GameDataManager";
 import { Helpers } from "../utils/Helpers";
 
-// Temporary type declarations until proper dependency injection is implemented
-declare class SlotGameController {
-    executeGameSpin(type: string): Promise<any>;
-}
-declare class GameServer {
-    static getInstance(): GameServer;
-}
-
 export class FreeSpinController {
     private static _instance: FreeSpinController;
-    private slotGameController: SlotGameController;
+    private slotGameController: ISlotGameController;
     private animationContainer: AnimationContainer;
     private totalWin: number = 0;
     private totalFreeSpins: number = 0;
@@ -27,12 +17,12 @@ export class FreeSpinController {
     private resolvePromise?: (value: { totalWin: number, freeSpinCount: number }) => void;
     private rejectPromise?: (reason?: any) => void;
 
-    private constructor(slotGameController: SlotGameController) {
+    private constructor(slotGameController: ISlotGameController) {
         this.slotGameController = slotGameController;
-        this.animationContainer = AnimationContainer.getInstance();
+        this.animationContainer = AnimationContainer.instance();
     }
 
-    public static getInstance(slotGameController: SlotGameController): FreeSpinController {
+    public static getInstance(slotGameController: ISlotGameController): FreeSpinController {
         if (!FreeSpinController._instance) {
             FreeSpinController._instance = new FreeSpinController(slotGameController);
         }
