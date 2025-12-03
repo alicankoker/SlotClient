@@ -1,8 +1,13 @@
 import { Assets } from "pixi.js";
-import { AssetsConfig } from "@slotclient/config/AssetsConfig";
+import { BaseAssetsConfig } from "@slotclient/config/AssetsConfig";
+import { ConfigManager } from '../controllers/ConfigManager';
 import { debug } from "../utils/debug";
 
 export class SymbolUtils {
+  private static getAssetsConfig(): BaseAssetsConfig {
+    // Access the ConfigManager singleton to get the assets config
+    return ConfigManager.getInstance().getAssetsConfig();
+  }
   // Get texture for a symbol ID (static utility)
   public static getTextureForSymbol(symbolId: number): any {
     const spritesheet = Assets.cache.get("icons");
@@ -12,13 +17,13 @@ export class SymbolUtils {
       throw new Error("Spritesheet not available");
     }
 
-    const symbolAssetName = AssetsConfig.getSymbolAsset(symbolId);
+    const symbolAssetName = this.getAssetsConfig().getSymbolAsset(symbolId);
     const texture = spritesheet.textures[symbolAssetName];
 
     if (!texture) {
       debug.error("Texture not found for symbol:", symbolAssetName, "with ID:", symbolId);
       // Fallback to first symbol
-      const fallbackName = AssetsConfig.getSymbolAsset(0);
+      const fallbackName = this.getAssetsConfig().getSymbolAsset(0);
       return spritesheet.textures[fallbackName];
     }
 
@@ -33,13 +38,13 @@ export class SymbolUtils {
       throw new Error("Spritesheet not available");
     }
 
-    const symbolAssetName = AssetsConfig.getBlurredSymbolAsset(symbolId);
+    const symbolAssetName = this.getAssetsConfig().getBlurredSymbolAsset(symbolId);
     const texture = spritesheet.textures[symbolAssetName];
 
     if (!texture) {
       debug.error("Texture not found for symbol:", symbolAssetName, "with ID:", symbolId);
       // Fallback to first symbol
-      const fallbackName = AssetsConfig.getBlurredSymbolAsset(0);
+      const fallbackName = this.getAssetsConfig().getBlurredSymbolAsset(0);
       return spritesheet.textures[fallbackName];
     }
 

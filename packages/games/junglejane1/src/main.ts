@@ -14,7 +14,7 @@ import { gsap } from "gsap";
 import { Storage } from "@slotclient/engine/utils/Storage";
 import { eventBus } from "@slotclient/types";
 import { SpinEventTypes } from "@slotclient/communication";
-import type { AudioBundle } from "@slotclient/engine";
+import { ConfigManager, type AudioBundle } from "@slotclient/engine";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { CascadeStepData, GridData, IResponseData, SpinResponseData, } from "@slotclient/engine/types/ICommunication";
 import { ISpinState, SpinMode } from "@slotclient/engine/types/ISpinConfig";
@@ -31,6 +31,7 @@ import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayControll
 import { signals } from "@slotclient/engine/controllers/SignalManager";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
 import payoutData from "./payout.json";
+import { AssetsConfigProvider } from "@slotclient/config";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -412,7 +413,14 @@ export class DoodleV8Main {
   }
 
   private async loadAssets(res: string): Promise<void> {
-    await this.assetLoader.loadBundles(AssetsConfig.getAllAssets(res));
+    try {
+      AssetsConfigProvider.getInstance().setConfig(AssetsConfig.getInstance());
+      const assetsConfig = AssetsConfigProvider.getInstance().getConfig();
+      ConfigManager.getInstance().setAssetsConfig(assetsConfig);
+      await this.assetLoader.loadBundles(assetsConfig.getAllAssets(res));
+    } catch (error) {
+      throw error;
+    }
   }
 
   // private async loadAudioAssets(): Promise<void> {

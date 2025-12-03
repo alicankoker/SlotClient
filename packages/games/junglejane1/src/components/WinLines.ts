@@ -9,11 +9,14 @@ import { Spine } from "@esotericsoftware/spine-pixi-v8";
 
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
+    private _assetConfig: AssetsConfig;
     private _controller: WinLinesController<WinLines>;
     private _lineChains: Sprite[] = [];
 
     private constructor() {
         super();
+
+        this._assetConfig = AssetsConfig.getInstance();
 
         this._controller = this.createController();
 
@@ -74,7 +77,7 @@ export class WinLines extends WinLinesContainer {
         //     this.addChild(winLine);
         // }
 
-        const { atlas, skeleton } = AssetsConfig.LINE_SPINE_ASSET;
+        const { atlas, skeleton } = this._assetConfig.LINE_SPINE_ASSET;
 
         for (const key of Object.keys(GameRulesConfig.LINES)) {
             const line = Spine.from({ atlas, skeleton });

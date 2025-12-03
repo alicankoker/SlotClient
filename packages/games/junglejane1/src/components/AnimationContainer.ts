@@ -42,6 +42,7 @@ export class AnimationContainer extends Container {
     private static _instance: AnimationContainer;
     private _app: Application;
     private _resizeSubscription?: SignalSubscription;
+    private _assetsConfig: AssetsConfig;
 
     private _winLines: WinLines;
     private _particleContainer: Container;
@@ -74,6 +75,8 @@ export class AnimationContainer extends Container {
         super();
 
         this._app = app;
+
+        this._assetsConfig = AssetsConfig.getInstance();
 
         this._winLines = WinLines.getInstance();
         this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
@@ -212,7 +215,7 @@ export class AnimationContainer extends Container {
         this._winEvent = WinEvent.getInstance(this._app);
         this.addChild(this._winEvent);
 
-        const { atlas, skeleton } = AssetsConfig.TRANSITION_SPINE_ASSET;
+        const { atlas, skeleton } = this._assetsConfig.TRANSITION_SPINE_ASSET;
 
         this._transition = Spine.from({ atlas, skeleton });
         this._transition.label = 'TransitionSpine';
@@ -445,7 +448,7 @@ export class AnimationContainer extends Container {
         this._dimmer.visible = true;
         this._dimmer.alpha = 1;
 
-        const { atlas, skeleton } = AssetsConfig.WINEVENT_SPINE_ASSET;
+        const { atlas, skeleton } = this._assetsConfig.WINEVENT_SPINE_ASSET;
         const particle = Spine.from({ atlas, skeleton });
         particle.state.setAnimation(0, "coin", true);
 

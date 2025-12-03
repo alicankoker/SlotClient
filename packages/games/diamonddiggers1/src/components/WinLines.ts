@@ -9,13 +9,20 @@ import { Spine } from "@esotericsoftware/spine-pixi-v8";
 
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
-    private _controller: WinLinesController<WinLines>;
-    private _lineChains: Sprite[] = [];
+    private _assetConfig: AssetsConfig;
 
-    private constructor() {
+    private _controller: WinLinesController<WinLines>;
+    private _lineChain!: Sprite;
+    private _fixedLineHolder!: Sprite;
+    private _fixedValue!: Text;
+    private _fixedText!: Text;
+
+    protected constructor() {
         super();
 
         this._controller = this.createController();
+
+        this._assetConfig = AssetsConfig.getInstance();
 
         this.createLineMask();
         this.createLineNumbers();
@@ -74,7 +81,7 @@ export class WinLines extends WinLinesContainer {
         //     this.addChild(winLine);
         // }
 
-        const { atlas, skeleton } = AssetsConfig.LINE_SPINE_ASSET;
+        const { atlas, skeleton } = this._assetConfig.LINE_SPINE_ASSET;
 
         for (const key of Object.keys(GameRulesConfig.LINES)) {
             const line = Spine.from({ atlas, skeleton });
@@ -93,62 +100,45 @@ export class WinLines extends WinLinesContainer {
     }
 
     protected override createLineNumbers(): void {
-        for (let index = 0; index < 2; index++) {
-            const chain = Sprite.from(`base_line_chain`);
-            chain.label = `LineChain_${index}`;
-            chain.anchor.set(0.5);
-            chain.scale.set(0.5, 0.5);
-            chain.position.set(318 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
-            this._lineChains.push(chain);
-            this.addChild(chain);
-        }
+        this._lineChain = Sprite.from(`base_line_chain`);
+        this._lineChain.label = `LineChain`;
+        this._lineChain.anchor.set(0.5);
+        this._lineChain.scale.set(0.5, 0.5);
+        this._lineChain.position.set(325, (GameConfig.REFERENCE_RESOLUTION.height / 2));
+        this.addChild(this._lineChain);
 
-        for (const key of Object.keys(GameRulesConfig.LINE_NUMBER_POSITION)) {
-            const position = GameRulesConfig.LINE_NUMBER_POSITION[Number(key)];
-            const texture = Sprite.from(`base_line_holder`);
-            texture.label = `LineHolderTexture_${key}`;
-            texture.anchor.set(0.5);
-            texture.scale.set(0.5, 0.5);
-            texture.position.set((GameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (GameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
-            texture.interactive = true;
-            texture.cursor = 'pointer';
-            this.addChild(texture);
+        this._fixedLineHolder = Sprite.from(`base_fixed_lines_holder`);
+        this._fixedLineHolder.label = `FixedLineHolder`;
+        this._fixedLineHolder.anchor.set(0.5);
+        this._fixedLineHolder.scale.set(0.5, 0.5);
+        this._fixedLineHolder.position.set(325, 555);
+        this.addChild(this._fixedLineHolder);
 
-            const text = new Text({
-                text: key.toString(),
-                style: GameConfig.style_1.clone()
-            });
-            text.style.fontSize = 56;
-            text.anchor.set(0.5);
-            text.position.set(0, -10);
-            texture.addChild(text);
+        this._fixedValue = new Text({
+            text: '25',
+            style: GameConfig.style_1.clone()
+        });
+        this._fixedValue.style.fontSize = 50;
+        this._fixedValue.anchor.set(0.5);
+        this._fixedValue.position.set(325, 530);
+        this.addChild(this._fixedValue);
 
-            this._lineTextures.push(texture);
-
-            texture.on('pointerenter', () => {
-                for (let index = 0; index < this._availableLines; index++) {
-                    this._lineTextures[index].alpha = index + 1 === Number(key) ? 1 : 0.25;
-                }
-                this.showLine(Number(key));
-            });
-            texture.on('pointerleave', () => {
-                for (let index = 0; index < this._availableLines; index++) {
-                    this._lineTextures[index].alpha = 1;
-                }
-                this.hideLine(Number(key));
-            });
-        }
+        this._fixedText = new Text({
+            text: 'LINES',
+            style: GameConfig.style_1.clone()
+        });
+        this._fixedText.style.fontSize = 22;
+        this._fixedText.anchor.set(0.5);
+        this._fixedText.position.set(325, 565);
+        this.addChild(this._fixedText);
     }
 
     public setFreeSpinMode(enabled: boolean): void {
-        this._lineTextures.forEach((texture) => {
-            const textureName = enabled ? 'freespin_line_holder' : 'base_line_holder';
-            texture.texture = Texture.from(textureName);
-        });
-        this._lineChains.forEach((chain) => {
-            const chainTextureName = enabled ? 'freespin_line_chain' : 'base_line_chain';
-            chain.texture = Texture.from(chainTextureName);
-        });
+        const chainTextureName = enabled ? 'freespin_line_chain' : 'base_line_chain';
+        this._lineChain.texture = Texture.from(chainTextureName);
+
+        const holderTextureName = enabled ? 'freespin_fixed_lines_holder' : 'base_fixed_lines_holder';
+        this._fixedLineHolder.texture = Texture.from(holderTextureName);
     }
 
     protected override onResize(responsiveConfig: ResponsiveConfig): void { }

@@ -1,7 +1,8 @@
 import { Sprite, Assets } from "pixi.js";
-import { AssetsConfig } from "@slotclient/config/AssetsConfig";
+import { BaseAssetsConfig } from "@slotclient/config/AssetsConfig";
 import { SymbolConfig as SymbolConfigClass } from "@slotclient/config/SymbolConfig";
 import { AnimationConfig } from "@slotclient/config/AnimationConfig";
+import { ConfigManager } from '../controllers/ConfigManager';
 import { debug } from "../utils/debug";
 
 export interface SymbolConfig {
@@ -16,6 +17,10 @@ export interface SymbolConfig {
 export class Symbol extends Sprite {
   private _symbolId: number;
   private config: SymbolConfig;
+
+  private static getAssetsConfig(): BaseAssetsConfig {
+    return ConfigManager.getInstance().getAssetsConfig();
+  }
 
   constructor(config: SymbolConfig) {
     debug.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
@@ -55,7 +60,7 @@ export class Symbol extends Sprite {
     debug.log("Symbol.getTextureForSymbol: Spritesheet found, checking textures...");
     //debug.log("Available textures:", Object.keys(spritesheet.textures || {}));
 
-    const symbolAssetName = AssetsConfig.getSymbolAsset(symbolId);
+    const symbolAssetName = this.getAssetsConfig().getSymbolAsset(symbolId);
     debug.log(`Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`);
 
     const texture = spritesheet.textures[symbolAssetName];
@@ -93,7 +98,7 @@ export class Symbol extends Sprite {
     debug.log("Symbol.getTextureForSymbol: Spritesheet found, checking textures...");
     //debug.log("Available textures:", Object.keys(spritesheet.textures || {}));
 
-    const symbolAssetName = AssetsConfig.getBlurredSymbolAsset(symbolId);
+    const symbolAssetName = this.getAssetsConfig().getBlurredSymbolAsset(symbolId);
     debug.log(`Symbol.getTextureForSymbol: Looking for asset name "${symbolAssetName + extension}"`);
 
     const texture = spritesheet.textures[symbolAssetName];

@@ -8,17 +8,18 @@ import { IReelMode } from './ReelController';
 import { debug } from '../utils/debug';
 import { GameRulesConfig } from '@slotclient/config/GameRulesConfig';
 import { ResponsiveConfig } from '../utils/ResponsiveManager';
-import { AssetsConfig } from '@slotclient/config/AssetsConfig';
+import { BaseAssetsConfig } from '@slotclient/config/AssetsConfig';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { Helpers } from '../utils/Helpers';
 import { SpinMode } from '../types/ISpinConfig';
-import { FreeSpinController } from '../freeSpin/FreeSpinController';
 import { gsap } from 'gsap';
 import { SpinConfig } from '@slotclient/config/SpinConfig';
+import { ConfigManager } from '../controllers/ConfigManager';
 
 export class ReelsContainer extends Container {
   private app: Application;
   private resizeSubscription?: SignalSubscription;
+  private assetsConfig: BaseAssetsConfig;
 
   // Mask for the entire reel area
   private reelAreaMask: Graphics;
@@ -56,6 +57,7 @@ export class ReelsContainer extends Container {
     super();
 
     this.app = app;
+    this.assetsConfig = ConfigManager.getInstance().getAssetsConfig();
     this.numberOfReels = GameConfig.GRID_LAYOUT.columns;
     this.symbolsPerReel = GameConfig.GRID_LAYOUT.visibleRows;
 
@@ -150,7 +152,7 @@ export class ReelsContainer extends Container {
     this.frameElementsContainer = new Container();
     this.frameElementsContainer.label = 'FrameElementsContainer';
 
-    const { atlas, skeleton } = AssetsConfig.ENVIRONMENT_SPINE_ASSET;
+    const { atlas, skeleton } = this.assetsConfig.ENVIRONMENT_SPINE_ASSET;
 
     for (let cIndex = 0; cIndex < 6; cIndex++) {
       const floorChain = Spine.from({ atlas, skeleton });
@@ -240,7 +242,7 @@ export class ReelsContainer extends Container {
     this.adrenalineElementsContainer.visible = false;
     this.frameElementsContainer!.addChild(this.adrenalineElementsContainer);
 
-    const { atlas, skeleton } = AssetsConfig.ENVIRONMENT_SPINE_ASSET;
+    const { atlas, skeleton } = this.assetsConfig.ENVIRONMENT_SPINE_ASSET;
 
     const adrenalineStripeLeft = Spine.from({ atlas, skeleton });
     adrenalineStripeLeft.label = `AdrenalineStripe_Left`;

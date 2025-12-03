@@ -14,7 +14,7 @@ export class AssetLoader implements IAssetLoader {
   private static instance: AssetLoader;
   private smooth = { percent: 0 }; // GSAP tween state
 
-  constructor() {}
+  constructor() { }
 
   public static getInstance(): AssetLoader {
     if (!AssetLoader.instance) {
@@ -40,7 +40,7 @@ export class AssetLoader implements IAssetLoader {
           label,
           percent: this.smooth.percent,
         });
-        debug.log(          "AssetLoader",          `Loading ${label}: ${this.smooth.percent.toFixed(2)}%`        );
+        debug.log("AssetLoader", `Loading ${label}: ${this.smooth.percent.toFixed(2)}%`);
       },
     });
   }

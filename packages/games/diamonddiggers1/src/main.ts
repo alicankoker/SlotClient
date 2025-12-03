@@ -4,6 +4,7 @@ import { ReelsController } from "@slotclient/engine/reels/ReelsController";
 import { ResponsiveManager } from "@slotclient/engine/utils/ResponsiveManager";
 import { AssetSizeManager } from "@slotclient/engine/multiResolutionSupport/AssetSizeManager";
 import { AssetLoader } from "@slotclient/engine/utils/AssetLoader";
+import { AssetsConfigProvider } from '@slotclient/config/AssetsConfigProvider';
 import { AssetsConfig } from "./configs/AssetsConfig";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { setConnectionConfig } from "@slotclient/config/ConnectionConfig";
@@ -31,6 +32,7 @@ import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayControll
 import { signals } from "@slotclient/engine/controllers/SignalManager";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
 import payoutData from "./payout.json";
+import { ConfigManager } from "@slotclient/engine/controllers/ConfigManager";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -44,6 +46,9 @@ export class DoodleV8Main {
   public async init(): Promise<void> {
     try {
       debug.log("🎰 DoodleV8 initializing...");
+
+      const assetsConfig = new AssetsConfig();
+      AssetsConfigProvider.getInstance().setConfig(assetsConfig);
 
       // Initialize connection config from game config
       setConnectionConfig({
@@ -412,7 +417,14 @@ export class DoodleV8Main {
   }
 
   private async loadAssets(res: string): Promise<void> {
-    await this.assetLoader.loadBundles(AssetsConfig.getAllAssets(res));
+    try {
+      AssetsConfigProvider.getInstance().setConfig(AssetsConfig.getInstance());
+      const assetsConfig = AssetsConfigProvider.getInstance().getConfig();
+      ConfigManager.getInstance().setAssetsConfig(assetsConfig);
+      await this.assetLoader.loadBundles(assetsConfig.getAllAssets(res));
+    } catch (error) {
+      throw error;
+    }
   }
 
   // private async loadAudioAssets(): Promise<void> {

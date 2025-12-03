@@ -34,6 +34,7 @@ const BonusElementsPositions = [
 export class Bonus extends BonusContainer {
     private static _instance: Bonus;
     private _app: Application;
+    private _assetsConfig: AssetsConfig;
     private _controller: BonusController<Bonus>;
     private _dynamiteContainer!: Container;
     private _rewardContainer!: Container;
@@ -59,6 +60,8 @@ export class Bonus extends BonusContainer {
         super();
 
         this._app = app;
+
+        this._assetsConfig = AssetsConfig.getInstance();
 
         this._controller = this.createController();
 
@@ -126,7 +129,7 @@ export class Bonus extends BonusContainer {
         this._rewardContainer.label = 'RewardContainer';
         this.addChild(this._rewardContainer);
 
-        const { atlas, skeleton } = AssetsConfig.BONUS_SPINE_ASSET;
+        const { atlas, skeleton } = this._assetsConfig.BONUS_SPINE_ASSET;
 
         this._dynamites = [];
         for (let index = 0; index < 6; index++) {

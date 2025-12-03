@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "node",
@@ -18,15 +22,51 @@
   },
   "files": [],
   "references": [
-    { "path": "./packages/types" },
-    { "path": "./packages/config" },
-    { "path": "./packages/engine" },
-    { "path": "./packages/communication" },
-    { "path": "./packages/nexus" },
-    { "path": "./packages/server" },
-    { "path": "./packages/games/diamonddiggers1" },
-    { "path": "./packages/games/diamonddiggersfixed10" },
-    { "path": "./packages/games/diamonddiggersfixed25" },
-    { "path": "./packages/games/junglejane1" }
+    {
+      "path": "./packages/types"
+    },
+    {
+      "path": "./packages/config"
+    },
+    {
+      "path": "./packages/engine"
+    },
+    {
+      "path": "./packages/communication"
+    },
+    {
+      "path": "./packages/nexus"
+    },
+    {
+      "path": "./packages/server"
+    },
+    {
+      "path": "./packages/games/diamonddiggers1"
+    },
+    {
+      "path": "./packages/games/diamonddiggersfixed10"
+    },
+    {
+      "path": "./packages/games/diamonddiggersfixed25"
+    },
+    {
+      "path": "./packages/games/junglejane1"
+    }
+  ],
+  "exclude": [
+    "**/assets/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/public/**",
+    "**/bin/**",
+    "**/spine/**",
+    "**/*.atlas",
+    "**/*.skel",
+    "**/*.png",
+    "**/*.jpg",
+    "**/*.webp",
+    "**/*.mp3",
+    "**/*.wav",
+    "**/*.json"
   ]
 }

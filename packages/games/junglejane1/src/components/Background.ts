@@ -1,10 +1,8 @@
-import { Application, Texture } from "pixi.js";
+import { Texture } from "pixi.js";
 import { BackgroundContainer } from "@slotclient/engine/background/BackgroundContainer";
 import { BackgroundController } from "@slotclient/engine/background/BackgroundController";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
 import { GameConfig } from "@slotclient/config/GameConfig";
-import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { AssetsConfig } from "@slotclient/config/AssetsConfig";
 
 export class Background extends BackgroundContainer {
     private static _instance: Background;

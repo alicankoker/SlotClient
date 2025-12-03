@@ -1,5 +1,5 @@
 import { SkeletonData, Spine } from '@esotericsoftware/spine-pixi-v8';
-import { AssetsConfig } from '@slotclient/config/AssetsConfig';
+import { ConfigManager } from '../controllers/ConfigManager';
 import { debug } from '../utils/debug';
 
 export interface SymbolConfig {
@@ -17,12 +17,15 @@ export class SpineSymbol extends Spine {
     private _skeletonData: SkeletonData;
     private config: SymbolConfig;
 
+    private static getSpineData() {
+        const assetsConfig = ConfigManager.getInstance().getAssetsConfig();
+        return assetsConfig.SYMBOL_SPINE_ASSET;
+    }
+
     constructor(config: SymbolConfig) {
         debug.log(`Symbol: Creating symbol with ID ${config.symbolId}, position:`, config.position);
 
-        const { atlas, skeleton } = AssetsConfig.SYMBOL_SPINE_ASSET;
-
-        const spine = Spine.from({ atlas, skeleton });
+        const spine = Spine.from(SpineSymbol.getSpineData());
         const spineData = spine.state.data.skeletonData;
 
         super(spineData);
@@ -59,7 +62,7 @@ export class SpineSymbol extends Spine {
      */
     public setIdle(): void {
         this.state.timeScale = 1;
-        this.state.setAnimation(0, `${this._prefix}_idle`, false);
+        this.state.setAnimation(0, `${this._prefix}_idle`, true);
     }
 
     /**

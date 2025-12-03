@@ -1,4 +1,5 @@
 import { Assets } from "pixi.js";
+import { BaseAssetsConfig } from '@slotclient/config/AssetsConfig';
 import { BundleFile, SpineAsset, SpineAssetData, SpineData } from "@slotclient/types/IAssetLoader";
 
 const PATH = document.body.dataset.path;
@@ -19,9 +20,19 @@ const RESOLUTIONS = [
   { size: "HD", variation: "@1x" },
 ];
 
-export class AssetsConfig {
-  public static RES: string = "{{resolution}}";
-  public static readonly SPRITESHEETS: BundleFile = {
+export class AssetsConfig extends BaseAssetsConfig {
+  private static _instance: AssetsConfig;
+
+  public static getInstance(): AssetsConfig {
+    if (!this._instance) {
+      this._instance = new AssetsConfig();
+    }
+    return this._instance;
+  }
+  
+  public RES: string = "{{resolution}}";
+  
+  public readonly SPRITESHEETS: BundleFile = {
     bundles: [
       {
         name: "icons",
@@ -35,7 +46,7 @@ export class AssetsConfig {
     ],
   };
 
-  public static readonly IMAGES: BundleFile = {
+  public readonly IMAGES: BundleFile = {
     bundles: [
       {
         name: 'preload',
@@ -271,7 +282,7 @@ export class AssetsConfig {
     ]
   };
 
-  public static readonly ANIMATIONS: BundleFile = {
+  public readonly ANIMATIONS: BundleFile = {
     bundles: [
       {
         name: 'symbols',
@@ -354,7 +365,7 @@ export class AssetsConfig {
     ]
   };
 
-  public static readonly AUDIO: BundleFile = {
+  public readonly AUDIO: BundleFile = {
     bundles: [
       {
         name: "audio",
@@ -389,7 +400,7 @@ export class AssetsConfig {
     ],
   };
 
-  public static readonly FONTS: BundleFile = {
+  public readonly FONTS: BundleFile = {
     bundles: [
       {
         name: "fonts",
@@ -412,37 +423,37 @@ export class AssetsConfig {
   };
 
   // spine symbol indexes to asset name mapping
-  public static readonly SYMBOL_SPINE_ASSET: SpineAssetData = {
+  public readonly SYMBOL_SPINE_ASSET: SpineAssetData = {
     atlas: "symbols_atlas",
     skeleton: "symbols_data",
   } as const;
 
-  public static readonly BONUS_SPINE_ASSET: SpineAssetData = {
+  public readonly BONUS_SPINE_ASSET: SpineAssetData = {
     atlas: 'bonus_atlas',
     skeleton: 'bonus_data'
   } as const;
 
-  public static readonly ENVIRONMENT_SPINE_ASSET: SpineAssetData = {
+  public readonly ENVIRONMENT_SPINE_ASSET: SpineAssetData = {
     atlas: "environment_atlas",
     skeleton: "environment_data",
   } as const;
 
-  public static readonly WINEVENT_SPINE_ASSET: SpineAssetData = {
+  public readonly WINEVENT_SPINE_ASSET: SpineAssetData = {
     atlas: "winevent_atlas",
     skeleton: "winevent_data",
   } as const;
 
-  public static readonly TRANSITION_SPINE_ASSET: SpineAssetData = {
+  public readonly TRANSITION_SPINE_ASSET: SpineAssetData = {
     atlas: "transition_atlas",
     skeleton: "transition_data",
   } as const;
 
-  public static readonly LINE_SPINE_ASSET: SpineAssetData = {
+  public readonly LINE_SPINE_ASSET: SpineAssetData = {
     atlas: "lines_atlas",
     skeleton: "lines_data",
   } as const;
 
-  public static getAllAssets(resolution: string): BundleFile {
+  public getAllAssets(resolution: string): BundleFile {
     this.RES = RESOLUTIONS.find((r) => r.size === resolution)?.variation!;
     this.setResolution();
     const allAssets: BundleFile = {
@@ -458,9 +469,9 @@ export class AssetsConfig {
     return allAssets;
   }
 
-  private static setResolution() {
+  private setResolution() {
     const multiResolutionAssets: BundleFile = {
-      bundles: [...AssetsConfig.SPRITESHEETS.bundles],
+      bundles: [...this.SPRITESHEETS.bundles],
     };
 
     multiResolutionAssets.bundles.forEach((bundle: any) => {
@@ -470,23 +481,23 @@ export class AssetsConfig {
     });
   }
 
-  public static getSpritesheetAssets(): BundleFile {
+  public getSpritesheetAssets(): BundleFile {
     return this.SPRITESHEETS;
   }
 
-  public static getImageAssets(): BundleFile {
+  public getImageAssets(): BundleFile {
     return this.IMAGES;
   }
 
-  public static getSymbolAsset(symbolIndex: number): string {
+  public getSymbolAsset(symbolIndex: number): string {
     return symbolIndex.toString();
   }
 
-  public static getBlurredSymbolAsset(symbolIndex: number): string {
+  public getBlurredSymbolAsset(symbolIndex: number): string {
     return `${symbolIndex}_blur`;
   }
 
-  public static getSpineAsset(asset: SpineAsset): SpineData {
+  public getSpineAsset(asset: SpineAsset): SpineData {
     let atlas: string, skeleton: string;
 
     switch (asset) {

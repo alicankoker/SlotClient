@@ -54,7 +54,7 @@ export class GameConfig {
     public static readonly REFERENCE_SPINE_SYMBOL: SymbolConfig = {
         width: 150,
         height: 150,
-        scale: 0.20
+        scale: 1
     };
 
     // Reference spacing at base resolution

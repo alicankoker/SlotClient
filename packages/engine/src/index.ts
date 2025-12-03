@@ -2,6 +2,7 @@
 // Export all public APIs from the engine
 
 // Controllers
+export * from './controllers/ConfigManager';
 export * from './controllers/GameController';
 export * from './controllers/SignalManager';
 export * from './controllers/SoundManager';

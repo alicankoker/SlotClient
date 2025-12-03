@@ -11,6 +11,7 @@ import { AssetsConfig } from "../configs/AssetsConfig";
 import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 
 export class FeatureScreen extends FeatureScreenContainer {
+    private _assetsConfig: AssetsConfig;
     private _controller: FeatureScreenController<FeatureScreen>;
     private _logo!: Sprite;
     private _previewContainer!: Container;
@@ -31,6 +32,8 @@ export class FeatureScreen extends FeatureScreenContainer {
 
     constructor(app: Application) {
         super(app);
+
+        this._assetsConfig = AssetsConfig.getInstance();
 
         this._controller = this.createController();
 
@@ -184,10 +187,10 @@ export class FeatureScreen extends FeatureScreenContainer {
         parent.addChild(specialSymbolContainer);
 
         for (let index = 0; index < 6; index++) {
-            const { atlas, skeleton } = AssetsConfig.SYMBOL_SPINE_ASSET;
+            const { atlas, skeleton } = this._assetsConfig.SYMBOL_SPINE_ASSET;
             const specialSymbol = Spine.from({ atlas, skeleton });
             specialSymbol.label = "PreviewSpecialSymbol" + index;
-            specialSymbol.scale.set(0.15, 0.15);
+            specialSymbol.scale.set(0.75, 0.75);
             specialSymbol.visible = false;
             specialSymbolContainer.addChild(specialSymbol);
 

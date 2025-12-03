@@ -11,12 +11,14 @@ import { SpriteText } from "@slotclient/engine/utils/SpriteText";
 
 export class WinEvent extends WinEventContainer {
     private static _instance: WinEvent;
+    private _assetConfig: AssetsConfig;
     private _controller: WinEventController<WinEvent>;
     private _soundManager: SoundManager;
     private _wins!: Spine;
 
     private constructor(app: Application) {
         super(app);
+        this._assetConfig = AssetsConfig.getInstance();
         this.position.set(0, -100);
         this._soundManager = SoundManager.getInstance();
         this._controller = this.createController();
@@ -47,7 +49,7 @@ export class WinEvent extends WinEventContainer {
 
     private init(): void {
         // spine setup
-        const { atlas, skeleton } = AssetsConfig.WINEVENT_SPINE_ASSET;
+        const { atlas, skeleton } = this._assetConfig.WINEVENT_SPINE_ASSET;
 
         this._wins = Spine.from({ atlas, skeleton });
         this._wins.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
