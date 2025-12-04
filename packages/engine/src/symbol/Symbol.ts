@@ -2,7 +2,7 @@ import { Sprite, Assets } from "pixi.js";
 import { BaseAssetsConfig } from "@slotclient/config/AssetsConfig";
 import { SymbolConfig as SymbolConfigClass } from "@slotclient/config/SymbolConfig";
 import { AnimationConfig } from "@slotclient/config/AnimationConfig";
-import { ConfigManager } from '../controllers/ConfigManager';
+import { ConfigProvider } from "@slotclient/config";
 import { debug } from "../utils/debug";
 
 export interface SymbolConfig {
@@ -19,7 +19,7 @@ export class Symbol extends Sprite {
   private config: SymbolConfig;
 
   private static getAssetsConfig(): BaseAssetsConfig {
-    return ConfigManager.getInstance().getAssetsConfig();
+    return ConfigProvider.getInstance().getAssetsConfig();
   }
 
   constructor(config: SymbolConfig) {

@@ -39,8 +39,6 @@ export class ClassicSpinController extends SpinController {
     try {
       this.setState(ISpinState.SPINNING);
 
-      this.reelsController.getReelsContainer().setChainAnimation(true, true); // TODO: it must update for each reels and it should be getting slow down accordingly
-
       if (this.onSpinStartCallback) {
         this.onSpinStartCallback();
       }

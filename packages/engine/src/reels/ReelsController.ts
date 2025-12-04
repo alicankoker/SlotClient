@@ -1,5 +1,5 @@
 import { Application } from "pixi.js";
-import { ReelsContainer } from "./ReelsContainer";
+import { BaseReelsContainer } from "./BaseReelsContainer";
 import { ReelController } from "./ReelController";
 import { StaticContainer } from "./StaticContainer";
 import { GameConfig } from "@slotclient/config/GameConfig";
@@ -11,7 +11,7 @@ import { ISpinState, SpinMode } from "../types/ISpinConfig";
 
 export class ReelsController {
   private app: Application;
-  private reelsContainer!: ReelsContainer;
+  private reelsContainer!: BaseReelsContainer;
   public reelControllers: ReelController[] = [];
 
   // State management
@@ -27,7 +27,7 @@ export class ReelsController {
   constructor(
     app: Application,
     initData: number[][],
-    reelsContainer?: ReelsContainer
+    reelsContainer?: BaseReelsContainer
   ) {
     this.app = app;
 
@@ -48,7 +48,7 @@ export class ReelsController {
   }
 
   // Method to set reelsContainer after creation
-  public setReelsContainer(reelsContainer: ReelsContainer): void {
+  public setReelsContainer(reelsContainer: BaseReelsContainer): void {
     this.reelsContainer = reelsContainer;
   }
 
@@ -70,10 +70,6 @@ export class ReelsController {
         return controller.setModeBySpinState(mode);
       })
     );
-
-    if (mode === ISpinState.IDLE) {
-      this.reelsContainer.chainSpeed = 1;
-    }
   }
 
   public getMode(): ISpinState {
@@ -234,11 +230,6 @@ export class ReelsController {
             controller.update(deltaTime);
         });*/
 
-
-    if (this.currentMode === ISpinState.SLOWING && this.isSpinning && this.reelsContainer.chainSpeed > 0.2) {
-      this.reelsContainer.chainSpeed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT / 10;
-    }
-
     // Update spinning state based on individual reel states
     this.updateSpinningState();
 
@@ -286,7 +277,7 @@ export class ReelsController {
   }
 
   // Container access
-  public getReelsContainer(): ReelsContainer {
+  public getReelsContainer(): BaseReelsContainer {
     return this.reelsContainer;
   }
 

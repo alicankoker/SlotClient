@@ -10,7 +10,6 @@ import {
     SpinContainer,
     ReelsController,
     StaticContainer,
-    ReelsContainer,
     GameDataManager,
     FreeSpinController,
     ClassicSpinContainer,
@@ -30,6 +29,8 @@ import { Background } from '../components/Background';
 import { AnimationContainer } from '../components/AnimationContainer';
 import { Bonus } from '../components/Bonus';
 import { WinConfig } from '@slotclient/engine/types/IWinPresentation';
+import { WinLines } from '../components/WinLines';
+import { ReelsContainer } from '../components/ReelsContainer';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -60,6 +61,7 @@ export class SlotGameController implements ISlotGameController {
     private autoPlayController!: AutoPlayController;
     private background!: Background;
     private animationContainer!: AnimationContainer;
+    private winLines!: WinLines;
     private onPlayerStateChangeCallback?: (state: INexusPlayerData) => void;
     private onSpinResultCallback?: (result: SpinResultData) => void;
     private onCascadeStepCallback?: (step: CascadeStepData) => void;
@@ -89,12 +91,13 @@ export class SlotGameController implements ISlotGameController {
             symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData as number[][]);
 
-        this.background = Background.getInstance();
+        this.background = Background.instance();
         this.animationContainer = AnimationContainer.getInstance(this.app);
+        this.winLines = WinLines.getInstance();
 
-        this.reelsContainer.addChild(this.spinContainer);
+        this.reelsContainer.setSpinContainer(this.spinContainer);
         this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
-        this.reelsContainer.addChild(this.staticContainer);
+        this.reelsContainer.setStaticContainer(this.staticContainer);
         this.spinContainer.mask = this.reelsContainer.getMask();
         this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
@@ -213,7 +216,6 @@ export class SlotGameController implements ISlotGameController {
         const balance: number = GameDataManager.getInstance().getResponseData()?.balance.after ?? GameDataManager.getInstance().getInitialData()!.balance ?? 0;
         const betValues: number[] = GameDataManager.getInstance().getBetValues();
         const betValueIndex: number = GameDataManager.getInstance().getBetValueIndex();
-        const maxLines: number = GameDataManager.getInstance().getMaxLine();
         const line: number = GameDataManager.getInstance().getCurrentLine();
         const bet: number = betValues[betValueIndex] * line;
 
@@ -221,22 +223,18 @@ export class SlotGameController implements ISlotGameController {
             for (let betIndex = betValues.length - 1; betIndex >= 0; betIndex--) {
                 const betValue = betValues[betIndex];
 
-                for (let lineIndex = maxLines; lineIndex > 0; lineIndex--) {
-                    const adjustedBet = betValue * lineIndex;
+                const adjustedBet = betValue * line;
 
-                    if (balance - adjustedBet >= 0) {
-                        GameDataManager.getInstance().setCurrentLine(lineIndex);
-                        GameDataManager.getInstance().setBetValueIndex(betIndex);
+                if (balance - adjustedBet >= 0) {
+                    GameDataManager.getInstance().setBetValueIndex(betIndex);
 
-                        eventBus.emit("setLine", lineIndex);
-                        eventBus.emit("setBetValueIndex", betIndex);
-                        eventBus.emit("showToast", { type: "info", message: "Bet adjusted due to insufficient balance!" });
-                        eventBus.emit("setMessageBox");
+                    eventBus.emit("setBetValueIndex", betIndex);
+                    eventBus.emit("showToast", { type: "info", message: "Bet adjusted due to insufficient balance!" });
+                    eventBus.emit("setMessageBox");
 
-                        signals.emit("spinCompleted");
+                    signals.emit("spinCompleted");
 
-                        return false;
-                    }
+                    return false;
                 }
             }
 
@@ -266,6 +264,7 @@ export class SlotGameController implements ISlotGameController {
                 }
 
                 this.resetWinAnimations();
+                this.winLines.hideAllLines();
                 await this.spinController.executeSpin();
             }
         }
@@ -327,7 +326,7 @@ export class SlotGameController implements ISlotGameController {
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(true);
             this.background.setFreeSpinMode(true);
-            this.animationContainer.getWinLines().setFreeSpinMode(true);
+            this.winLines.setFreeSpinMode(true);
 
             eventBus.emit("setBatchComponentState", {
                 componentNames: ['mobileBetButton', 'betButton', 'autoplayButton', 'mobileAutoplayButton', 'settingsButton', 'creditButton'],
@@ -361,7 +360,7 @@ export class SlotGameController implements ISlotGameController {
             }
             this.reelsContainer.setFreeSpinMode(false);
             this.background.setFreeSpinMode(false);
-            this.animationContainer.getWinLines().setFreeSpinMode(false);
+            this.winLines.setFreeSpinMode(false);
         });
 
         this.freeSpinController.isRunning = false;
@@ -377,6 +376,7 @@ export class SlotGameController implements ISlotGameController {
     public async startBonusState(): Promise<void> {
         eventBus.emit("hideUI");
         Bonus.instance().isActive = true;
+        this.staticContainer.isBonusMode = true;
         await this.staticContainer.playHighlightSymbols(GameDataManager.getInstance().getResponseData().bonus?.positions!);
         await this.animationContainer.startTransitionAnimation(() => {
             this.animationContainer.setBonusMode(true);
@@ -385,6 +385,7 @@ export class SlotGameController implements ISlotGameController {
 
         Bonus.instance().setOnBonusCompleteCallback(async () => {
             this.animationContainer.setBonusMode(false);
+            this.staticContainer.isBonusMode = false;
             Bonus.instance().isActive = false;
             eventBus.emit("setBalance", GameDataManager.getInstance().getLastSpinResult()!.balance.after);
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(GameDataManager.getInstance().getResponseData().bonus?.history[0].featureWin!) as string });
@@ -430,10 +431,9 @@ export class SlotGameController implements ISlotGameController {
         }
 
         const staticContainer = this.reelsContainer.getStaticContainer();
-        const winLines = this.reelsContainer.getWinLines();
 
-        if (winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
-            winLines.visible = true;
+        if (this.winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
+            this.winLines.visible = true;
         }
 
         const winDatas = [...winConfigs];

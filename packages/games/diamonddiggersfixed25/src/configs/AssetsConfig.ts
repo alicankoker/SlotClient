@@ -29,7 +29,7 @@ export class AssetsConfig extends BaseAssetsConfig {
     }
     return this._instance;
   }
-  
+
   public RES: string = "{{resolution}}";
   
   public readonly SPRITESHEETS: BundleFile = {
@@ -126,10 +126,6 @@ export class AssetsConfig extends BaseAssetsConfig {
             src: PATH + '/assets/raw/environment/base_line_chain.png'
           },
           {
-            alias: 'base_line_holder',
-            src: PATH + '/assets/raw/environment/base_line_holder.png'
-          },
-          {
             alias: 'base_logo',
             src: PATH + '/assets/raw/environment/base_logo.png'
           },
@@ -166,10 +162,6 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'freespin_line_chain',
             src: PATH + '/assets/raw/environment/freespin_line_chain.png'
-          },
-          {
-            alias: 'freespin_line_holder',
-            src: PATH + '/assets/raw/environment/freespin_line_holder.png'
           },
           {
             alias: 'freespin_logo',
@@ -211,6 +203,10 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'splash_spin_button',
             src: PATH + '/assets/raw/environment/splash_spin_button.png'
+          },
+          {
+            alias: 'splash_spin_button_arrow',
+            src: PATH + '/assets/raw/environment/splash_spin_button_arrow.png'
           },
           {
             alias: 'splash_spin_button_icon',
@@ -405,14 +401,6 @@ export class AssetsConfig extends BaseAssetsConfig {
       {
         name: "fonts",
         assets: [
-          {
-            alias: "MikadoBlack",
-            src: PATHS.ROOT + `fonts/MikadoBlack.otf`,
-          },
-          {
-            alias: "MikadoMedium",
-            src: PATHS.ROOT + `fonts/MikadoMedium.otf`,
-          },
           {
             alias: "Numbers",
             src: `${PATHS.ROOT}/spritesheets/numbers/numbers.json`,

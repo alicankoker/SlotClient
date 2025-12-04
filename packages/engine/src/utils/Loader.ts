@@ -3,10 +3,13 @@ import { signals, SIGNAL_EVENTS } from "../controllers/SignalManager";
 import { gsap } from "gsap";
 import { debug } from "./debug";
 import { GameConfig } from "@slotclient/config/GameConfig";
+import { ConfigProvider } from "@slotclient/config";
+import { IStyleConfig } from "@slotclient/config/StyleConfig";
 
 export class Loader extends Container {
     private static _instance: Loader;
     private app: Application;
+    private styleConfig: IStyleConfig;
 
     private smooth = { percent: 0 };
     private startedAt = 0;
@@ -30,6 +33,7 @@ export class Loader extends Container {
         super();
 
         this.app = app;
+        this.styleConfig = ConfigProvider.getInstance().getStyleConfig();
 
         const backgroundContainer = background;
         this.app?.stage.addChildAt(backgroundContainer, 0);
@@ -70,7 +74,7 @@ export class Loader extends Container {
         shadow.anchor.set(0.5, 0.5);
         shadow.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         shadow.scale.set(0.805, 0.850);
-        shadow.tint = 0x000000;
+        shadow.tint = this.styleConfig.loaderStyles.barShadow;
         this.addChild(shadow);
 
         this.background = Sprite.from(fBackground);
@@ -78,7 +82,7 @@ export class Loader extends Container {
         this.background.anchor.set(0.5, 0.5);
         this.background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         this.background.scale.set(0.8, 0.8);
-        this.background.tint = 0x2a2c40;
+        this.background.tint = this.styleConfig.loaderStyles.barBackground;
         this.addChild(this.background);
 
         const strokeBack = Sprite.from(fStrokeBack);
@@ -86,7 +90,7 @@ export class Loader extends Container {
         strokeBack.anchor.set(0.5, 0.5);
         strokeBack.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         strokeBack.scale.set(0.8, 0.8);
-        strokeBack.tint = 0xfff0dc;
+        strokeBack.tint = this.styleConfig.loaderStyles.barStrokeBack;
         this.addChild(strokeBack);
 
         const strokeFront = Sprite.from(fStrokeFront);
@@ -94,7 +98,7 @@ export class Loader extends Container {
         strokeFront.anchor.set(0.5, 0.5);
         strokeFront.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         strokeFront.scale.set(0.8, 0.8);
-        strokeFront.tint = 0xffa200;
+        strokeFront.tint = this.styleConfig.loaderStyles.barStrokeFront;
         this.addChild(strokeFront);
 
         this.fill = Sprite.from(fFill);
@@ -102,7 +106,7 @@ export class Loader extends Container {
         this.fill.anchor.set(1, 0.5);
         this.fill.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2 - this.background.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2 + 300);
         this.fill.scale.set(0.8, 0.8);
-        this.fill.tint = 0x1dd4df;
+        this.fill.tint = this.styleConfig.loaderStyles.barFill;
         this.addChild(this.fill);
 
         this.fillMask = new Graphics();
@@ -121,7 +125,7 @@ export class Loader extends Container {
         this.percentageLabel = new Text({
             text: "0%",
             style: {
-                fontFamily: "MikadoMedium",
+                fontFamily: this.styleConfig.loaderStyles.fontStyle,
                 fontSize: 30,
                 fill: 0xffffff,
                 trim: true,
@@ -148,7 +152,7 @@ export class Loader extends Container {
         this.progressStatus = new Text({
             text: "Loading...",
             style: {
-                fontFamily: "MikadoMedium",
+                fontFamily: this.styleConfig.loaderStyles.fontStyle,
                 fontSize: 35,
                 fill: 0xffffff,
                 trim: true,
@@ -175,7 +179,7 @@ export class Loader extends Container {
         const bePatientText = new Text({
             text: "Please be patient, this may take a while...",
             style: {
-                fontFamily: "MikadoMedium",
+                fontFamily: this.styleConfig.loaderStyles.fontStyle,
                 fontSize: 35,
                 fill: 0xffffff,
                 trim: true,

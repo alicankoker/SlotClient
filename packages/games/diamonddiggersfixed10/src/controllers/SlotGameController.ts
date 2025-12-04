@@ -10,7 +10,6 @@ import {
     SpinContainer,
     ReelsController,
     StaticContainer,
-    ReelsContainer,
     GameDataManager,
     FreeSpinController,
     ClassicSpinContainer,
@@ -31,6 +30,7 @@ import { AnimationContainer } from '../components/AnimationContainer';
 import { Bonus } from '../components/Bonus';
 import { WinConfig } from '@slotclient/engine/types/IWinPresentation';
 import { WinLines } from '../components/WinLines';
+import { ReelsContainer } from '../components/ReelsContainer';
 
 export interface SlotSpinRequest {
     playerId: string;
@@ -95,9 +95,9 @@ export class SlotGameController implements ISlotGameController {
         this.animationContainer = AnimationContainer.getInstance(this.app);
         this.winLines = WinLines.getInstance();
 
-        this.reelsContainer.addChild(this.spinContainer);
+        this.reelsContainer.setSpinContainer(this.spinContainer);
         this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
-        this.reelsContainer.addChild(this.staticContainer);
+        this.reelsContainer.setStaticContainer(this.staticContainer);
         this.spinContainer.mask = this.reelsContainer.getMask();
         this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
@@ -216,7 +216,6 @@ export class SlotGameController implements ISlotGameController {
         const balance: number = GameDataManager.getInstance().getResponseData()?.balance.after ?? GameDataManager.getInstance().getInitialData()!.balance ?? 0;
         const betValues: number[] = GameDataManager.getInstance().getBetValues();
         const betValueIndex: number = GameDataManager.getInstance().getBetValueIndex();
-        const maxLines: number = GameDataManager.getInstance().getMaxLine();
         const line: number = GameDataManager.getInstance().getCurrentLine();
         const bet: number = betValues[betValueIndex] * line;
 
@@ -224,22 +223,18 @@ export class SlotGameController implements ISlotGameController {
             for (let betIndex = betValues.length - 1; betIndex >= 0; betIndex--) {
                 const betValue = betValues[betIndex];
 
-                for (let lineIndex = maxLines; lineIndex > 0; lineIndex--) {
-                    const adjustedBet = betValue * lineIndex;
+                const adjustedBet = betValue * line;
 
-                    if (balance - adjustedBet >= 0) {
-                        GameDataManager.getInstance().setCurrentLine(lineIndex);
-                        GameDataManager.getInstance().setBetValueIndex(betIndex);
+                if (balance - adjustedBet >= 0) {
+                    GameDataManager.getInstance().setBetValueIndex(betIndex);
 
-                        eventBus.emit("setLine", lineIndex);
-                        eventBus.emit("setBetValueIndex", betIndex);
-                        eventBus.emit("showToast", { type: "info", message: "Bet adjusted due to insufficient balance!" });
-                        eventBus.emit("setMessageBox");
+                    eventBus.emit("setBetValueIndex", betIndex);
+                    eventBus.emit("showToast", { type: "info", message: "Bet adjusted due to insufficient balance!" });
+                    eventBus.emit("setMessageBox");
 
-                        signals.emit("spinCompleted");
+                    signals.emit("spinCompleted");
 
-                        return false;
-                    }
+                    return false;
                 }
             }
 

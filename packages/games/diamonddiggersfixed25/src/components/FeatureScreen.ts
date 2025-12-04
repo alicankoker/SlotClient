@@ -8,10 +8,12 @@ import gsap from "gsap";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { AssetsConfig } from "../configs/AssetsConfig";
+import { StyleConfig } from "../configs/StyleConfig";
 import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 
 export class FeatureScreen extends FeatureScreenContainer {
     private _assetsConfig: AssetsConfig;
+    private _styleConfig: StyleConfig
     private _controller: FeatureScreenController<FeatureScreen>;
     private _logo!: Sprite;
     private _previewContainer!: Container;
@@ -34,6 +36,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         super(app);
 
         this._assetsConfig = AssetsConfig.getInstance();
+        this._styleConfig = StyleConfig.getInstance();
 
         this._controller = this.createController();
 
@@ -146,7 +149,7 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         this._previewText = new Text({
             text: "",
-            style: GameConfig.style_2.clone()
+            style: this._styleConfig.style_2.clone()
         });
         this._previewText.label = "PreviewText";
         this._previewText.anchor.set(0.5, 0.5);
@@ -203,33 +206,37 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     private _setupLines(parent: Container): void {
-        for (let index = 0; index < 2; index++) {
-            const chain = Sprite.from(`base_line_chain`);
-            chain.label = `LineChain_${index}`;
-            chain.anchor.set(0.5, 0.5);
-            chain.scale.set(0.5, 0.5);
-            chain.position.set(318 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
-            parent.addChild(chain);
-        }
+        const lineChain = Sprite.from(`base_line_chain`);
+        lineChain.label = `LineChain`;
+        lineChain.anchor.set(0.5);
+        lineChain.scale.set(0.5, 0.5);
+        lineChain.position.set(325, (GameConfig.REFERENCE_RESOLUTION.height / 2));
+        parent.addChild(lineChain);
 
-        for (const key of Object.keys(GameRulesConfig.LINE_NUMBER_POSITION)) {
-            const position = GameRulesConfig.LINE_NUMBER_POSITION[Number(key)];
-            const texture = Sprite.from(`base_line_holder`);
-            texture.label = `LineHolderTexture_${key}`;
-            texture.anchor.set(0.5, 0.5);
-            texture.scale.set(0.5, 0.5);
-            texture.position.set((GameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (GameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
-            parent.addChild(texture);
+        const fixedLineHolder = Sprite.from(`base_fixed_lines_holder`);
+        fixedLineHolder.label = `FixedLineHolder`;
+        fixedLineHolder.anchor.set(0.5);
+        fixedLineHolder.scale.set(0.5, 0.5);
+        fixedLineHolder.position.set(325, 555);
+        parent.addChild(fixedLineHolder);
 
-            const text = new Text({
-                text: key.toString(),
-                style: GameConfig.style_1.clone()
-            });
-            text.style.fontSize = 56;
-            text.anchor.set(0.5, 0.5);
-            text.position.set(0, -10);
-            texture.addChild(text);
-        }
+        const fixedValue = new Text({
+            text: '25',
+            style: this._styleConfig.style_1.clone()
+        });
+        fixedValue.style.fontSize = 50;
+        fixedValue.anchor.set(0.5);
+        fixedValue.position.set(325, 530);
+        parent.addChild(fixedValue);
+
+        const fixedText = new Text({
+            text: 'LINES',
+            style: this._styleConfig.style_1.clone()
+        });
+        fixedText.style.fontSize = 22;
+        fixedText.anchor.set(0.5);
+        fixedText.position.set(325, 565);
+        parent.addChild(fixedText);
     }
 
     private setupLogo(): void {
@@ -274,18 +281,10 @@ export class FeatureScreen extends FeatureScreenContainer {
         spinButtonTextPlace.tint = 0x58b056;
         this._spinButtonContainer.addChild(spinButtonTextPlace);
 
-        const spinButtonText = new Text({
-            text: "START",
-            style: {
-                fontFamily: "Arial",
-                fontSize: 25,
-                fill: 0xffffff,
-                align: "center",
-            },
-        });
-        spinButtonText.label = "SpinButtonText";
-        spinButtonText.anchor.set(0.5, 0.5);
-        this._spinButtonContainer.addChild(spinButtonText);
+        const spinButtonArrow = Sprite.from("splash_spin_button_arrow");
+        spinButtonArrow.label = "SpinButtonArrow";
+        spinButtonArrow.anchor.set(0.5, 0.5);
+        this._spinButtonContainer.addChild(spinButtonArrow);
 
         this._spinButtonContainer.on("pointerover", () => {
             gsap.killTweensOf(spinButtonIcon);
@@ -339,7 +338,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         const volatilityText = new Text({
             text: 'VOLATILITY',
             style: {
-                fontFamily: 'MikadoMedium',
+                fontFamily: 'Arial',
                 fontSize: 20,
                 fill: 0xFFFFFF,
                 align: 'center',
@@ -411,8 +410,9 @@ export class FeatureScreen extends FeatureScreenContainer {
         const dontShowText = new Text({
             text: "DON'T SHOW NEXT TIME",
             style: {
-                fontFamily: 'MikadoMedium',
+                fontFamily: 'Arial',
                 fontSize: 40,
+                fontWeight: 'bolder',
                 fill: 0x000000,
                 align: 'center',
                 trim: true,
@@ -421,7 +421,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         });
         dontShowText.label = "DontShowText";
         dontShowText.anchor.set(0, 0.5);
-        dontShowText.position.set(-220, 0);
+        dontShowText.position.set(-210, 0);
         this._dontShowContainer.addChild(dontShowText);
 
         dontShowButton.on("pointerup", () => {

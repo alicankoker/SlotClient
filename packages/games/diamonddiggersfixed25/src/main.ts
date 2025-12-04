@@ -5,6 +5,7 @@ import { ResponsiveManager } from "@slotclient/engine/utils/ResponsiveManager";
 import { AssetSizeManager } from "@slotclient/engine/multiResolutionSupport/AssetSizeManager";
 import { AssetLoader } from "@slotclient/engine/utils/AssetLoader";
 import { AssetsConfig } from "./configs/AssetsConfig";
+import { StyleConfig } from "./configs/StyleConfig";
 import { GameConfig } from "@slotclient/config/GameConfig";
 import { setConnectionConfig } from "@slotclient/config/ConnectionConfig";
 import gameConfig from "./configs/GameConfig";
@@ -14,7 +15,6 @@ import { gsap } from "gsap";
 import { Storage } from "@slotclient/engine/utils/Storage";
 import { eventBus } from "@slotclient/types";
 import { SpinEventTypes } from "@slotclient/communication";
-import { ConfigManager, type AudioBundle } from "@slotclient/engine";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { CascadeStepData, GridData, IResponseData, SpinResponseData, } from "@slotclient/engine/types/ICommunication";
 import { ISpinState, SpinMode } from "@slotclient/engine/types/ISpinConfig";
@@ -31,7 +31,7 @@ import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayControll
 import { signals } from "@slotclient/engine/controllers/SignalManager";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
 import payoutData from "./payout.json";
-import { AssetsConfigProvider } from "@slotclient/config";
+import { ConfigProvider } from "@slotclient/config";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -45,6 +45,11 @@ export class DoodleV8Main {
   public async init(): Promise<void> {
     try {
       debug.log("🎰 DoodleV8 initializing...");
+
+      const assetsConfig = new AssetsConfig();
+      ConfigProvider.getInstance().setAssetsConfig(assetsConfig);
+      const styleConfig = new StyleConfig();
+      ConfigProvider.getInstance().setStyleConfig(styleConfig);
 
       // Initialize connection config from game config
       setConnectionConfig({
@@ -113,6 +118,7 @@ export class DoodleV8Main {
 
       eventBus.emit("setFixedLine", 25)
       gameDataManager.setCurrentLine(25);
+      gameDataManager.setMaxLine(25);
       AnimationContainer.instance().getWinLines().setAvailableLines(25);
 
       let isKeyHeld = false;
@@ -408,9 +414,8 @@ export class DoodleV8Main {
 
   private async loadAssets(res: string): Promise<void> {
     try {
-      AssetsConfigProvider.getInstance().setConfig(AssetsConfig.getInstance());
-      const assetsConfig = AssetsConfigProvider.getInstance().getConfig();
-      ConfigManager.getInstance().setAssetsConfig(assetsConfig);
+      const assetsConfig = ConfigProvider.getInstance().getAssetsConfig();
+      ConfigProvider.getInstance().setAssetsConfig(assetsConfig);
       await this.assetLoader.loadBundles(assetsConfig.getAllAssets(res));
     } catch (error) {
       throw error;

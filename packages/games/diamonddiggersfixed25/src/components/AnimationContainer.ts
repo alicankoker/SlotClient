@@ -14,6 +14,7 @@ import { WinEventType } from "@slotclient/types/IWinEvents";
 import { SpriteText } from "@slotclient/engine/utils/SpriteText";
 import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayController";
 import { FreeSpinController } from "@slotclient/engine/freeSpin/FreeSpinController";
+import { StyleConfig } from "../configs/StyleConfig";
 
 interface ParticleAnimationOptions {
     element: Sprite | Spine | Graphics;
@@ -43,6 +44,7 @@ export class AnimationContainer extends Container {
     private _app: Application;
     private _resizeSubscription?: SignalSubscription;
     private _assetsConfig: AssetsConfig;
+    private _styleConfig: StyleConfig;
 
     private _winLines: WinLines;
     private _particleContainer: Container;
@@ -77,6 +79,7 @@ export class AnimationContainer extends Container {
         this._app = app;
 
         this._assetsConfig = AssetsConfig.getInstance();
+        this._styleConfig = StyleConfig.getInstance();
 
         this._winLines = WinLines.getInstance();
         this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
@@ -145,7 +148,7 @@ export class AnimationContainer extends Container {
 
         const popupHeaderText = new Text({
             text: 'CONGRATULATIONS',
-            style: GameConfig.style_4
+            style: this._styleConfig.style_4
         });
         popupHeaderText.label = 'PopupHeaderText';
         popupHeaderText.anchor.set(0.5, 0.5);
@@ -154,7 +157,7 @@ export class AnimationContainer extends Container {
 
         const popupYouWonText = new Text({
             text: 'YOU HAVE WON',
-            style: GameConfig.style_2
+            style: this._styleConfig.style_2
         });
         popupYouWonText.label = 'PopupYouWonText';
         popupYouWonText.anchor.set(0.5, 0.5);
@@ -169,7 +172,7 @@ export class AnimationContainer extends Container {
 
         this._popupContentText = new Text({
             text: '',
-            style: GameConfig.style_2
+            style: this._styleConfig.style_2
         });
         this._popupContentText.label = 'PopupContentText';
         this._popupContentText.anchor.set(0.5, 0.5);
@@ -178,7 +181,7 @@ export class AnimationContainer extends Container {
 
         const popupPressAnywhere = new Text({
             text: 'PRESS ANYWHERE TO CONTINUE',
-            style: GameConfig.style_1
+            style: this._styleConfig.style_1
         });
         popupPressAnywhere.label = 'PopupPressText';
         popupPressAnywhere.anchor.set(0.5, 0.5);
@@ -205,7 +208,7 @@ export class AnimationContainer extends Container {
 
         this._dialogContentText = new Text({
             text: 'FREESPINS',
-            style: GameConfig.style_2
+            style: this._styleConfig.style_2
         });
         this._dialogContentText.label = 'DialogContentText';
         this._dialogContentText.anchor.set(0.5, 0.5);

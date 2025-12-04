@@ -14,6 +14,7 @@ import { eventBus } from "@slotclient/types";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { BackendToWinEventType } from "@slotclient/engine/types/IWinEvents";
 import { SpriteText } from "@slotclient/engine/utils/SpriteText";
+import { StyleConfig } from "../configs/StyleConfig";
 
 const PLEASE_SELECT_TEXT: string = "PLEASE SELECT";
 const YOU_WON_TEXT: string = "YOU WON X";
@@ -35,6 +36,7 @@ export class Bonus extends BonusContainer {
     private static _instance: Bonus;
     private _app: Application;
     private _assetsConfig: AssetsConfig;
+        private _styleConfig: StyleConfig
     private _controller: BonusController<Bonus>;
     private _dynamiteContainer!: Container;
     private _rewardContainer!: Container;
@@ -62,6 +64,7 @@ export class Bonus extends BonusContainer {
         this._app = app;
 
         this._assetsConfig = AssetsConfig.getInstance();
+        this._styleConfig = StyleConfig.getInstance();
 
         this._controller = this.createController();
 
@@ -159,7 +162,7 @@ export class Bonus extends BonusContainer {
 
         this._infoText1 = new Text({
             text: '',
-            style: GameConfig.style_5.clone(),
+            style: this._styleConfig.style_5.clone(),
         });
         this._infoText1.label = `InfoText1`;
         this._infoText1.anchor.set(0.5, 0.5);
@@ -170,7 +173,7 @@ export class Bonus extends BonusContainer {
 
         this._infoText2 = new Text({
             text: PLEASE_SELECT_TEXT,
-            style: GameConfig.style_5,
+            style: this._styleConfig.style_5,
         });
         this._infoText2.label = `InfoText2`;
         this._infoText2.anchor.set(0.5, 0.5);

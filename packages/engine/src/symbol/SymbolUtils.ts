@@ -1,12 +1,12 @@
 import { Assets } from "pixi.js";
 import { BaseAssetsConfig } from "@slotclient/config/AssetsConfig";
-import { ConfigManager } from '../controllers/ConfigManager';
+import { ConfigProvider } from "@slotclient/config";
 import { debug } from "../utils/debug";
 
 export class SymbolUtils {
   private static getAssetsConfig(): BaseAssetsConfig {
-    // Access the ConfigManager singleton to get the assets config
-    return ConfigManager.getInstance().getAssetsConfig();
+    // Access the ConfigProvider singleton to get the assets config
+    return ConfigProvider.getInstance().getAssetsConfig();
   }
   // Get texture for a symbol ID (static utility)
   public static getTextureForSymbol(symbolId: number): any {

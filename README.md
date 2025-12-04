@@ -26,9 +26,9 @@ pnpm --filter @slotclient/game-name start
 **Option 2: From the game directory**
 ```bash
 # Navigate to the game
-cd src/games/diamonddiggers1
+cd src/games/diamonddiggers
 # or
-cd packages/games/diamonddiggers1
+cd packages/games/diamonddiggers
 
 # Start the game
 pnpm start
@@ -50,7 +50,7 @@ pnpm dev
 
 - **Diamond Diggers** - `@slotclient/diamond-diggers`
   - Run: `pnpm --filter @slotclient/diamond-diggers start`
-  - Location: `packages/games/diamonddiggers1/` or `src/games/diamonddiggers1/`
+  - Location: `packages/games/diamonddiggers/` or `src/games/diamonddiggers/`
 
 ## 📁 Project Structure
 
@@ -64,7 +64,7 @@ SlotClient/
 │   ├── communication/       # Communication layer (Socket.IO, adapters)
 │   ├── server/              # Server-side game logic
 │   └── games/               # Game implementations
-│       └── diamonddiggers1/  # Diamond Diggers game
+│       └── diamonddiggers/  # Diamond Diggers game
 ├── assets/                  # Shared game assets (fonts, images, sounds)
 └── src/                     # Legacy source files (symlinked to packages)
 ```
@@ -102,9 +102,9 @@ pnpm dev
 
 ```bash
 # Navigate to the game directory
-cd src/games/diamonddiggers1
+cd src/games/diamonddiggers
 # or
-cd packages/games/diamonddiggers1
+cd packages/games/diamonddiggers
 
 # Start the game
 pnpm start
@@ -207,7 +207,7 @@ The script automatically creates:
 
 2. **Add your game assets:**
    - Place assets in `packages/games/<game-name>/public/assets/`
-   - Follow the same structure as `diamonddiggers1` (animations, art, fonts, sounds, etc.)
+   - Follow the same structure as `diamonddiggers` (animations, art, fonts, sounds, etc.)
 
 3. **Start developing:**
    ```bash
@@ -239,7 +239,7 @@ If you prefer to create a game manually:
    mkdir -p packages/games/yourGameName
    ```
 
-2. Copy the structure from an existing game (e.g., `diamonddiggers1`)
+2. Copy the structure from an existing game (e.g., `diamonddiggers`)
 
 3. Update `package.json` with your game name and dependencies
 

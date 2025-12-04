@@ -6,10 +6,12 @@ import { WinLinesContainer } from "@slotclient/engine/winLines/WinLinesContainer
 import { WinLinesController } from "@slotclient/engine/winLines/WinLinesController";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { StyleConfig } from "../configs/StyleConfig";
 
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
     private _assetConfig: AssetsConfig;
+    private _styleConfig: StyleConfig
 
     private _controller: WinLinesController<WinLines>;
     private _lineChain!: Sprite;
@@ -23,6 +25,7 @@ export class WinLines extends WinLinesContainer {
         this._controller = this.createController();
 
         this._assetConfig = AssetsConfig.getInstance();
+        this._styleConfig = StyleConfig.getInstance();
 
         this.createLineMask();
         this.createLineNumbers();
@@ -115,8 +118,8 @@ export class WinLines extends WinLinesContainer {
         this.addChild(this._fixedLineHolder);
 
         this._fixedValue = new Text({
-            text: '25',
-            style: GameConfig.style_1.clone()
+            text: '10',
+            style: this._styleConfig.style_1.clone()
         });
         this._fixedValue.style.fontSize = 50;
         this._fixedValue.anchor.set(0.5);
@@ -125,7 +128,7 @@ export class WinLines extends WinLinesContainer {
 
         this._fixedText = new Text({
             text: 'LINES',
-            style: GameConfig.style_1.clone()
+            style: this._styleConfig.style_1.clone()
         });
         this._fixedText.style.fontSize = 22;
         this._fixedText.anchor.set(0.5);

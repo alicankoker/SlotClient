@@ -1,7 +1,8 @@
 export * from './AnimationConfig';
 export * from './AssetsConfig';
+export * from './StyleConfig';
 export { BaseAssetsConfig } from './AssetsConfig';
-export { AssetsConfigProvider } from './AssetsConfigProvider';
+export { ConfigProvider } from './ConfigProvider';
 export * from './GameConfig';
 export * from './GameRulesConfig';
 export * from './ConnectionConfig';

@@ -2,15 +2,14 @@
 // Export all public APIs from the engine
 
 // Controllers
-export * from './controllers/ConfigManager';
 export * from './controllers/GameController';
 export * from './controllers/SignalManager';
 export * from './controllers/SoundManager';
 
 // Reels
 export * from './reels/ReelController';
+export * from './reels/BaseReelsContainer';
 export * from './reels/ReelsController';
-export * from './reels/ReelsContainer';
 export { SpinContainer as ReelsSpinContainer } from './reels/SpinContainer';
 export * from './reels/StaticContainer';
 

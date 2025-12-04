@@ -1,5 +1,5 @@
 import { SkeletonData, Spine } from '@esotericsoftware/spine-pixi-v8';
-import { ConfigManager } from '../controllers/ConfigManager';
+import { ConfigProvider } from '@slotclient/config';
 import { debug } from '../utils/debug';
 
 export interface SymbolConfig {
@@ -18,7 +18,7 @@ export class SpineSymbol extends Spine {
     private config: SymbolConfig;
 
     private static getSpineData() {
-        const assetsConfig = ConfigManager.getInstance().getAssetsConfig();
+        const assetsConfig = ConfigProvider.getInstance().getAssetsConfig();
         return assetsConfig.SYMBOL_SPINE_ASSET;
     }
 
