@@ -90,18 +90,6 @@ export class AssetsConfig extends BaseAssetsConfig {
         assets: [
           // #region Base Frame and UI Assets
           {
-            alias: 'base_chain',
-            src: PATH + '/assets/raw/environment/base_chain.png'
-          },
-          {
-            alias: 'base_chain_hole',
-            src: PATH + '/assets/raw/environment/base_chain_hole.png'
-          },
-          {
-            alias: 'base_floor',
-            src: PATH + '/assets/raw/environment/base_floor.png'
-          },
-          {
             alias: 'base_frame',
             src: PATH + '/assets/raw/environment/base_frame.png'
           },
@@ -110,35 +98,11 @@ export class AssetsConfig extends BaseAssetsConfig {
             src: PATH + '/assets/raw/environment/base_frame_background.png'
           },
           {
-            alias: 'base_header_background',
-            src: PATH + '/assets/raw/environment/base_header_background.png'
-          },
-          {
-            alias: 'base_line_chain',
-            src: PATH + '/assets/raw/environment/base_line_chain.png'
-          },
-          {
-            alias: 'base_line_holder',
-            src: PATH + '/assets/raw/environment/base_line_holder.png'
-          },
-          {
             alias: 'base_logo',
             src: PATH + '/assets/raw/environment/base_logo.png'
           },
           // #endregion
           // #region Freespin Frame and UI Assets
-          {
-            alias: 'freespin_chain',
-            src: PATH + '/assets/raw/environment/freespin_chain.png'
-          },
-          {
-            alias: 'freespin_chain_hole',
-            src: PATH + '/assets/raw/environment/freespin_chain_hole.png'
-          },
-          {
-            alias: 'freespin_floor',
-            src: PATH + '/assets/raw/environment/freespin_floor.png'
-          },
           {
             alias: 'freespin_frame',
             src: PATH + '/assets/raw/environment/freespin_frame.png'
@@ -148,24 +112,8 @@ export class AssetsConfig extends BaseAssetsConfig {
             src: PATH + '/assets/raw/environment/freespin_frame_background.png'
           },
           {
-            alias: 'freespin_header_background',
-            src: PATH + '/assets/raw/environment/freespin_header_background.png'
-          },
-          {
-            alias: 'freespin_line_chain',
-            src: PATH + '/assets/raw/environment/freespin_line_chain.png'
-          },
-          {
-            alias: 'freespin_line_holder',
-            src: PATH + '/assets/raw/environment/freespin_line_holder.png'
-          },
-          {
             alias: 'freespin_logo',
             src: PATH + '/assets/raw/environment/freespin_logo.png'
-          },
-          {
-            alias: 'freespin_remaining_strip',
-            src: PATH + '/assets/raw/environment/freespin_remaining_strip.png'
           },
           // #endregion
           {
@@ -225,20 +173,8 @@ export class AssetsConfig extends BaseAssetsConfig {
             src: PATH + '/assets/raw/environment/line_mask.png'
           },
           {
-            alias: 'tnt_cable_landscape',
-            src: PATH + '/assets/raw/environment/tnt_cable_landscape.png'
-          },
-          {
-            alias: 'tnt_cable_portrait',
-            src: PATH + '/assets/raw/environment/tnt_cable_portrait.png'
-          },
-          {
             alias: 'golden_key',
             src: PATH + '/assets/raw/environment/golden_key.png'
-          },
-          {
-            alias: 'win_event_strip',
-            src: PATH + '/assets/raw/environment/win_event_strip.png'
           },
           {
             alias: 'win_strap',
@@ -303,6 +239,19 @@ export class AssetsConfig extends BaseAssetsConfig {
         ]
       },
       {
+        name: 'character',
+        assets: [
+          {
+            alias: ['character_atlas'],
+            src: PATH + '/assets/animations/character/character.atlas'
+          },
+          {
+            alias: ['character_data'],
+            src: PATH + '/assets/animations/character/character.json'
+          }
+        ]
+      },
+      {
         name: 'environment',
         assets: [
           {
@@ -312,6 +261,19 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: ['environment_data'],
             src: PATH + '/assets/animations/environment/environment.json'
+          }
+        ]
+      },
+      {
+        name: 'logo',
+        assets: [
+          {
+            alias: ['logo_atlas'],
+            src: PATH + '/assets/animations/logo/logo.atlas'
+          },
+          {
+            alias: ['logo_data'],
+            src: PATH + '/assets/animations/logo/logo.json'
           }
         ]
       },
@@ -417,9 +379,19 @@ export class AssetsConfig extends BaseAssetsConfig {
     skeleton: 'bonus_data'
   };
 
+  public readonly CHARACTER_SPINE_ASSET: SpineAssetData = {
+    atlas: "character_atlas",
+    skeleton: "character_data",
+  };
+
   public readonly ENVIRONMENT_SPINE_ASSET: SpineAssetData = {
     atlas: "environment_atlas",
     skeleton: "environment_data",
+  };
+
+  public readonly LOGO_SPINE_ASSET: SpineAssetData = {
+    atlas: "logo_atlas",
+    skeleton: "logo_data",
   };
 
   public readonly WINEVENT_SPINE_ASSET: SpineAssetData = {

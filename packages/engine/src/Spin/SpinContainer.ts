@@ -1,8 +1,6 @@
 import { Container, Application, Sprite } from "pixi.js";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { GridSymbol } from "../symbol/GridSymbol";
 import { Symbol } from "../symbol/Symbol";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 import {
   signals,
   SIGNAL_EVENTS,
@@ -10,15 +8,13 @@ import {
 } from "../controllers/SignalManager";
 import { IReelMode } from "../reels/ReelController";
 import {
-  GridData,
   GridUtils,
   IResponseData,
-  SpinResultData,
-  SymbolData,
 } from "../types/ICommunication";
 import { debug } from "../utils/debug";
 import { GameDataManager } from "../data/GameDataManager";
 import { SpinMode } from "../types/ISpinConfig";
+import { ConfigProvider, IGameConfig } from "@slotclient/config";
 
 export interface SpinContainerConfig {
   reelIndex: number; // TODO: Remove when refactoring to single container
@@ -33,6 +29,7 @@ export interface SpinContainerConfig {
 
 export abstract class SpinContainer extends Container {
   protected app: Application;
+  protected gameConfig: IGameConfig;
   protected config: SpinContainerConfig;
   protected resizeSubscription?: SignalSubscription;
 
@@ -46,7 +43,7 @@ export abstract class SpinContainer extends Container {
   protected rowsBelowMask: number;
   protected totalRows: number;
   protected _abortController: AbortController | null = null;
-  protected _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+  protected _spinMode: SpinMode;
   protected _forceStop: boolean = false;
 
   // Symbol storage - unified approach
@@ -60,16 +57,19 @@ export abstract class SpinContainer extends Container {
   constructor(app: Application, config: SpinContainerConfig) {
     super();
 
+    this.gameConfig = ConfigProvider.getInstance().getGameConfig();
+    this._spinMode = this.gameConfig.SPIN_MODES.NORMAL as SpinMode;
+
     this.label = "SpinContainer";
     this.app = app;
     this.config = config; // Initialize grid layout properties
 
     this.columns = config.numberOfReels || 1; // Default to 1 if not provided
     this.rowsAboveMask =
-      config.rowsAboveMask || GameConfig.GRID_LAYOUT.rowsAboveMask;
+      config.rowsAboveMask || this.gameConfig.GRID_LAYOUT.rowsAboveMask;
     this.rowsBelowMask =
-      config.rowsBelowMask || GameConfig.GRID_LAYOUT.rowsBelowMask;
-    this.totalRows = GameConfig.GRID_LAYOUT.totalRows();
+      config.rowsBelowMask || this.gameConfig.GRID_LAYOUT.rowsBelowMask;
+    this.totalRows = this.gameConfig.GRID_LAYOUT.totalRows();
 
     this.initializeGrid();
   }
@@ -126,15 +126,15 @@ export abstract class SpinContainer extends Container {
 
   // Position calculation utilities
   public calculateSymbolX(column: number = 0): number {
-    const symbolWidth = GameConfig.REFERENCE_SPRITE_SYMBOL.width;
+    const symbolWidth = this.gameConfig.REFERENCE_SPRITE_SYMBOL.width;
 
-    const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
+    const spacingX = this.gameConfig.REFERENCE_SPACING.horizontal;
 
     const reelX =
-      (column - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) *
+      (column - Math.floor(this.gameConfig.GRID_LAYOUT.columns / 2)) *
       (symbolWidth + spacingX) +
-      GameConfig.REFERENCE_RESOLUTION.width / 2 +
-      (GameConfig.GRID_LAYOUT.columns % 2 == 0
+      this.gameConfig.REFERENCE_RESOLUTION.width / 2 +
+      (this.gameConfig.GRID_LAYOUT.columns % 2 == 0
         ? (symbolWidth + spacingX) / 2
         : 0); // Center of symbol
 
@@ -142,15 +142,15 @@ export abstract class SpinContainer extends Container {
   }
 
   public calculateSymbolY(row: number): number {
-    const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
+    const symbolHeight = this.gameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
-    const spacingY = GameConfig.REFERENCE_SPACING.vertical;
+    const spacingY = this.gameConfig.REFERENCE_SPACING.vertical;
 
     const symbolY =
-      (row - 1 - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) *
+      (row - 1 - Math.floor(this.gameConfig.GRID_LAYOUT.visibleRows / 2)) *
       (symbolHeight + spacingY) +
-      GameConfig.REFERENCE_RESOLUTION.height / 2 +
-      (GameConfig.GRID_LAYOUT.visibleRows % 2 == 0
+      this.gameConfig.REFERENCE_RESOLUTION.height / 2 +
+      (this.gameConfig.GRID_LAYOUT.visibleRows % 2 == 0
         ? (symbolHeight + spacingY) / 2
         : 0);
 
@@ -258,7 +258,7 @@ export abstract class SpinContainer extends Container {
           x: symbolX, // Offset for container position
           y: symbolY, // Offset for container position
         },
-        scale: GameConfig.REFERENCE_SPRITE_SYMBOL.scale,
+        scale: this.gameConfig.REFERENCE_SPRITE_SYMBOL.scale,
       });
 
       if (symbol === null) debugger;
@@ -279,7 +279,7 @@ export abstract class SpinContainer extends Container {
     const gridSymbol = new GridSymbol({
       symbolId: symbolData,
       position: { x: symbolX, y: symbolY },
-      scale: GameConfig.REFERENCE_SPRITE_SYMBOL.scale, // Use reference scale
+      scale: this.gameConfig.REFERENCE_SPRITE_SYMBOL.scale, // Use reference scale
       gridX: column,
       gridY: row,
     });
@@ -380,7 +380,7 @@ export abstract class SpinContainer extends Container {
 
   // Utility methods
   protected getRandomSymbolId(): number {
-    return Math.floor(Math.random() * GameRulesConfig.GRID.totalSymbols);
+    return Math.floor(Math.random() * this.gameConfig.GRID.totalSymbols);
   }
 
   public clearSymbols(): void {

@@ -1,10 +1,9 @@
 import { Assets } from "pixi.js";
-import { BaseAssetsConfig } from "@slotclient/config/AssetsConfig";
-import { ConfigProvider } from "@slotclient/config";
+import { ConfigProvider, IAssetsConfig } from "@slotclient/config";
 import { debug } from "../utils/debug";
 
 export class SymbolUtils {
-  private static getAssetsConfig(): BaseAssetsConfig {
+  private static getAssetsConfig(): IAssetsConfig {
     // Access the ConfigProvider singleton to get the assets config
     return ConfigProvider.getInstance().getAssetsConfig();
   }

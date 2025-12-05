@@ -1,6 +1,5 @@
-
 import { Application, Circle, Container, NineSliceSprite, Sprite, Text, Texture, } from "pixi.js";
-import { GameConfig } from "@slotclient/config/GameConfig";
+import { GameConfig } from "../configs/GameConfig";
 import { FeatureScreenContainer } from "@slotclient/engine/featureScreen/FeatureScreenContainer";
 import { FeatureScreenController } from "@slotclient/engine/featureScreen/FeatureScreenController";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
@@ -9,11 +8,11 @@ import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { StyleConfig } from "../configs/StyleConfig";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
 
 export class FeatureScreen extends FeatureScreenContainer {
     private _assetsConfig: AssetsConfig;
-    private _styleConfig: StyleConfig
+    private _gameConfig: GameConfig;
+    private _styleConfig: StyleConfig;
     private _controller: FeatureScreenController<FeatureScreen>;
     private _logo!: Sprite;
     private _previewContainer!: Container;
@@ -36,6 +35,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         super(app);
 
         this._assetsConfig = AssetsConfig.getInstance();
+        this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
 
         this._controller = this.createController();
@@ -210,7 +210,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         lineChain.label = `LineChain`;
         lineChain.anchor.set(0.5);
         lineChain.scale.set(0.5, 0.5);
-        lineChain.position.set(325, (GameConfig.REFERENCE_RESOLUTION.height / 2));
+        lineChain.position.set(325, (this._gameConfig.REFERENCE_RESOLUTION.height / 2));
         parent.addChild(lineChain);
 
         const fixedLineHolder = Sprite.from(`base_fixed_lines_holder`);
@@ -634,14 +634,14 @@ export class FeatureScreen extends FeatureScreenContainer {
         switch (config?.isMobile) {
             case true:
                 switch (config?.orientation) {
-                    case GameConfig.ORIENTATION.portrait:
-                        this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, -200);
-                        this._previewContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 330);
-                        this._spinButtonContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 970);
-                        this._volatilityContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1130);
-                        this._dontShowContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 1250);
+                    case this._gameConfig.ORIENTATION.portrait:
+                        this._logo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -200);
+                        this._previewContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 330);
+                        this._spinButtonContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 970);
+                        this._volatilityContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1130);
+                        this._dontShowContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1250);
                         break;
-                    case GameConfig.ORIENTATION.landscape:
+                    case this._gameConfig.ORIENTATION.landscape:
                         this._logo.position.set(1615, 260);
                         this._previewContainer.position.set(690, 540);
                         this._spinButtonContainer.position.set(1615, 620);

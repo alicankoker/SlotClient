@@ -1,8 +1,7 @@
 import { Application, Container, Sprite, Text, Texture } from "pixi.js";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { GameConfig } from "@slotclient/config/GameConfig";
+import { GameConfig } from "../configs/GameConfig";
 import { AssetsConfig } from "../configs/AssetsConfig";
-import { StyleConfig } from "../configs/StyleConfig";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
 import { BonusController } from "@slotclient/engine/bonus/BonusController";
 import { BonusContainer } from "@slotclient/engine/bonus/BonusContainer";
@@ -14,6 +13,7 @@ import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { BackendToWinEventType } from "@slotclient/engine/types/IWinEvents";
 import { SpriteText } from "@slotclient/engine/utils/SpriteText";
+import { StyleConfig } from "../configs/StyleConfig";
 
 const PLEASE_SELECT_TEXT: string = "PLEASE SELECT";
 const YOU_WON_TEXT: string = "YOU WON X";
@@ -35,6 +35,7 @@ export class Bonus extends BonusContainer {
     private static _instance: Bonus;
     private _app: Application;
     private _assetsConfig: AssetsConfig;
+    private _gameConfig: GameConfig;
     private _styleConfig: StyleConfig;
     private _controller: BonusController<Bonus>;
     private _dynamiteContainer!: Container;
@@ -63,6 +64,7 @@ export class Bonus extends BonusContainer {
         this._app = app;
 
         this._assetsConfig = AssetsConfig.getInstance();
+        this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
 
         this._controller = this.createController();
@@ -113,13 +115,13 @@ export class Bonus extends BonusContainer {
         this._background = Sprite.from('bonus_background');
         this._background.label = 'BonusBackground';
         this._background.anchor.set(0.5);
-        this._background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._background.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(this._background);
 
         this._cable = Sprite.from('tnt_cable_landscape');
         this._cable.label = 'TntCableLandscape';
         this._cable.anchor.set(0.5);
-        this._cable.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._cable.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(this._cable);
 
         this._dynamiteContainer = new Container();
@@ -137,7 +139,7 @@ export class Bonus extends BonusContainer {
         for (let index = 0; index < 6; index++) {
             this._dynamites[index] = Spine.from({ atlas, skeleton });
             this._dynamites[index].label = `Dynamite_${index}`;
-            this._dynamites[index].position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+            this._dynamites[index].position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
             this._dynamites[index].interactive = true;
             this._dynamites[index].cursor = 'pointer';
             this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_selected`, true);
@@ -148,13 +150,13 @@ export class Bonus extends BonusContainer {
 
         this._trigger = Spine.from({ atlas, skeleton });
         this._trigger.label = 'BonusTrigger';
-        this._trigger.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._trigger.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
         this.addChild(this._trigger);
 
         this._sign = Spine.from({ atlas, skeleton });
         this._sign.label = 'BonusSign';
-        this._sign.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 535);
+        this._sign.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 535);
         this._sign.state.setAnimation(0, 'Horizontal_Bonus_Sign', true);
         this._sign.state.data.defaultMix = 0.3;
         this.addChild(this._sign);
@@ -165,7 +167,7 @@ export class Bonus extends BonusContainer {
         });
         this._infoText1.label = `InfoText1`;
         this._infoText1.anchor.set(0.5, 0.5);
-        this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+        this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 690);
         this._infoText1.visible = false;
         this._infoText1.style.fontSize = 50;
         this.addChild(this._infoText1);
@@ -176,7 +178,7 @@ export class Bonus extends BonusContainer {
         });
         this._infoText2.label = `InfoText2`;
         this._infoText2.anchor.set(0.5, 0.5);
-        this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
+        this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 750);
         this.addChild(this._infoText2);
     }
 
@@ -236,7 +238,7 @@ export class Bonus extends BonusContainer {
                     }
                 });
 
-                if (GameConfig.WIN_EVENT.enabled && GameDataManager.getInstance().getLastSpinResult()?.winEventType !== 'normal') {
+                if (this._gameConfig.WIN_EVENT.enabled && GameDataManager.getInstance().getLastSpinResult()?.winEventType !== 'normal') {
                     const winAmount = response.featureWin;
                     const backendType = GameDataManager.getInstance().getLastSpinResult()!.winEventType;
                     const enumType = BackendToWinEventType[backendType]!;
@@ -442,8 +444,8 @@ export class Bonus extends BonusContainer {
                 this._cable.texture = Texture.from('tnt_cable_landscape');
                 this._cable.position.set(685, 640);
                 this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
-                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
-                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 770);
+                this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+                this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 770);
                 break;
             case 'portrait':
                 this._isLandcape = false;
@@ -452,8 +454,8 @@ export class Bonus extends BonusContainer {
                 this._cable.texture = Texture.from('tnt_cable_portrait');
                 this._cable.position.set(1115, 1110);
                 this._trigger.state.setAnimation(0, 'Vertical_Bonus_Tnt1', false);
-                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
-                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 850);
+                this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 750);
+                this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 850);
                 break;
         }
 
@@ -463,8 +465,8 @@ export class Bonus extends BonusContainer {
             this._cable.texture = Texture.from('tnt_cable_landscape');
             this._cable.position.set(685, 640);
             this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
-            this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
-            this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 770);
+            this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+            this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 770);
         }
     }
 

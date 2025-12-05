@@ -1,5 +1,4 @@
 // AssetsConfig no longer needed after PureGameController merge
-import { GameConfig } from "@slotclient/config/GameConfig";
 import {
   CascadeStepData,
   DropData,
@@ -18,17 +17,19 @@ import {
 import { debug } from "@slotclient/engine/utils/debug";
 import { Utils } from "@slotclient/engine/utils/Utils";
 import { Reelsets, FSReelsets } from "./Games/ClassicSpinGame/Reelsets";
-import { GameRulesConfig, IPaytableEntry } from "@slotclient/config/GameRulesConfig";
 import { SocketConnection } from "@slotclient/communication/Connection/SocketConnection";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
+import { ConfigProvider, IGameConfig, IPaytableEntry } from "@slotclient/config";
 
 export class GameServer {
   private static instance: GameServer;
+
+  private gameConfig: IGameConfig;
   private spinCounter: number = 0;
   private readonly totalSymbols: number = 10; // Number of available symbols (0-9)
   private readonly gameID: number = 0;
-  private readonly winningLines: number[][] = Object.values(GameRulesConfig.WINNING_LINES) as number[][];
-  private readonly paytable: IPaytableEntry[] = GameRulesConfig.PAYTABLE;
+  private readonly winningLines: number[][];
+  private readonly paytable: IPaytableEntry[];
 
   private socket: SocketConnection;
   private initData: InitialGridData = { symbols: [] };
@@ -54,6 +55,9 @@ export class GameServer {
 
   private constructor() {
     this.socket = SocketConnection.getInstance();
+    this.gameConfig = ConfigProvider.getInstance().getGameConfig();
+    this.winningLines = Object.values(this.gameConfig.WINNING_LINES) as number[][];
+    this.paytable = this.gameConfig.PAYTABLE;
   }
 
   public static getInstance(): GameServer {
@@ -347,10 +351,10 @@ export class GameServer {
     const symbols: SymbolData[][] = [];
     const scatterIndexes: number[] = [7, 6, 9];
     const totalRows =
-      GameConfig.GRID_LAYOUT.visibleRows +
-      GameConfig.GRID_LAYOUT.rowsAboveMask +
-      GameConfig.GRID_LAYOUT.rowsBelowMask;
-    for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
+      this.gameConfig.GRID_LAYOUT.visibleRows +
+      this.gameConfig.GRID_LAYOUT.rowsAboveMask +
+      this.gameConfig.GRID_LAYOUT.rowsBelowMask;
+    for (let col = 0; col < this.gameConfig.GRID_LAYOUT.columns; col++) {
       symbols.push([]);
       const reelset = forcedFS ? FSReelsets.Reelsets[col] : Reelsets.Reelsets[col];
       let randomIndex = Utils.getRandomInt(0, reelset.length - 1);
@@ -430,9 +434,9 @@ export class GameServer {
     const removeSet = new Set(indicesToRemove);
 
     // For each column, count how many symbols were removed
-    for (let col = 0; col < GameConfig.GRID_LAYOUT.columns; col++) {
+    for (let col = 0; col < this.gameConfig.GRID_LAYOUT.columns; col++) {
       let removedCount = 0;
-      for (let row = 0; row < GameConfig.GRID_LAYOUT.visibleRows; row++) {
+      for (let row = 0; row < this.gameConfig.GRID_LAYOUT.visibleRows; row++) {
         const index = GridUtils.positionToIndex(col, row);
         if (removeSet.has(index)) {
           removedCount++;

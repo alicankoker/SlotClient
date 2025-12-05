@@ -1,9 +1,11 @@
 import { IAssetsConfig } from './AssetsConfig';
+import { IGameConfig } from './GameConfig';
 import { IStyleConfig } from './StyleConfig';
 
 export class ConfigProvider {
   private static instance: ConfigProvider;
   private assetsConfig: IAssetsConfig | null = null;
+  private gameConfig: IGameConfig | null = null;
   private styleConfig: IStyleConfig | null = null;
 
   private constructor() { }
@@ -31,6 +33,22 @@ export class ConfigProvider {
     return this.assetsConfig !== null;
   }
 
+  // Game Config
+  public setGameConfig(config: IGameConfig): void {
+    this.gameConfig = config;
+  }
+
+  public getGameConfig(): IGameConfig {
+    if (!this.gameConfig) {
+      throw new Error('GameConfig not initialized!');
+    }
+    return this.gameConfig;
+  }
+
+  public hasGameConfig(): boolean {
+    return this.gameConfig !== null;
+  }
+
   // Style Config
   public setStyleConfig(config: IStyleConfig): void {
     this.styleConfig = config;
@@ -50,14 +68,17 @@ export class ConfigProvider {
   // Set all configs at once
   public setAllConfigs(configs: {
     assets: IAssetsConfig;
+    game: IGameConfig;
     style: IStyleConfig;
   }): void {
     this.setAssetsConfig(configs.assets);
+    this.setGameConfig(configs.game);
     this.setStyleConfig(configs.style);
   }
 
   public reset(): void {
     this.assetsConfig = null;
+    this.gameConfig = null;
     this.styleConfig = null;
   }
 }

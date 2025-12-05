@@ -1,7 +1,7 @@
 import { IReelMode } from "../reels/ReelController";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { Point } from "pixi.js";
 import { ISpinState } from "../types/ISpinConfig";
+import { ConfigProvider } from "@slotclient/config";
 
 export class Helpers {
   public static getReelModeBySpinState(spinState: ISpinState): IReelMode {
@@ -66,9 +66,11 @@ export class Helpers {
    * @returns The calculated X position of the symbol.
    */
   public static calculateSymbolX(column: number = 0, maxColumn: number, referenceX: number, gapX?: number): number {
-    const symbolWidth = GameConfig.REFERENCE_SPRITE_SYMBOL.width;
+    const gameConfig = ConfigProvider.getInstance().getGameConfig();
 
-    const spacingX = gapX ?? GameConfig.REFERENCE_SPACING.horizontal;
+    const symbolWidth = gameConfig.REFERENCE_SPRITE_SYMBOL.width;
+
+    const spacingX = gapX ?? gameConfig.REFERENCE_SPACING.horizontal;
 
     const reelX = (((column - Math.floor(maxColumn / 2)) * (symbolWidth + spacingX)) + referenceX) + ((maxColumn % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0);
 
@@ -84,9 +86,11 @@ export class Helpers {
    * @returns The calculated Y position of the symbol.
    */
   public static calculateSymbolY(row: number, maxRow: number, referenceY: number, gapY?: number): number {
-    const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
+    const gameConfig = ConfigProvider.getInstance().getGameConfig();
+    
+    const symbolHeight = gameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
-    const spacingY = gapY ?? GameConfig.REFERENCE_SPACING.vertical;
+    const spacingY = gapY ?? gameConfig.REFERENCE_SPACING.vertical;
 
     const symbolY = (((row - Math.floor(maxRow / 2)) * (symbolHeight + spacingY)) + referenceY) + ((maxRow % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
 

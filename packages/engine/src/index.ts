@@ -8,7 +8,7 @@ export * from './controllers/SoundManager';
 
 // Reels
 export * from './reels/ReelController';
-export * from './reels/BaseReelsContainer';
+export * from './reels/ReelsContainer';
 export * from './reels/ReelsController';
 export { SpinContainer as ReelsSpinContainer } from './reels/SpinContainer';
 export * from './reels/StaticContainer';

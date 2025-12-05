@@ -2,7 +2,6 @@ import { Texture } from "pixi.js";
 import { BackgroundContainer } from "@slotclient/engine/background/BackgroundContainer";
 import { BackgroundController } from "@slotclient/engine/background/BackgroundController";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
-import { GameConfig } from "@slotclient/config/GameConfig";
 
 export class Background extends BackgroundContainer {
     private static _instance: Background;
@@ -54,10 +53,10 @@ export class Background extends BackgroundContainer {
         super.onResize(responsiveConfig);
 
         switch (responsiveConfig.orientation) {
-            case GameConfig.ORIENTATION.landscape:
+            case this._gameConfig.ORIENTATION.landscape:
                 this.position.set(0, 250);
                 break;
-            case GameConfig.ORIENTATION.portrait:
+            case this._gameConfig.ORIENTATION.portrait:
                 this.position.set(0, -20);
                 break;
         }

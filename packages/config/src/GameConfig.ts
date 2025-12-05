@@ -1,3 +1,4 @@
+import { Point } from "pixi.js";
 import { 
   SpinContainerConfig,
   LoaderDurations,
@@ -8,6 +9,8 @@ import {
   WinAnimationConfig,
   IFreeSpin
 } from "@slotclient/types";
+
+// ==================== INTERFACES ====================
 
 export interface ResolutionConfig {
     width: number;
@@ -31,6 +34,87 @@ export interface UIConfig {
         margin: number;
     };
 }
+
+export interface SpacingConfig {
+    horizontal: number;
+    vertical: number;
+}
+
+export interface GameRulesConfig {
+    reelCount: number;
+    rowCount: number;
+    minBet: number;
+    maxBet: number;
+    defaultBet: number;
+    initialBalance: number;
+}
+
+export interface GridLayoutConfig {
+    columns: number;
+    visibleRows: number;
+    rowsAboveMask: number;
+    rowsBelowMask: number;
+    totalRows(): number;
+}
+
+export interface SafeAreaConfig {
+    landscape: {
+        width: number;
+        height: number;
+    };
+    portrait: {
+        width: number;
+        height: number;
+    };
+}
+
+export interface SpinModesConfig {
+    NORMAL: string;
+    FAST: string;
+    TURBO: string;
+}
+
+export interface BackendConfig {
+    BACKEND_URL: string;
+    USER_ID?: string;
+}
+
+export interface GridConfig {
+    reelCount: number;
+    rowCount: number;
+    totalSymbols: number;
+    bufferRows: {
+        above: number;
+        below: number;
+    };
+}
+
+export interface IPaytableEntry {
+    symbolId: number;
+    winAmounts: number[];
+}
+
+export interface SpinConfig {
+    maxAutoPlaySpins: number;
+    minBetAmount: number;
+    maxBetAmount: number;
+    defaultBetAmount: number;
+}
+
+export interface CascadeConfig {
+    maxCascadeSteps: number;
+    dropAnimationSteps: number;
+    removeAnimationSteps: number;
+}
+
+export interface CoordinatesConfig {
+    [key: number]: { x: number; y: number };
+}
+
+export interface WinningLinesConfig {
+    [key: number]: number[];
+}
+
 export const spinContainerConfig: SpinContainerConfig = {
     reelIndex: 0, // Single container manages all reels, but still needs this for compatibility
     numberOfReels: 5, // Will handle all reels (6 columns)
@@ -42,28 +126,157 @@ export const spinContainerConfig: SpinContainerConfig = {
     spinDuration: 2000
 };
 
-export class GameConfig {
-    // Reference symbol size at base resolution
-    public static readonly REFERENCE_SPRITE_SYMBOL: SymbolConfig = {
-        width: 150,
-        height: 150,
-        scale: 1
+/**
+ * Interface for game configuration
+ * Tüm game config'ler bu interface'i implement etmeli
+ */
+export interface IGameConfig {
+    // Required properties
+    readonly REFERENCE_SPRITE_SYMBOL: SymbolConfig;
+    readonly REFERENCE_SPINE_SYMBOL: SymbolConfig;
+    readonly REFERENCE_SPACING: SpacingConfig;
+    readonly GAME_RULES: GameRulesConfig;
+    readonly GRID_LAYOUT: GridLayoutConfig;
+    readonly REFERENCE_RESOLUTION: ResolutionConfig;
+    readonly SAFE_AREA: SafeAreaConfig;
+    readonly BACKEND: BackendConfig;
+    readonly GRID: GridConfig;
+    readonly SPIN: SpinConfig;
+    readonly PAYTABLE: IPaytableEntry[];
+    readonly LINES: WinningLinesConfig;
+    readonly COORDINATES: CoordinatesConfig;
+    readonly WINNING_LINES: WinningLinesConfig;
+    readonly LINE_NUMBER_POSITION: CoordinatesConfig;
+    readonly REFERENCE_NUMBER_POSITION: { x: number; y: number };
+
+    // Optional properties with defaults
+    readonly LOADER_DEFAULT_TIMINGS: LoaderDurations;
+    readonly FREE_SPIN: IFreeSpin;
+    readonly WIN_ANIMATION: WinAnimationConfig;
+    readonly AUTO_PLAY: AutoPlayConfig;
+    readonly FORCE_STOP: ForceStopConfig;
+    readonly WIN_EVENT: WinEventConfig;
+    readonly SPIN_MODES: SpinModesConfig;
+    readonly ORIENTATION: OrientationConfig;
+    readonly CASCADE: CascadeConfig;
+    readonly REFERENCE_UI: UIConfig;
+
+    // Methods
+    getLine(line: number): Point[];
+    getTotalGridSize(): number;
+    getTotalBufferRows(): number;
+    getTotalRowsPerReel(): number;
+    getGridCenterRow(): number;
+    isValidSymbolId(symbolId: number): boolean;
+    isValidReelIndex(reelIndex: number): boolean;
+    isValidRowIndex(rowIndex: number): boolean;
+    getResolutionCategory(width: number, height: number): string;
+    clampBet(bet: number): number;
+    clampBalance(balance: number): number;
+    getBackendUrl(): string;
+    getUserId(): string | undefined;
+    isDevMode(): boolean;
+    isProdMode(): boolean;
+    getSessionFromUrl(): string | null;
+    getEnvironmentMode(): string;
+    createSpinContainerConfig(): SpinContainerConfig;
+    getPaytableEntry(symbolId: number): IPaytableEntry | undefined;
+    getWinAmount(symbolId: number, count: number): number;
+}
+
+// ==================== ABSTRACT BASE CLASS ====================
+
+/**
+ * Abstract base game configuration
+ * Her oyun kendi GameConfig'ini bu class'tan extend eder
+ */
+export abstract class BaseGameConfig implements IGameConfig {
+    // ==================== ABSTRACT PROPERTIES ====================
+    // Oyunlar bu property'leri define etmek ZORUNDA
+
+    public abstract readonly REFERENCE_SPRITE_SYMBOL: SymbolConfig;
+    public abstract readonly REFERENCE_SPINE_SYMBOL: SymbolConfig;
+    public abstract readonly REFERENCE_SPACING: SpacingConfig;
+    public abstract readonly GAME_RULES: GameRulesConfig;
+    public abstract readonly GRID_LAYOUT: GridLayoutConfig;
+    public abstract readonly REFERENCE_RESOLUTION: ResolutionConfig;
+    public abstract readonly SAFE_AREA: SafeAreaConfig;
+    public abstract readonly BACKEND: BackendConfig;
+    
+    // Game Rules - Oyunlar define etmek zorunda
+    public abstract readonly GRID: GridConfig;
+    public abstract readonly SPIN: SpinConfig;
+    public abstract readonly PAYTABLE: IPaytableEntry[];
+    public abstract readonly LINES: WinningLinesConfig;
+    public abstract readonly COORDINATES: CoordinatesConfig;
+    public abstract readonly WINNING_LINES: WinningLinesConfig;
+    public abstract readonly LINE_NUMBER_POSITION: CoordinatesConfig;
+    public abstract readonly REFERENCE_NUMBER_POSITION: { x: number; y: number };
+
+    // ==================== OPTIONAL PROPERTIES ====================
+    // Oyunlar override edebilir
+
+    public readonly LOADER_DEFAULT_TIMINGS: LoaderDurations = {
+        minDisplayTime: 1000,
+        transitionTo100: 600,
+        holdAfter100: 150,
+        fadeOut: 50
     };
 
-    public static readonly REFERENCE_SPINE_SYMBOL: SymbolConfig = {
-        width: 150,
-        height: 150,
-        scale: 1
+    public readonly FREE_SPIN: IFreeSpin = {
+        isActive: false,
+        skipAnimations: false,
+        remainingSpins: 0
     };
 
-    // Reference spacing at base resolution
-    public static readonly REFERENCE_SPACING = {
-        horizontal: 90,  // 10 pixels horizontal spacing at reference resolution
-        vertical: 90      // 10 pixels vertical spacing at reference resolution
+    public readonly WIN_ANIMATION: WinAnimationConfig = {
+        enabled: true,
+        winTextVisibility: true,
+        winLoop: true,
+        delayBeforeLoop: 2000,
+        delayBetweenLoops: 1000,
+        winlineVisibility: true
+    };
+
+    public readonly AUTO_PLAY: AutoPlayConfig = {
+        enabled: true,
+        count: 5,
+        delay: 1000,
+        stopOnWin: false,
+        stopOnFeature: false,
+        skipAnimations: false
+    };
+
+    public readonly FORCE_STOP: ForceStopConfig = {
+        enabled: true
+    };
+
+    public readonly WIN_EVENT: WinEventConfig = {
+        enabled: true,
+        duration: 3,
+        canSkip: true
+    };
+
+    public readonly SPIN_MODES: SpinModesConfig = {
+        NORMAL: 'normal',
+        FAST: 'fast',
+        TURBO: 'turbo'
+    };
+
+    public readonly ORIENTATION: OrientationConfig = {
+        landscape: "landscape",
+        portrait: "portrait"
+    };
+
+    // Cascade configuration - optional, oyunlar override edebilir
+    public readonly CASCADE: CascadeConfig = {
+        maxCascadeSteps: 10,
+        dropAnimationSteps: 5,
+        removeAnimationSteps: 3
     };
 
     // Reference UI sizes at base resolution
-    public static readonly REFERENCE_UI: UIConfig = {
+    public readonly REFERENCE_UI: UIConfig = {
         fontSize: {
             title: 48,
             normal: 24,
@@ -75,101 +288,96 @@ export class GameConfig {
         }
     };
 
-    // Game mechanics
-    public static readonly GAME_RULES = {
-        reelCount: 5,
-        rowCount: 3,
-        minBet: 1,
-        maxBet: 100,
-        defaultBet: 10,
-        initialBalance: 1000
-    };
+    // ==================== COMMON METHODS ====================
 
-    // Grid layout configuration
-    public static readonly GRID_LAYOUT = {
-        columns: 5,                    // Number of columns
-        visibleRows: 3,                // Number of visible rows (inside mask)
-        rowsAboveMask: 1,              // Number of rows above visible area
-        rowsBelowMask: 1,              // Number of rows below visible area
-        totalRows: function () {
-            return this.visibleRows + this.rowsAboveMask + this.rowsBelowMask;
-        }
-    };
-
-    // Loader configuration
-    public static readonly LOADER_DEFAULT_TIMINGS: LoaderDurations = {
-        minDisplayTime: 1000, // minimum time to show loader (ms)
-        transitionTo100: 600, // time to transition to 100% (ms)
-        holdAfter100: 150, // time to hold at 100% before fade out (ms)
-        fadeOut: 50 // fade out duration (ms)
-    };
-
-    public static readonly FREE_SPIN: IFreeSpin = {
-        isActive: true,
-        skipAnimations: false,
-        remainingSpins: 10
+    /**
+     * Get symbol width + spacing
+     */
+    protected getSymbolWidth(): number {
+        return this.REFERENCE_SPRITE_SYMBOL.width + this.REFERENCE_SPACING.horizontal;
     }
 
-    // Win animation configuration
-    public static readonly WIN_ANIMATION: WinAnimationConfig = {
-        enabled: true,
-        winTextVisibility: true,
-        winLoop: true,
-        delayBeforeLoop: 2000,
-        delayBetweenLoops: 1000,
-        winlineVisibility: true
-    };
-
-    // Auto play configuration
-    public static readonly AUTO_PLAY: AutoPlayConfig = {
-        enabled: true,
-        count: 5,
-        delay: 1000,
-        stopOnWin: false,
-        stopOnFeature: false,
-        skipAnimations: false
-    };
-
-    public static readonly FORCE_STOP: ForceStopConfig = {
-        enabled: true
+    /**
+     * Get symbol height + spacing
+     */
+    protected getSymbolHeight(): number {
+        return this.REFERENCE_SPRITE_SYMBOL.height + this.REFERENCE_SPACING.vertical;
     }
 
-    public static readonly WIN_EVENT: WinEventConfig = {
-        enabled: true,
-        duration: 3,
-        canSkip: true
-    };
+    /**
+     * Get the coordinates of a winning line
+     */
+    public getLine(line: number): Point[] {
+        const elements = this.LINES[line];
+        const points: Point[] = [];
 
-    public static readonly SPIN_MODES = {
-        NORMAL: 'normal',
-        FAST: 'fast',
-        TURBO: 'turbo'
-    };
+        if (elements) {
+            for (let index = 0; index < elements.length; index++) {
+                const element = elements[index];
+                const point = this.COORDINATES[element];
 
-    // Reference resolution - all sizes are designed for this resolution
-    public static readonly REFERENCE_RESOLUTION: ResolutionConfig = {
-        width: 1920,
-        height: 1080
-    };
-
-    public static readonly ORIENTATION: OrientationConfig = {
-        landscape: "landscape",
-        portrait: "portrait"
-    };
-
-    public static readonly SAFE_AREA = {
-        landscape: {
-            width: 1920, //this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
-            height: 1100 //this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
-        },
-        portrait: {
-            width: (this.REFERENCE_SPRITE_SYMBOL.width + this.REFERENCE_SPACING.horizontal) * (this.GAME_RULES.reelCount + 0.65), // set based on reel count
-            height: 1920 // based on REFERENCE_RESOLUTION portrait heights
+                if (point) {
+                    points.push(new Point(point.x, point.y));
+                }
+            }
         }
-    };
 
-    // Get resolution category for debugging/optimization
-    public static getResolutionCategory(width: number, height: number): string {
+        return points;
+    }
+
+    /**
+     * Get total grid size
+     */
+    public getTotalGridSize(): number {
+        return this.GRID.reelCount * this.GRID.rowCount;
+    }
+
+    /**
+     * Get total buffer rows
+     */
+    public getTotalBufferRows(): number {
+        return this.GRID.bufferRows.above + this.GRID.bufferRows.below;
+    }
+
+    /**
+     * Get total rows per reel (visible + buffer)
+     */
+    public getTotalRowsPerReel(): number {
+        return this.GRID.rowCount + this.getTotalBufferRows();
+    }
+
+    /**
+     * Get grid center row
+     */
+    public getGridCenterRow(): number {
+        return Math.floor(this.GRID.rowCount / 2);
+    }
+
+    /**
+     * Validate symbol ID
+     */
+    public isValidSymbolId(symbolId: number): boolean {
+        return symbolId >= 0 && symbolId < this.GRID.totalSymbols;
+    }
+
+    /**
+     * Validate reel index
+     */
+    public isValidReelIndex(reelIndex: number): boolean {
+        return reelIndex >= 0 && reelIndex < this.GRID.reelCount;
+    }
+
+    /**
+     * Validate row index
+     */
+    public isValidRowIndex(rowIndex: number): boolean {
+        return rowIndex >= 0 && rowIndex < this.GRID.rowCount;
+    }
+
+    /**
+     * Get resolution category
+     */
+    public getResolutionCategory(width: number, height: number): string {
         const pixels = width * height;
 
         if (pixels >= 3840 * 2160) return '4K+';
@@ -179,12 +387,93 @@ export class GameConfig {
         return 'Mobile/Small';
     }
 
-    // Validate and clamp values
-    public static clampBet(bet: number): number {
+    /**
+     * Clamp bet amount
+     */
+    public clampBet(bet: number): number {
         return Math.max(this.GAME_RULES.minBet, Math.min(this.GAME_RULES.maxBet, bet));
     }
 
-    public static clampBalance(balance: number): number {
+    /**
+     * Clamp balance
+     */
+    public clampBalance(balance: number): number {
         return Math.max(0, balance);
+    }
+
+    /**
+     * Get backend URL
+     */
+    public getBackendUrl(): string {
+        return this.BACKEND.BACKEND_URL;
+    }
+
+    /**
+     * Get user ID
+     */
+    public getUserId(): string | undefined {
+        return this.BACKEND.USER_ID;
+    }
+
+    /**
+     * Check if dev mode
+     */
+    public isDevMode(): boolean {
+        return import.meta.env.DEV;
+    }
+
+    /**
+     * Check if prod mode
+     */
+    public isProdMode(): boolean {
+        return import.meta.env.PROD;
+    }
+
+    /**
+     * Get session from URL
+     */
+    public getSessionFromUrl(): string | null {
+        if (typeof window === 'undefined') return null;
+        return new URLSearchParams(window.location.search).get('session');
+    }
+
+    /**
+     * Get environment mode
+     */
+    public getEnvironmentMode(): string {
+        return import.meta.env.MODE;
+    }
+
+    /**
+     * Create spin container config
+     * Oyunlar override edebilir
+     */
+    public createSpinContainerConfig(): SpinContainerConfig {
+        return {
+            reelIndex: 0,
+            numberOfReels: this.GRID_LAYOUT.columns,
+            symbolHeight: this.REFERENCE_SPRITE_SYMBOL.height,
+            symbolsVisible: this.GRID_LAYOUT.visibleRows,
+            rowsAboveMask: this.GRID_LAYOUT.rowsAboveMask,
+            rowsBelowMask: this.GRID_LAYOUT.rowsBelowMask,
+            spinSpeed: 10,
+            spinDuration: 2000
+        };
+    }
+
+    /**
+     * Get paytable entry for symbol
+     */
+    public getPaytableEntry(symbolId: number): IPaytableEntry | undefined {
+        return this.PAYTABLE.find(entry => entry.symbolId === symbolId);
+    }
+
+    /**
+     * Get win amount for symbol and count
+     */
+    public getWinAmount(symbolId: number, count: number): number {
+        const entry = this.getPaytableEntry(symbolId);
+        if (!entry || count < 3) return 0;
+        return entry.winAmounts[count - 3] || 0;
     }
 }

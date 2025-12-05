@@ -1,8 +1,6 @@
 import { Sprite, Assets } from "pixi.js";
-import { BaseAssetsConfig } from "@slotclient/config/AssetsConfig";
-import { SymbolConfig as SymbolConfigClass } from "@slotclient/config/SymbolConfig";
 import { AnimationConfig } from "@slotclient/config/AnimationConfig";
-import { ConfigProvider } from "@slotclient/config";
+import { ConfigProvider, IAssetsConfig } from "@slotclient/config";
 import { debug } from "../utils/debug";
 
 export interface SymbolConfig {
@@ -18,7 +16,7 @@ export class Symbol extends Sprite {
   private _symbolId: number;
   private config: SymbolConfig;
 
-  private static getAssetsConfig(): BaseAssetsConfig {
+  private static getAssetsConfig(): IAssetsConfig {
     return ConfigProvider.getInstance().getAssetsConfig();
   }
 
@@ -213,9 +211,5 @@ export class Symbol extends Sprite {
 
       animate();
     });
-  }
-
-  public static getDefaultScale(): number {
-    return SymbolConfigClass.getSpriteToReferenceScale();
   }
 }

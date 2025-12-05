@@ -1,14 +1,17 @@
 import { Container, Sprite, Texture } from "pixi.js";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
+import { ConfigProvider, IGameConfig } from "@slotclient/config";
 
 export abstract class BackgroundContainer extends Container {
     protected _resizeSubscription?: SignalSubscription;
+    protected _gameConfig: IGameConfig;
     protected _backgroundSprite!: Sprite;
 
     protected constructor() {
         super();
+
+        this._gameConfig = ConfigProvider.getInstance().getGameConfig();
     }
 
     protected initialize(texture: Texture): void {
@@ -24,7 +27,7 @@ export abstract class BackgroundContainer extends Container {
         this._backgroundSprite = Sprite.from(texture);
         this._backgroundSprite.label = "BackgroundSprite";
         this._backgroundSprite.anchor.set(0.5, 0.5);
-        this._backgroundSprite.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._backgroundSprite.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(this._backgroundSprite);
     }
 

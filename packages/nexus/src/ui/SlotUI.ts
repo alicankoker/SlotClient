@@ -12,8 +12,6 @@ export class SlotUI {
                 case ' ':
                     debug.log('🎲 Manual spin triggered');
                     // Lazy import to avoid circular dependency
-                    const Communication = (await import('@slotclient/communication')).default;
-                    Communication.getInstance().requestSpin();
                     break;
                 case 'a':
                     debug.log('🔄 Auto-play triggered');

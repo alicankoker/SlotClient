@@ -1,18 +1,15 @@
-import { Container, Application, Text } from 'pixi.js';
-import { GameConfig } from '@slotclient/config/GameConfig';
+import { Container, Application } from 'pixi.js';
 import { SpineSymbol } from '../symbol/SpineSymbol';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { debug } from '../utils/debug';
-import { gsap } from 'gsap';
 import SoundManager from '../controllers/SoundManager';
 import { WinConfig } from '../types/IWinPresentation';
-import { GridData } from '../types/ICommunication';
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
 import { eventBus, SpinMode } from '@slotclient/types';
-import { GameDataManager } from '../data/GameDataManager';
 import { Helpers } from '../utils/Helpers';
 import { FreeSpinController } from '../freeSpin/FreeSpinController';
 import { AutoPlayController } from '../AutoPlay/AutoPlayController';
+import { ConfigProvider, IGameConfig } from '@slotclient/config';
 
 export interface StaticContainerConfig {
     reelIndex: number;           // 0-4 for 5 reels
@@ -24,6 +21,7 @@ export interface StaticContainerConfig {
 
 export class StaticContainer extends Container {
     private _app: Application;
+    private _gameConfig: IGameConfig;
     private _soundManager: SoundManager;
     private _config: StaticContainerConfig;
     private _symbols: Map<number, SpineSymbol[]> = new Map(); // Map of reelIndex -> symbols array
@@ -31,17 +29,21 @@ export class StaticContainer extends Container {
     private _isPlaying: boolean = false;
     private _isLooping: boolean = false;
     private _isSkipped: boolean = false;
-    private _allowLoop: boolean = GameConfig.WIN_ANIMATION.winLoop ?? true;
+    private _allowLoop: boolean;
     private _isFreeSpinMode: boolean = false;
     private _isBonusMode: boolean = false;
     private _animationToken: number = 0;
     private _initialGrid: number[][];
     private _adrenalinePhase: boolean = false;
-    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+    private _spinMode: SpinMode;
     private _pendingResolvers: (() => void)[] = [];
 
     constructor(app: Application, config: StaticContainerConfig, initialGrid: number[][]) {
         super();
+
+        this._gameConfig = ConfigProvider.getInstance().getGameConfig();
+        this._allowLoop = this._gameConfig.WIN_ANIMATION.winLoop || false;
+        this._spinMode = this._gameConfig.SPIN_MODES.NORMAL as SpinMode;
 
         this.position.set(0, 15); // Offset to avoid clipping issues
 
@@ -113,7 +115,7 @@ export class StaticContainer extends Container {
                     x: reelX, // Offset for container position
                     y: symbolY // Offset for container position
                 },
-                scale: GameConfig.REFERENCE_SPINE_SYMBOL.scale, // Use responsive scale
+                scale: this._gameConfig.REFERENCE_SPINE_SYMBOL.scale, // Use responsive scale
             });
 
             // Add to symbols container and array
@@ -196,7 +198,7 @@ export class StaticContainer extends Container {
 
             await Helpers.delay(100);
             // this._isLooping === false && this._soundManager.play("win", false, 0.75);
-            (GameConfig.WIN_ANIMATION.winlineVisibility && this._isSkipped === false) && signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, winData);
+            (this._gameConfig.WIN_ANIMATION.winlineVisibility && this._isSkipped === false) && signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, winData);
 
             this._isSkipped === false && this._symbols.forEach((reelSymbols) => reelSymbols.forEach((symbol) => symbol.setBlackout()));
 
@@ -261,14 +263,14 @@ export class StaticContainer extends Container {
      * @returns A promise that resolves when the animations are complete.
      */
     private async playLoopAnimations(winDatas: WinConfig[], token: number): Promise<void> {
-        await this.delay(GameConfig.WIN_ANIMATION.delayBeforeLoop || 2000, token);
+        await this.delay(this._gameConfig.WIN_ANIMATION.delayBeforeLoop || 2000, token);
 
         this._isLooping = true;
         this._isSkipped = false;
 
         while (this._isLooping && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
             await this.playWinAnimations(winDatas, token);
-            await this.delay(GameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
+            await this.delay(this._gameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
         }
     }
 
@@ -392,7 +394,7 @@ export class StaticContainer extends Container {
                 }
                 break;
             case 2:
-                if (bonusPosition !== -1 && this._adrenalinePhase === true && this._spinMode !== GameConfig.SPIN_MODES.TURBO) {
+                if (bonusPosition !== -1 && this._adrenalinePhase === true && this._spinMode !== this._gameConfig.SPIN_MODES.TURBO) {
                     this._adrenalinePhase = true;
                     signals.emit("startAdrenalineEffect");
                 } else {
@@ -405,7 +407,7 @@ export class StaticContainer extends Container {
                 break;
         }
 
-        if (this._adrenalinePhase && this._spinMode !== GameConfig.SPIN_MODES.TURBO) {
+        if (this._adrenalinePhase && this._spinMode !== this._gameConfig.SPIN_MODES.TURBO) {
             this._symbols.get(reelIndex)?.[bonusPosition].state.addAnimation(0, "10_adrenaline_landing", false, 0.25);
             this._symbols.get(reelIndex)?.[bonusPosition].state.addAnimation(0, "10_adrenaline_idle", true, 0.25);
         }
@@ -569,22 +571,20 @@ export class StaticContainer extends Container {
 
     // Position calculation utilities
     protected calculateSymbolX(column: number = 0): number {
-        const symbolWidth = GameConfig.REFERENCE_SPINE_SYMBOL.width;
+        const symbolWidth = this._gameConfig.REFERENCE_SPINE_SYMBOL.width;
 
-        const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
+        const spacingX = this._gameConfig.REFERENCE_SPACING.horizontal;
 
-        const reelX = (((column - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2)) + ((GameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
-
+        const reelX = (((column - Math.floor(this._gameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (this._gameConfig.REFERENCE_RESOLUTION.width / 2)) + ((this._gameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
         return reelX; // Center in container
     }
 
     protected calculateSymbolY(row: number): number {
-        const symbolHeight = GameConfig.REFERENCE_SPINE_SYMBOL.height;
+        const symbolHeight = this._gameConfig.REFERENCE_SPINE_SYMBOL.height;
 
-        const spacingY = GameConfig.REFERENCE_SPACING.vertical;
+        const spacingY = this._gameConfig.REFERENCE_SPACING.vertical;
 
-        const symbolY = (((row - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
-
+        const symbolY = (((row - Math.floor(this._gameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + this._gameConfig.REFERENCE_RESOLUTION.height / 2) + ((this._gameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
         return symbolY;
     }
 

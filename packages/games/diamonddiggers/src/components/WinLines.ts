@@ -1,25 +1,28 @@
-import { Sprite, Text, Texture } from "pixi.js";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
-import { GameConfig } from "@slotclient/config/GameConfig";
+import { Container, Sprite, Text, Texture } from "pixi.js";
+import { GameConfig } from "../configs/GameConfig";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
 import { WinLinesContainer } from "@slotclient/engine/winLines/WinLinesContainer";
 import { WinLinesController } from "@slotclient/engine/winLines/WinLinesController";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { StyleConfig } from "../configs/StyleConfig";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { GameDataManager } from "@slotclient/engine";
 
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
     private _assetConfig: AssetsConfig;
+    private _gameConfig: GameConfig;
     private _styleConfig: StyleConfig;
-    
     private _controller: WinLinesController<WinLines>;
+
+    private _lineTextures: Sprite[] = [];
     private _lineChains: Sprite[] = [];
 
     private constructor() {
         super();
 
         this._assetConfig = AssetsConfig.getInstance();
+        this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
 
         this._controller = this.createController();
@@ -27,7 +30,7 @@ export class WinLines extends WinLinesContainer {
         this.createLineMask();
         this.createLineNumbers();
         this.createWinLines();
-        this.setAvailableLines(this._lineTextures.length);
+        this.setAvailableLines(GameDataManager.getInstance().getMaxLine());
     }
 
     public static getInstance(): WinLines {
@@ -53,40 +56,12 @@ export class WinLines extends WinLinesContainer {
     }
 
     protected override createWinLines(): void {
-        // for (const key of Object.keys(GameRulesConfig.LINES)) {
-        //     const line = GameRulesConfig.getLine(Number(key));
-
-        //     const winLine = new Graphics();
-        //     winLine.label = `WinLine_${key}`;
-        //     winLine.beginPath();
-        //     winLine.moveTo(line[0].x, line[0].y);
-
-        //     for (let i = 0; i < line.length; i++) {
-        //         winLine.lineTo(line[i].x, line[i].y);
-        //         winLine.stroke({
-        //             color: 0xFFFFFF,
-        //             width: 10,
-        //             join: 'round',
-        //             cap: 'round'
-        //         });
-        //     }
-        //     winLine.closePath();
-
-        //     winLine.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
-        //     winLine.visible = false; // Hidden by default
-        //     winLine.tint = Math.floor(Math.random() * 0xFFFFFF); // Random color for each win line
-
-        //     this._winLine.push(winLine);
-
-        //     this.addChild(winLine);
-        // }
-
         const { atlas, skeleton } = this._assetConfig.LINE_SPINE_ASSET;
 
-        for (const key of Object.keys(GameRulesConfig.LINES)) {
+        for (const key of Object.keys(this._gameConfig.LINES)) {
             const line = Spine.from({ atlas, skeleton });
             line.label = `WinLine_${key}`;
-            line.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+            line.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
             line.visible = false; // Hidden by default
             line.tint = 0xffc90f; // Gold color for win lines
             line.state.setAnimation(0, key, false);
@@ -105,43 +80,42 @@ export class WinLines extends WinLinesContainer {
             chain.label = `LineChain_${index}`;
             chain.anchor.set(0.5);
             chain.scale.set(0.5, 0.5);
-            chain.position.set(318 + (index * 1285), (GameConfig.REFERENCE_RESOLUTION.height / 2));
+            chain.position.set(318 + (index * 1285), (this._gameConfig.REFERENCE_RESOLUTION.height / 2));
             this._lineChains.push(chain);
             this.addChild(chain);
         }
 
-        for (const key of Object.keys(GameRulesConfig.LINE_NUMBER_POSITION)) {
-            const position = GameRulesConfig.LINE_NUMBER_POSITION[Number(key)];
+        for (const key of Object.keys(this._gameConfig.LINE_NUMBER_POSITION)) {
+            const lineContainer: Container = new Container();
+            lineContainer.label = `LineNumberContainer_${key}`;
+            this.addChild(lineContainer);
+
+            const position = this._gameConfig.LINE_NUMBER_POSITION[Number(key)];
+
             const texture = Sprite.from(`base_line_holder`);
             texture.label = `LineHolderTexture_${key}`;
             texture.anchor.set(0.5);
             texture.scale.set(0.5, 0.5);
-            texture.position.set((GameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (GameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
+            texture.position.set((this._gameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
             texture.interactive = true;
             texture.cursor = 'pointer';
-            this.addChild(texture);
+            this._lineTextures.push(texture);
+            lineContainer.addChild(texture);
 
             const text = new Text({
                 text: key.toString(),
                 style: this._styleConfig.style_1.clone()
             });
-            text.style.fontSize = 56;
-            text.anchor.set(0.5);
-            text.position.set(0, -10);
-            texture.addChild(text);
+            text.anchor.set(0.5, 0.5);
+            text.position.set((this._gameConfig.REFERENCE_RESOLUTION.width / 2) + position.x + 1, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + position.y - 3);
+            lineContainer.addChild(text);
 
-            this._lineTextures.push(texture);
+            this._linesContainer.push(lineContainer);
 
-            texture.on('pointerenter', () => {
-                for (let index = 0; index < this._availableLines; index++) {
-                    this._lineTextures[index].alpha = index + 1 === Number(key) ? 1 : 0.25;
-                }
+            lineContainer.on('pointerenter', () => {
                 this.showLine(Number(key));
             });
-            texture.on('pointerleave', () => {
-                for (let index = 0; index < this._availableLines; index++) {
-                    this._lineTextures[index].alpha = 1;
-                }
+            lineContainer.on('pointerleave', () => {
                 this.hideLine(Number(key));
             });
         }

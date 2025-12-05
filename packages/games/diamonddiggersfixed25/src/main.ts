@@ -1,37 +1,31 @@
-import { Application, Assets, ColorMatrixFilter, Text } from "pixi.js";
+import { Application, Assets, ColorMatrixFilter } from "pixi.js";
 import { SlotGameController } from "./controllers/SlotGameController";
 import { ReelsController } from "@slotclient/engine/reels/ReelsController";
 import { ResponsiveManager } from "@slotclient/engine/utils/ResponsiveManager";
 import { AssetSizeManager } from "@slotclient/engine/multiResolutionSupport/AssetSizeManager";
 import { AssetLoader } from "@slotclient/engine/utils/AssetLoader";
+import { ConfigProvider } from "@slotclient/config";
 import { AssetsConfig } from "./configs/AssetsConfig";
+import { GameConfig } from "./configs/GameConfig";
 import { StyleConfig } from "./configs/StyleConfig";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { setConnectionConfig } from "@slotclient/config/ConnectionConfig";
-import gameConfig from "./configs/GameConfig";
 import { Loader } from "@slotclient/engine/utils/Loader";
 import { debug } from "@slotclient/engine/utils/debug";
-import { gsap } from "gsap";
 import { Storage } from "@slotclient/engine/utils/Storage";
 import { eventBus } from "@slotclient/types";
-import { SpinEventTypes } from "@slotclient/communication";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
-import { CascadeStepData, GridData, IResponseData, SpinResponseData, } from "@slotclient/engine/types/ICommunication";
+import { CascadeStepData, GridData, IResponseData, } from "@slotclient/engine/types/ICommunication";
 import { ISpinState, SpinMode } from "@slotclient/engine/types/ISpinConfig";
 import { WinEvent } from "./components/WinEvent";
-import { WinEventType } from "@slotclient/engine/types/IWinEvents";
 import { Background } from "./components/Background";
 import { AnimationContainer } from "./components/AnimationContainer";
 import { FeatureScreen } from "./components/FeatureScreen";
 import { SocketConnection } from "@slotclient/communication/Connection/SocketConnection";
-import { WinLines } from "./components/WinLines";
 import { Bonus } from "./components/Bonus";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
-import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayController";
 import { signals } from "@slotclient/engine/controllers/SignalManager";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
 import payoutData from "./payout.json";
-import { ConfigProvider } from "@slotclient/config";
 
 export class DoodleV8Main {
   private app!: Application;
@@ -48,13 +42,15 @@ export class DoodleV8Main {
 
       const assetsConfig = new AssetsConfig();
       ConfigProvider.getInstance().setAssetsConfig(assetsConfig);
+      const gameConfig = new GameConfig();
+      ConfigProvider.getInstance().setGameConfig(gameConfig);
       const styleConfig = new StyleConfig();
       ConfigProvider.getInstance().setStyleConfig(styleConfig);
 
       // Initialize connection config from game config
       setConnectionConfig({
-        BACKEND_URL: gameConfig.BACKEND_URL,
-        USER_ID: gameConfig.USER_ID,
+        BACKEND_URL: gameConfig.BACKEND.BACKEND_URL,
+        USER_ID: gameConfig.BACKEND.USER_ID,
       });
 
       // Step 1: Initialize PIXI Application with modern config
@@ -176,10 +172,10 @@ export class DoodleV8Main {
         if (
           this.slotGameController?.spinController &&
           this.slotGameController.spinController.getIsSpinning() &&
-          (this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
-          GameConfig.FORCE_STOP.enabled
+          (this.slotGameController.spinController.getSpinMode() === gameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
+          gameConfig.FORCE_STOP.enabled
         ) {
-          this.slotGameController.spinController.forceStop();
+          this.slotGameController.forceStop();
         }
       });
 
@@ -225,17 +221,17 @@ export class DoodleV8Main {
         switch (phase) {
           case 1:
             if (this.slotGameController?.spinController) {
-              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.NORMAL as SpinMode);
+              this.slotGameController.spinController.setSpinMode(gameConfig.SPIN_MODES.NORMAL as SpinMode);
             }
             break;
           case 2:
             if (this.slotGameController?.spinController) {
-              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.FAST as SpinMode);
+              this.slotGameController.spinController.setSpinMode(gameConfig.SPIN_MODES.FAST as SpinMode);
             }
             break;
           case 3:
             if (this.slotGameController?.spinController) {
-              this.slotGameController.spinController.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
+              this.slotGameController.spinController.setSpinMode(gameConfig.SPIN_MODES.TURBO as SpinMode);
             }
             break;
         }
@@ -260,10 +256,10 @@ export class DoodleV8Main {
             if (
               this.slotGameController?.spinController &&
               this.slotGameController.spinController.getIsSpinning() &&
-              (this.slotGameController.spinController.getSpinMode() === GameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
-              GameConfig.FORCE_STOP.enabled
+              (this.slotGameController.spinController.getSpinMode() === gameConfig.SPIN_MODES.NORMAL || this.slotGameController.getFreeSpinController().isRunning === true) &&
+              gameConfig.FORCE_STOP.enabled
             ) {
-              this.slotGameController.spinController.forceStop();
+              this.slotGameController.forceStop();
             }
 
             if (isKeyHeld || isSpinning) return;
@@ -405,7 +401,7 @@ export class DoodleV8Main {
     loader.mount();
     eventBus.emit("closeWrapperLoading");
     // set custom loader timings (milliseconds)
-    loader.setTimings(GameConfig.LOADER_DEFAULT_TIMINGS);
+    loader.setTimings(GameConfig.getInstance().LOADER_DEFAULT_TIMINGS);
     await Promise.all([
       loader.progress,
       SocketConnection.getInstance().connect()

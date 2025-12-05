@@ -1,25 +1,29 @@
 import type { ISlotGameController } from "@slotclient/types/ISlotGameController";
 import { eventBus } from "@slotclient/types";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { GameDataManager } from "../data/GameDataManager";
 import { ReelsController } from "../reels/ReelsController";
 import { debug } from "../utils/debug";
 import { signals } from "../controllers/SignalManager";
+import { ConfigProvider, IGameConfig } from "@slotclient/config";
 
 export class AutoPlayController {
     private static _instance: AutoPlayController;
 
     private _slotGameController: ISlotGameController
     private _reelsController: ReelsController;
+    private _gameConfig: IGameConfig;
     protected _autoPlayCount: number = 0;
     protected _autoPlayed: number = 0;
     protected _isAutoPlaying: boolean = false;
-    protected _autoPlayDuration: number = GameConfig.AUTO_PLAY.delay || 1000;
+    protected _autoPlayDuration: number = 1000;
     protected _autoPlayTimeoutID: ReturnType<typeof setTimeout> | null = null;
 
     private constructor(slotGameController: ISlotGameController, reelsController: ReelsController) {
         this._slotGameController = slotGameController;
         this._reelsController = reelsController;
+        this._gameConfig = ConfigProvider.getInstance().getGameConfig();
+
+        this._autoPlayDuration = this._gameConfig.AUTO_PLAY.delay || 1000;
 
         this.eventListeners();
     }
@@ -104,7 +108,7 @@ export class AutoPlayController {
             if (this._autoPlayCount <= 0) {
                 const staticContainer = this._reelsController.getStaticContainer();
                 // Re-enable looped win animation after last auto play spin
-                if (staticContainer) staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
+                if (staticContainer) staticContainer.allowLoop = this._gameConfig.WIN_ANIMATION.winLoop ?? true;
             }
 
             debug.log("Continuing auto play, remaining count:", this._autoPlayCount);
@@ -139,7 +143,7 @@ export class AutoPlayController {
         const staticContainer = this._reelsController.getStaticContainer();
         // Re-enable looped win animation after auto play stops
         if (staticContainer)
-            staticContainer.allowLoop = GameConfig.WIN_ANIMATION.winLoop ?? true;
+            staticContainer.allowLoop = this._gameConfig.WIN_ANIMATION.winLoop ?? true;
 
         if (this._autoPlayTimeoutID) {
             clearTimeout(this._autoPlayTimeoutID);

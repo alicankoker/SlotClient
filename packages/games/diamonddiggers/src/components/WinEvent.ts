@@ -1,8 +1,7 @@
-import { Application, Graphics, Sprite, Text } from "pixi.js";
+import { Application} from "pixi.js";
 import { WinEventContainer } from "@slotclient/engine/winEvent/WinEventContainer";
 import { WinEventController } from "@slotclient/engine/winEvent/WinEventController";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { Counter } from "@slotclient/engine/utils/Counter";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
 import { AssetsConfig } from "../configs/AssetsConfig";
@@ -55,7 +54,7 @@ export class WinEvent extends WinEventContainer {
         const { atlas, skeleton } = this._assetConfig.WINEVENT_SPINE_ASSET;
 
         this._wins = Spine.from({ atlas, skeleton });
-        this._wins.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._wins.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this._wins.skeleton.setSlotsToSetupPose();
         this._wins.state.data.defaultMix = 0;
         this.addChild(this._wins);
@@ -64,7 +63,7 @@ export class WinEvent extends WinEventContainer {
         this._amountText = new SpriteText("Numbers");
         this._amountText.setAnchor(0.5, 0.5);
         this._amountText.setScale(0.75, 0.75);
-        this._amountText.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 950);
+        this._amountText.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 950);
         this.addChild(this._amountText);
 
         // counter setup
@@ -74,7 +73,7 @@ export class WinEvent extends WinEventContainer {
     }
 
     public playWinEventAnimation(): void {
-        this._duration = GameConfig.WIN_EVENT.duration + this._winEventType * GameConfig.WIN_EVENT.duration;
+        this._duration = this._gameConfig.WIN_EVENT.duration + this._winEventType * this._gameConfig.WIN_EVENT.duration;
 
         // this._soundManager.playFor("bigwin", this._duration, 0.5);
         // this._soundManager.play("coin", false, 0.25);
@@ -86,7 +85,7 @@ export class WinEvent extends WinEventContainer {
 
     private playAnimationCycle(): void {
         for (let i = 1; i < this._winEventType + 1; i++) {
-            this._wins.state.addAnimation(0, i + "-" + (i + 1), false, GameConfig.WIN_EVENT.duration);
+            this._wins.state.addAnimation(0, i + "-" + (i + 1), false, this._gameConfig.WIN_EVENT.duration);
             this._wins.state.addAnimation(0, (i + 1).toString(), false);
         }
     }

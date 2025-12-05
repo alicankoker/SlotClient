@@ -1,12 +1,13 @@
 import { Application, Container, Text } from "pixi.js";
 import { Counter } from "../utils/Counter";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { ResponsiveConfig } from "../utils/ResponsiveManager";
 import { SIGNAL_EVENTS, signals, SignalSubscription } from "../controllers/SignalManager";
 import { SpriteText } from "../utils/SpriteText";
+import { ConfigProvider, IGameConfig } from "@slotclient/config";
 
 export abstract class WinEventContainer extends Container {
     protected _app: Application;
+    protected _gameConfig: IGameConfig;
     protected _resizeSubscription?: SignalSubscription;
     protected _counter!: Counter;
     protected _amountText!: SpriteText;
@@ -15,13 +16,15 @@ export abstract class WinEventContainer extends Container {
     protected _isWinEventSkipped: boolean = false;
     protected _currentWinAmount: number = 0;
     protected _targetWinAmount: number = 0;
-    protected _duration: number = GameConfig.WIN_EVENT.duration;
+    protected _duration: number;
     protected _tweenObj: { value: number } = { value: 0 };
 
     constructor(app: Application) {
         super();
         
         this._app = app;
+        this._gameConfig = ConfigProvider.getInstance().getGameConfig();
+        this._duration = this._gameConfig.WIN_EVENT.duration;
 
         this.alpha = 0;
         this.visible = false;

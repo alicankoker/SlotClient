@@ -1,24 +1,27 @@
-import { Container, Application, Graphics } from 'pixi.js';
+import { Container, Application } from 'pixi.js';
 import { SpinContainer } from './SpinContainer';
 import { StaticContainer } from './StaticContainer';
-import { GameConfig } from '@slotclient/config/GameConfig';
 import { signals, SIGNAL_EVENTS, SignalSubscription } from '../controllers/SignalManager';
 import { IReelMode } from './ReelController';
 import { ResponsiveConfig } from '../utils/ResponsiveManager';
 import { SpinMode } from '../types/ISpinConfig';
+import { ConfigProvider, IGameConfig } from '@slotclient/config';
 
 export abstract class BaseReelsContainer extends Container {
     protected app: Application;
     protected resizeSubscription?: SignalSubscription;
+    protected gameConfig: IGameConfig;
 
     protected spinContainer?: SpinContainer;
     protected staticContainer?: StaticContainer;
 
-    protected _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+    protected _spinMode: SpinMode;
 
     constructor(app: Application) {
         super();
         this.app = app;
+        this.gameConfig = ConfigProvider.getInstance().getGameConfig();
+        this._spinMode = this.gameConfig.SPIN_MODES.NORMAL as SpinMode;
     }
 
     // ABSTRACT METHODS - Oyunlar implement ETMEK ZORUNDA

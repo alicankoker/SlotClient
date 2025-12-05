@@ -1,6 +1,6 @@
 import { Application, Container, Sprite, Text, Texture } from "pixi.js";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { GameConfig } from "@slotclient/config/GameConfig";
+import { GameConfig } from "../configs/GameConfig";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
 import { BonusController } from "@slotclient/engine/bonus/BonusController";
@@ -10,7 +10,6 @@ import { IBonusData } from "@slotclient/engine/types/ICommunication";
 import { gsap } from "gsap";
 import { AnimationContainer } from "./AnimationContainer";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
-import { eventBus } from "@slotclient/types";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { BackendToWinEventType } from "@slotclient/engine/types/IWinEvents";
 import { SpriteText } from "@slotclient/engine/utils/SpriteText";
@@ -36,16 +35,16 @@ export class Bonus extends BonusContainer {
     private static _instance: Bonus;
     private _app: Application;
     private _assetsConfig: AssetsConfig;
-    private _styleConfig: StyleConfig
+    private _gameConfig: GameConfig;
+    private _styleConfig: StyleConfig;
     private _controller: BonusController<Bonus>;
-    private _dynamiteContainer!: Container;
+    private _boxContainer!: Container;
     private _rewardContainer!: Container;
 
     private _background!: Sprite;
-    private _sign!: Spine;
-    private _dynamites!: Spine[];
-    private _trigger!: Spine;
-    private _cable!: Sprite;
+    private _bonusLogo!: Spine;
+    private _plants!: Spine;
+    private _boxes!: Spine[];
     private _infoText1!: Text;
     private _infoText2!: Text;
     private _rewards: (Sprite | SpriteText)[] = [];
@@ -64,6 +63,7 @@ export class Bonus extends BonusContainer {
         this._app = app;
 
         this._assetsConfig = AssetsConfig.getInstance();
+        this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
 
         this._controller = this.createController();
@@ -114,19 +114,14 @@ export class Bonus extends BonusContainer {
         this._background = Sprite.from('bonus_background');
         this._background.label = 'BonusBackground';
         this._background.anchor.set(0.5);
-        this._background.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._background.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this.addChild(this._background);
 
-        this._cable = Sprite.from('tnt_cable_landscape');
-        this._cable.label = 'TntCableLandscape';
-        this._cable.anchor.set(0.5);
-        this._cable.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this.addChild(this._cable);
-
-        this._dynamiteContainer = new Container();
-        this._dynamiteContainer.label = 'DynamiteContainer';
-        this._dynamiteContainer.sortableChildren = true;
-        this.addChild(this._dynamiteContainer);
+        this._boxContainer = new Container();
+        this._boxContainer.label = 'BoxContainer';
+        this._boxContainer.position.set(0, -250);
+        this._boxContainer.sortableChildren = true;
+        this.addChild(this._boxContainer);
 
         this._rewardContainer = new Container();
         this._rewardContainer.label = 'RewardContainer';
@@ -134,31 +129,30 @@ export class Bonus extends BonusContainer {
 
         const { atlas, skeleton } = this._assetsConfig.BONUS_SPINE_ASSET;
 
-        this._dynamites = [];
+        this._bonusLogo = Spine.from({ atlas, skeleton });
+        this._bonusLogo.label = `BonusLogo`;
+        this._bonusLogo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 265);
+        this._bonusLogo.state.setAnimation(0, "bonus", true);
+        this.addChild(this._bonusLogo);
+
+        this._plants = Spine.from({ atlas, skeleton });
+        this._plants.label = `Bonus_Plants`;
+        this._plants.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 280);
+        this._plants.state.setAnimation(0, "plants", true);
+        this.addChild(this._plants);
+
+        this._boxes = [];
         for (let index = 0; index < 6; index++) {
-            this._dynamites[index] = Spine.from({ atlas, skeleton });
-            this._dynamites[index].label = `Dynamite_${index}`;
-            this._dynamites[index].position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-            this._dynamites[index].interactive = true;
-            this._dynamites[index].cursor = 'pointer';
-            this._dynamites[index].state.setAnimation(0, `Horizontal_Tnt_${index + 1}_selected`, true);
-            this._dynamiteContainer.addChild(this._dynamites[index]);
+            this._boxes[index] = Spine.from({ atlas, skeleton });
+            this._boxes[index].label = `Box_${index}`;
+            this._boxes[index].position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
+            this._boxes[index].interactive = true;
+            this._boxes[index].cursor = 'pointer';
+            this._boxes[index].state.setAnimation(0, `${index + 1}_idle`, true);
+            this._boxContainer.addChild(this._boxes[index]);
         }
 
-        this._zIndexCounter = this._dynamiteContainer.children.length;
-
-        this._trigger = Spine.from({ atlas, skeleton });
-        this._trigger.label = 'BonusTrigger';
-        this._trigger.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
-        this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
-        this.addChild(this._trigger);
-
-        this._sign = Spine.from({ atlas, skeleton });
-        this._sign.label = 'BonusSign';
-        this._sign.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 535);
-        this._sign.state.setAnimation(0, 'Horizontal_Bonus_Sign', true);
-        this._sign.state.data.defaultMix = 0.3;
-        this.addChild(this._sign);
+        this._zIndexCounter = this._boxContainer.children.length;
 
         this._infoText1 = new Text({
             text: '',
@@ -166,7 +160,7 @@ export class Bonus extends BonusContainer {
         });
         this._infoText1.label = `InfoText1`;
         this._infoText1.anchor.set(0.5, 0.5);
-        this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+        this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 690);
         this._infoText1.visible = false;
         this._infoText1.style.fontSize = 50;
         this.addChild(this._infoText1);
@@ -177,23 +171,23 @@ export class Bonus extends BonusContainer {
         });
         this._infoText2.label = `InfoText2`;
         this._infoText2.anchor.set(0.5, 0.5);
-        this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
+        this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 750);
         this.addChild(this._infoText2);
     }
 
     private eventListeners(): void {
-        for (let index = 0; index < this._dynamites.length; index++) {
-            this._dynamites[index].on('pointerenter', () => {
-                this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Tnt_${index + 1}_idle` : `Vertical_Tnt_${index + 1}_idle`, true);
+        for (let index = 0; index < this._boxes.length; index++) {
+            this._boxes[index].on('pointerenter', () => {
+                this._boxes[index].state.setAnimation(0, `${index + 1}_idle`, true);
             });
-            this._dynamites[index].on('pointerout', () => {
-                this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Tnt_${index + 1}_selected` : `Vertical_Tnt_${index + 1}_selected`, true);
+            this._boxes[index].on('pointerout', () => {
+                this._boxes[index].state.setAnimation(0, `${index + 1}_idle`, true);
             });
-            this._dynamites[index].on('pointertap', async () => {
+            this._boxes[index].on('pointertap', async () => {
                 // Disable interactions after selection
-                this._dynamiteContainer.interactiveChildren = false;
-                this._dynamites[index].interactive = false;
-                this._dynamites[index].cursor = 'default';
+                this._boxContainer.interactiveChildren = false;
+                this._boxes[index].interactive = false;
+                this._boxes[index].cursor = 'default';
 
                 const response = await this._controller.sendBonusAction();
 
@@ -216,15 +210,10 @@ export class Bonus extends BonusContainer {
                 let reward: Sprite | SpriteText = this._rewards[index];
 
                 this._zIndexCounter++;
-                this._dynamites[index].zIndex = this._zIndexCounter;
-                this._dynamiteContainer.sortChildren();
+                this._boxes[index].zIndex = this._zIndexCounter;
+                this._boxContainer.sortChildren();
 
-                this._trigger.state.setAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Tnt1' : 'Vertical_Bonus_Tnt1', false);
-                this._trigger.state.addAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Tnt2' : 'Vertical_Bonus_Tnt2', false, 1.5);
-                this._sign.state.setAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Sign' : 'Vertical_Bonus_Sign', false);
-                this._sign.state.addAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Sign_Explode' : 'Vertical_Bonus_Sign_Explode', false, 1.5);
-                this._sign.state.addAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Sign' : 'Vertical_Bonus_Sign', true, 2.4);
-                this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Bonus_${index + 1}` : `Vertical_Bonus_${index + 1}`, false);
+                this._boxes[index].state.setAnimation(0, `${index + 1}_open`, false);
 
                 gsap.fromTo(reward, { alpha: 0 }, {
                     alpha: 1, duration: 0.25, delay: 2, onStart: () => {
@@ -237,7 +226,7 @@ export class Bonus extends BonusContainer {
                     }
                 });
 
-                if (GameConfig.WIN_EVENT.enabled && GameDataManager.getInstance().getLastSpinResult()?.winEventType !== 'normal') {
+                if (this._gameConfig.WIN_EVENT.enabled && GameDataManager.getInstance().getLastSpinResult()?.winEventType !== 'normal') {
                     const winAmount = response.featureWin;
                     const backendType = GameDataManager.getInstance().getLastSpinResult()!.winEventType;
                     const enumType = BackendToWinEventType[backendType]!;
@@ -252,9 +241,9 @@ export class Bonus extends BonusContainer {
                     this._infoText1.visible = false;
                     this._infoText2.visible = false;
 
-                    this._dynamites.forEach((element, index) => {
+                    this._boxes.forEach((element, index) => {
                         if (index !== this._selectedItemIndex) {
-                            element.state.setAnimation(0, this._isLandcape ? `Horizontal_Bonus_${index + 1}` : `Vertical_Bonus_${index + 1}`, false);
+                            element.state.setAnimation(0, `${index + 1}_open`, false);
 
                             gsap.fromTo(this._rewards[index], { alpha: 0 }, {
                                 alpha: 1, duration: 0.25, delay: 2, onStart: () => {
@@ -284,7 +273,7 @@ export class Bonus extends BonusContainer {
     }
 
     private layoutRewards(selectedIndex: number, stage: number, selectedType: 'key' | 'multiplier'): void {
-        const total = this._dynamites.length;
+        const total = this._boxes.length;
 
         let keyCount = stage === 1 ? 2 : (stage === 2 ? 1 : 0);
         let multiplierCount = total - keyCount;
@@ -387,8 +376,8 @@ export class Bonus extends BonusContainer {
         // Logic to reset the bonus state and animations
         this._selectedItemIndex = -1;
         this._selectedRewardIndex = -1;
-        this._dynamiteContainer.interactiveChildren = true;
-        this._zIndexCounter = this._dynamiteContainer.children.length;
+        this._boxContainer.interactiveChildren = true;
+        this._zIndexCounter = this._boxContainer.children.length;
 
         this._infoText1.visible = false;
         this._infoText1.text = "";
@@ -399,11 +388,11 @@ export class Bonus extends BonusContainer {
             this._rewardContainer.removeChild(reward);
         });
 
-        for (let index = 0; index < this._dynamites.length; index++) {
-            this._dynamites[index].zIndex = index;
-            this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Tnt_${index + 1}_selected` : `Vertical_Tnt_${index + 1}_selected`, true);
-            this._dynamites[index].interactive = true;
-            this._dynamites[index].cursor = 'pointer';
+        for (let index = 0; index < this._boxes.length; index++) {
+            this._boxes[index].zIndex = index;
+            this._boxes[index].state.setAnimation(0, `${index + 1}_idle`, true);
+            this._boxes[index].interactive = true;
+            this._boxes[index].cursor = 'pointer';
         }
     }
 
@@ -440,32 +429,23 @@ export class Bonus extends BonusContainer {
                 this._isLandcape = true;
                 this.position.y = 280;
 
-                this._cable.texture = Texture.from('tnt_cable_landscape');
-                this._cable.position.set(685, 640);
-                this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
-                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
-                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 770);
+                this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+                this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 770);
                 break;
             case 'portrait':
                 this._isLandcape = false;
                 this.position.y = 0;
 
-                this._cable.texture = Texture.from('tnt_cable_portrait');
-                this._cable.position.set(1115, 1110);
-                this._trigger.state.setAnimation(0, 'Vertical_Bonus_Tnt1', false);
-                this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 750);
-                this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 850);
+                this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 750);
+                this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 850);
                 break;
         }
 
         if (config?.deviceType === 'tablet') {
             this.position.y = 280;
 
-            this._cable.texture = Texture.from('tnt_cable_landscape');
-            this._cable.position.set(685, 640);
-            this._trigger.state.setAnimation(0, 'Horizontal_Bonus_Tnt1', false);
-            this._infoText1.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 690);
-            this._infoText2.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 770);
+            this._infoText1.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 690);
+            this._infoText2.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 770);
         }
     }
 

@@ -1,5 +1,4 @@
 import { eventBus } from "@slotclient/types";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
 import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
 import { signals } from "../../controllers/SignalManager";
@@ -69,20 +68,20 @@ export class ClassicSpinController extends SpinController {
 
       this.startSpinAnimation(response);
 
-      if (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) {
+      if (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) {
         await Utils.delay(SpinConfig.REEL_SPEED_UP_DURATION);
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
         this._isForceStopped === false && (this.container as ClassicSpinContainer).slowDown();
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
-      } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
+      } else if (this._spinMode === this.gameConfig.SPIN_MODES.FAST) {
         await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
       } else {
         await Utils.delay(SpinConfig.TURBO_SPIN_SPEED);
       }
 
       (this.container as ClassicSpinContainer).startStopSequence();
-      (this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
+      (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
       return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
@@ -153,6 +152,6 @@ export class ClassicSpinController extends SpinController {
     // Update symbols for the specific reel
     await staticContainer.updateSymbols(finalGrid, reelIndex); // Assuming single reel
 
-    reelIndex === GameConfig.GAME_RULES.reelCount - 1 && signals.emit("allReelsLanded");
+    reelIndex === this.gameConfig.GAME_RULES.reelCount - 1 && signals.emit("allReelsLanded");
   }
 }

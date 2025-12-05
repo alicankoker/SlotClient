@@ -1,12 +1,13 @@
 // TODO: Use dependency injection instead of direct imports
 import { GameServer } from '@slotclient/server/GameServer';
-import { GameConfig } from '@slotclient/config/GameConfig';
 import { debug } from '../utils/debug';
 import { SpinResultData, CascadeStepData, SpinRequestData } from '../types/ICommunication';
 import { GameState } from '../types/IGameStates';
+import { ConfigProvider, IGameConfig } from '@slotclient/config';
 
 export class GameController {
     private static instance: GameController;
+    private gameConfig: IGameConfig;
     private gameServer: GameServer;
     private gameState: GameState;
     private onStateChangeCallback?: (state: GameState) => void;
@@ -14,12 +15,13 @@ export class GameController {
     private onCascadeStepCallback?: (step: CascadeStepData) => void;
 
     private constructor() {
+        this.gameConfig = ConfigProvider.getInstance().getGameConfig();
         this.gameServer = GameServer.getInstance();
         this.gameState = {
             currentStep: 0,
             isProcessing: false,
-            balance: GameConfig.GAME_RULES.initialBalance,
-            lastBet: GameConfig.GAME_RULES.defaultBet
+            balance: this.gameConfig.GAME_RULES.initialBalance,
+            lastBet: this.gameConfig.GAME_RULES.defaultBet
         };
     }
 
@@ -167,7 +169,7 @@ export class GameController {
     // Utility methods
     public canSpin(): boolean {
         return !this.gameState.isProcessing && 
-               this.gameState.balance >= GameConfig.GAME_RULES.minBet;
+               this.gameState.balance >= this.gameConfig.GAME_RULES.minBet;
     }
 
     public setBet(amount: number): boolean {
@@ -175,7 +177,7 @@ export class GameController {
             return false;
         }
 
-        const clampedBet = GameConfig.clampBet(amount);
+        const clampedBet = this.gameConfig.clampBet(amount);
         if (clampedBet <= this.gameState.balance) {
             this.updateGameState({ lastBet: clampedBet });
             return true;
@@ -195,8 +197,8 @@ export class GameController {
         this.gameState = {
             currentStep: 0,
             isProcessing: false,
-            balance: GameConfig.GAME_RULES.initialBalance,
-            lastBet: GameConfig.GAME_RULES.defaultBet
+            balance: this.gameConfig.GAME_RULES.initialBalance,
+            lastBet: this.gameConfig.GAME_RULES.defaultBet
         };
         
         if (this.onStateChangeCallback) {

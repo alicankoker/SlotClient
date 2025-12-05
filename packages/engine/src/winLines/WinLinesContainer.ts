@@ -6,14 +6,14 @@ import { Spine } from "@esotericsoftware/spine-pixi-v8";
 export abstract class WinLinesContainer extends Container {
     protected _resizeSubscription?: SignalSubscription;
     protected _lineMask: Sprite = new Sprite(Texture.EMPTY);
-    protected _lineTextures: Sprite[];
+    protected _linesContainer: Container[];
     protected _winLine: (Graphics | Spine | Sprite)[];
     protected _availableLines: number = 0;
 
     protected constructor() {
         super();
 
-        this._lineTextures = [];
+        this._linesContainer = [];
         this._winLine = [];
 
         this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
@@ -30,15 +30,15 @@ export abstract class WinLinesContainer extends Container {
     public setAvailableLines(activeLines: number): void {
         this._availableLines = activeLines;
 
-        if (this._lineTextures.length <= 0) return;
+        if (this._linesContainer.length <= 0) return;
 
-        for (let index = 0; index < this._lineTextures.length; index++) {
-            const texture = this._lineTextures[index];
+        for (let index = 0; index < this._linesContainer.length; index++) {
+            const container = this._linesContainer[index];
             const isActive = index < activeLines;
 
-            texture.alpha = isActive ? 1 : 0.25;
-            texture.interactive = isActive;
-            texture.cursor = isActive ? "pointer" : "default";
+            container.alpha = isActive ? 1 : 0.25;
+            container.interactive = isActive;
+            container.cursor = isActive ? "pointer" : "default";
         }
     }
 
@@ -46,7 +46,7 @@ export abstract class WinLinesContainer extends Container {
         if (lineNumber < 1 || lineNumber > this._availableLines) return;
 
         const line = this._winLine[lineNumber - 1];
-        const texture = this._lineTextures[lineNumber - 1];
+        const container = this._linesContainer[lineNumber - 1];
         if (!line) return;
 
         if (line instanceof Spine) {
@@ -59,18 +59,20 @@ export abstract class WinLinesContainer extends Container {
             line.visible = true;
         }, 10);
 
-        if (this._lineTextures.length <= 0) return;
+        if (this._linesContainer.length <= 0) return;
 
-        for (let i = 0; i < this._lineTextures.length; i++) {
-            const t = this._lineTextures[i];
-            t.alpha = i < this._availableLines ? (t === texture ? 1 : 0.25) : 0.25;
+        for (let i = 0; i < this._linesContainer.length; i++) {
+            const container = this._linesContainer[i];
+            container.alpha = 0.25;
         }
+
+        (container !== undefined) && (container.alpha = 1);
     }
 
     public showLines(lineNumbers: number[]): void {
-        if (this._lineTextures.length > 0) {
+        if (this._linesContainer.length > 0) {
             for (let i = 0; i < this._availableLines; i++) {
-                this._lineTextures[i].alpha = 0.25;
+                this._linesContainer[i].alpha = 0.25;
             }
         }
 
@@ -78,7 +80,7 @@ export abstract class WinLinesContainer extends Container {
             if (lineNumber < 1 || lineNumber > this._availableLines) continue;
 
             const line = this._winLine[lineNumber - 1];
-            const texture = this._lineTextures[lineNumber - 1];
+            const container = this._linesContainer[lineNumber - 1];
             if (!line) continue;
 
             if (line instanceof Spine) {
@@ -91,21 +93,21 @@ export abstract class WinLinesContainer extends Container {
                 line.visible = true;
             }, 10);
 
-            (texture !== undefined) && (texture.alpha = 1);
+            (container !== undefined) && (container.alpha = 1);
         }
     }
 
     public showAllLines(): void {
         for (let i = 0; i < this._availableLines; i++) {
             const line = this._winLine[i];
-            const texture = this._lineTextures[i];
+            const container = this._linesContainer[i];
             if (!line) continue;
 
             setTimeout(() => {
                 line.visible = true;
             }, 10);
 
-            (texture !== undefined) && (texture.alpha = 1);
+            (container !== undefined) && (container.alpha = 1);
         }
     }
 
@@ -120,10 +122,10 @@ export abstract class WinLinesContainer extends Container {
             line.state.clearTracks();
         }
 
-        if (this._lineTextures.length <= 0) return;
+        if (this._linesContainer.length <= 0) return;
 
         for (let i = 0; i < this._availableLines; i++) {
-            this._lineTextures[i].alpha = 1;
+            this._linesContainer[i].alpha = 1;
         }
     }
 
@@ -136,12 +138,12 @@ export abstract class WinLinesContainer extends Container {
                 line.state.clearTracks();
             }
 
-            (this._lineTextures[i] !== undefined) && (this._lineTextures[i].alpha = 1);
+            (this._linesContainer[i] !== undefined) && (this._linesContainer[i].alpha = 1);
         }
 
         for (let i = this._availableLines; i < this._winLine.length; i++) {
             this._winLine[i].visible = false;
-            (this._lineTextures[i] !== undefined) && (this._lineTextures[i].alpha = 0.25);
+            (this._linesContainer[i] !== undefined) && (this._linesContainer[i].alpha = 0.25);
         }
     }
 

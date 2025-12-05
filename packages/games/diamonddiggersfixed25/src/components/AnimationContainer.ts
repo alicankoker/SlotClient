@@ -1,7 +1,7 @@
 import { Application, Container, Graphics, Sprite, Text, Ticker } from "pixi.js";
 import { WinLines } from "./WinLines";
 import { WinEvent } from "./WinEvent";
-import { GameConfig } from "@slotclient/config/GameConfig";
+import { GameConfig } from "../configs/GameConfig";
 import { signals, SIGNAL_EVENTS, SignalSubscription } from "@slotclient/engine/controllers/SignalManager";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { gsap } from "gsap";
@@ -44,6 +44,7 @@ export class AnimationContainer extends Container {
     private _app: Application;
     private _resizeSubscription?: SignalSubscription;
     private _assetsConfig: AssetsConfig;
+    private _gameConfig: GameConfig;
     private _styleConfig: StyleConfig;
 
     private _winLines: WinLines;
@@ -79,6 +80,7 @@ export class AnimationContainer extends Container {
         this._app = app;
 
         this._assetsConfig = AssetsConfig.getInstance();
+        this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
 
         this._winLines = WinLines.getInstance();
@@ -87,7 +89,7 @@ export class AnimationContainer extends Container {
 
         this._winContainer = new Container();
         this._winContainer.label = 'WinContainer';
-        this._winContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+        this._winContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
         this._winContainer.visible = false;
         this.addChild(this._winContainer);
 
@@ -114,11 +116,11 @@ export class AnimationContainer extends Container {
 
         this._dimmer = new Graphics();
         this._dimmer.beginPath();
-        this._dimmer.rect(0, 0, GameConfig.REFERENCE_RESOLUTION.width, GameConfig.REFERENCE_RESOLUTION.height);
+        this._dimmer.rect(0, 0, this._gameConfig.REFERENCE_RESOLUTION.width, this._gameConfig.REFERENCE_RESOLUTION.height);
         this._dimmer.fill({ color: 0x010b14, alpha: 0.75 });
         this._dimmer.closePath();
         this._dimmer.pivot.set(this._dimmer.width / 2, this._dimmer.height / 2);
-        this._dimmer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._dimmer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this._dimmer.scale.set(4, 4);
         this._dimmer.visible = false;
         this._dimmer.alpha = 0;
@@ -126,12 +128,12 @@ export class AnimationContainer extends Container {
 
         this._particleContainer = new Container();
         this._particleContainer.label = 'ParticleContainer';
-        this._particleContainer.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+        this._particleContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
         this.addChild(this._particleContainer);
 
         this._popup = new Container();
         this._popup.label = 'PopupContainer';
-        this._popup.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._popup.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this._popup.visible = false;
         this.addChild(this._popup);
 
@@ -190,7 +192,7 @@ export class AnimationContainer extends Container {
 
         this._dialogBox = new Container();
         this._dialogBox.label = 'DialogBoxContainer';
-        this._dialogBox.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 580);
+        this._dialogBox.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 580);
         this._dialogBox.visible = false;
         this.addChild(this._dialogBox);
 
@@ -223,7 +225,7 @@ export class AnimationContainer extends Container {
         this._transition = Spine.from({ atlas, skeleton });
         this._transition.label = 'TransitionSpine';
         this._transition.scale.set(15, 10);
-        this._transition.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, GameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._transition.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
         this._transition.visible = false;
         this._transition.state.timeScale = 0.50;
         this.addChild(this._transition);
@@ -291,7 +293,7 @@ export class AnimationContainer extends Container {
         return new Promise((resolve) => {
             this.totalWinResolver = resolve;
 
-            if (!GameConfig.WIN_ANIMATION.winTextVisibility) {
+            if (!this._gameConfig.WIN_ANIMATION.winTextVisibility) {
                 if (isShow) {
                     eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
                 }
@@ -389,7 +391,7 @@ export class AnimationContainer extends Container {
 
         this._totalWinAmount = 0;
 
-        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+        if (this._gameConfig.WIN_ANIMATION.winTextVisibility) {
             if (this.totalWinTween) {
                 this.totalWinTween.kill();
                 this.totalWinTween = undefined;
@@ -418,7 +420,7 @@ export class AnimationContainer extends Container {
     }
 
     public playWinTextAnimation(winAmount: number): void {
-        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+        if (this._gameConfig.WIN_ANIMATION.winTextVisibility) {
             const particle = Sprite.from('win_strap_particle');
             particle.anchor.set(0.5, 0.5);
 
@@ -435,7 +437,7 @@ export class AnimationContainer extends Container {
     }
 
     public stopWinTextAnimation(): void {
-        if (GameConfig.WIN_ANIMATION.winTextVisibility) {
+        if (this._gameConfig.WIN_ANIMATION.winTextVisibility) {
             gsap.to(this._winContainer.scale, {
                 x: 0, y: 0, duration: 0.1, ease: 'back.in(1.7)', onComplete: () => {
                     this._winText.setText(``);
@@ -770,10 +772,10 @@ export class AnimationContainer extends Container {
 
     private onResize(responsiveConfig: ResponsiveConfig): void {
         switch (responsiveConfig.orientation) {
-            case GameConfig.ORIENTATION.landscape:
+            case this._gameConfig.ORIENTATION.landscape:
                 this.position.set(0, 0);
                 break;
-            case GameConfig.ORIENTATION.portrait:
+            case this._gameConfig.ORIENTATION.portrait:
                 this.position.set(0, -270);
                 break;
         }

@@ -8,6 +8,7 @@
     "baseUrl": "../../..",
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "types": ["vite/client"],
     "paths": {
       "@slotclient/types": [
         "./packages/types/src/index.ts"

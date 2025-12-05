@@ -6,7 +6,6 @@ import { IReelMode } from "../../reels/ReelController";
 import { GridSymbol } from "../../symbol/GridSymbol";
 import { Sprite } from "pixi.js";
 import { debug } from "../../utils/debug";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { Utils } from "../../utils/Utils";
 import { IResponseData} from "../../types/ICommunication";
 import { IReelSpinState, IReelSpinStateData } from "../../types/IReelSpinStateData";
@@ -114,12 +113,12 @@ export class ClassicSpinContainer extends SpinContainer {
         if (this.reelsSpinStates[reelId].state === IReelSpinState.ANTICIPATING) {
             this.reelsSpinStates[reelId].speed = SpinConfig.REEL_ANTICIPATION_SPEED;
         }
-        if (this._spinMode === GameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false) {
+        if (this._spinMode === this.gameConfig.SPIN_MODES.TURBO && FreeSpinController.instance().isRunning === false) {
             this.reelsSpinStates[reelId].state = IReelSpinState.STOPPED;
             this.reelStopped(reelId);
             return;
         }
-        if (this._spinMode === GameConfig.SPIN_MODES.FAST && this.reelsSpinStates[reelId].isAnticipating === true && FreeSpinController.instance().isRunning === false) {
+        if (this._spinMode === this.gameConfig.SPIN_MODES.FAST && this.reelsSpinStates[reelId].isAnticipating === true && FreeSpinController.instance().isRunning === false) {
             this.reelsSpinStates[reelId].speed = SpinConfig.FAST_SPIN_SPEED;
         }
         this.progressReelSpin(reelSymbols, reelId, deltaTime);
@@ -141,7 +140,7 @@ export class ClassicSpinContainer extends SpinContainer {
         this.setFinalSymbols(reelId);
         signals.emit("reelStopped", reelId);
 
-        if ((reelId === 2) && this.checkForAnticipation() && this._spinMode !== GameConfig.SPIN_MODES.TURBO) {
+        if ((reelId === 2) && this.checkForAnticipation() && this._spinMode !== this.gameConfig.SPIN_MODES.TURBO) {
             this.anticipateReelSpin(this.columns - 1);
 
             return;
@@ -244,11 +243,11 @@ export class ClassicSpinContainer extends SpinContainer {
 
             if (FreeSpinController.instance().isRunning === false) {
                 switch (this._spinMode) {
-                    case GameConfig.SPIN_MODES.FAST:
+                    case this.gameConfig.SPIN_MODES.FAST:
                         this.fastSpinReel(i);
                         delay = delay / 2;
                         break;
-                    case GameConfig.SPIN_MODES.TURBO:
+                    case this.gameConfig.SPIN_MODES.TURBO:
                         this.turboSpinReel(i);
                         delay = 0;
                         break;
@@ -281,7 +280,7 @@ export class ClassicSpinContainer extends SpinContainer {
             this._abortController = new AbortController();
             const signal = this._abortController.signal;
 
-            const delay = ((this._spinMode === GameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && this.isForceStopped() === false) ? SpinConfig.REEL_SPIN_DURATION : 0;
+            const delay = ((this._spinMode === this.gameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && this.isForceStopped() === false) ? SpinConfig.REEL_SPIN_DURATION : 0;
 
             await Helpers.delay(delay, signal);
         }
@@ -367,7 +366,7 @@ export class ClassicSpinContainer extends SpinContainer {
             state.speed = 0;
             state.state = IReelSpinState.STOPPED;
 
-            const delay = this._spinMode === GameConfig.SPIN_MODES.NORMAL ? SpinConfig.REEL_SPIN_DURATION : 0;
+            const delay = this._spinMode === this.gameConfig.SPIN_MODES.NORMAL ? SpinConfig.REEL_SPIN_DURATION : 0;
 
             await Helpers.delay(delay);
         }
@@ -384,22 +383,20 @@ export class ClassicSpinContainer extends SpinContainer {
     }
     // Position calculation utilities
     public calculateSymbolX(column: number = 0): number {
-        const symbolWidth = GameConfig.REFERENCE_SPRITE_SYMBOL.width;
+        const symbolWidth = this.gameConfig.REFERENCE_SPRITE_SYMBOL.width;
 
-        const spacingX = GameConfig.REFERENCE_SPACING.horizontal;
+        const spacingX = this.gameConfig.REFERENCE_SPACING.horizontal;
 
-        const reelX = (((column - Math.floor(GameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (GameConfig.REFERENCE_RESOLUTION.width / 2)) + ((GameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
-
+        const reelX = (((column - Math.floor(this.gameConfig.GRID_LAYOUT.columns / 2)) * (symbolWidth + spacingX)) + (this.gameConfig.REFERENCE_RESOLUTION.width / 2)) + ((this.gameConfig.GRID_LAYOUT.columns % 2 == 0) ? (symbolWidth + spacingX) / 2 : 0); // Center of symbol
         return reelX; // Center in container
     }
 
     public calculateSymbolY(row: number): number {
-        const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
+        const symbolHeight = this.gameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
-        const spacingY = GameConfig.REFERENCE_SPACING.vertical;
+        const spacingY = this.gameConfig.REFERENCE_SPACING.vertical;
 
-        const symbolY = (((row - 1 - Math.floor(GameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2) + ((GameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
-
+        const symbolY = (((row - 1 - Math.floor(this.gameConfig.GRID_LAYOUT.visibleRows / 2)) * (symbolHeight + spacingY)) + this.gameConfig.REFERENCE_RESOLUTION.height / 2) + ((this.gameConfig.GRID_LAYOUT.visibleRows % 2 == 0) ? (symbolHeight + spacingY) / 2 : 0);
         return symbolY;
     }
 
@@ -437,12 +434,12 @@ export class ClassicSpinContainer extends SpinContainer {
     protected createGridSymbol(symbolData: number, column: number, row: number): GridSymbol | null {
         const symbolX = this.calculateSymbolX(column);
         const symbolY = this.calculateSymbolY(row);
-        if (GameConfig.REFERENCE_SPRITE_SYMBOL.scale < 0) debugger;
+        if (this.gameConfig.REFERENCE_SPRITE_SYMBOL.scale < 0) debugger;
 
         const gridSymbol = new GridSymbol({
             symbolId: symbolData,
             position: { x: symbolX, y: symbolY },
-            scale: GameConfig.REFERENCE_SPRITE_SYMBOL.scale, // Use reference scale
+            scale: this.gameConfig.REFERENCE_SPRITE_SYMBOL.scale, // Use reference scale
             gridX: column,
             gridY: row
         });

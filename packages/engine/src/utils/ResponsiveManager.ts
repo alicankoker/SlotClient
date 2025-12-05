@@ -1,7 +1,7 @@
 import { Application, isMobile } from "pixi.js";
 import { debug } from "./debug";
 import { SIGNAL_EVENTS, signals } from '../controllers/SignalManager';
-import { GameConfig } from "@slotclient/config/GameConfig";
+import { ConfigProvider, IGameConfig } from "@slotclient/config";
 
 export interface ResponsiveConfig {
     isMobile: boolean;
@@ -21,10 +21,11 @@ export type Alignment = "topleft" | "bottomleft" | "bottomright" | "topright" | 
 export class ResponsiveManager {
     private static _instance: ResponsiveManager;
     private _app: Application;
+    private _gameConfig: IGameConfig;
     private _resizeTimeOut: number = 100; // timeout for resize event
     private _resizeTimer: number | undefined;
     private _alignment: Alignment = "center"; // default alignment
-    private _orientation: string = GameConfig.ORIENTATION.landscape; // default orientation
+    private _orientation: string; // default orientation
     private _boundOnResize: () => void;
 
     /**
@@ -36,6 +37,8 @@ export class ResponsiveManager {
      */
     private constructor(app: Application) {
         this._app = app;
+        this._gameConfig = ConfigProvider.getInstance().getGameConfig();
+        this._orientation = this._gameConfig.ORIENTATION.landscape;
         this._boundOnResize = this.onResize.bind(this);
         this.init();
     }
@@ -72,16 +75,15 @@ export class ResponsiveManager {
         const viewportHeight: number = window.innerHeight;
 
         // set orientation
-        this._orientation = viewportWidth >= viewportHeight ? GameConfig.ORIENTATION.landscape : GameConfig.ORIENTATION.portrait;
+        this._orientation = viewportWidth >= viewportHeight ? this._gameConfig.ORIENTATION.landscape : this._gameConfig.ORIENTATION.portrait;
 
         // reference width/height
-        const refWidth: number = GameConfig.REFERENCE_RESOLUTION.width;
-        const refHeight: number = GameConfig.REFERENCE_RESOLUTION.height;
+        const refWidth: number = this._gameConfig.REFERENCE_RESOLUTION.width;
+        const refHeight: number = this._gameConfig.REFERENCE_RESOLUTION.height;
 
         // safe width/height
-        const safeWidth: number = this._orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.width : GameConfig.SAFE_AREA.portrait.width;
-        const safeHeight: number = this._orientation === GameConfig.ORIENTATION.landscape ? GameConfig.SAFE_AREA.landscape.height : GameConfig.SAFE_AREA.portrait.height;
-
+        const safeWidth: number = this._orientation === this._gameConfig.ORIENTATION.landscape ? this._gameConfig.SAFE_AREA.landscape.width : this._gameConfig.SAFE_AREA.portrait.width;
+        const safeHeight: number = this._orientation === this._gameConfig.ORIENTATION.landscape ? this._gameConfig.SAFE_AREA.landscape.height : this._gameConfig.SAFE_AREA.portrait.height;
         // effective width/height (clamped between reference and safe area)
         const effectiveWidth = Math.min(Math.max(viewportWidth, Math.max(refWidth, safeWidth)), safeWidth);
         const effectiveHeight = Math.min(Math.max(viewportHeight, Math.max(refHeight, safeHeight)), safeHeight);
@@ -99,7 +101,7 @@ export class ResponsiveManager {
         }
 
         // scale
-        const scale: number = Math.round((this._orientation === GameConfig.ORIENTATION.landscape ? calculatedHeight / effectiveHeight : calculatedWidth / effectiveWidth) * 10000) / 10000;
+        const scale: number = Math.round((this._orientation === this._gameConfig.ORIENTATION.landscape ? calculatedHeight / effectiveHeight : calculatedWidth / effectiveWidth) * 10000) / 10000;
 
         this._app.stage.scale.set(scale);
 

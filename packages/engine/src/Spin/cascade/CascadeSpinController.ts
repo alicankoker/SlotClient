@@ -1,14 +1,11 @@
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
 import { SpinContainer } from "../SpinContainer";
 import { SpinController, SpinControllerConfig } from "../SpinController";
 import { GameDataManager } from "../../data/GameDataManager";
 import { Utils } from "../../utils/Utils";
-import { GridData, IResponseData, SpinResponseData, SpinResultData } from "../../types/ICommunication";
+import { IResponseData } from "../../types/ICommunication";
 import { ISpinState } from "../../types/ISpinConfig";
-import { BackendToWinEventType, WinEventType } from "../../types/IWinEvents";
 import { debug } from "../../utils/debug";
-import { AutoPlayController } from "../../AutoPlay/AutoPlayController";
 
 export class CascadeSpinController extends SpinController {
     constructor(container: SpinContainer, config: SpinControllerConfig) {
@@ -63,7 +60,7 @@ export class CascadeSpinController extends SpinController {
 
             await Utils.delay(3500);
 
-            if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+            if (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL) {
                 await Utils.delay(SpinConfig.SPIN_DURATION, signal);
 
                 this._isForceStopped === false && this.reelsController.slowDown();

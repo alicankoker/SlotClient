@@ -1,14 +1,11 @@
 import { SpinContainer } from '../Spin/SpinContainer';
 import { StaticContainer } from './StaticContainer';
-import { GameConfig } from '@slotclient/config/GameConfig';
 import { GridSymbol } from '../symbol/GridSymbol';
 import { Sprite } from 'pixi.js';
 import { Helpers } from '../utils/Helpers';
-import { SpinConfig } from '@slotclient/config/SpinConfig';
 import { debug } from '../utils/debug';
-import { GameRulesConfig } from '@slotclient/config/GameRulesConfig';
 import { ISpinState, SpinMode } from '../types/ISpinConfig';
-import { GridData } from '../types/ICommunication';
+import { ConfigProvider, IGameConfig } from '@slotclient/config';
 
 export enum IReelMode {
     STATIC = 'static',
@@ -27,6 +24,7 @@ export enum IReelMode {
 }
 
 export class ReelController {
+    private gameConfig: IGameConfig;
     private reelIndex: number;
     private currentMode: IReelMode = IReelMode.STATIC;
     private currentSymbols: number[] = [];
@@ -37,13 +35,15 @@ export class ReelController {
     private spinContainer?: SpinContainer;
     protected bottomSymbolYPos: number = 0;
     protected topSymbolYPos: number = 0;
-    private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+    private _spinMode: SpinMode;
 
     // Animation state
     private spinDuration: number = 2000;
     private onSpinCompleteCallback?: () => void;
 
     constructor(reelIndex: number, initData: number[][]) {
+        this.gameConfig = ConfigProvider.getInstance().getGameConfig();
+        this._spinMode = this.gameConfig.SPIN_MODES.NORMAL as SpinMode;
         this.reelIndex = reelIndex;
         this.initializeSymbols(initData);
     }
@@ -163,12 +163,11 @@ export class ReelController {
         this.spinContainer?.symbols.forEach((reelSymbols: (GridSymbol | Sprite | null)[], reelIndex: number) => {
             reelSymbols.forEach((symbol: GridSymbol | Sprite | null, symbolIndex: number) => {
                 if (symbol) {
-                    const symbolHeight = GameConfig.REFERENCE_SPRITE_SYMBOL.height;
+                    const symbolHeight = this.gameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
-                    const spacingY = GameConfig.REFERENCE_SPACING.vertical;
+                    const spacingY = this.gameConfig.REFERENCE_SPACING.vertical;
 
-                    const symbolY = ((symbolIndex - 2) * (symbolHeight + spacingY)) + GameConfig.REFERENCE_RESOLUTION.height / 2;
-
+                    const symbolY = ((symbolIndex - 2) * (symbolHeight + spacingY)) + this.gameConfig.REFERENCE_RESOLUTION.height / 2;
                     symbol.position.y = symbolY;
                 }
             });

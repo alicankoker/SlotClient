@@ -1,5 +1,4 @@
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
-import { GameConfig, GameRulesConfig } from "@slotclient/config";
 import { BaseReelsContainer, Helpers, ResponsiveConfig, signals } from "@slotclient/engine";
 import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { AssetsConfig } from "../configs/AssetsConfig";
@@ -57,13 +56,13 @@ export class ReelsContainer extends BaseReelsContainer {
     protected createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
-        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SPRITE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 25;
+        const totalWidth = ((this.gameConfig.GRID.reelCount * this.gameConfig.REFERENCE_SPRITE_SYMBOL.width) + (this.gameConfig.REFERENCE_SPACING.horizontal * this.gameConfig.GRID.reelCount)) + 25;
         // Height: cover visible rows with proper spacing
-        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SPRITE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount)) + 100;
+        const totalHeight = ((this.gameConfig.GRID.rowCount * this.gameConfig.REFERENCE_SPRITE_SYMBOL.height) + (this.gameConfig.REFERENCE_SPACING.vertical * this.gameConfig.GRID.rowCount)) + 100;
 
         // Center the mask
-        const maskX = (GameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
-        const maskY = (GameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2) - 40;
+        const maskX = (this.gameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
+        const maskY = (this.gameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2) - 40;
 
         // Redraw the mask
         this._reelAreaMask = new Graphics();
@@ -103,7 +102,7 @@ export class ReelsContainer extends BaseReelsContainer {
             floor.label = `FloorBase_${fIndex}`;
             floor.anchor.set(0.5, 0.5);
             floor.scale.set(0.5, 0.5);
-            floor.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (240 * fIndex) + 425);
+            floor.position.set(this.gameConfig.REFERENCE_RESOLUTION.width / 2, (240 * fIndex) + 425);
             this.frameElementsContainer.addChild(floor);
 
             this._floors.push(floor);
@@ -158,14 +157,14 @@ export class ReelsContainer extends BaseReelsContainer {
         this._headerBackground.label = 'HeaderBackground';
         this._headerBackground.anchor.set(0.5, 0.5);
         this._headerBackground.scale.set(0.5, 0.5);
-        this._headerBackground.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 130);
+        this._headerBackground.position.set(this.gameConfig.REFERENCE_RESOLUTION.width / 2, 130);
         this.frameElementsContainer.addChild(this._headerBackground);
 
         this._logo = Sprite.from('base_logo');
         this._logo.label = 'GameLogo';
         this._logo.anchor.set(0.5, 0.5);
         this._logo.scale.set(0.33, 0.33);
-        this._logo.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, 120);
+        this._logo.position.set(this.gameConfig.REFERENCE_RESOLUTION.width / 2, 120);
         this.frameElementsContainer.addChild(this._logo);
     }
 
@@ -336,9 +335,9 @@ export class ReelsContainer extends BaseReelsContainer {
 
         if (reelIndex === undefined) {
             this._chains.forEach(async (chain, index) => {
-                if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+                if (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL) {
                     await Helpers.delay(SpinConfig.REEL_SPIN_DURATION * (index % 6), signal);
-                } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
+                } else if (this._spinMode === this.gameConfig.SPIN_MODES.FAST) {
                     await Helpers.delay((SpinConfig.REEL_SPIN_DURATION / 3) * (index % 6), signal);
                 }
 
@@ -362,12 +361,12 @@ export class ReelsContainer extends BaseReelsContainer {
 
     protected onResize(responsiveConfig: ResponsiveConfig): void {
         switch (responsiveConfig.orientation) {
-            case GameConfig.ORIENTATION.landscape:
+            case this.gameConfig.ORIENTATION.landscape:
                 this.position.set(0, 0);
                 this._leftLantern.position.set(145, 280);
                 this._rightLantern.position.set(1770, 280);
                 break;
-            case GameConfig.ORIENTATION.portrait:
+            case this.gameConfig.ORIENTATION.portrait:
                 this.position.set(0, -270);
                 this._leftLantern.position.set(420, -600);
                 this._rightLantern.position.set(1440, -600);

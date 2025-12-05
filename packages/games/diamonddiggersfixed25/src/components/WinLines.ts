@@ -1,16 +1,17 @@
-import { FillGradient, Graphics, Sprite, Text, Texture } from "pixi.js";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
-import { GameConfig } from "@slotclient/config/GameConfig";
+import { Sprite, Text, Texture } from "pixi.js";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
 import { WinLinesContainer } from "@slotclient/engine/winLines/WinLinesContainer";
 import { WinLinesController } from "@slotclient/engine/winLines/WinLinesController";
-import { AssetsConfig } from "../configs/AssetsConfig";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
+import { GameDataManager } from "@slotclient/engine";
+import { AssetsConfig } from "../configs/AssetsConfig";
+import { GameConfig } from "../configs/GameConfig";
 import { StyleConfig } from "../configs/StyleConfig";
 
 export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
     private _assetConfig: AssetsConfig;
+    private _gameConfig: GameConfig;
     private _styleConfig: StyleConfig
 
     private _controller: WinLinesController<WinLines>;
@@ -25,12 +26,13 @@ export class WinLines extends WinLinesContainer {
         this._controller = this.createController();
 
         this._assetConfig = AssetsConfig.getInstance();
+        this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
 
         this.createLineMask();
         this.createLineNumbers();
         this.createWinLines();
-        this.setAvailableLines(this._lineTextures.length);
+        this.setAvailableLines(GameDataManager.getInstance().getMaxLine());
     }
 
     public static getInstance(): WinLines {
@@ -86,10 +88,10 @@ export class WinLines extends WinLinesContainer {
 
         const { atlas, skeleton } = this._assetConfig.LINE_SPINE_ASSET;
 
-        for (const key of Object.keys(GameRulesConfig.LINES)) {
+        for (const key of Object.keys(this._gameConfig.LINES)) {
             const line = Spine.from({ atlas, skeleton });
             line.label = `WinLine_${key}`;
-            line.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
+            line.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
             line.visible = false; // Hidden by default
             line.tint = 0xffc90f; // Gold color for win lines
             line.state.setAnimation(0, key, false);
@@ -107,7 +109,7 @@ export class WinLines extends WinLinesContainer {
         this._lineChain.label = `LineChain`;
         this._lineChain.anchor.set(0.5);
         this._lineChain.scale.set(0.5, 0.5);
-        this._lineChain.position.set(325, (GameConfig.REFERENCE_RESOLUTION.height / 2));
+        this._lineChain.position.set(325, (this._gameConfig.REFERENCE_RESOLUTION.height / 2));
         this.addChild(this._lineChain);
 
         this._fixedLineHolder = Sprite.from(`base_fixed_lines_holder`);

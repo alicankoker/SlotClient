@@ -2,11 +2,9 @@ import { Application, Graphics } from "pixi.js";
 import { SpinContainer } from "../SpinContainer";
 import { SpinContainerConfig } from "@slotclient/types";
 import { debug } from "../../utils/debug";
-import { GameRulesConfig } from "@slotclient/config/GameRulesConfig";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { gsap } from "gsap";
 import { GridSymbol } from "../../symbol/GridSymbol";
-import { GridData, CascadeStepData, SpinResultData, SymbolData, GridUtils, DropData, IResponseData } from "../../types/ICommunication";
+import { CascadeStepData, GridUtils, DropData, IResponseData } from "../../types/ICommunication";
 
 export class CascadeSpinContainer extends SpinContainer {
     private reelAreaMask: Graphics = new Graphics();
@@ -354,13 +352,13 @@ export class CascadeSpinContainer extends SpinContainer {
     private createReelAreaMask(): void {
         // Calculate mask dimensions to cover all reels and visible rows
         // Width: cover all reels with proper spacing
-        const totalWidth = ((GameRulesConfig.GRID.reelCount * GameConfig.REFERENCE_SPRITE_SYMBOL.width) + (GameConfig.REFERENCE_SPACING.horizontal * GameRulesConfig.GRID.reelCount)) + 10;
+        const totalWidth = ((this.gameConfig.GRID.reelCount * this.gameConfig.REFERENCE_SPRITE_SYMBOL.width) + (this.gameConfig.REFERENCE_SPACING.horizontal * this.gameConfig.GRID.reelCount)) + 10;
         // Height: cover visible rows with proper spacing
-        const totalHeight = ((GameRulesConfig.GRID.rowCount * GameConfig.REFERENCE_SPRITE_SYMBOL.height) + (GameConfig.REFERENCE_SPACING.vertical * GameRulesConfig.GRID.rowCount) - 5);
+        const totalHeight = ((this.gameConfig.GRID.rowCount * this.gameConfig.REFERENCE_SPRITE_SYMBOL.height) + (this.gameConfig.REFERENCE_SPACING.vertical * this.gameConfig.GRID.rowCount) - 5);
 
         // Center the mask
-        const maskX = (GameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
-        const maskY = (GameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2);
+        const maskX = (this.gameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
+        const maskY = (this.gameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2);
 
         // Redraw the mask
         this.reelAreaMask.beginPath();

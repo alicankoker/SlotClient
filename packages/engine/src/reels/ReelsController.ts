@@ -1,23 +1,24 @@
 import { Application } from "pixi.js";
-import { BaseReelsContainer } from "./BaseReelsContainer";
+import { BaseReelsContainer } from "./ReelsContainer";
 import { ReelController } from "./ReelController";
 import { StaticContainer } from "./StaticContainer";
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { Helpers } from "../utils/Helpers";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
 import { debug } from "../utils/debug";
 import { SpinContainer } from "./SpinContainer";
 import { ISpinState, SpinMode } from "../types/ISpinConfig";
+import { ConfigProvider, IGameConfig } from "@slotclient/config";
 
 export class ReelsController {
   private app: Application;
+  private gameConfig: IGameConfig;
   private reelsContainer!: BaseReelsContainer;
   public reelControllers: ReelController[] = [];
 
   // State management
   private currentMode: ISpinState = ISpinState.IDLE;
   private isSpinning: boolean = false;
-  private _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+  private _spinMode: SpinMode;
 
   // Animation and timing
   private spinStartTime: number = 0;
@@ -30,6 +31,8 @@ export class ReelsController {
     reelsContainer?: BaseReelsContainer
   ) {
     this.app = app;
+    this.gameConfig = ConfigProvider.getInstance().getGameConfig();
+    this._spinMode = this.gameConfig.SPIN_MODES.NORMAL as SpinMode;
 
     if (reelsContainer) {
       this.reelsContainer = reelsContainer;
@@ -39,7 +42,7 @@ export class ReelsController {
   }
 
   private initializeControllers(initData: number[][]): void {
-    const numberOfReels = GameConfig.GRID_LAYOUT.columns;
+    const numberOfReels = this.gameConfig.GRID_LAYOUT.columns;
 
     for (let i = 0; i < numberOfReels; i++) {
       const reelController = new ReelController(i, initData);
@@ -118,7 +121,7 @@ export class ReelsController {
             controller.startSpin(finalSymbols[0], 0, () => { });
         });*/
 
-    if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+    if (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL) {
       await this.delay(SpinConfig.SPIN_DURATION);
 
       this.setMode(ISpinState.SLOWING);

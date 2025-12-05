@@ -22,7 +22,7 @@ import {
     debug
 } from '@slotclient/engine';
 import { Application } from 'pixi.js';
-import { GameConfig, spinContainerConfig } from '@slotclient/config/GameConfig';
+import { GameConfig, spinContainerConfig } from '../configs/GameConfig';
 import { eventBus } from '@slotclient/types';
 import { ISlotGameController } from '@slotclient/types/ISlotGameController';
 import { Background } from '../components/Background';
@@ -48,6 +48,7 @@ export interface SlotSpinResponse {
 
 export class SlotGameController implements ISlotGameController {
     private static slotGameInstance: SlotGameController;
+    private gameConfig: GameConfig;
     private nexusInstance: Nexus;
     private playerController: PlayerController;
     private gameServer: GameServer;
@@ -68,6 +69,7 @@ export class SlotGameController implements ISlotGameController {
 
     constructor(app: Application) {
         this.app = app;
+        this.gameConfig = GameConfig.getInstance();
         this.nexusInstance = Nexus.getInstance();
         this.playerController = this.nexusInstance.getPlayerController();
         this.gameServer = GameServer.getInstance();
@@ -87,8 +89,8 @@ export class SlotGameController implements ISlotGameController {
         this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig) as ClassicSpinContainer;
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0,
-            symbolHeight: GameConfig.REFERENCE_SPRITE_SYMBOL.height,
-            symbolsVisible: GameConfig.GRID_LAYOUT.visibleRows,
+            symbolHeight: this.gameConfig.REFERENCE_SPRITE_SYMBOL.height,
+            symbolsVisible: this.gameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData as number[][]);
 
         this.background = Background.instance();
@@ -265,9 +267,15 @@ export class SlotGameController implements ISlotGameController {
 
                 this.resetWinAnimations();
                 this.winLines.hideAllLines();
+                this.reelsContainer.setChainAnimation(true, true);
                 await this.spinController.executeSpin();
             }
         }
+    }
+
+    public forceStop(): void {
+        this.reelsContainer.forceStopChainAnimation();
+        this.spinController.forceStop();
     }
 
     private async onAllReelsStopped(): Promise<void> {
@@ -281,7 +289,7 @@ export class SlotGameController implements ISlotGameController {
             stateOrUpdates: 'default',
         });
 
-        if (GameConfig.WIN_EVENT.enabled && (response as IResponseData).winEventType !== 'normal') {
+        if (this.gameConfig.WIN_EVENT.enabled && (response as IResponseData).winEventType !== 'normal') {
             const winAmount = (response as IResponseData).totalWin;
             const backendType = (response as IResponseData).winEventType;
             const enumType = BackendToWinEventType[backendType]!;
@@ -292,7 +300,7 @@ export class SlotGameController implements ISlotGameController {
         }
 
         const isSkipped = GameDataManager.getInstance().isWinAnimationSkipped && ((AutoPlayController.instance().isRunning && AutoPlayController.instance().autoPlayCount > 0) || (FreeSpinController.instance().isRunning === true));
-        GameConfig.WIN_ANIMATION.enabled && await this.setupWinAnimation(isSkipped);
+        this.gameConfig.WIN_ANIMATION.enabled && await this.setupWinAnimation(isSkipped);
 
         eventBus.emit("setBalance", (response as IResponseData).balance.after);
 
@@ -306,7 +314,7 @@ export class SlotGameController implements ISlotGameController {
             await this.startBonusState();
         }
 
-        if (this.autoPlayController.isRunning && (GameConfig.AUTO_PLAY.stopOnWin || GameConfig.AUTO_PLAY.stopOnFeature)) {
+        if (this.autoPlayController.isRunning && (this.gameConfig.AUTO_PLAY.stopOnWin || this.gameConfig.AUTO_PLAY.stopOnFeature)) {
             this.autoPlayController.stopAutoPlay();
         }
 
@@ -394,7 +402,7 @@ export class SlotGameController implements ISlotGameController {
             if (this.autoPlayController.isRunning && FreeSpinController.instance().isRunning === false && Bonus.instance().isActive === false) {
                 setTimeout(() => {
                     this.autoPlayController.continueAutoPlay();
-                }, GameConfig.AUTO_PLAY.delay || 1000);
+                }, this.gameConfig.AUTO_PLAY.delay || 1000);
             }
         });
     }
@@ -432,7 +440,7 @@ export class SlotGameController implements ISlotGameController {
 
         const staticContainer = this.reelsContainer.getStaticContainer();
 
-        if (this.winLines && GameConfig.WIN_ANIMATION.winlineVisibility) {
+        if (this.winLines && this.gameConfig.WIN_ANIMATION.winlineVisibility) {
             this.winLines.visible = true;
         }
 

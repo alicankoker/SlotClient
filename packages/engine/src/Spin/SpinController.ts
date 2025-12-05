@@ -1,5 +1,4 @@
 // SpinContainer import removed - not directly used in this controller
-import { GameConfig } from "@slotclient/config/GameConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
 import { ReelsController } from "../reels/ReelsController";
 import { debug } from "../utils/debug";
@@ -17,6 +16,7 @@ import {
   SymbolData,
 } from "../types/ICommunication";
 import { eventBus } from "@slotclient/types";
+import { ConfigProvider, IGameConfig } from "@slotclient/config";
 
 export interface SpinControllerConfig {
   reelsController: ReelsController;
@@ -26,11 +26,12 @@ export interface SpinControllerConfig {
 
 export abstract class SpinController {
   protected reelsController: ReelsController;
+  protected gameConfig: IGameConfig; 
   protected _soundManager: SoundManager;
 
   // State management
   protected currentState: ISpinState = ISpinState.IDLE;
-  protected _spinMode: SpinMode = GameConfig.SPIN_MODES.NORMAL as SpinMode;
+  protected _spinMode: SpinMode;
   protected currentSpinId?: string;
   protected currentStepIndex: number = 0;
   protected _isForceStopped: boolean = false;
@@ -49,6 +50,8 @@ export abstract class SpinController {
   protected container: SpinContainer;
 
   constructor(container: SpinContainer, config: SpinControllerConfig) {
+    this.gameConfig = ConfigProvider.getInstance().getGameConfig();
+    this._spinMode = this.gameConfig.SPIN_MODES.NORMAL as SpinMode;
     this.container = container;
     this.reelsController = config.reelsController;
     this._soundManager = SoundManager.getInstance();
@@ -97,13 +100,13 @@ export abstract class SpinController {
       // Step 2: Start spinning animation
       // this.startSpinAnimation(response.result);
 
-      if (this._spinMode === GameConfig.SPIN_MODES.NORMAL) {
+      if (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL) {
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
 
         this._isForceStopped === false && this.reelsController.slowDown();
 
         await Utils.delay(SpinConfig.REEL_SLOW_DOWN_DURATION, signal);
-      } else if (this._spinMode === GameConfig.SPIN_MODES.FAST) {
+      } else if (this._spinMode === this.gameConfig.SPIN_MODES.FAST) {
         await Utils.delay(SpinConfig.FAST_SPIN_SPEED);
       } else {
         await Utils.delay(SpinConfig.TURBO_SPIN_SPEED);
@@ -258,7 +261,7 @@ export abstract class SpinController {
 
   // Force stop current spin
   public forceStop(): void {
-    if (this.currentState === "idle" || this.currentState === "completed" || this._spinMode === GameConfig.SPIN_MODES.TURBO) {
+    if (this.currentState === "idle" || this.currentState === "completed" || this._spinMode === this.gameConfig.SPIN_MODES.TURBO) {
       return;
     }
 
@@ -267,8 +270,7 @@ export abstract class SpinController {
 
     this._abortController?.abort();
     this._abortController = null;
-    this.setSpinMode(GameConfig.SPIN_MODES.TURBO as SpinMode);
-    this.reelsController.getReelsContainer().forceStopChainAnimation();
+    this.setSpinMode(this.gameConfig.SPIN_MODES.TURBO as SpinMode);
 
     eventBus.emit("setBatchComponentState", {
       componentNames: ['spinButton'],
