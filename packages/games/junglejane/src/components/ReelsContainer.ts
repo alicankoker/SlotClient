@@ -14,7 +14,7 @@ export class ReelsContainer extends BaseReelsContainer {
     private _reelBackground!: Sprite;
     private _reelFrame!: Sprite;
     private _character!: Spine;
-    private _logo!: Sprite;
+    private _logo!: Spine;
     private _sparkEnabled: boolean = false;
     private _abortController: AbortController | null = null;
     private _isFreeSpinMode: boolean = false;
@@ -83,20 +83,18 @@ export class ReelsContainer extends BaseReelsContainer {
         this._reelFrame.position.set(950, 530);
         this.frameElementsContainer.addChild(this._reelFrame);
 
-        const { atlas, skeleton } = this.assetsConfig.CHARACTER_SPINE_ASSET;
-
-        this._character = Spine.from({ atlas, skeleton });
+        this._character = Spine.from(this.assetsConfig.CHARACTER_SPINE_ASSET);
         this._character.label = `GameCharacter`;
         this._character.scale.set(0.4, 0.4);
         this._character.position.set(1845, 580);
         this._character.state.setAnimation(0, "Free_idle", true);
         this.frameElementsContainer.addChild(this._character);
 
-        this._logo = Sprite.from('base_logo');
+        this._logo = Spine.from(this.assetsConfig.LOGO_SPINE_ASSET);
         this._logo.label = 'GameLogo';
-        this._logo.anchor.set(0.5, 0.5);
         this._logo.scale.set(0.475, 0.475);
         this._logo.position.set(950, 70);
+        this._logo.state.setAnimation(0, "Base_hold", true);
         this.frameElementsContainer.addChild(this._logo);
     }
 
@@ -200,6 +198,18 @@ export class ReelsContainer extends BaseReelsContainer {
         });
     }
 
+    public playElementsWinAnimation(): void {
+        this._character.state.setAnimation(0, this._isFreeSpinMode ? "Free_win1" : "Base_win1", false);
+        this._character.state.addAnimation(0, this._isFreeSpinMode ? "Free_idle" : "Base_idle", true, 0);
+        this._logo.state.setAnimation(0, this._isFreeSpinMode ? "Free_win" : "Base_win", false);
+        this._logo.state.addAnimation(0, this._isFreeSpinMode ? "Free_hold" : "Base_hold", true, 0);
+    }
+
+    public stopElementsWinAnimation(): void {
+        this._character.state.setAnimation(0, this._isFreeSpinMode ? "Free_idle" : "Base_idle", true);
+        this._logo.state.setAnimation(0, this._isFreeSpinMode ? "Free_hold" : "Base_hold", true);
+    }
+
     public setFreeSpinMode(enabled: boolean): void {
         const frameBackgroundTexture = enabled ? 'freespin_frame_background' : 'base_frame_background';
         this._reelBackground.texture = Texture.from(frameBackgroundTexture);
@@ -208,8 +218,8 @@ export class ReelsContainer extends BaseReelsContainer {
         const frameTexture = enabled ? 'freespin_frame' : 'base_frame';
         this._reelFrame.texture = Texture.from(frameTexture);
 
-        const logoTexture = enabled ? 'freespin_logo' : 'base_logo';
-        this._logo.texture = Texture.from(logoTexture);
+        const animationName = enabled ? 'Free_hold' : 'Base_hold';
+        this._logo.state.setAnimation(0, animationName, true);
     }
 
     public forceStopChainAnimation(): void {

@@ -23,12 +23,12 @@ const CLICK_TO_COLLECT_TEXT: string = "CLICK TO COLLECT";
 const CLICK_TO_CONTINUE_TEXT: string = "CLICK TO CONTINUE";
 
 const BonusElementsPositions = [
-    { x: 575, y: 365 },
-    { x: 935, y: 520 },
-    { x: 1310, y: 475 },
-    { x: 700, y: 45 },
-    { x: 1000, y: 250 },
-    { x: 1300, y: 110 }
+    { x: 1320, y: 330 },
+    { x: 1065, y: 0 },
+    { x: 955, y: 210 },
+    { x: 510, y: 50 },
+    { x: 660, y: 345 },
+    { x: 1540, y: 110 }
 ];
 
 export class Bonus extends BonusContainer {

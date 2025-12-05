@@ -14,6 +14,7 @@ export class FeatureScreen extends FeatureScreenContainer {
     private _gameConfig: GameConfig;
     private _styleConfig: StyleConfig;
     private _controller: FeatureScreenController<FeatureScreen>;
+    private _character!: Spine;
     private _logo!: Sprite;
     private _previewContainer!: Container;
     private _reelContainer!: Container;
@@ -63,6 +64,7 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     protected setupFeatureElements(): void {
+        this.setupCharacter();
         this.setupPreviewElements();
         this.setupLogo();
         this.setupSpinButton();
@@ -72,6 +74,17 @@ export class FeatureScreen extends FeatureScreenContainer {
         this.setupPreviewTransition();
 
         this.startPreviewCycle();
+    }
+
+    private setupCharacter(): void {
+        const { atlas, skeleton } = this._assetsConfig.CHARACTER_SPINE_ASSET;
+
+        this._character = Spine.from({ atlas, skeleton });
+        this._character.label = "CharacterJane";
+        this._character.scale.set(0.25, 0.25);
+        this._character.position.set(1320, 620);
+        this._character.state.setAnimation(0, "Free_idle", true);
+        this.addChild(this._character);
     }
 
     private setupPreviewElements(): void {
@@ -104,8 +117,8 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         this._linesContainer = new Container();
         this._linesContainer.label = "LinesContainer";
-        this._linesContainer.position.set(-820, -425);
-        this._linesContainer.scale.set(0.865, 0.865);
+        this._linesContainer.position.set(-760, -400);
+        this._linesContainer.scale.set(0.8, 0.8);
         this._linesContainer.visible = false;
         this._reelContainer.addChild(this._linesContainer);
 
@@ -172,6 +185,7 @@ export class FeatureScreen extends FeatureScreenContainer {
     private _setupLines(parent: Container): void {
         for (const key of Object.keys(this._gameConfig.LINE_NUMBER_POSITION)) {
             const position = this._gameConfig.LINE_NUMBER_POSITION[Number(key)];
+
             const text = new Text({
                 text: key.toString(),
                 style: this._styleConfig.style_1.clone()
@@ -582,7 +596,7 @@ export class FeatureScreen extends FeatureScreenContainer {
                 switch (config?.orientation) {
                     case this._gameConfig.ORIENTATION.portrait:
                         this._logo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -200);
-                        this._previewContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 330);
+                        this._previewContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 220);
                         this._spinButtonContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 970);
                         this._volatilityContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1130);
                         this._dontShowContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1250);

@@ -252,7 +252,7 @@ export class StaticContainer extends Container {
 
         if (this._animationToken !== token) return;
 
-        signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_COMPLETE);
+        signals.emit(SIGNAL_EVENTS.WIN_ANIMATION_ALL_COMPLETE);
         this._isPlaying = false;
     }
 

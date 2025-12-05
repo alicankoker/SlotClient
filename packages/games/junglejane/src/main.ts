@@ -105,6 +105,8 @@ export class DoodleV8Main {
         await featureScreen.waitForClose();
       }
 
+      Background.instance().createBackgroundElements();
+
       // Step 4: Initialize controllers (now that assets are loaded)
       this.initializeControllers(initData as GridData);
 

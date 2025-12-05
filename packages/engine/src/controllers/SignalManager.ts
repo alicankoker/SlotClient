@@ -155,6 +155,7 @@ export const SIGNAL_EVENTS = {
     WIN_CALCULATED: 'win:calculated',
     WIN_ANIMATION_START: 'win:animation:start',
     WIN_ANIMATION_COMPLETE: 'win:animation:complete',
+    WIN_ANIMATION_ALL_COMPLETE: 'win:animation:all_complete',
     WIN_ANIMATION_PLAY: 'win:animation:play',
     WIN_ANIMATION_SHOW_ALL_LINES: 'win:animation:show_all_lines',
     WIN_ANIMATION_TOTAL_PLAY: 'win:animation:total_play',

@@ -127,7 +127,7 @@ export class StyleConfig extends BaseStyleConfig {
             alpha: 1,
             angle: 1.4,
             color: '#2d1b06',
-            distance: 0
+            distance: 5
         },
         fontFamily: "PaytoneOneRegular",
         fontSize: 84,

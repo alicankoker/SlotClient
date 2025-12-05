@@ -226,6 +226,19 @@ export class AssetsConfig extends BaseAssetsConfig {
         ]
       },
       {
+        name: 'background',
+        assets: [
+          {
+            alias: ['background_atlas'],
+            src: PATH + '/assets/animations/background/background.atlas'
+          },
+          {
+            alias: ['background_data'],
+            src: PATH + '/assets/animations/background/background.json'
+          }
+        ]
+      },
+      {
         name: 'bonus',
         assets: [
           {
@@ -372,6 +385,11 @@ export class AssetsConfig extends BaseAssetsConfig {
   public readonly SYMBOL_SPINE_ASSET: SpineAssetData = {
     atlas: "symbols_atlas",
     skeleton: "symbols_data",
+  };
+
+  public readonly BACKGROUND_SPINE_ASSET: SpineAssetData = {
+    atlas: 'background_atlas',
+    skeleton: 'background_data'
   };
 
   public readonly BONUS_SPINE_ASSET: SpineAssetData = {

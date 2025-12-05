@@ -19,7 +19,8 @@ import {
     signals,
     BackendToWinEventType,
     ISpinState,
-    debug
+    debug,
+    SIGNAL_EVENTS
 } from '@slotclient/engine';
 import { Application } from 'pixi.js';
 import { GameConfig, spinContainerConfig } from '../configs/GameConfig';
@@ -211,6 +212,16 @@ export class SlotGameController implements ISlotGameController {
             await this.onSpinComplete(response);
 
             signals.emit("spinCompleted", response);
+        });
+
+        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, () => { // or use WIN_ANIMATION_TOTAL_PLAY_COMPLETE for just once
+            this.reelsContainer.playElementsWinAnimation();
+            this.background.playElementsWinAnimation();
+        });
+
+        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_ALL_COMPLETE, () => {
+            this.reelsContainer.stopElementsWinAnimation();
+            this.background.stopElementsWinAnimation();
         });
     }
 

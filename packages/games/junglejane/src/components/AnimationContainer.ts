@@ -154,7 +154,7 @@ export class AnimationContainer extends Container {
         });
         popupHeaderText.label = 'PopupHeaderText';
         popupHeaderText.anchor.set(0.5, 0.5);
-        popupHeaderText.position.set(0, -295);
+        popupHeaderText.position.set(0, -315);
         this._popup.addChild(popupHeaderText);
 
         const popupYouWonText = new Text({
@@ -272,9 +272,9 @@ export class AnimationContainer extends Container {
             this._winLines.hideAllLines();
         });
 
-        signals.on(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, async (extra: number | undefined) => {
+        signals.on(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, async (extra) => {
             if (extra !== undefined) {
-                this._dialogCountText.setText(`+${extra}`);
+                this._dialogCountText.setText(`+${extra.added}`);
                 await this.playDialogBoxAnimation();
 
                 signals.emit(SIGNAL_EVENTS.FREE_SPIN_RETRIGGERED);
