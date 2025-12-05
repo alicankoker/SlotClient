@@ -96,14 +96,14 @@ export class DoodleV8Main {
       const storage = Storage.getInstance();
       storage.setItem("player_balance", 1000);
 
-      // if (localStorage.getItem('featureScreenDontShow') !== 'true') {
-      //   const featureScreen = new FeatureScreen(this.app);
-      //   this.app.stage.addChildAt(featureScreen, this.app.stage.children.length);
+      if (localStorage.getItem('featureScreenDontShow') !== 'true') {
+        const featureScreen = new FeatureScreen(this.app);
+        this.app.stage.addChildAt(featureScreen, this.app.stage.children.length);
 
-      //   this.responsiveManager.onResize();
+        this.responsiveManager.onResize();
 
-      //   await featureScreen.waitForClose();
-      // }
+        await featureScreen.waitForClose();
+      }
 
       // Step 4: Initialize controllers (now that assets are loaded)
       this.initializeControllers(initData as GridData);

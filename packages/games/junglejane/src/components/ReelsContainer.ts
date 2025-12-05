@@ -203,14 +203,13 @@ export class ReelsContainer extends BaseReelsContainer {
     public setFreeSpinMode(enabled: boolean): void {
         const frameBackgroundTexture = enabled ? 'freespin_frame_background' : 'base_frame_background';
         this._reelBackground.texture = Texture.from(frameBackgroundTexture);
+        this._reelBackground.position.y = enabled ? 520 : 495;
 
         const frameTexture = enabled ? 'freespin_frame' : 'base_frame';
         this._reelFrame.texture = Texture.from(frameTexture);
 
         const logoTexture = enabled ? 'freespin_logo' : 'base_logo';
-        const logoScale = enabled ? 1 : 0.35;
         this._logo.texture = Texture.from(logoTexture);
-        this._logo.scale.set(logoScale);
     }
 
     public forceStopChainAnimation(): void {
