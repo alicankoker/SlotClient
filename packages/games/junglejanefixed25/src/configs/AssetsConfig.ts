@@ -1,8 +1,7 @@
-import { Assets } from "pixi.js";
 import { BaseAssetsConfig } from '@slotclient/config/AssetsConfig';
-import { BundleFile, SpineAsset, SpineAssetData, SpineData } from "@slotclient/types/IAssetLoader";
+import { BundleFile, SpineAssetData } from "@slotclient/types/IAssetLoader";
 
-const PATH = document.body.dataset.path;
+export const PATH = document.body.dataset.path;
 
 const PATHS = {
   ART: PATH + "/assets/art/",
@@ -52,10 +51,6 @@ export class AssetsConfig extends BaseAssetsConfig {
         name: 'preload',
         assets: [
           {
-            alias: 'base_background',
-            src: PATH + '/assets/images/base_background.jpg'
-          },
-          {
             alias: 'base_logo',
             src: PATH + '/assets/raw/environment/base_logo.png'
           },
@@ -104,10 +99,6 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'base_frame_background',
             src: PATH + '/assets/raw/environment/base_frame_background.png'
-          },
-          {
-            alias: 'base_logo',
-            src: PATH + '/assets/raw/environment/base_logo.png'
           },
           // #endregion
           // #region Freespin Frame and UI Assets
@@ -209,10 +200,6 @@ export class AssetsConfig extends BaseAssetsConfig {
       {
         name: 'backgrounds',
         assets: [
-          {
-            alias: ['base_background'],
-            src: PATH + '/assets/images/base_background.jpg'
-          },
           {
             alias: ['freespin_background'],
             src: PATH + '/assets/images/freespin_background.jpg'

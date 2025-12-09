@@ -5,7 +5,7 @@ import { ResponsiveManager } from "@slotclient/engine/utils/ResponsiveManager";
 import { AssetSizeManager } from "@slotclient/engine/multiResolutionSupport/AssetSizeManager";
 import { AssetLoader } from "@slotclient/engine/utils/AssetLoader";
 import { ConfigProvider } from "@slotclient/config";
-import { AssetsConfig } from "./configs/AssetsConfig";
+import { AssetsConfig, PATH } from "./configs/AssetsConfig";
 import { GameConfig } from "./configs/GameConfig";
 import { StyleConfig } from "./configs/StyleConfig";
 import { setConnectionConfig } from "@slotclient/config/ConnectionConfig";
@@ -73,7 +73,7 @@ export class DoodleV8Main {
         await Promise.all([
           this.loadAssets(this.assetResolutionChooser.assetSize.name),
           //this.loadAudioAssets(),
-          Background.getInstance(await Assets.load('/assets/images/base_background.jpg')),
+          Background.getInstance(await Assets.load(PATH + '/assets/images/base_background.jpg')),
           Background.instance().position.y = this.responsiveManager.getOrientation() === gameConfig.ORIENTATION.portrait ? -20 : 250,
           this.startLoader(Background.instance()),
         ]);
