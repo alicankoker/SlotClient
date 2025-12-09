@@ -126,7 +126,7 @@ export class Background extends BackgroundContainer {
     }
 
     public stopElementsWinAnimation():void{
-        const animationSuffix = this._isFreeSpinMode ? 'Free_' : 'Fase_';
+        const animationSuffix = this._isFreeSpinMode ? 'Free_' : 'Base_';
 
         this._tree.state.setAnimation(0, `${animationSuffix}tree_idle`, true);
         this._leafs.state.setAnimation(0, `${animationSuffix}leaf_idle`, true);

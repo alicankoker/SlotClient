@@ -211,17 +211,24 @@ export class SlotGameController implements ISlotGameController {
         signals.on("afterSpin", async (response) => {
             await this.onSpinComplete(response);
 
+            this.background.stopElementsWinAnimation();
             signals.emit("spinCompleted", response);
         });
 
-        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, () => { // or use WIN_ANIMATION_TOTAL_PLAY_COMPLETE for just once
+        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_TOTAL_PLAY, () => { // or use WIN_ANIMATION_TOTAL_PLAY_COMPLETE for just once
             this.reelsContainer.playElementsWinAnimation();
-            this.background.playElementsWinAnimation();
         });
 
-        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_ALL_COMPLETE, () => {
+        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_TOTAL_PLAY_COMPLETE, () => {
             this.reelsContainer.stopElementsWinAnimation();
-            this.background.stopElementsWinAnimation();
+        });
+
+        signals.on(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, async (extra) => {
+            if (extra !== undefined) {
+                await this.playScatterHighlightAnimation();
+
+                signals.emit("scatterRetriggered", extra);
+            }
         });
     }
 
@@ -284,6 +291,7 @@ export class SlotGameController implements ISlotGameController {
 
                 this.resetWinAnimations();
                 this.winLines.hideAllLines();
+                this.background.playElementsWinAnimation();
                 await this.spinController.executeSpin();
             }
         }
@@ -325,6 +333,7 @@ export class SlotGameController implements ISlotGameController {
 
     private async onSpinComplete(response: IResponseData): Promise<void> {
         if (response.freeSpin && GameDataManager.getInstance().checkFreeSpins() && response.freeSpin.playedRounds === 0) {
+            this.reelsContainer.playElementsScatterAnimation();
             await this.startFreeSpinState(response.freeSpin.totalRounds, response.freeSpin.totalRounds, response.totalWin);
         } else if (response.bonus && GameDataManager.getInstance().checkBonus()) {
             await this.startBonusState();
@@ -346,6 +355,8 @@ export class SlotGameController implements ISlotGameController {
         this.staticContainer.allowLoop = false;
         this.staticContainer.isFreeSpinMode = true;
         this.reelsContainer.isFreeSpinMode = true;
+
+        await this.playScatterHighlightAnimation();
 
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(true);
@@ -391,6 +402,25 @@ export class SlotGameController implements ISlotGameController {
         this.reelsContainer.isFreeSpinMode = false;
     }
 
+    private async playScatterHighlightAnimation(): Promise<void> {
+        if (GameDataManager.getInstance().getResponseData() === undefined || GameDataManager.getInstance().getResponseData().reels === undefined) {
+            return;
+        }
+
+        const reels: number[][] = GameDataManager.getInstance().getResponseData().reels;
+        const scatterPositions: number[][] = reels.map(reel => {
+            const positions: number[] = [];
+
+            for (let i = 0; i < reel.length; i++) {
+                if (reel[i] === 8) positions.push(i);
+            }
+
+            return positions.length > 0 ? positions : [-1];
+        });
+        this.reelsContainer.playElementsScatterAnimation();
+        await this.staticContainer.playHighlightSymbols(scatterPositions);
+    }
+
     public async executeFreeSpin(totalRounds: number, remainRounds: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {
         return await this.freeSpinController.executeFreeSpin(totalRounds, remainRounds, initialWin);
     }
@@ -399,7 +429,10 @@ export class SlotGameController implements ISlotGameController {
         eventBus.emit("hideUI");
         Bonus.instance().isActive = true;
         this.staticContainer.isBonusMode = true;
+
+        this.reelsContainer.playElementsBonusAnimation();
         await this.staticContainer.playHighlightSymbols(GameDataManager.getInstance().getResponseData().bonus?.positions!);
+
         await this.animationContainer.startTransitionAnimation(() => {
             this.animationContainer.setBonusMode(true);
             Bonus.instance().visible = true;

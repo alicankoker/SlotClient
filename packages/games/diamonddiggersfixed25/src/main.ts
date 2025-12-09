@@ -74,6 +74,7 @@ export class DoodleV8Main {
           this.loadAssets(this.assetResolutionChooser.assetSize.name),
           //this.loadAudioAssets(),
           Background.getInstance(await Assets.load('/assets/images/base_background.jpg')),
+          Background.instance().position.y = this.responsiveManager.getOrientation() === gameConfig.ORIENTATION.portrait ? -20 : 250,
           this.startLoader(Background.instance()),
         ]);
       } catch (err) {

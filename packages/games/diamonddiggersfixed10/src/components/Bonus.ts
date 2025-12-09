@@ -49,6 +49,7 @@ export class Bonus extends BonusContainer {
     private _infoText1!: Text;
     private _infoText2!: Text;
     private _rewards: (Sprite | SpriteText)[] = [];
+    private _glow!: Sprite;
     private _selectedItemIndex: number = -1;
     private _selectedRewardIndex: number = -1;
     private _isLandcape: boolean = true;
@@ -128,6 +129,13 @@ export class Bonus extends BonusContainer {
         this._dynamiteContainer.label = 'DynamiteContainer';
         this._dynamiteContainer.sortableChildren = true;
         this.addChild(this._dynamiteContainer);
+
+        this._glow = Sprite.from('glow');
+        this._glow.label = 'Glow';
+        this._glow.anchor.set(0.5, 0.5);
+        this._glow.blendMode = "add";
+        this._glow.visible = false;
+        this.addChild(this._glow);
 
         this._rewardContainer = new Container();
         this._rewardContainer.label = 'RewardContainer';
@@ -227,8 +235,12 @@ export class Bonus extends BonusContainer {
                 this._sign.state.addAnimation(0, this._isLandcape ? 'Horizontal_Bonus_Sign' : 'Vertical_Bonus_Sign', true, 2.4);
                 this._dynamites[index].state.setAnimation(0, this._isLandcape ? `Horizontal_Bonus_${index + 1}` : `Vertical_Bonus_${index + 1}`, false);
 
-                gsap.fromTo(reward, { alpha: 0 }, {
+                gsap.fromTo([reward, this._glow], { alpha: 0 }, {
                     alpha: 1, duration: 0.25, delay: 2, onStart: () => {
+                        this._glow.position.set(BonusElementsPositions[index].x, BonusElementsPositions[index].y);
+                        this._glow.visible = true;
+                        gsap.to(this._glow, { angle: "+=360", duration: 5, repeat: -1, ease: "linear" });
+
                         (reward instanceof Text) && reward.scale.set(1.5, 1.5);
                         reward.visible = true;
                         typeof value === 'number' && (this._infoText1.text = YOU_WON_TEXT + `${value}`);
@@ -390,6 +402,10 @@ export class Bonus extends BonusContainer {
         this._selectedRewardIndex = -1;
         this._dynamiteContainer.interactiveChildren = true;
         this._zIndexCounter = this._dynamiteContainer.children.length;
+
+        gsap.killTweensOf(this._glow);
+        this._glow.visible = false;
+        this._glow.alpha = 0;
 
         this._infoText1.visible = false;
         this._infoText1.text = "";

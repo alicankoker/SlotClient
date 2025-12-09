@@ -1,4 +1,4 @@
-import { Application, Circle, Container, NineSliceSprite, Sprite, Text, Texture, } from "pixi.js";
+import { Application, Circle, Container, Graphics, NineSliceSprite, Sprite, Text, Texture, } from "pixi.js";
 import { GameConfig } from "../configs/GameConfig";
 import { FeatureScreenContainer } from "@slotclient/engine/featureScreen/FeatureScreenContainer";
 import { FeatureScreenController } from "@slotclient/engine/featureScreen/FeatureScreenController";
@@ -15,6 +15,7 @@ export class FeatureScreen extends FeatureScreenContainer {
     private _styleConfig: StyleConfig;
     private _controller: FeatureScreenController<FeatureScreen>;
     private _character!: Spine;
+    private _characterMask!: Graphics;
     private _logo!: Sprite;
     private _previewContainer!: Container;
     private _reelContainer!: Container;
@@ -64,8 +65,8 @@ export class FeatureScreen extends FeatureScreenContainer {
     }
 
     protected setupFeatureElements(): void {
-        this.setupCharacter();
         this.setupPreviewElements();
+        this.setupCharacter();
         this.setupLogo();
         this.setupSpinButton();
         this.setupVolatilityIndicator();
@@ -81,10 +82,22 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         this._character = Spine.from({ atlas, skeleton });
         this._character.label = "CharacterJane";
-        this._character.scale.set(0.25, 0.25);
-        this._character.position.set(1320, 620);
-        this._character.state.setAnimation(0, "Free_idle", true);
+        this._character.scale.set(0.27, 0.27);
+        this._character.position.set(1320, 595);
+        this._character.skeleton.setSkinByName('Base/Base');
+        this._character.state.setAnimation(0, "Base_idle", true);
         this.addChild(this._character);
+
+        this._characterMask = new Graphics();
+        this._characterMask.label = "CharacterMask";
+        this._characterMask.beginPath();
+        this._characterMask.rect(750, -520, 400, 500);
+        this._characterMask.fill({
+            color: 0xffffff,
+            alpha: 0
+        });
+        this._characterMask.closePath();
+        this.addChild(this._characterMask);
     }
 
     private setupPreviewElements(): void {
@@ -296,7 +309,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         const volatilityText = new Text({
             text: 'VOLATILITY',
             style: {
-                fontFamily: 'Arial',
+                fontFamily: 'TrebuchedMSBold',
                 fontSize: 20,
                 fill: 0xFFFFFF,
                 align: 'center',
@@ -368,7 +381,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         const dontShowText = new Text({
             text: "DON'T SHOW NEXT TIME",
             style: {
-                fontFamily: 'Arial',
+                fontFamily: 'TrebuchedMSBold',
                 fontSize: 40,
                 fontWeight: 'bolder',
                 fill: 0x000000,
@@ -595,15 +608,25 @@ export class FeatureScreen extends FeatureScreenContainer {
             case true:
                 switch (config?.orientation) {
                     case this._gameConfig.ORIENTATION.portrait:
-                        this._logo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -200);
+                        this._logo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -30);
+                        this._logo.scale.set(0.3, 0.3);
+                        this._character.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -35);
+                        this._character.scale.set(0.4, 0.4);
+                        this._character.mask = this._characterMask;
                         this._previewContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 220);
+                        this._reelContainer.position.set(-10, 35);
                         this._spinButtonContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 970);
                         this._volatilityContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1130);
                         this._dontShowContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1250);
                         break;
                     case this._gameConfig.ORIENTATION.landscape:
                         this._logo.position.set(1615, 260);
-                        this._previewContainer.position.set(690, 540);
+                        this._logo.scale.set(0.5, 0.5);
+                        this._character.position.set(1320, 585);
+                        this._character.scale.set(0.27, 0.27);
+                        this._character.mask = null;
+                        this._previewContainer.position.set(690, 475);
+                        this._reelContainer.position.set(35, 35);
                         this._spinButtonContainer.position.set(1615, 620);
                         this._volatilityContainer.position.set(1615, 760);
                         this._dontShowContainer.position.set(1585, 900);

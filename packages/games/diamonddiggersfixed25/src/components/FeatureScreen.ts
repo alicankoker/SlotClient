@@ -338,7 +338,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         const volatilityText = new Text({
             text: 'VOLATILITY',
             style: {
-                fontFamily: 'Arial',
+                fontFamily: 'TrebuchedMSBold',
                 fontSize: 20,
                 fill: 0xFFFFFF,
                 align: 'center',
@@ -410,7 +410,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         const dontShowText = new Text({
             text: "DON'T SHOW NEXT TIME",
             style: {
-                fontFamily: 'Arial',
+                fontFamily: 'TrebuchedMSBold',
                 fontSize: 40,
                 fontWeight: 'bolder',
                 fill: 0x000000,

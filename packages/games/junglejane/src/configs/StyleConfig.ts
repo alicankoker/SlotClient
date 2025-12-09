@@ -17,7 +17,7 @@ export class StyleConfig extends BaseStyleConfig {
         barStrokeFront: 0xffef64,
         barStrokeBack: 0xf1ff7f,
         barShadow: 0xffffff,
-        fontStyle: "PaytoneOneRegular"
+        fontStyle: "TrebuchedMSBold"
     };
 
     public readonly style_1: TextStyle = new TextStyle({

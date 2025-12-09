@@ -272,7 +272,7 @@ export class AnimationContainer extends Container {
             this._winLines.hideAllLines();
         });
 
-        signals.on(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, async (extra) => {
+        signals.on("scatterRetriggered", async (extra) => {
             if (extra !== undefined) {
                 this._dialogCountText.setText(`+${extra.added}`);
                 await this.playDialogBoxAnimation();

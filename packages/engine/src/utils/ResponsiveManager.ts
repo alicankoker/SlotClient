@@ -176,6 +176,10 @@ export class ResponsiveManager {
         return 'desktop';
     }
 
+    public getOrientation(): string {
+        return this._orientation;
+    }
+
     public destroy(): void {
         clearTimeout(this._resizeTimeOut);
         window.removeEventListener("resize", this._boundOnResize);

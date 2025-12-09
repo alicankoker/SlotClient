@@ -82,6 +82,10 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: "PaytoneOneRegular",
             src: PATHS.ROOT + `fonts/PaytoneOneRegular.ttf`,
+          },
+          {
+            alias: "TrebuchedMSBold",
+            src: PATHS.ROOT + `fonts/TrebuchedMSBold.ttf`,
           }
         ]
       },
@@ -127,6 +131,10 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'dialog_box',
             src: PATH + '/assets/raw/environment/dialog_box.png'
+          },
+          {
+            alias: 'glow',
+            src: PATH + '/assets/raw/environment/glow.png'
           },
           {
             alias: 'splash_volatility_holder',
@@ -265,15 +273,15 @@ export class AssetsConfig extends BaseAssetsConfig {
         ]
       },
       {
-        name: 'environment',
+        name: 'anticipate',
         assets: [
           {
-            alias: ['environment_atlas'],
-            src: PATH + '/assets/animations/environment/environment.atlas'
+            alias: ['anticipate_atlas'],
+            src: PATH + '/assets/animations/anticipate/anticipate.atlas'
           },
           {
-            alias: ['environment_data'],
-            src: PATH + '/assets/animations/environment/environment.json'
+            alias: ['anticipate_data'],
+            src: PATH + '/assets/animations/anticipate/anticipate.json'
           }
         ]
       },
@@ -402,9 +410,9 @@ export class AssetsConfig extends BaseAssetsConfig {
     skeleton: "character_data",
   };
 
-  public readonly ENVIRONMENT_SPINE_ASSET: SpineAssetData = {
-    atlas: "environment_atlas",
-    skeleton: "environment_data",
+  public readonly ANTICIPATE_SPINE_ASSET: SpineAssetData = {
+    atlas: "anticipate_atlas",
+    skeleton: "anticipate_data",
   };
 
   public readonly LOGO_SPINE_ASSET: SpineAssetData = {
@@ -469,41 +477,5 @@ export class AssetsConfig extends BaseAssetsConfig {
 
   public getBlurredSymbolAsset(symbolIndex: number): string {
     return `${symbolIndex}_blur`;
-  }
-
-  public getSpineAsset(asset: SpineAsset): SpineData {
-    let atlas: string, skeleton: string;
-
-    switch (asset) {
-      case "symbol":
-        ({ atlas, skeleton } = this.SYMBOL_SPINE_ASSET);
-        break;
-      case "background":
-        ({ atlas, skeleton } = this.BONUS_SPINE_ASSET);
-        break;
-      case "environment":
-        ({ atlas, skeleton } = this.ENVIRONMENT_SPINE_ASSET);
-        break;
-      case "winevent":
-        ({ atlas, skeleton } = this.WINEVENT_SPINE_ASSET);
-        break;
-      case "transition":
-        ({ atlas, skeleton } = this.TRANSITION_SPINE_ASSET);
-        break;
-      case "line":
-        ({ atlas, skeleton } = this.LINE_SPINE_ASSET);
-        break;
-      default:
-        throw new Error(`Unknown spine asset type: ${asset}`);
-    }
-
-    const atlasData = Assets.get(atlas);
-    const skeletonData = Assets.get(skeleton);
-
-    if (!atlasData || !skeletonData) {
-      throw new Error(`Missing spine asset data for ${asset}`);
-    }
-
-    return { atlasData, skeletonData };
   }
 }

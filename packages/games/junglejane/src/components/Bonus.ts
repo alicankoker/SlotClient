@@ -24,11 +24,11 @@ const CLICK_TO_CONTINUE_TEXT: string = "CLICK TO CONTINUE";
 
 const BonusElementsPositions = [
     { x: 1320, y: 330 },
-    { x: 1065, y: 0 },
-    { x: 955, y: 210 },
-    { x: 510, y: 50 },
-    { x: 660, y: 345 },
-    { x: 1540, y: 110 }
+    { x: 1065, y: -10 },
+    { x: 950, y: 190 },
+    { x: 510, y: 40 },
+    { x: 660, y: 330 },
+    { x: 1540, y: 100 }
 ];
 
 export class Bonus extends BonusContainer {
@@ -48,6 +48,7 @@ export class Bonus extends BonusContainer {
     private _infoText1!: Text;
     private _infoText2!: Text;
     private _rewards: (Sprite | SpriteText)[] = [];
+    private _glow!: Sprite;
     private _selectedItemIndex: number = -1;
     private _selectedRewardIndex: number = -1;
     private _isLandcape: boolean = true;
@@ -122,6 +123,13 @@ export class Bonus extends BonusContainer {
         this._boxContainer.position.set(0, -250);
         this._boxContainer.sortableChildren = true;
         this.addChild(this._boxContainer);
+
+        this._glow = Sprite.from('glow');
+        this._glow.label = 'Glow';
+        this._glow.anchor.set(0.5, 0.5);
+        this._glow.blendMode = "add";
+        this._glow.visible = false;
+        this.addChild(this._glow);
 
         this._rewardContainer = new Container();
         this._rewardContainer.label = 'RewardContainer';
@@ -215,9 +223,12 @@ export class Bonus extends BonusContainer {
 
                 this._boxes[index].state.setAnimation(0, `${index + 1}_open`, false);
 
-                gsap.fromTo(reward, { alpha: 0 }, {
+                gsap.fromTo([reward, this._glow], { alpha: 0 }, {
                     alpha: 1, duration: 0.25, delay: 2, onStart: () => {
-                        (reward instanceof Text) && reward.scale.set(1.5, 1.5);
+                        this._glow.position.set(BonusElementsPositions[index].x, BonusElementsPositions[index].y);
+                        this._glow.visible = true;
+                        gsap.to(this._glow, {angle: "+=360", duration: 5, repeat: -1, ease: "linear"});
+
                         reward.visible = true;
                         typeof value === 'number' && (this._infoText1.text = YOU_WON_TEXT + `${value}`);
                         typeof value === 'number' && (this._infoText1.visible = true);
@@ -314,8 +325,9 @@ export class Bonus extends BonusContainer {
             selectedReward.scale.set(0.2);
         } else {
             selectedReward = new SpriteText("Numbers");
-            selectedReward.setAnchor(0.5, 0.5);
             selectedReward.label = `SelectedMultiplier_${stage}`;
+            selectedReward.setAnchor(0.5, 0.5);
+            selectedReward.setScale(0.75, 0.75);
         }
         selectedReward.visible = false;
         this._rewardContainer.addChild(selectedReward);
@@ -378,6 +390,10 @@ export class Bonus extends BonusContainer {
         this._selectedRewardIndex = -1;
         this._boxContainer.interactiveChildren = true;
         this._zIndexCounter = this._boxContainer.children.length;
+
+        gsap.killTweensOf(this._glow);
+        this._glow.visible = false;
+        this._glow.alpha = 0;
 
         this._infoText1.visible = false;
         this._infoText1.text = "";

@@ -1,4 +1,4 @@
-symbols.webp
+symbols.png
 size:2500,2500
 filter:Linear,Linear
 scale:0.5
@@ -251,7 +251,7 @@ bounds:2054,730,72,62
 offsets:0,6,72,68
 rotate:90
 
-symbols_2.webp
+symbols_2.png
 size:1692,1692
 filter:Linear,Linear
 scale:0.5

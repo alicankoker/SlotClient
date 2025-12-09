@@ -3,6 +3,7 @@ import { BaseReelsContainer, Helpers, ResponsiveConfig, signals } from "@slotcli
 import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { SpinConfig } from "@slotclient/config/SpinConfig";
+import { gsap } from "gsap";
 
 export class ReelsContainer extends BaseReelsContainer {
     private assetsConfig: AssetsConfig;
@@ -179,14 +180,12 @@ export class ReelsContainer extends BaseReelsContainer {
         const adrenalineStripeLeft = Spine.from({ atlas, skeleton });
         adrenalineStripeLeft.label = `AdrenalineStripe_Left`;
         adrenalineStripeLeft.position.set(1324, 555);
-        adrenalineStripeLeft.state.setAnimation(0, "Adrenalin_Glow", false);
         this._adrenalineStripes.push(adrenalineStripeLeft);
         this.adrenalineElementsContainer.addChild(adrenalineStripeLeft);
 
         const adrenalineStripeRight = Spine.from({ atlas, skeleton });
         adrenalineStripeRight.label = `AdrenalineStripe_Right`;
         adrenalineStripeRight.position.set(1568, 555);
-        adrenalineStripeRight.state.setAnimation(0, "Adrenalin_Glow", false);
         this._adrenalineStripes.push(adrenalineStripeRight);
         this.adrenalineElementsContainer.addChild(adrenalineStripeRight);
 
@@ -195,7 +194,6 @@ export class ReelsContainer extends BaseReelsContainer {
         adrenalineStripeTop.scale.set(0.6, 0.4);
         adrenalineStripeTop.position.set(1450, 200);
         adrenalineStripeTop.angle = 90;
-        adrenalineStripeTop.state.setAnimation(0, "Adrenalin_Glow", false);
         this._adrenalineStripes.push(adrenalineStripeTop);
         this.adrenalineElementsContainer.addChild(adrenalineStripeTop);
 
@@ -204,7 +202,6 @@ export class ReelsContainer extends BaseReelsContainer {
         adrenalineStripeBottom.scale.set(0.6, 0.4);
         adrenalineStripeBottom.position.set(1450, 900);
         adrenalineStripeBottom.angle = 90;
-        adrenalineStripeBottom.state.setAnimation(0, "Adrenalin_Glow", false);
         this._adrenalineStripes.push(adrenalineStripeBottom);
         this.adrenalineElementsContainer.addChild(adrenalineStripeBottom);
 

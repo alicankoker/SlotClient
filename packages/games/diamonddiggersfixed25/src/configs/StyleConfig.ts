@@ -17,7 +17,7 @@ export class StyleConfig extends BaseStyleConfig {
         barStrokeFront: 0xffa200,
         barStrokeBack: 0xfff0dc,
         barShadow: 0xffffff,
-        fontStyle: "MikadoMedium"
+        fontStyle: "TrebuchedMSBold"
     };
 
     public readonly style_1: TextStyle = new TextStyle({

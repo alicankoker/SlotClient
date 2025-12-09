@@ -86,6 +86,10 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: "MikadoMedium",
             src: PATHS.ROOT + `fonts/MikadoMedium.otf`,
+          },
+          {
+            alias: "TrebuchedMSBold",
+            src: PATHS.ROOT + `fonts/TrebuchedMSBold.ttf`,
           }
         ]
       },
@@ -183,6 +187,10 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'dialog_box',
             src: PATH + '/assets/raw/environment/dialog_box.png'
+          },
+          {
+            alias: 'glow',
+            src: PATH + '/assets/raw/environment/glow.png'
           },
           {
             alias: 'splash_volatility_holder',
@@ -483,41 +491,5 @@ export class AssetsConfig extends BaseAssetsConfig {
 
   public getBlurredSymbolAsset(symbolIndex: number): string {
     return `${symbolIndex}_blur`;
-  }
-
-  public getSpineAsset(asset: SpineAsset): SpineData {
-    let atlas: string, skeleton: string;
-
-    switch (asset) {
-      case "symbol":
-        ({ atlas, skeleton } = this.SYMBOL_SPINE_ASSET);
-        break;
-      case "background":
-        ({ atlas, skeleton } = this.BONUS_SPINE_ASSET);
-        break;
-      case "environment":
-        ({ atlas, skeleton } = this.ENVIRONMENT_SPINE_ASSET);
-        break;
-      case "winevent":
-        ({ atlas, skeleton } = this.WINEVENT_SPINE_ASSET);
-        break;
-      case "transition":
-        ({ atlas, skeleton } = this.TRANSITION_SPINE_ASSET);
-        break;
-      case "line":
-        ({ atlas, skeleton } = this.LINE_SPINE_ASSET);
-        break;
-      default:
-        throw new Error(`Unknown spine asset type: ${asset}`);
-    }
-
-    const atlasData = Assets.get(atlas);
-    const skeletonData = Assets.get(skeleton);
-
-    if (!atlasData || !skeletonData) {
-      throw new Error(`Missing spine asset data for ${asset}`);
-    }
-
-    return { atlasData, skeletonData };
   }
 }

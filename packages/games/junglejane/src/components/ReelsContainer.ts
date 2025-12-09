@@ -2,6 +2,7 @@ import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { BaseReelsContainer, ResponsiveConfig, signals } from "@slotclient/engine";
 import { Application, Container, Graphics, Sprite, Texture } from "pixi.js";
 import { AssetsConfig } from "../configs/AssetsConfig";
+import { gsap } from "gsap";
 
 export class ReelsContainer extends BaseReelsContainer {
     private assetsConfig: AssetsConfig;
@@ -10,12 +11,11 @@ export class ReelsContainer extends BaseReelsContainer {
 
     private _reelAreaMask!: Graphics; // Alt sınıflar oluşturacak
     private _adrenalineStripes: Spine[] = [];
-    private _spark!: Spine;
     private _reelBackground!: Sprite;
     private _reelFrame!: Sprite;
     private _character!: Spine;
+    private _characterMask!: Graphics;
     private _logo!: Spine;
-    private _sparkEnabled: boolean = false;
     private _abortController: AbortController | null = null;
     private _isFreeSpinMode: boolean = false;
 
@@ -87,8 +87,20 @@ export class ReelsContainer extends BaseReelsContainer {
         this._character.label = `GameCharacter`;
         this._character.scale.set(0.4, 0.4);
         this._character.position.set(1845, 580);
-        this._character.state.setAnimation(0, "Free_idle", true);
+        this._character.skeleton.setSkinByName('Base/Base');
+        this._character.state.setAnimation(0, "Base_idle", true);
         this.frameElementsContainer.addChild(this._character);
+
+        this._characterMask = new Graphics();
+        this._characterMask.label = "CharacterMask";
+        this._characterMask.beginPath();
+        this._characterMask.rect(600, -640, 720, 700);
+        this._characterMask.fill({
+            color: 0xffffff,
+            alpha: 0
+        });
+        this._characterMask.closePath();
+        this.frameElementsContainer.addChild(this._characterMask);
 
         this._logo = Spine.from(this.assetsConfig.LOGO_SPINE_ASSET);
         this._logo.label = 'GameLogo';
@@ -104,46 +116,21 @@ export class ReelsContainer extends BaseReelsContainer {
         this.adrenalineElementsContainer.visible = false;
         this.frameElementsContainer!.addChild(this.adrenalineElementsContainer);
 
-        const { atlas, skeleton } = this.assetsConfig.ENVIRONMENT_SPINE_ASSET;
+        const { atlas, skeleton } = this.assetsConfig.ANTICIPATE_SPINE_ASSET;
 
         const adrenalineStripeLeft = Spine.from({ atlas, skeleton });
         adrenalineStripeLeft.label = `AdrenalineStripe_Left`;
-        adrenalineStripeLeft.position.set(1324, 555);
-        adrenalineStripeLeft.state.setAnimation(0, "Adrenalin_Glow", false);
+        adrenalineStripeLeft.position.set(1360, 575);
+        adrenalineStripeLeft.scale.set(0.65, 0.65);
         this._adrenalineStripes.push(adrenalineStripeLeft);
         this.adrenalineElementsContainer.addChild(adrenalineStripeLeft);
 
         const adrenalineStripeRight = Spine.from({ atlas, skeleton });
         adrenalineStripeRight.label = `AdrenalineStripe_Right`;
-        adrenalineStripeRight.position.set(1568, 555);
-        adrenalineStripeRight.state.setAnimation(0, "Adrenalin_Glow", false);
+        adrenalineStripeRight.position.set(1620, 575);
+        adrenalineStripeRight.scale.set(0.65, 0.65);
         this._adrenalineStripes.push(adrenalineStripeRight);
         this.adrenalineElementsContainer.addChild(adrenalineStripeRight);
-
-        const adrenalineStripeTop = Spine.from({ atlas, skeleton });
-        adrenalineStripeTop.label = `AdrenalineStripe_Top`;
-        adrenalineStripeTop.scale.set(0.6, 0.4);
-        adrenalineStripeTop.position.set(1450, 200);
-        adrenalineStripeTop.angle = 90;
-        adrenalineStripeTop.state.setAnimation(0, "Adrenalin_Glow", false);
-        this._adrenalineStripes.push(adrenalineStripeTop);
-        this.adrenalineElementsContainer.addChild(adrenalineStripeTop);
-
-        const adrenalineStripeBottom = Spine.from({ atlas, skeleton });
-        adrenalineStripeBottom.label = `AdrenalineStripe_Bottom`;
-        adrenalineStripeBottom.scale.set(0.6, 0.4);
-        adrenalineStripeBottom.position.set(1450, 900);
-        adrenalineStripeBottom.angle = 90;
-        adrenalineStripeBottom.state.setAnimation(0, "Adrenalin_Glow", false);
-        this._adrenalineStripes.push(adrenalineStripeBottom);
-        this.adrenalineElementsContainer.addChild(adrenalineStripeBottom);
-
-        this._spark = Spine.from({ atlas, skeleton });
-        this._spark.label = `AdrenalineSpark`;
-        this._spark.scale.set(0.3, 0.3);
-        this._spark.position.set(1325, 200);
-        this._spark.state.setAnimation(0, "Spark", false);
-        this.adrenalineElementsContainer.addChild(this._spark);
     }
 
     private startAnticipationEffect(): void {
@@ -152,37 +139,10 @@ export class ReelsContainer extends BaseReelsContainer {
                 this.adrenalineElementsContainer.visible = true;
 
                 this._adrenalineStripes.forEach(stripe => {
-                    stripe.state.setAnimation(0, "Adrenalin_Glow", true);
+                    stripe.state.setAnimation(0, "anticipate", true);
                 });
-
-                this._sparkEnabled = true;
-                this.setSparkEffect();
             }
         });
-    }
-
-    private setSparkEffect(): void {
-        if (this._sparkEnabled === false) return;
-
-        const positionX = Math.random() < 0.5 ? 1325 : 1570;
-        const positionY = 200 + Math.random() * (900 - 200);
-        const scaleX = positionX === 1325 ? 0.3 : -0.3;
-        const scaleY = positionY < 700 ? 0.3 : -0.3;
-        const speed = Math.random() + 0.5;
-
-        this._spark.position.set(positionX, positionY);
-        this._spark.scale.set(scaleX, scaleY);
-        this._spark.state.timeScale = speed;
-
-        const entry = this._spark.state.setAnimation(0, "Spark", false);
-
-        entry.listener = {
-            complete: () => {
-                if (this._sparkEnabled) {
-                    this.setSparkEffect();
-                }
-            }
-        };
     }
 
     private stopAnticipationEffect(): void {
@@ -190,16 +150,15 @@ export class ReelsContainer extends BaseReelsContainer {
             alpha: 0, duration: 0.25, onComplete: () => {
                 this.adrenalineElementsContainer.visible = false;
 
-                this._sparkEnabled = false;
                 this._adrenalineStripes.forEach(stripe => {
-                    stripe.state.setAnimation(0, "Adrenalin_Glow", false);
+                    stripe.state.setAnimation(0, "anticipate", false);
                 });
             }
         });
     }
 
     public playElementsWinAnimation(): void {
-        this._character.state.setAnimation(0, this._isFreeSpinMode ? "Free_win1" : "Base_win1", false);
+        this._character.state.setAnimation(0, this._isFreeSpinMode ? "Free_win2" : "Base_win2", false);
         this._character.state.addAnimation(0, this._isFreeSpinMode ? "Free_idle" : "Base_idle", true, 0);
         this._logo.state.setAnimation(0, this._isFreeSpinMode ? "Free_win" : "Base_win", false);
         this._logo.state.addAnimation(0, this._isFreeSpinMode ? "Free_hold" : "Base_hold", true, 0);
@@ -208,6 +167,16 @@ export class ReelsContainer extends BaseReelsContainer {
     public stopElementsWinAnimation(): void {
         this._character.state.setAnimation(0, this._isFreeSpinMode ? "Free_idle" : "Base_idle", true);
         this._logo.state.setAnimation(0, this._isFreeSpinMode ? "Free_hold" : "Base_hold", true);
+    }
+
+    public playElementsScatterAnimation(): void {
+        this._character.state.setAnimation(0, this._isFreeSpinMode ? "Free_win1" : "Base_win1", false);
+        this._character.state.addAnimation(0, this._isFreeSpinMode ? "Free_idle" : "Base_idle", true, 0);
+    }
+
+    public playElementsBonusAnimation(): void {
+        this._character.state.setAnimation(0, "Base_win3", false);
+        this._character.state.addAnimation(0, "Base_idle", true, 0);
     }
 
     public setFreeSpinMode(enabled: boolean): void {
@@ -220,6 +189,10 @@ export class ReelsContainer extends BaseReelsContainer {
 
         const animationName = enabled ? 'Free_hold' : 'Base_hold';
         this._logo.state.setAnimation(0, animationName, true);
+
+        const characterAnimationName = enabled ? 'Free_idle' : 'Base_idle';
+        this._character.state.setAnimation(0, characterAnimationName, true);
+        this._isFreeSpinMode = enabled;
     }
 
     public forceStopChainAnimation(): void {
@@ -231,9 +204,15 @@ export class ReelsContainer extends BaseReelsContainer {
         switch (responsiveConfig.orientation) {
             case this.gameConfig.ORIENTATION.landscape:
                 this.position.set(0, 0);
+                this._character.position.set(1845, 580);
+                this._character.scale.set(0.4, 0.4);
+                this._character.mask = null;
                 break;
             case this.gameConfig.ORIENTATION.portrait:
                 this.position.set(0, -270);
+                this._character.position.set(this.gameConfig.REFERENCE_RESOLUTION.width / 2, 30);
+                this._character.scale.set(0.65, 0.65);
+                this._character.mask = this._characterMask;
                 break;
         }
     }
