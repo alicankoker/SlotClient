@@ -1,7 +1,7 @@
 {
   "name": "@slotclient/diamonddiggersfixed10",
   "version": "1.0.0",
-  "description": "Diamonddiggersfixed10 game implementation",
+  "description": "Diamond Diggers Fixed 10 game implementation",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {

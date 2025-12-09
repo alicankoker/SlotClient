@@ -1,0 +1,62 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "baseUrl": "../../..",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@slotclient/types": [
+        "./packages/types/src/index.ts"
+      ],
+      "@slotclient/types/*": [
+        "./packages/types/src/*"
+      ],
+      "@slotclient/engine": [
+        "./packages/engine/src/index.ts"
+      ],
+      "@slotclient/engine/*": [
+        "./packages/engine/src/*"
+      ],
+      "@slotclient/nexus": [
+        "./packages/nexus/src/index.ts"
+      ],
+      "@slotclient/nexus/*": [
+        "./packages/nexus/src/*"
+      ],
+      "@slotclient/communication": [
+        "./packages/communication/src/index.ts"
+      ],
+      "@slotclient/communication/*": [
+        "./packages/communication/src/*"
+      ],
+      "@slotclient/config": [
+        "./packages/config/src/index.ts"
+      ],
+      "@slotclient/config/*": [
+        "./packages/config/src/*"
+      ],
+      "@slotclient/server": [
+        "./packages/server/src/index.ts"
+      ],
+      "@slotclient/server/*": [
+        "./packages/server/src/*"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "vite-env.d.ts",
+    "../../../packages/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ]
+}

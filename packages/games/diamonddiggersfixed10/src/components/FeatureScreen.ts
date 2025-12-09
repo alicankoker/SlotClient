@@ -178,7 +178,7 @@ export class FeatureScreen extends FeatureScreenContainer {
             const symbol = Sprite.from(symbolNames[index]);
             symbol.label = "Preview" + symbolNames[index];
             symbol.anchor.set(0.5, 0.5);
-            symbol.scale.set(0.15, 0.15);
+            symbol.scale.set(0.75, 0.75);
             symbol.position.set(position.x, position.y);
             symbolsContainer.addChild(symbol);
 
@@ -193,7 +193,7 @@ export class FeatureScreen extends FeatureScreenContainer {
             const { atlas, skeleton } = this._assetsConfig.SYMBOL_SPINE_ASSET;
             const specialSymbol = Spine.from({ atlas, skeleton });
             specialSymbol.label = "PreviewSpecialSymbol" + index;
-            specialSymbol.scale.set(0.15, 0.15);
+            specialSymbol.scale.set(0.75, 0.75);
             specialSymbol.visible = false;
             specialSymbolContainer.addChild(specialSymbol);
 

@@ -58,34 +58,6 @@ export class WinLines extends WinLinesContainer {
     }
 
     protected override createWinLines(): void {
-        // for (const key of Object.keys(GameRulesConfig.LINES)) {
-        //     const line = GameRulesConfig.getLine(Number(key));
-
-        //     const winLine = new Graphics();
-        //     winLine.label = `WinLine_${key}`;
-        //     winLine.beginPath();
-        //     winLine.moveTo(line[0].x, line[0].y);
-
-        //     for (let i = 0; i < line.length; i++) {
-        //         winLine.lineTo(line[i].x, line[i].y);
-        //         winLine.stroke({
-        //             color: 0xFFFFFF,
-        //             width: 10,
-        //             join: 'round',
-        //             cap: 'round'
-        //         });
-        //     }
-        //     winLine.closePath();
-
-        //     winLine.position.set(GameConfig.REFERENCE_RESOLUTION.width / 2, (GameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
-        //     winLine.visible = false; // Hidden by default
-        //     winLine.tint = Math.floor(Math.random() * 0xFFFFFF); // Random color for each win line
-
-        //     this._winLine.push(winLine);
-
-        //     this.addChild(winLine);
-        // }
-
         const { atlas, skeleton } = this._assetConfig.LINE_SPINE_ASSET;
 
         for (const key of Object.keys(this._gameConfig.LINES)) {

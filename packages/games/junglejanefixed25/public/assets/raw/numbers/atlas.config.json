@@ -1,0 +1,9 @@
+{
+  "name": "numbers",
+  "format": "json-hash",
+  "extrude": 1,
+  "padding": 1,
+  "allowRotation": false,
+  "maxWidth": 2048,
+  "maxHeight": 2048
+}

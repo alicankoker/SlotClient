@@ -1,0 +1,477 @@
+symbols.png
+size:2500,2500
+filter:Linear,Linear
+scale:0.5
+10/10_Bonus_Symbol_Text
+bounds:506,512,487,171
+offsets:13,10,512,191
+10/10_Frame_Inside
+bounds:1474,311,441,441
+10/10_body
+bounds:1917,354,434,350
+offsets:0,161,512,512
+10/10_left_eye
+bounds:2469,1684,28,28
+10/10_lower_arm3
+bounds:1852,804,266,425
+offsets:0,0,388,482
+10/10_right_eye
+bounds:1444,314,29,28
+rotate:90
+10/10_right_eye_white
+bounds:2069,1520,54,48
+rotate:90
+10/bonusshine
+bounds:2120,706,427,371
+offsets:0,67,486,438
+rotate:90
+4/4frame_base
+bounds:484,58,452,453
+offsets:0,1,452,454
+rotate:90
+4/Frame copy
+bounds:524,1986,512,512
+4/arrow1
+bounds:1542,2,51,60
+rotate:90
+4/fin1
+bounds:970,1557,128,105
+rotate:90
+4/fin2
+bounds:1604,14,39,117
+offsets:2,0,98,117
+rotate:90
+4/fish2
+bounds:506,685,484,487
+offsets:22,0,506,510
+4/fish_Shadow
+bounds:2,64,480,511
+offsets:13,1,499,512
+5/5Framebase
+bounds:2,577,502,512
+offsets:0,0,512,512
+5/5Shadow
+bounds:1094,1556,428,502
+offsets:9,10,446,512
+rotate:90
+5/Necklace
+bounds:1920,2,350,250
+rotate:90
+5/Piece_1
+bounds:2353,463,110,241
+5/Piece_2
+bounds:2465,593,28,111
+5/Piece_4
+bounds:2469,1937,24,126
+offsets:0,0,25,126
+6/6-1
+bounds:939,359,39,151
+offsets:2,0,41,151
+6/6-2
+bounds:176,22,40,147
+rotate:90
+6/6-3
+bounds:1392,18,35,148
+offsets:1,0,36,148
+rotate:90
+6/6-4
+bounds:325,27,35,148
+offsets:0,0,36,148
+rotate:90
+6/6Framebase
+bounds:1598,1520,464,469
+offsets:22,23,512,512
+rotate:90
+6/Big_Drum
+bounds:970,1211,343,457
+offsets:8,0,351,457
+rotate:90
+6/Frame copy 2
+bounds:1038,1986,512,512
+6/el-izi
+bounds:524,1687,568,297
+offsets:7,7,583,311
+7/7Framebase
+bounds:992,743,466,464
+offsets:21,26,512,512
+rotate:90
+7/7shadow
+bounds:995,345,396,477
+offsets:11,8,419,489
+rotate:90
+7/Sling
+bounds:2069,1576,398,487
+8/8Frame
+bounds:1552,1986,512,512
+8/8shadowa
+bounds:501,1174,467,511
+8/Body
+bounds:939,6,337,451
+offsets:223,239,749,690
+rotate:90
+8/Closed_Wing
+bounds:1429,1228,411,290
+offsets:0,116,411,408
+8/Frame_Shadow
+bounds:2066,2065,432,433
+8/Left_Wing
+bounds:2,1091,497,702
+offsets:0,99,497,801
+8/Right_Wing
+bounds:2,1795,520,703
+offsets:0,7,520,710
+8/Scatter_Symbol_Text
+bounds:1392,140,526,169
+offsets:10,9,546,188
+9/Saturation 1 copy 12
+bounds:1842,1231,287,295
+offsets:35,16,469,345
+rotate:90
+9/Saturation 1 copy 19
+bounds:2469,1790,36,24
+rotate:90
+9/Saturation 1 copy 20
+bounds:2469,1752,36,25
+rotate:90
+9/Saturation 1 copy 21
+bounds:501,1735,21,21
+9/Saturation 1 copy 22
+bounds:501,1713,20,21
+rotate:90
+9/Saturation 1 copy 28
+bounds:2,2,60,172
+offsets:0,14,60,191
+rotate:90
+9/Saturation 1 copy 29
+bounds:1392,55,83,342
+offsets:4,1,87,343
+rotate:90
+9/Saturation 1 copy 30
+bounds:1736,14,124,163
+offsets:14,1,138,171
+rotate:90
+9/Saturation 1 copy 4
+bounds:1429,1520,34,77
+offsets:9,36,45,115
+rotate:90
+9/girlshine
+bounds:1458,754,472,392
+rotate:90
+9/sağ-küpe
+bounds:2457,354,38,46
+9/smile3
+bounds:2353,374,102,87
+offsets:10,2,115,96
+9/sol-küpe
+bounds:1392,311,32,50
+rotate:90
+9/surttop
+bounds:1852,772,200,30
+offsets:0,72,200,102
+Comp 1/0001
+bounds:1917,720,100,50
+Comp 1/0002
+bounds:475,6,100,50
+Comp 1/0003
+bounds:577,6,100,50
+Comp 1/0004
+bounds:679,6,100,50
+Comp 1/0005
+bounds:781,6,100,50
+Piece_1
+bounds:2019,728,27,42
+Piece_10
+bounds:2469,1912,29,23
+Piece_11
+bounds:2048,706,36,22
+Piece_12
+bounds:2465,453,31,37
+Piece_2
+bounds:2457,402,49,37
+rotate:90
+Piece_3
+bounds:1508,1520,50,34
+Piece_4
+bounds:501,1758,21,35
+Piece_5
+bounds:2469,1828,24,38
+Piece_8
+bounds:2465,541,33,50
+Piece_9
+bounds:484,552,23,20
+offsets:0,0,26,20
+rotate:90
+Symbol_10
+bounds:2139,1135,439,359
+rotate:90
+Symbol_K
+bounds:2172,12,305,340
+offsets:9,23,324,363
+j1
+bounds:970,1183,26,20
+rotate:90
+j2
+bounds:883,11,52,45
+j4
+bounds:2479,322,30,19
+offsets:0,5,31,24
+rotate:90
+j5
+bounds:1560,1520,31,34
+k1
+bounds:2119,1549,18,25
+k2
+bounds:2120,1202,17,27
+k3
+bounds:484,528,20,22
+offsets:0,0,20,27
+k4
+bounds:2469,1624,25,28
+k7
+bounds:2479,293,27,19
+rotate:90
+q2
+bounds:2469,1654,27,28
+q3
+bounds:2469,1868,26,42
+offsets:1,4,35,52
+q5
+bounds:2465,492,47,32
+offsets:0,0,50,32
+rotate:90
+q6
+bounds:2353,354,18,33
+offsets:0,3,18,36
+rotate:90
+q7
+bounds:2469,1714,26,36
+offsets:0,1,26,37
+q8
+bounds:2054,730,72,62
+offsets:0,6,72,68
+rotate:90
+
+symbols_2.png
+size:1692,1692
+filter:Linear,Linear
+scale:0.5
+10/10_head
+bounds:2,459,338,346
+offsets:0,1,338,348
+10/10_left_eye_white
+bounds:715,873,46,45
+offsets:1,0,48,46
+rotate:90
+10/10_lower_arm2
+bounds:445,1286,333,404
+offsets:0,0,437,472
+10/10_mouth_option
+bounds:965,20,226,189
+offsets:6,5,236,221
+10/10_upper_arm
+bounds:601,183,242,314
+offsets:4,70,288,388
+10/lower_arm (1)
+bounds:1309,726,191,219
+offsets:5,154,437,564
+rotate:90
+4/arrow2
+bounds:1265,213,157,161
+offsets:0,0,158,161
+5/Frame_Shadow
+bounds:2,33,424,238
+offsets:0,54,424,292
+rotate:90
+5/Piece_3
+bounds:1193,2,69,207
+offsets:0,0,82,207
+6/Small_Drum
+bounds:780,1339,319,351
+offsets:0,0,326,351
+7/Sling_Strap 1
+bounds:1245,868,62,280
+offsets:2,2,64,282
+7/Sling_Strap 2
+bounds:1029,211,86,234
+rotate:90
+7/Sling_base
+bounds:1436,373,149,198
+8/8Frame_Inside
+bounds:2,807,440,440
+8/Left_Eyebrow
+bounds:1546,996,144,142
+offsets:26,30,290,172
+8/Right_Eyebrow
+bounds:1264,44,165,137
+offsets:147,35,312,172
+rotate:90
+9/Saturation 1 copy 10
+bounds:995,563,230,263
+offsets:1,0,235,268
+rotate:90
+9/Saturation 1 copy 11
+bounds:1262,376,172,195
+offsets:24,51,224,280
+9/Saturation 1 copy 13
+bounds:1240,1150,147,221
+offsets:14,130,204,411
+9/Saturation 1 copy 14
+bounds:974,1066,271,264
+offsets:0,0,311,274
+rotate:90
+9/Saturation 1 copy 15
+bounds:1389,1140,210,247
+offsets:52,14,311,274
+rotate:90
+9/Saturation 1 copy 16
+bounds:762,674,231,295
+offsets:0,0,298,306
+9/Saturation 1 copy 18
+bounds:601,2,179,212
+offsets:5,0,184,212
+rotate:90
+9/Saturation 1 copy 2
+bounds:1468,576,123,148
+9/Saturation 1 copy 23
+bounds:1424,214,161,157
+offsets:53,207,280,365
+9/Saturation 1 copy 24
+bounds:1101,1373,319,317
+offsets:34,82,357,426
+9/Saturation 1 copy 25
+bounds:1546,794,139,200
+offsets:135,355,573,595
+9/Saturation 1 copy 26
+bounds:444,863,217,384
+offsets:1,1,229,398
+9/Saturation 1 copy 27
+bounds:845,2,118,213
+offsets:0,220,118,433
+9/Saturation 1 copy 31
+bounds:1260,573,151,206
+offsets:3,0,159,218
+rotate:90
+9/Saturation 1 copy 32
+bounds:342,470,161,335
+offsets:0,0,163,344
+9/Saturation 1 copy 34
+bounds:995,795,248,269
+offsets:3,2,253,271
+9/Saturation 1 copy 5
+bounds:762,502,202,170
+offsets:1,2,209,178
+9/Saturation 1 copy 6
+bounds:845,217,283,182
+offsets:0,21,283,203
+rotate:90
+9/Saturation 1 copy 7
+bounds:1309,919,235,219
+offsets:0,0,236,228
+9/Saturation 1 copy 8
+bounds:663,971,313,309
+offsets:0,0,314,316
+rotate:90
+9/Saturation 1 copy 9
+bounds:1029,299,262,231
+offsets:0,0,266,238
+rotate:90
+9/Wild_Symbol_Text
+bounds:242,15,442,174
+offsets:14,10,466,195
+rotate:90
+9/frameinside
+bounds:2,1249,441,441
+9/smile2
+bounds:1593,631,109,68
+offsets:2,2,113,74
+rotate:90
+9/tophair
+bounds:418,50,418,181
+offsets:1,105,420,286
+rotate:90
+Comp 1/0006
+bounds:663,869,100,50
+rotate:90
+Comp 1/0007
+bounds:780,1287,100,50
+Comp 1/0008
+bounds:1638,1250,100,50
+rotate:90
+Comp 1/0009
+bounds:1638,1148,100,50
+rotate:90
+Comp 1/0010
+bounds:1530,742,100,50
+Comp 1/0011
+bounds:1403,111,100,50
+rotate:90
+Comp 1/0012
+bounds:1455,162,100,50
+Comp 1/0013
+bounds:1455,110,100,50
+Comp 1/0014
+bounds:1557,112,100,50
+rotate:90
+Comp 1/0015
+bounds:1403,9,100,50
+rotate:90
+Comp 1/0016
+bounds:1455,58,100,50
+Comp 1/0017
+bounds:1455,6,100,50
+Comp 1/0018
+bounds:1557,10,100,50
+rotate:90
+Comp 1/0019
+bounds:1593,529,100,50
+rotate:90
+Comp 1/0020
+bounds:1587,427,100,50
+rotate:90
+Comp 1/0021
+bounds:1587,325,100,50
+rotate:90
+Comp 1/0022
+bounds:1587,223,100,50
+rotate:90
+Comp 1/0023
+bounds:1609,121,100,50
+rotate:90
+Comp 1/0024
+bounds:1609,19,100,50
+rotate:90
+Comp 1/0025
+bounds:1639,427,100,50
+rotate:90
+Piece_6
+bounds:445,1249,35,39
+rotate:90
+Piece_7
+bounds:1645,592,45,37
+offsets:0,0,45,40
+Symbol_J
+bounds:505,499,255,362
+Symbol_Q
+bounds:1422,1352,261,338
+offsets:5,3,269,341
+j3
+bounds:444,814,43,47
+k5
+bounds:1245,823,43,43
+offsets:0,0,46,43
+k6
+bounds:882,1286,46,51
+offsets:1,0,47,51
+light
+bounds:418,5,43,79
+offsets:4,4,51,88
+rotate:90
+q1
+bounds:1101,1340,31,31
+q4
+bounds:930,1290,47,39
+offsets:0,1,62,47
+rotate:90
+spark
+bounds:715,921,48,45
+rotate:90

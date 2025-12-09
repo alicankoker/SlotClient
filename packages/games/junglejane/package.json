@@ -1,7 +1,7 @@
 {
   "name": "@slotclient/junglejane",
   "version": "1.0.0",
-  "description": "Junglejane1 game implementation",
+  "description": "Jungle Jane game implementation",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
