@@ -24,6 +24,8 @@ import { SocketConnection } from "@slotclient/communication/Connection/SocketCon
 import { Bonus } from "./components/Bonus";
 import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { signals } from "@slotclient/engine/controllers/SignalManager";
+//@ts-ignore
+import Stats from "stats.js";
 import SoundManager from "@slotclient/engine/controllers/SoundManager";
 import payoutData from "./payout.json";
 
@@ -344,8 +346,6 @@ export class DoodleV8Main {
     // Add global reference for debugging
     (globalThis as any).__PIXI_APP__ = this.app;
 
-    //@ts-ignore
-    const { default: Stats } = await import('stats-js');
     const stats = new Stats();
     stats.showPanel(0);
     stats.dom.style.position = 'absolute';
