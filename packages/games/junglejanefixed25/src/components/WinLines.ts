@@ -22,11 +22,13 @@ export class WinLines extends WinLinesContainer {
     private constructor() {
         super();
 
-        this._controller = this.createController();
+        this.position.set(10, 0);
 
         this._assetConfig = AssetsConfig.getInstance();
         this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
+
+        this._controller = this.createController();
 
         this.createLineMask();
         this.createLineNumbers();

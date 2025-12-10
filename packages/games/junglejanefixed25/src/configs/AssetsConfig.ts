@@ -28,7 +28,7 @@ export class AssetsConfig extends BaseAssetsConfig {
     }
     return this._instance;
   }
-  
+
   public RES: string = "{{resolution}}";
 
   public readonly SPRITESHEETS: BundleFile = {
@@ -120,6 +120,10 @@ export class AssetsConfig extends BaseAssetsConfig {
           },
           // #endregion
           {
+            alias: 'frame_shadow',
+            src: PATH + '/assets/raw/environment/frame_shadow.png'
+          },
+          {
             alias: 'popup_frame',
             src: PATH + '/assets/raw/environment/popup_frame.png'
           },
@@ -160,10 +164,6 @@ export class AssetsConfig extends BaseAssetsConfig {
             src: PATH + '/assets/raw/environment/splash_spin_button_arrow.png'
           },
           {
-            alias: 'splash_spin_button_icon',
-            src: PATH + '/assets/raw/environment/splash_spin_button_icon.png'
-          },
-          {
             alias: 'splash_ticked',
             src: PATH + '/assets/raw/environment/splash_ticked.png'
           },
@@ -174,6 +174,10 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'splash_volatility_arrow',
             src: PATH + '/assets/raw/environment/splash_volatility_arrow.png'
+          },
+          {
+            alias: 'splash_volatility_frame',
+            src: PATH + '/assets/raw/environment/splash_volatility_frame.png'
           },
           {
             alias: 'line_mask',

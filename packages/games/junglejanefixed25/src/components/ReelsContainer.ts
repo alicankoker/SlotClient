@@ -13,10 +13,10 @@ export class ReelsContainer extends BaseReelsContainer {
     private _adrenalineStripes: Spine[] = [];
     private _reelBackground!: Sprite;
     private _reelFrame!: Sprite;
+    private _owl!: Spine;
     private _character!: Spine;
     private _characterMask!: Graphics;
     private _logo!: Spine;
-    private _abortController: AbortController | null = null;
     private _isFreeSpinMode: boolean = false;
 
     constructor(app: Application) {
@@ -48,11 +48,11 @@ export class ReelsContainer extends BaseReelsContainer {
         // Width: cover all reels with proper spacing
         const totalWidth = ((this.gameConfig.GRID.reelCount * this.gameConfig.REFERENCE_SPRITE_SYMBOL.width) + (this.gameConfig.REFERENCE_SPACING.horizontal * this.gameConfig.GRID.reelCount)) + 100;
         // Height: cover visible rows with proper spacing
-        const totalHeight = ((this.gameConfig.GRID.rowCount * this.gameConfig.REFERENCE_SPRITE_SYMBOL.height) + (this.gameConfig.REFERENCE_SPACING.vertical * this.gameConfig.GRID.rowCount)) + 50;
+        const totalHeight = ((this.gameConfig.GRID.rowCount * this.gameConfig.REFERENCE_SPRITE_SYMBOL.height) + (this.gameConfig.REFERENCE_SPACING.vertical * this.gameConfig.GRID.rowCount)) + 20;
 
         // Center the mask
         const maskX = (this.gameConfig.REFERENCE_RESOLUTION.width / 2) - (totalWidth / 2);
-        const maskY = (this.gameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2) + 23;
+        const maskY = (this.gameConfig.REFERENCE_RESOLUTION.height / 2) - (totalHeight / 2) + 6;
 
         // Redraw the mask
         this._reelAreaMask = new Graphics();
@@ -68,7 +68,7 @@ export class ReelsContainer extends BaseReelsContainer {
         this._reelBackground.label = 'ReelFrameBackground';
         this._reelBackground.anchor.set(0.5, 0.5);
         this._reelBackground.scale.set(0.5, 0.5);
-        this._reelBackground.position.set(960, 495);
+        this._reelBackground.position.set(960, 500);
         this.addChild(this._reelBackground);
 
         this.frameElementsContainer = new Container();
@@ -80,8 +80,23 @@ export class ReelsContainer extends BaseReelsContainer {
         this._reelFrame.label = 'ReelFrame';
         this._reelFrame.anchor.set(0.5, 0.5);
         this._reelFrame.scale.set(0.5, 0.5);
-        this._reelFrame.position.set(950, 530);
+        this._reelFrame.position.set(960, 517);
         this.frameElementsContainer.addChild(this._reelFrame);
+
+        const frameShadow = Sprite.from('frame_shadow');
+        frameShadow.label = 'FrameShadow';
+        frameShadow.anchor.set(0.5, 0.5);
+        frameShadow.scale.set(0.5, 0.5);
+        frameShadow.position.set(960, 1335);
+        frameShadow.blendMode = "difference";
+        this.frameElementsContainer.addChild(frameShadow);
+
+        this._owl = Spine.from(this.assetsConfig.BACKGROUND_SPINE_ASSET);
+        this._owl.label = `Owl`;
+        this._owl.scale.set(0.5, 0.5);
+        this._owl.position.set(165, 227);
+        this._owl.visible = false;
+        this.frameElementsContainer.addChild(this._owl);
 
         this._character = Spine.from(this.assetsConfig.CHARACTER_SPINE_ASSET);
         this._character.label = `GameCharacter`;
@@ -157,6 +172,15 @@ export class ReelsContainer extends BaseReelsContainer {
         });
     }
 
+    public playElementsSpinAnimation(): void {
+        this._isFreeSpinMode && this._owl.state.setAnimation(0, `Free_owl_back_win`, false);
+        this._isFreeSpinMode && this._owl.state.addAnimation(0, `Free_owl_back_idle`, false, 0);
+    }
+
+    public stopElementsSpinAnimation(): void {
+        this._isFreeSpinMode && this._owl.state.setAnimation(0, `Free_owl_back_idle`, true);
+    }
+
     public playElementsWinAnimation(): void {
         this._character.state.setAnimation(0, this._isFreeSpinMode ? "Free_win2" : "Base_win2", false);
         this._character.state.addAnimation(0, this._isFreeSpinMode ? "Free_idle" : "Base_idle", true, 0);
@@ -182,7 +206,6 @@ export class ReelsContainer extends BaseReelsContainer {
     public setFreeSpinMode(enabled: boolean): void {
         const frameBackgroundTexture = enabled ? 'freespin_frame_background' : 'base_frame_background';
         this._reelBackground.texture = Texture.from(frameBackgroundTexture);
-        this._reelBackground.position.y = enabled ? 520 : 495;
 
         const frameTexture = enabled ? 'freespin_frame' : 'base_frame';
         this._reelFrame.texture = Texture.from(frameTexture);
@@ -193,11 +216,14 @@ export class ReelsContainer extends BaseReelsContainer {
         const characterAnimationName = enabled ? 'Free_idle' : 'Base_idle';
         this._character.state.setAnimation(0, characterAnimationName, true);
         this._isFreeSpinMode = enabled;
-    }
 
-    public forceStopChainAnimation(): void {
-        this._abortController?.abort();
-        this._abortController = null;
+        if (enabled) {
+            this._owl.state.setAnimation(0, `Free_owl_back_idle`, true);
+            this._owl.visible = true;
+        } else {
+            this._owl.visible = false;
+            this._owl.state.clearTracks();
+        }
     }
 
     protected onResize(responsiveConfig: ResponsiveConfig): void {
@@ -210,8 +236,8 @@ export class ReelsContainer extends BaseReelsContainer {
                 break;
             case this.gameConfig.ORIENTATION.portrait:
                 this.position.set(0, -270);
-                this._character.position.set(this.gameConfig.REFERENCE_RESOLUTION.width / 2, 30);
-                this._character.scale.set(0.65, 0.65);
+                this._character.position.set(this.gameConfig.REFERENCE_RESOLUTION.width / 2, 165);
+                this._character.scale.set(0.5, 0.5);
                 this._character.mask = this._characterMask;
                 break;
         }

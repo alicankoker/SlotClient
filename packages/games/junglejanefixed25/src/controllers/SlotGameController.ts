@@ -88,13 +88,13 @@ export class SlotGameController implements ISlotGameController {
         this.reelsController = new ReelsController(this.app, initialGridData as number[][], this.reelsContainer);
 
         this.spinContainer = new ClassicSpinContainer(this.app, spinContainerConfig) as ClassicSpinContainer;
-        this.spinContainer.position.set(0, 30);
+        this.spinContainer.position.set(0, 14);
         this.staticContainer = new StaticContainer(this.app, {
             reelIndex: 0,
             symbolHeight: this.gameConfig.REFERENCE_SPRITE_SYMBOL.height,
             symbolsVisible: this.gameConfig.GRID_LAYOUT.visibleRows,
         }, initialGridData as number[][]);
-        this.staticContainer.position.set(0, 30);
+        this.staticContainer.position.set(0, 10);
 
         this.background = Background.instance();
         this.animationContainer = AnimationContainer.getInstance(this.app);
@@ -104,7 +104,6 @@ export class SlotGameController implements ISlotGameController {
         this.reelsContainer.addChild(this.reelsContainer.getElementsContainer()!);
         this.reelsContainer.setStaticContainer(this.staticContainer);
         this.spinContainer.mask = this.reelsContainer.getMask();
-        this.staticContainer.mask = this.reelsContainer.getMask();
         this.app.stage.addChild(this.reelsContainer);
 
         this.spinController = new ClassicSpinController(this.spinContainer as SpinContainer, {
@@ -211,7 +210,8 @@ export class SlotGameController implements ISlotGameController {
         signals.on("afterSpin", async (response) => {
             await this.onSpinComplete(response);
 
-            this.background.stopElementsWinAnimation();
+            this.background.stopElementsSpinAnimation();
+            this.reelsContainer.stopElementsSpinAnimation();
             signals.emit("spinCompleted", response);
         });
 
@@ -286,14 +286,14 @@ export class SlotGameController implements ISlotGameController {
 
                 this.resetWinAnimations();
                 this.winLines.hideAllLines();
-                this.background.playElementsWinAnimation();
+                this.background.playElementsSpinAnimation();
+                this.reelsContainer.playElementsSpinAnimation();
                 await this.spinController.executeSpin();
             }
         }
     }
 
     public forceStop(): void {
-        this.reelsContainer.forceStopChainAnimation();
         this.spinController.forceStop();
     }
 
@@ -349,9 +349,10 @@ export class SlotGameController implements ISlotGameController {
         this.freeSpinController.isRunning = true;
         this.staticContainer.allowLoop = false;
         this.staticContainer.isFreeSpinMode = true;
-        this.reelsContainer.isFreeSpinMode = true;
 
         await this.playScatterHighlightAnimation();
+        
+        this.reelsContainer.isFreeSpinMode = true;
 
         await this.animationContainer.startTransitionAnimation(() => {
             this.reelsContainer.setFreeSpinMode(true);

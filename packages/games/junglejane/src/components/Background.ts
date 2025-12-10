@@ -16,7 +16,6 @@ export class Background extends BackgroundContainer {
     private _tree!: Spine;
     private _waterfall!: Spine;
     private _meteor!: Spine;
-    private _owl!: Spine;
     private _skynight!: Spine;
 
     private constructor(texture: Texture) {
@@ -24,7 +23,7 @@ export class Background extends BackgroundContainer {
 
         this._assetsConfig = AssetsConfig.getInstance();
 
-        this.position.set(0, 250);
+        this.position.set(0, 260);
 
         this.initialize(texture);
 
@@ -63,7 +62,6 @@ export class Background extends BackgroundContainer {
         this._cloud = this.createSpineElement(atlas, skeleton, "Cloud", 'Base_Clouds_idle', true, 960, 400);
         this._tree = this.createSpineElement(atlas, skeleton, "Tree", 'Base_tree_idle', true, 960, 295);
         this._leafs = this.createSpineElement(atlas, skeleton, "Leafs", 'Base_leaf_idle', true, 960, 300);
-        this._owl = this.createSpineElement(atlas, skeleton, "Owl", 'Free_owl_idle', true, 960, 330, false);
         this._skynight = this.createSpineElement(atlas, skeleton, "Skynight", 'Free_skynight', true, 960, 200, false);
     }
 
@@ -103,34 +101,30 @@ export class Background extends BackgroundContainer {
         if (enabled) {
             this._meteor.state.setAnimation(0, `Free_meteor`, true);
             this._meteor.visible = true;
-            this._owl.state.setAnimation(0, `Free_owl_idle`, true);
-            this._owl.visible = true;
             this._skynight.state.setAnimation(0, `Free_skynight`, true);
             this._skynight.visible = true;
         } else {
             this._meteor.visible = false;
             this._meteor.state.clearTracks();
-            this._owl.visible = false;
-            this._owl.state.clearTracks();
             this._skynight.visible = false;
             this._skynight.state.clearTracks();
         }
     }
 
-    public playElementsWinAnimation():void{
+    public playElementsSpinAnimation():void{
         const animationSuffix = this._isFreeSpinMode ? 'Free_' : 'Base_';
 
         this._tree.state.setAnimation(0, `${animationSuffix}tree_win`, false);
         this._leafs.state.setAnimation(0, `${animationSuffix}leaf_win`, false);
-        this._isFreeSpinMode && this._owl.state.setAnimation(0, `Free_owl_win`, false);
+
+        this.stopElementsSpinAnimation();
     }
 
-    public stopElementsWinAnimation():void{
+    public stopElementsSpinAnimation():void{
         const animationSuffix = this._isFreeSpinMode ? 'Free_' : 'Base_';
 
-        this._tree.state.setAnimation(0, `${animationSuffix}tree_idle`, true);
-        this._leafs.state.setAnimation(0, `${animationSuffix}leaf_idle`, true);
-        this._isFreeSpinMode && this._owl.state.setAnimation(0, `Free_owl_idle`, true);
+        this._tree.state.addAnimation(0, `${animationSuffix}tree_idle`, true, 0);
+        this._leafs.state.addAnimation(0, `${animationSuffix}leaf_idle`, true, 0);
     }
 
     protected onResize(responsiveConfig: ResponsiveConfig): void {
@@ -138,7 +132,7 @@ export class Background extends BackgroundContainer {
 
         switch (responsiveConfig.orientation) {
             case this._gameConfig.ORIENTATION.landscape:
-                this.position.set(0, 250);
+                this.position.set(0, 260);
                 break;
             case this._gameConfig.ORIENTATION.portrait:
                 this.position.set(0, -20);

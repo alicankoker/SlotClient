@@ -94,7 +94,7 @@ export class GameConfig extends BaseGameConfig {
 
     public readonly BACKEND: BackendConfig = {
         BACKEND_URL: import.meta.env.VITE_BACKEND_URL || "https://rngengine.com",
-        USER_ID: import.meta.env.DEV ? "6937f2edae9612a31361f8ce" : new URLSearchParams(window.location.search).get("session") || undefined,
+        USER_ID: import.meta.env.DEV ? "693923009e2f61fbea8b11d6" : new URLSearchParams(window.location.search).get("session") || undefined,
     };
 
     public readonly GRID: GridConfig = {

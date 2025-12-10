@@ -39,19 +39,19 @@ export class GameConfig extends BaseGameConfig {
     public readonly REFERENCE_SPRITE_SYMBOL: SymbolConfig = {
         width: 150,
         height: 150,
-        scale: 1.25
+        scale: 1
     };
 
     public readonly REFERENCE_SPINE_SYMBOL: SymbolConfig = {
         width: 150,
         height: 150,
-        scale: 1.25
+        scale: 1
     };
 
     // Reference spacing at base resolution
     public readonly REFERENCE_SPACING: SpacingConfig = {
-        horizontal: 115,  // 10 pixels horizontal spacing at reference resolution
-        vertical: 115      // 10 pixels vertical spacing at reference resolution
+        horizontal: 116,  // 10 pixels horizontal spacing at reference resolution
+        vertical: 117      // 10 pixels vertical spacing at reference resolution
     };
 
     // Game mechanics
@@ -84,7 +84,7 @@ export class GameConfig extends BaseGameConfig {
     public readonly SAFE_AREA: SafeAreaConfig = {
         landscape: {
             width: 1920, //this.REFERENCE_SYMBOL.width * (this.GAME_RULES.reelCount + 1), // set based on reel count
-            height: 1100 //this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
+            height: 1080 //this.REFERENCE_SYMBOL.height * (this.GAME_RULES.rowCount + 1) // set based on row count
         },
         portrait: {
             width: (this.REFERENCE_SPRITE_SYMBOL.width + this.REFERENCE_SPACING.horizontal) * (this.GAME_RULES.reelCount + 0.65), // set based on reel count
@@ -94,7 +94,7 @@ export class GameConfig extends BaseGameConfig {
 
     public readonly BACKEND: BackendConfig = {
         BACKEND_URL: import.meta.env.VITE_BACKEND_URL || "https://rngengine.com",
-        USER_ID: import.meta.env.DEV ? "6937f2edae9612a31361f8ce" : new URLSearchParams(window.location.search).get("session") || undefined,
+        USER_ID: import.meta.env.DEV ? "693923009e2f61fbea8b11d6" : new URLSearchParams(window.location.search).get("session") || undefined,
     };
 
     public readonly GRID: GridConfig = {

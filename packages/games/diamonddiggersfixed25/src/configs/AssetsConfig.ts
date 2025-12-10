@@ -30,7 +30,7 @@ export class AssetsConfig extends BaseAssetsConfig {
   }
 
   public RES: string = "{{resolution}}";
-  
+
   public readonly SPRITESHEETS: BundleFile = {
     bundles: [
       {
@@ -162,10 +162,6 @@ export class AssetsConfig extends BaseAssetsConfig {
             alias: 'freespin_logo',
             src: PATH + '/assets/raw/environment/freespin_logo.png'
           },
-          {
-            alias: 'freespin_remaining_strip',
-            src: PATH + '/assets/raw/environment/freespin_remaining_strip.png'
-          },
           // #endregion
           {
             alias: 'popup_frame',
@@ -184,14 +180,6 @@ export class AssetsConfig extends BaseAssetsConfig {
             src: PATH + '/assets/raw/environment/glow.png'
           },
           {
-            alias: 'splash_volatility_holder',
-            src: PATH + '/assets/raw/environment/splash_volatility_holder.png'
-          },
-          {
-            alias: 'splash_tick_holder',
-            src: PATH + '/assets/raw/environment/splash_tick_holder.png'
-          },
-          {
             alias: 'splash_radiobutton_outside',
             src: PATH + '/assets/raw/environment/splash_radiobutton_outside.png'
           },
@@ -208,8 +196,8 @@ export class AssetsConfig extends BaseAssetsConfig {
             src: PATH + '/assets/raw/environment/splash_spin_button_arrow.png'
           },
           {
-            alias: 'splash_spin_button_icon',
-            src: PATH + '/assets/raw/environment/splash_spin_button_icon.png'
+            alias: 'splash_tick_holder',
+            src: PATH + '/assets/raw/environment/splash_tick_holder.png'
           },
           {
             alias: 'splash_ticked',
@@ -222,6 +210,14 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'splash_volatility_arrow',
             src: PATH + '/assets/raw/environment/splash_volatility_arrow.png'
+          },
+          {
+            alias: 'splash_volatility_frame',
+            src: PATH + '/assets/raw/environment/splash_volatility_frame.png'
+          },
+          {
+            alias: 'splash_volatility_holder',
+            src: PATH + '/assets/raw/environment/splash_volatility_holder.png'
           },
           {
             alias: 'line_mask',
@@ -238,10 +234,6 @@ export class AssetsConfig extends BaseAssetsConfig {
           {
             alias: 'golden_key',
             src: PATH + '/assets/raw/environment/golden_key.png'
-          },
-          {
-            alias: 'win_event_strip',
-            src: PATH + '/assets/raw/environment/win_event_strip.png'
           },
           {
             alias: 'win_strap',

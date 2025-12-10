@@ -18,6 +18,8 @@ export class WinLines extends WinLinesContainer {
     private constructor() {
         super();
 
+        this.position.set(10, 0);
+
         this._assetConfig = AssetsConfig.getInstance();
         this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
@@ -45,9 +47,8 @@ export class WinLines extends WinLinesContainer {
         this._lineMask = Sprite.from('line_mask');
         this._lineMask.label = 'LineMask';
         this._lineMask.anchor.set(0.5, 0.5);
-        this._lineMask.position.set(962, 550);
-        this._lineMask.width = 1210;
-        this._lineMask.height = 700;
+        this._lineMask.scale.set(0.95, 1);
+        this._lineMask.position.set(957, 550);
         this._lineMask.alpha = 0;
         this.addChild(this._lineMask);
     }

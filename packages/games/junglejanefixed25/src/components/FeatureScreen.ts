@@ -115,14 +115,14 @@ export class FeatureScreen extends FeatureScreenContainer {
         const previewGridBg = Sprite.from("base_frame_background");
         previewGridBg.label = "PreviewGridBackground";
         previewGridBg.anchor.set(0.5, 0.5);
-        previewGridBg.position.set(0, 0);
+        previewGridBg.position.set(10, 30);
         previewGridBg.scale.set(0.4, 0.4);
         this._reelContainer.addChild(previewGridBg);
 
         const previewGridFrame = Sprite.from("base_frame");
         previewGridFrame.label = 'PreviewGridFrame';
         previewGridFrame.anchor.set(0.5, 0.5);
-        previewGridFrame.position.set(5, 30);
+        previewGridFrame.position.set(5, 40);
         previewGridFrame.scale.set(0.4, 0.4);
         this._reelContainer.addChild(previewGridFrame);
 
@@ -130,7 +130,7 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         this._linesContainer = new Container();
         this._linesContainer.label = "LinesContainer";
-        this._linesContainer.position.set(-800, -380);
+        this._linesContainer.position.set(-800, -400);
         this._linesContainer.scale.set(0.8, 0.8);
         this._linesContainer.visible = false;
         this._reelContainer.addChild(this._linesContainer);
@@ -168,7 +168,7 @@ export class FeatureScreen extends FeatureScreenContainer {
             const symbol = Sprite.from(symbolNames[index]);
             symbol.label = "Preview" + symbolNames[index];
             symbol.anchor.set(0.5, 0.5);
-            symbol.scale.set(1, 1);
+            symbol.scale.set(0.8, 0.8);
             symbol.position.set(position.x, position.y);
             symbolsContainer.addChild(symbol);
 
@@ -183,7 +183,7 @@ export class FeatureScreen extends FeatureScreenContainer {
             const { atlas, skeleton } = this._assetsConfig.SYMBOL_SPINE_ASSET;
             const specialSymbol = Spine.from({ atlas, skeleton });
             specialSymbol.label = "PreviewSpecialSymbol" + index;
-            specialSymbol.scale.set(1, 1);
+            specialSymbol.scale.set(0.8, 0.8);
             specialSymbol.visible = false;
             specialSymbolContainer.addChild(specialSymbol);
 
@@ -239,30 +239,10 @@ export class FeatureScreen extends FeatureScreenContainer {
         this._spinButtonContainer.cursor = "pointer";
         this.addChild(this._spinButtonContainer);
 
-        const spinButtonFrame = Sprite.from("splash_spin_button");
-        spinButtonFrame.label = "SpinButtonFrame";
-        spinButtonFrame.anchor.set(0.5, 0.5);
-        spinButtonFrame.hitArea = new Circle(0, 0, 91);
-        this._spinButtonContainer.addChild(spinButtonFrame);
-
         const spinButton = Sprite.from("splash_spin_button");
         spinButton.label = "SpinButton";
         spinButton.anchor.set(0.5, 0.5);
-        spinButton.scale.set(0.97, 0.97);
-        spinButton.tint = 0x30343c;
         this._spinButtonContainer.addChild(spinButton);
-
-        const spinButtonIcon = Sprite.from("splash_spin_button_icon");
-        spinButtonIcon.label = "SpinButtonIcon";
-        spinButtonIcon.anchor.set(0.5, 0.5);
-        this._spinButtonContainer.addChild(spinButtonIcon);
-
-        const spinButtonTextPlace = Sprite.from("splash_spin_button");
-        spinButtonTextPlace.label = "SpinButtonTextPlace";
-        spinButtonTextPlace.anchor.set(0.5, 0.5);
-        spinButtonTextPlace.scale.set(0.55, 0.55);
-        spinButtonTextPlace.tint = 0x58b056;
-        this._spinButtonContainer.addChild(spinButtonTextPlace);
 
         const spinButtonArrow = Sprite.from("splash_spin_button_arrow");
         spinButtonArrow.label = "SpinButtonArrow";
@@ -270,16 +250,18 @@ export class FeatureScreen extends FeatureScreenContainer {
         this._spinButtonContainer.addChild(spinButtonArrow);
 
         this._spinButtonContainer.on("pointerover", () => {
-            gsap.killTweensOf(spinButtonIcon);
-            gsap.fromTo(spinButtonIcon, { rotation: 0 }, { rotation: Math.PI, duration: 0.5, ease: "power1.out" });
+            gsap.killTweensOf(spinButtonArrow);
+            gsap.fromTo(spinButtonArrow, { rotation: 0 }, { rotation: Math.PI, duration: 0.5, ease: "power1.out" });
         });
+
         this._spinButtonContainer.on("pointerout", () => {
-            gsap.to(spinButtonIcon, {
+            gsap.to(spinButtonArrow, {
                 rotation: 0,
                 duration: 0.5,
                 ease: "power1.out",
             });
         });
+
         this._spinButtonContainer.on("pointerup", async () => {
             gsap.killTweensOf(spinButton);
             this._spinButtonContainer.off("pointerover");
@@ -304,8 +286,8 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         const volatilityBg = new NineSliceSprite({
             texture: Texture.from('splash_volatility_holder'),
-            leftWidth: 100, // Width of the left edge
-            rightWidth: 100, // Width of the right edge
+            leftWidth: 300, // Width of the left edge
+            rightWidth: 300, // Width of the right edge
             topHeight: 0, // Height of the top edge
             bottomHeight: 0, // Height of the bottom edge
 
@@ -314,7 +296,8 @@ export class FeatureScreen extends FeatureScreenContainer {
             x: 0,
             y: 0,
         });
-        volatilityBg.width = 390;
+        volatilityBg.width = 385;
+        volatilityBg.height = 50;
         volatilityBg.label = 'VolatilityBackground';
         this._volatilityContainer.addChild(volatilityBg);
 
@@ -323,6 +306,7 @@ export class FeatureScreen extends FeatureScreenContainer {
             style: {
                 fontFamily: 'TrebuchedMSBold',
                 fontSize: 20,
+                fontWeight: 'bolder',
                 fill: 0xFFFFFF,
                 align: 'center',
                 trim: true,
@@ -336,10 +320,9 @@ export class FeatureScreen extends FeatureScreenContainer {
 
         const inactiveArrows = 2;
         for (let index = 0; index < 5; index++) {
-            const element = Sprite.from('splash_spin_button');
+            const element = Sprite.from('splash_volatility_frame');
             element.label = 'VolatilityIndicator' + index;
             element.anchor.set(0.5, 0.5);
-            element.scale.set(0.17, 0.17);
             element.position.set(167 - index * 40, 0);
             element.tint = index < inactiveArrows ? 0x939598 : 0xFBBC31;
             this._volatilityContainer.addChild(element);
@@ -538,7 +521,7 @@ export class FeatureScreen extends FeatureScreenContainer {
                 text = `WIN UP TO 1000X\nIN THE BONUS FEATURE`;
                 break;
             case 2:
-                text = `WINS ARE CALCULATED\nON 25 LINES`;
+                text = `WINS ARE CALCULATED\nON PREDETERMINED 25 LINES`;
                 break;
         }
 

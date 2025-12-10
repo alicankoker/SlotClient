@@ -106,15 +106,15 @@ export class StyleConfig extends BaseStyleConfig {
         fill: new FillGradient({
             colorStops: [
                 {
-                    offset: 0,
+                    offset: 0.25,
                     color: 0xfcfec0
                 },
                 {
-                    offset: 0.33,
+                    offset: 0.40,
                     color: 0xaac551
                 },
                 {
-                    offset: 0.66,
+                    offset: 0.7,
                     color: 0x3e6b1d
                 },
                 {
@@ -127,7 +127,7 @@ export class StyleConfig extends BaseStyleConfig {
             alpha: 1,
             angle: 1.4,
             color: '#2d1b06',
-            distance: 5
+            distance: 6
         },
         fontFamily: "PaytoneOneRegular",
         fontSize: 84,
@@ -135,7 +135,7 @@ export class StyleConfig extends BaseStyleConfig {
         stroke: {
             color: 0x76cc36,
             join: 'round',
-            width: 2
+            width: 4
         },
         align: 'center',
         trim: true,
