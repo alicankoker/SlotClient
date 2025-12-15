@@ -481,7 +481,7 @@ export class DoodleV8Main {
     this.slotGameController!.reelsController!.setMode(ISpinState.IDLE);
 
     GameDataManager.getInstance().getInitialData()?.history.nextAction !== "bonus" && eventBus.emit("showUI");
-    eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+    eventBus.emit("setMessageBox", { variant: "default", payload: "PLACE YOUR BET" });
 
     const response = GameDataManager.getInstance().getInitialData();
 

@@ -160,7 +160,7 @@ export class StaticContainer extends Container {
         await this.playWinAnimations(winDatas, token);
 
         if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
-            eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+            eventBus.emit("setMessageBox", { variant: "default", payload: "PLACE YOUR BET" });
         }
 
         if (this._allowLoop && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
@@ -270,6 +270,7 @@ export class StaticContainer extends Container {
 
         while (this._isLooping && this._animationToken === token && this._isFreeSpinMode === false && this._isBonusMode === false) {
             await this.playWinAnimations(winDatas, token);
+            eventBus.emit("setMessageBox");
             await this.delay(this._gameConfig.WIN_ANIMATION.delayBetweenLoops || 1000, token);
         }
     }

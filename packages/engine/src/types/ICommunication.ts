@@ -154,6 +154,7 @@ export interface IResponseData {
     line: number;
     payout: number;
     positions: number[] | number[][];
+    symbol: number;
     temp: any;
   }[];
   _id: string;

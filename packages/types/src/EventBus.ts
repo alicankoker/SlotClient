@@ -15,9 +15,22 @@ type eventType = {
     amount: string;
   } | null;
   setMessageBox: {
-    variant: 'default' | 'freeSpin' | 'autoPlay';
-    message: string;
-  } | null;
+    variant: 'default';
+    payload: string;
+  } | {
+    variant: 'autoPlay';
+    payload: string;
+  } | {
+    variant: 'freeSpin';
+    payload: string;
+  } | {
+    variant: 'payout';
+    payload: {
+      multiplier: string;
+      symbolIndex: number;
+      lineValue: string;
+    }
+  };
   switchSetting: {
     name: 'quickSpin' | 'ambientMusic' | 'gameSounds' | 'introScreen';
     value: boolean;

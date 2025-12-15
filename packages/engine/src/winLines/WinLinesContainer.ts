@@ -157,7 +157,7 @@ export abstract class WinLinesContainer extends Container {
     }
 
     public hideLine(lineNumber: number): void {
-        if (lineNumber < 1 || lineNumber > this._availableLines) return;
+        if (lineNumber < 1 || lineNumber > this._winLines.length) return;
 
         const line = this._winLines[lineNumber - 1];
         const staticLine = this._staticLines[lineNumber - 1];
@@ -186,7 +186,7 @@ export abstract class WinLinesContainer extends Container {
     }
 
     public hideAllLines(): void {
-        for (let i = 0; i < this._availableLines; i++) {
+        for (let i = 0; i < this._winLines.length; i++) {
             const line = this._winLines[i];
             const staticLine = this._staticLines[i];
 
