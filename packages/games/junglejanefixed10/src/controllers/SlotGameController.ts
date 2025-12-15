@@ -219,15 +219,11 @@ export class SlotGameController implements ISlotGameController {
             this.reelsContainer.playElementsWinAnimation();
         });
 
-        signals.on(SIGNAL_EVENTS.WIN_ANIMATION_TOTAL_PLAY_COMPLETE, () => {
-            this.reelsContainer.stopElementsWinAnimation();
-        });
-
         signals.on(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, async (extra) => {
             if (extra !== undefined) {
                 await this.playScatterHighlightAnimation();
 
-                signals.emit("scatterRetriggered", extra);
+                signals.emit(SIGNAL_EVENTS.FREE_SPIN_SCATTER_HIGHLIGHTED, extra);
             }
         });
     }
@@ -351,7 +347,7 @@ export class SlotGameController implements ISlotGameController {
         this.staticContainer.isFreeSpinMode = true;
 
         await this.playScatterHighlightAnimation();
-        
+
         this.reelsContainer.isFreeSpinMode = true;
 
         await this.animationContainer.startTransitionAnimation(() => {
@@ -433,6 +429,7 @@ export class SlotGameController implements ISlotGameController {
 
         await this.animationContainer.startTransitionAnimation(() => {
             this.animationContainer.setBonusMode(true);
+            Bonus.instance().prepareScene();
             Bonus.instance().visible = true;
         });
 

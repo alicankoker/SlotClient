@@ -7,7 +7,7 @@ import { GridSymbol } from "../../symbol/GridSymbol";
 import { Sprite } from "pixi.js";
 import { debug } from "../../utils/debug";
 import { Utils } from "../../utils/Utils";
-import { IResponseData} from "../../types/ICommunication";
+import { IResponseData } from "../../types/ICommunication";
 import { IReelSpinState, IReelSpinStateData } from "../../types/IReelSpinStateData";
 import { Helpers } from "../../utils/Helpers";
 import { signals } from "../../controllers/SignalManager";
@@ -93,11 +93,24 @@ export class ClassicSpinContainer extends SpinContainer {
         if (this.reelsSpinStates[reelId].state === IReelSpinState.STOPPED || this.reelsSpinStates[reelId].state === IReelSpinState.IDLE) {
             return;
         }
-        if (this.reelsSpinStates[reelId].state === IReelSpinState.SLOWING && this.reelsSpinStates[reelId].speed > SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
-            this.reelsSpinStates[reelId].speed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT;
-            if (this.reelsSpinStates[reelId].speed <= SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
-                this.reelsSpinStates[reelId].speed = SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT;
-                this.reelsSpinStates[reelId].anticipated && (this.reelsSpinStates[reelId].anticipated = false);
+        if (this.reelsSpinStates[reelId].state === IReelSpinState.SLOWING) {
+            if (this.reelsSpinStates[reelId].anticipated) {
+                if (this.reelsSpinStates[reelId].speed > 0.4) {
+                    this.reelsSpinStates[reelId].speed -= 0.092;
+
+                    if (this.reelsSpinStates[reelId].speed <= 0.4) {
+                        this.reelsSpinStates[reelId].speed = 0.4;
+                        this.reelsSpinStates[reelId].anticipated = false;
+                    }
+                }
+            } else {
+                if (this.reelsSpinStates[reelId].speed > SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
+                    this.reelsSpinStates[reelId].speed -= SpinConfig.REEL_SLOW_DOWN_COEFFICIENT;
+
+                    if (this.reelsSpinStates[reelId].speed <= SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT) {
+                        this.reelsSpinStates[reelId].speed = SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT;
+                    }
+                }
             }
         }
         if (this.reelsSpinStates[reelId].state === IReelSpinState.SPEEDING) {
@@ -319,6 +332,7 @@ export class ClassicSpinContainer extends SpinContainer {
 
         await Utils.delay(SpinConfig.REEL_ANTICIPATION_DURATION);
         this.reelsSpinStates[reelId].isAnticipating = false;
+        signals.emit("reelAnticipationComplete", reelId);
         this.slowDown();
     }
 

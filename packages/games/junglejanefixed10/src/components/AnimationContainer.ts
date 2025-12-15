@@ -48,6 +48,8 @@ export class AnimationContainer extends Container {
     private _styleConfig: StyleConfig;
 
     private _winLines: WinLines;
+    private _adrenalineElementsContainer!: Container;
+    private _adrenalineStripes: Spine[] = [];
     private _particleContainer: Container;
     private _particleList: InternalParticle[] = [];
     private _particleTicker?: Ticker;
@@ -84,8 +86,10 @@ export class AnimationContainer extends Container {
         this._styleConfig = StyleConfig.getInstance();
 
         this._winLines = WinLines.getInstance();
-        this._winLines.setAvailableLines(GameDataManager.getInstance().getMaxLine());
+        this._winLines.setAvailableLines(10);
         this.addChild(this._winLines);
+
+        this.createAdrenalineElements();
 
         this._winContainer = new Container();
         this._winContainer.label = 'WinContainer';
@@ -272,7 +276,7 @@ export class AnimationContainer extends Container {
             this._winLines.hideAllLines();
         });
 
-        signals.on("scatterRetriggered", async (extra) => {
+        signals.on(SIGNAL_EVENTS.FREE_SPIN_SCATTER_HIGHLIGHTED, async (extra) => {
             if (extra !== undefined) {
                 this._dialogCountText.setText(`+${extra.added}`);
                 await this.playDialogBoxAnimation();
@@ -281,8 +285,75 @@ export class AnimationContainer extends Container {
             }
         });
 
+        signals.on("startAdrenalineEffect", () => {
+            this.startAnticipationEffect();
+        });
+
+        signals.on("reelAnticipationComplete", (reelId) => {
+            this.slowDownAnticipationEffect();
+        });
+
+        signals.on("stopAdrenalineEffect", () => {
+            this.stopAnticipationEffect();
+        });
+
         this._resizeSubscription = signals.on(SIGNAL_EVENTS.SCREEN_RESIZE, (responsiveConfig) => {
             this.onResize(responsiveConfig);
+        });
+    }
+
+    private createAdrenalineElements(): void {
+        this._adrenalineElementsContainer = new Container();
+        this._adrenalineElementsContainer.label = 'AdrenalineElementsContainer';
+        this._adrenalineElementsContainer.visible = false;
+        this.addChild(this._adrenalineElementsContainer);
+
+        const adrenalineStripeLeft = Spine.from(this._assetsConfig.ANTICIPATE_SPINE_ASSET);
+        adrenalineStripeLeft.label = `AdrenalineStripe_Left`;
+        adrenalineStripeLeft.position.set(1360, 575);
+        adrenalineStripeLeft.scale.set(0.6, 0.6);
+        adrenalineStripeLeft.state.data.defaultMix = 0.5;
+        this._adrenalineStripes.push(adrenalineStripeLeft);
+        this._adrenalineElementsContainer.addChild(adrenalineStripeLeft);
+
+        const adrenalineStripeRight = Spine.from(this._assetsConfig.ANTICIPATE_SPINE_ASSET);
+        adrenalineStripeRight.label = `AdrenalineStripe_Right`;
+        adrenalineStripeRight.position.set(1620, 575);
+        adrenalineStripeRight.scale.set(0.6, 0.6);
+        adrenalineStripeRight.state.data.defaultMix = 0.5;
+        this._adrenalineStripes.push(adrenalineStripeRight);
+        this._adrenalineElementsContainer.addChild(adrenalineStripeRight);
+    }
+
+    private startAnticipationEffect(): void {
+        gsap.fromTo(this._adrenalineElementsContainer, { alpha: 0 }, {
+            alpha: 1, duration: 0.25, onStart: () => {
+                this._adrenalineElementsContainer.visible = true;
+
+                this._adrenalineStripes.forEach(stripe => {
+                    stripe.state.setAnimation(0, "anticipate_loop", true);
+                });
+            }
+        });
+    }
+
+    private slowDownAnticipationEffect(): void {
+        this._adrenalineStripes.forEach(stripe => {
+            stripe.state.timeScale = 0.65;
+            stripe.state.addAnimation(0, "anticipate_out", false, 0);
+        });
+    }
+
+    private stopAnticipationEffect(): void {
+        gsap.to(this._adrenalineElementsContainer, {
+            alpha: 0, duration: 0.25, onComplete: () => {
+                this._adrenalineElementsContainer.visible = false;
+
+                this._adrenalineStripes.forEach(stripe => {
+                    stripe.state.timeScale = 1;
+                    stripe.state.clearTracks();
+                });
+            }
         });
     }
 

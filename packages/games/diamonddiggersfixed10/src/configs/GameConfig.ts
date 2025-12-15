@@ -1,4 +1,4 @@
-import { BaseGameConfig, CascadeConfig } from '@slotclient/config/GameConfig';
+import { BaseGameConfig, CascadeConfig, IWinLines } from '@slotclient/config/GameConfig';
 import {
     ResolutionConfig,
     SymbolConfig,
@@ -94,7 +94,7 @@ export class GameConfig extends BaseGameConfig {
 
     public readonly BACKEND: BackendConfig = {
         BACKEND_URL: import.meta.env.VITE_BACKEND_URL || "https://rngengine.com",
-        USER_ID: import.meta.env.DEV ? "693923009e2f61fbea8b11d6" : new URLSearchParams(window.location.search).get("session") || undefined,
+        USER_ID: import.meta.env.DEV ? "693bdf81baa8efccf700652a" : new URLSearchParams(window.location.search).get("session") || undefined,
     };
 
     public readonly GRID: GridConfig = {
@@ -230,35 +230,76 @@ export class GameConfig extends BaseGameConfig {
         25: [11, 2, 13, 4, 15]
     };
 
+    public readonly WIN_LINES_CONFIG: IWinLines = {
+        1: { position: { x: 0, y: 0 }, rotation: 1 },
+        2: { position: { x: 0, y: -250 }, rotation: 1 },
+        3: { position: { x: 0, y: 300 }, rotation: 1 },
+
+        4: { position: { x: 0, y: 0 }, rotation: 1 },
+        5: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        6: { position: { x: 0, y: 0 }, rotation: 1 },
+        7: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        8: { position: { x: 0, y: 0 }, rotation: 1 },
+        9: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        10: { position: { x: 0, y: 0 }, rotation: 1 },
+        11: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        12: { position: { x: 0, y: 0 }, rotation: 1 },
+        13: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        14: { position: { x: 0, y: 0 }, rotation: 1 },
+        15: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        16: { position: { x: 0, y: 0 }, rotation: 1 },
+        17: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        18: { position: { x: 0, y: 0 }, rotation: 1 },
+        19: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        20: { position: { x: 0, y: 0 }, rotation: 1 },
+        21: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        22: { position: { x: 0, y: 0 }, rotation: 1 },
+        23: { position: { x: 0, y: 0 }, rotation: -1 },
+
+        24: { position: { x: 0, y: 0 }, rotation: 1 },
+        25: { position: { x: 0, y: 0 }, rotation: -1 }
+    }
+
     public readonly REFERENCE_NUMBER_POSITION = { x: -this.sw * 2.675, y: -(this.sh + this.sh / 2.5) };
+
+    public readonly NUMBER_POSITION_MULTIPLIER = 59;
 
     public readonly LINE_NUMBER_POSITION: CoordinatesConfig = {
         //left side
-        4: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y },
-        2: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 59 },
-        24: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 118 },
-        20: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 177 },
-        16: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 236 },
-        10: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 295 },
-        1: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 354 },
-        11: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 413 },
-        17: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 472 },
-        13: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 531 },
-        21: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 590 },
-        3: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 649 },
-        5: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 708 },
+        4: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 0) },
+        2: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 1) },
+        24: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 2) },
+        20: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 3) },
+        16: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 4) },
+        10: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 5) },
+        1: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 6) },
+        11: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 7) },
+        17: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 8) },
+        13: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 9) },
+        21: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 10) },
+        3: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 11) },
+        5: { x: -this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 12) },
         //right side
-        14: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y },
-        18: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 59 },
-        12: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 118 },
-        9: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 177 },
-        22: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 236 },
-        6: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 295 },
-        7: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 354 },
-        23: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 413 },
-        8: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 472 },
-        19: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 531 },
-        15: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 590 },
-        25: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + 649 }
+        14: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 0) },
+        18: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 1) },
+        12: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 2) },
+        9: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 3) },
+        22: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 4) },
+        6: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 5) },
+        7: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 6) },
+        23: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 7) },
+        8: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 8) },
+        19: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 9) },
+        15: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 10) },
+        25: { x: this.sw * 2.675, y: this.REFERENCE_NUMBER_POSITION.y + (this.NUMBER_POSITION_MULTIPLIER * 11) }
     };
 }

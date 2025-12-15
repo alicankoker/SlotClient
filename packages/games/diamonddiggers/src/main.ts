@@ -86,6 +86,8 @@ export class DoodleV8Main {
         return;
       }
 
+      Helpers.mergeAtlases("lines", ["lines-0", "lines-1", "lines-2", "lines-3", "lines-4", "lines-5", "lines-6"]);
+
       // Initialize SlotGameController first (needed for grid generation)
       this.slotGameController = new SlotGameController(this.app);
 
@@ -116,11 +118,6 @@ export class DoodleV8Main {
       this.setupControllersCallbacks();
       // Step 5: Create scene/sprites
       this.createScene();
-
-      // Step 6: Start game systems (controllers handle the game loop)
-
-      //TO-DO: this needs to be moved to a separate place
-      // Add keyboard handlers
 
       let isKeyHeld = false;
       let isSpinning = false;

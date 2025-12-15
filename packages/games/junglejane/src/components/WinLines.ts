@@ -2,8 +2,8 @@ import { Container, Sprite, Text } from "pixi.js";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
 import { WinLinesContainer } from "@slotclient/engine/winLines/WinLinesContainer";
 import { WinLinesController } from "@slotclient/engine/winLines/WinLinesController";
-import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameDataManager } from "@slotclient/engine";
+import { AnimatedSpriteFactory } from "@slotclient/engine/utils/AnimatedSpriteFactory";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { GameConfig } from "../configs/GameConfig";
 import { StyleConfig } from "../configs/StyleConfig";
@@ -12,8 +12,11 @@ export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
     private _assetConfig: AssetsConfig;
     private _gameConfig: GameConfig;
-    private _styleConfig: StyleConfig
+    private _styleConfig: StyleConfig;
+    
     private _controller: WinLinesController<WinLines>;
+    
+    private _linesContainer!: Container;
 
     private constructor() {
         super();
@@ -54,29 +57,56 @@ export class WinLines extends WinLinesContainer {
     }
 
     protected override createWinLines(): void {
-        const { atlas, skeleton } = this._assetConfig.LINE_SPINE_ASSET;
+        this._linesContainer = new Container();
+        this._linesContainer.label = 'WinLinesContainer';
+        this._linesContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._linesContainer.mask = this._lineMask;
+        this.addChild(this._linesContainer);
 
         for (const key of Object.keys(this._gameConfig.LINES)) {
-            const line = Spine.from({ atlas, skeleton });
-            line.label = `WinLine_${key}`;
-            line.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
-            line.visible = false; // Hidden by default
-            line.tint = 0x91ff17; // Green tint for win lines
-            line.state.setAnimation(0, key, false);
-            line.state.timeScale = 2;
-            line.mask = this._lineMask;
+            const lineConfig = this._gameConfig.WIN_LINES_CONFIG[Number(key)];
 
-            this._winLine.push(line);
+            const line = AnimatedSpriteFactory.create(
+                {
+                    alias: 'lines',
+                    folder: key.toString(),
+                    start: 0,
+                    end: 14,
+                    animationSpeed: 0.25,
+                    loop: false
+                },
+                {
+                    label: `WinLine_${key}`,
+                    anchor: { x: 0.5, y: 0.5 },
+                    scale: { x: 2, y: (2 * lineConfig.rotation) },
+                    position: { x: lineConfig.position.x, y: lineConfig.position.y },
+                    visible: false,
+                    tint: 0x91ff17,
+                    interactive: false
+                }
+            );
 
-            this.addChild(line);
+            const staticLine = Sprite.from(`${key}/idle`);
+            staticLine.label = `StaticWinLine_${key}`;
+            staticLine.anchor.set(0.5, 0.5);
+            staticLine.scale.set(1, (1 * lineConfig.rotation));
+            staticLine.position.set(lineConfig.position.x, lineConfig.position.y);
+            staticLine.visible = false;
+            staticLine.tint = 0x91ff17;
+
+            this._winLines.push(line);
+            this._staticLines.push(staticLine);
+
+            this._linesContainer.addChild(line);
+            this._linesContainer.addChild(staticLine);
         }
     }
 
     protected override createLineNumbers(): void {
         for (const key of Object.keys(this._gameConfig.LINE_NUMBER_POSITION)) {
-            const lineContainer: Container = new Container();
-            lineContainer.label = `LineNumberContainer_${key}`;
-            this.addChild(lineContainer);
+            const numberContainer: Container = new Container();
+            numberContainer.label = `LineNumberContainer_${key}`;
+            this.addChild(numberContainer);
 
             const position = this._gameConfig.LINE_NUMBER_POSITION[Number(key)];
 
@@ -89,14 +119,14 @@ export class WinLines extends WinLinesContainer {
             text.position.set((this._gameConfig.REFERENCE_RESOLUTION.width / 2) + position.x, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + position.y);
             text.interactive = true;
             text.cursor = "pointer";
-            lineContainer.addChild(text);
+            numberContainer.addChild(text);
 
-            this._linesContainer.push(lineContainer);
+            this._numberContainers.push(numberContainer);
 
-            lineContainer.on('pointerenter', () => {
+            numberContainer.on('pointerenter', () => {
                 this.showLine(Number(key));
             });
-            lineContainer.on('pointerleave', () => {
+            numberContainer.on('pointerleave', () => {
                 this.hideLine(Number(key));
             });
         }

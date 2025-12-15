@@ -1,9 +1,9 @@
-import { Sprite, Text, Texture } from "pixi.js";
+import { Container, Sprite, Text, Texture } from "pixi.js";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
 import { WinLinesContainer } from "@slotclient/engine/winLines/WinLinesContainer";
 import { WinLinesController } from "@slotclient/engine/winLines/WinLinesController";
-import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameDataManager } from "@slotclient/engine";
+import { AnimatedSpriteFactory } from "@slotclient/engine/utils/AnimatedSpriteFactory";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { GameConfig } from "../configs/GameConfig";
 import { StyleConfig } from "../configs/StyleConfig";
@@ -12,9 +12,11 @@ export class WinLines extends WinLinesContainer {
     private static _instance: WinLines;
     private _assetConfig: AssetsConfig;
     private _gameConfig: GameConfig;
-    private _styleConfig: StyleConfig
+    private _styleConfig: StyleConfig;
 
     private _controller: WinLinesController<WinLines>;
+
+    private _linesContainer!: Container;
     private _lineChain!: Sprite;
     private _fixedLineHolder!: Sprite;
     private _fixedValue!: Text;
@@ -23,11 +25,11 @@ export class WinLines extends WinLinesContainer {
     protected constructor() {
         super();
 
-        this._controller = this.createController();
-
         this._assetConfig = AssetsConfig.getInstance();
         this._gameConfig = GameConfig.getInstance();
         this._styleConfig = StyleConfig.getInstance();
+
+        this._controller = this.createController();
 
         this.createLineMask();
         this.createLineNumbers();
@@ -58,21 +60,48 @@ export class WinLines extends WinLinesContainer {
     }
 
     protected override createWinLines(): void {
-        const { atlas, skeleton } = this._assetConfig.LINE_SPINE_ASSET;
+        this._linesContainer = new Container();
+        this._linesContainer.label = 'WinLinesContainer';
+        this._linesContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
+        this._linesContainer.mask = this._lineMask;
+        this.addChild(this._linesContainer);
 
         for (const key of Object.keys(this._gameConfig.LINES)) {
-            const line = Spine.from({ atlas, skeleton });
-            line.label = `WinLine_${key}`;
-            line.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, (this._gameConfig.REFERENCE_RESOLUTION.height / 2) + 15);
-            line.visible = false; // Hidden by default
-            line.tint = 0xffc90f; // Gold color for win lines
-            line.state.setAnimation(0, key, false);
-            line.state.timeScale = 2;
-            line.mask = this._lineMask;
+            const lineConfig = this._gameConfig.WIN_LINES_CONFIG[Number(key)];
 
-            this._winLine.push(line);
+            const line = AnimatedSpriteFactory.create(
+                {
+                    alias: 'lines',
+                    folder: key.toString(),
+                    start: 0,
+                    end: 14,
+                    animationSpeed: 0.25,
+                    loop: false
+                },
+                {
+                    label: `WinLine_${key}`,
+                    anchor: { x: 0.5, y: 0.5 },
+                    scale: { x: 2, y: (2 * lineConfig.rotation) },
+                    position: { x: lineConfig.position.x, y: lineConfig.position.y },
+                    visible: false,
+                    tint: 0xffc90f,
+                    interactive: false
+                }
+            );
 
-            this.addChild(line);
+            const staticLine = Sprite.from(`${key}/idle`);
+            staticLine.label = `StaticWinLine_${key}`;
+            staticLine.anchor.set(0.5, 0.5);
+            staticLine.scale.set(1, (1 * lineConfig.rotation));
+            staticLine.position.set(lineConfig.position.x, lineConfig.position.y);
+            staticLine.visible = false;
+            staticLine.tint = 0xffc90f;
+
+            this._winLines.push(line);
+            this._staticLines.push(staticLine);
+
+            this._linesContainer.addChild(line);
+            this._linesContainer.addChild(staticLine);
         }
     }
 

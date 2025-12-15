@@ -1,5 +1,5 @@
 import { IReelMode } from "../reels/ReelController";
-import { Point } from "pixi.js";
+import { Assets, Point } from "pixi.js";
 import { ISpinState } from "../types/ISpinConfig";
 import { ConfigProvider } from "@slotclient/config";
 
@@ -87,7 +87,7 @@ export class Helpers {
    */
   public static calculateSymbolY(row: number, maxRow: number, referenceY: number, gapY?: number): number {
     const gameConfig = ConfigProvider.getInstance().getGameConfig();
-    
+
     const symbolHeight = gameConfig.REFERENCE_SPRITE_SYMBOL.height;
 
     const spacingY = gapY ?? gameConfig.REFERENCE_SPACING.vertical;
@@ -228,5 +228,29 @@ export class Helpers {
     }
 
     return points;
+  }
+
+  /**
+   * @description Merges multiple texture atlases into a single atlas under a target alias.
+   * @param targetAlias The alias for the merged atlas
+   * @param atlasAliases The aliases of the atlases to merge
+   * @returns void
+   * @example
+   * Helpers.mergeAtlases('mergedAtlas', ['atlas1', 'atlas2', 'atlas3']);
+   */
+  public static mergeAtlases(targetAlias: string, atlasAliases: string[]) {
+    const merged = { textures: {} as Record<string, any> };
+
+    for (const alias of atlasAliases) {
+      const atlas = Assets.get(alias);
+      if (!atlas) continue;
+
+      for (const key in atlas.textures) {
+        merged.textures[key] = atlas.textures[key];
+      }
+    }
+
+    // set the merged atlas back to Assets
+    Assets.cache.set(targetAlias, merged as any);
   }
 }

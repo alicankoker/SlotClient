@@ -85,7 +85,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         this._character.scale.set(0.27, 0.27);
         this._character.position.set(1320, 595);
         this._character.skeleton.setSkinByName('Base/Base');
-        this._character.state.setAnimation(0, "Base_idle", true);
+        this._character.state.setAnimation(0, "base_idle", true);
         this.addChild(this._character);
 
         this._characterMask = new Graphics();
@@ -603,28 +603,48 @@ export class FeatureScreen extends FeatureScreenContainer {
             case true:
                 switch (config?.orientation) {
                     case this._gameConfig.ORIENTATION.portrait:
-                        this._logo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -30);
-                        this._logo.scale.set(0.3, 0.3);
-                        this._character.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -35);
-                        this._character.scale.set(0.4, 0.4);
-                        this._character.mask = this._characterMask;
                         this._previewContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 220);
+                        this._previewContainer.scale.set(1.5, 1.5);
                         this._reelContainer.position.set(-10, 35);
-                        this._spinButtonContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 970);
-                        this._volatilityContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1130);
-                        this._dontShowContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1250);
+
+                        this._character.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -50);
+                        this._character.scale.set(0.5, 0.5);
+                        this._character.mask = this._characterMask;
+                        this._characterMask.position.set(0, -135);
+
+                        this._logo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, -140);
+                        this._logo.scale.set(0.5, 0.5);
+
+                        this._spinButtonContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1310);
+                        this._spinButtonContainer.scale.set(2, 2);
+
+                        this._volatilityContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1570);
+                        this._volatilityContainer.scale.set(1.5, 1.5);
+
+                        this._dontShowContainer.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 1730);
+                        this._dontShowContainer.scale.set(1.5, 1.5);
                         break;
                     case this._gameConfig.ORIENTATION.landscape:
-                        this._logo.position.set(1615, 260);
-                        this._logo.scale.set(0.5, 0.5);
+                        this._previewContainer.position.set(690, 475);
+                        this._previewContainer.scale.set(1, 1);
+                        this._reelContainer.position.set(35, 35);
+
                         this._character.position.set(1320, 585);
                         this._character.scale.set(0.27, 0.27);
                         this._character.mask = null;
-                        this._previewContainer.position.set(690, 475);
-                        this._reelContainer.position.set(35, 35);
+                        this._characterMask.position.set(0, 0);
+
+                        this._logo.position.set(1615, 260);
+                        this._logo.scale.set(0.5, 0.5);
+
                         this._spinButtonContainer.position.set(1615, 620);
+                        this._spinButtonContainer.scale.set(1, 1);
+
                         this._volatilityContainer.position.set(1615, 760);
+                        this._volatilityContainer.scale.set(1, 1);
+
                         this._dontShowContainer.position.set(1585, 900);
+                        this._dontShowContainer.scale.set(1, 1);
                         break;
                 }
                 break;

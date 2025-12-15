@@ -86,6 +86,8 @@ export class DoodleV8Main {
         return;
       }
 
+      Helpers.mergeAtlases("lines", ["lines-0", "lines-1", "lines-2", "lines-3", "lines-4", "lines-5", "lines-6"]);
+
       // Initialize SlotGameController first (needed for grid generation)
       this.slotGameController = new SlotGameController(this.app);
 
@@ -453,6 +455,7 @@ export class DoodleV8Main {
     this.slotGameController!.initialize();
 
     const bonusScene = Bonus.getInstance(this.app);
+    GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus" && bonusScene.prepareScene();
     bonusScene.visible = GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus";
     bonusScene.isActive = GameDataManager.getInstance().getInitialData()?.history.nextAction === "bonus";
     if (bonusScene.isActive) {

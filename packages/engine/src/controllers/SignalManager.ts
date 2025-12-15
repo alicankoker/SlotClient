@@ -177,6 +177,7 @@ export const SIGNAL_EVENTS = {
     FREE_SPIN_AFTER_SPIN: 'freespin:after_spin',
     FREE_SPIN_RETRIGGER: 'freespin:retrigger',
     FREE_SPIN_RETRIGGERED: 'freespin:retriggered',
+    FREE_SPIN_SCATTER_HIGHLIGHTED: 'freespin:scatter:highlighted',
 } as const;
 
 // Export singleton instance for convenience

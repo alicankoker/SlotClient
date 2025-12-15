@@ -19,7 +19,8 @@ import {
     signals,
     BackendToWinEventType,
     ISpinState,
-    debug
+    debug,
+    SIGNAL_EVENTS
 } from '@slotclient/engine';
 import { Application } from 'pixi.js';
 import { GameConfig, spinContainerConfig } from '../configs/GameConfig';
@@ -211,6 +212,14 @@ export class SlotGameController implements ISlotGameController {
 
             signals.emit("spinCompleted", response);
         });
+
+        signals.on(SIGNAL_EVENTS.FREE_SPIN_RETRIGGER, async (extra) => {
+            if (extra !== undefined) {
+                await this.playScatterHighlightAnimation();
+
+                signals.emit(SIGNAL_EVENTS.FREE_SPIN_SCATTER_HIGHLIGHTED, extra);
+            }
+        });
     }
 
     // Convenience method for executing spins
@@ -329,6 +338,9 @@ export class SlotGameController implements ISlotGameController {
         this.freeSpinController.isRunning = true;
         this.staticContainer.allowLoop = false;
         this.staticContainer.isFreeSpinMode = true;
+
+        await this.playScatterHighlightAnimation();
+        
         this.reelsContainer.isFreeSpinMode = true;
 
         await this.animationContainer.startTransitionAnimation(() => {
@@ -375,6 +387,24 @@ export class SlotGameController implements ISlotGameController {
         this.staticContainer.allowLoop = true;
         this.staticContainer.isFreeSpinMode = false;
         this.reelsContainer.isFreeSpinMode = false;
+    }
+
+    private async playScatterHighlightAnimation(): Promise<void> {
+        if (GameDataManager.getInstance().getResponseData() === undefined || GameDataManager.getInstance().getResponseData().reels === undefined) {
+            return;
+        }
+
+        const reels: number[][] = GameDataManager.getInstance().getResponseData().reels;
+        const scatterPositions: number[][] = reels.map(reel => {
+            const positions: number[] = [];
+
+            for (let i = 0; i < reel.length; i++) {
+                if (reel[i] === 8) positions.push(i);
+            }
+
+            return positions.length > 0 ? positions : [-1];
+        });
+        await this.staticContainer.playHighlightSymbols(scatterPositions);
     }
 
     public async executeFreeSpin(totalRounds: number, remainRounds: number, initialWin: number): Promise<{ totalWin: number, freeSpinCount: number }> {

@@ -42,6 +42,39 @@ export class AssetsConfig extends BaseAssetsConfig {
           },
         ],
       },
+      {
+        name: "lines",
+        assets: [
+          {
+            alias: ["lines-0"],
+            src: `${PATHS.ROOT}/spritesheets/lines/lines-0.json`,
+          },
+          {
+            alias: ["lines-1"],
+            src: `${PATHS.ROOT}/spritesheets/lines/lines-1.json`,
+          },
+          {
+            alias: ["lines-2"],
+            src: `${PATHS.ROOT}/spritesheets/lines/lines-2.json`,
+          },
+          {
+            alias: ["lines-3"],
+            src: `${PATHS.ROOT}/spritesheets/lines/lines-3.json`,
+          },
+          {
+            alias: ["lines-4"],
+            src: `${PATHS.ROOT}/spritesheets/lines/lines-4.json`,
+          },
+          {
+            alias: ["lines-5"],
+            src: `${PATHS.ROOT}/spritesheets/lines/lines-5.json`,
+          },
+          {
+            alias: ["lines-6"],
+            src: `${PATHS.ROOT}/spritesheets/lines/lines-6.json`,
+          }
+        ]
+      }
     ],
   };
 
@@ -303,19 +336,6 @@ export class AssetsConfig extends BaseAssetsConfig {
         ]
       },
       {
-        name: 'lines',
-        assets: [
-          {
-            alias: ['lines_atlas'],
-            src: PATH + '/assets/animations/lines/lines.atlas'
-          },
-          {
-            alias: ['lines_data'],
-            src: PATH + '/assets/animations/lines/lines.json'
-          }
-        ]
-      },
-      {
         name: 'transition',
         assets: [
           {
@@ -419,11 +439,6 @@ export class AssetsConfig extends BaseAssetsConfig {
   public readonly TRANSITION_SPINE_ASSET: SpineAssetData = {
     atlas: "transition_atlas",
     skeleton: "transition_data",
-  };
-
-  public readonly LINE_SPINE_ASSET: SpineAssetData = {
-    atlas: "lines_atlas",
-    skeleton: "lines_data",
   };
 
   public getAllAssets(resolution: string): BundleFile {

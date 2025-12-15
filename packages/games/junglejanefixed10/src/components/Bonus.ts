@@ -1,4 +1,4 @@
-import { Application, Container, Sprite, Text, Texture } from "pixi.js";
+import { Application, Container, Sprite, Text } from "pixi.js";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameConfig } from "../configs/GameConfig";
 import { AssetsConfig } from "../configs/AssetsConfig";
@@ -111,6 +111,14 @@ export class Bonus extends BonusContainer {
         this.eventListeners();
     }
 
+    public prepareScene(): void {
+        this._bonusLogo.state.setAnimation(0, "bonus", true);
+        this._plants.state.setAnimation(0, "plants", true);
+        for (let index = 0; index < this._boxes.length; index++) {
+            this._boxes[index].state.setAnimation(0, `${index + 1}_idle`, true);
+        }
+    }
+
     private createScene(): void {
         this._background = Sprite.from('bonus_background');
         this._background.label = 'BonusBackground';
@@ -140,13 +148,11 @@ export class Bonus extends BonusContainer {
         this._bonusLogo = Spine.from({ atlas, skeleton });
         this._bonusLogo.label = `BonusLogo`;
         this._bonusLogo.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 265);
-        this._bonusLogo.state.setAnimation(0, "bonus", true);
         this.addChild(this._bonusLogo);
 
         this._plants = Spine.from({ atlas, skeleton });
         this._plants.label = `Bonus_Plants`;
         this._plants.position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, 280);
-        this._plants.state.setAnimation(0, "plants", true);
         this.addChild(this._plants);
 
         this._boxes = [];
@@ -156,7 +162,6 @@ export class Bonus extends BonusContainer {
             this._boxes[index].position.set(this._gameConfig.REFERENCE_RESOLUTION.width / 2, this._gameConfig.REFERENCE_RESOLUTION.height / 2);
             this._boxes[index].interactive = true;
             this._boxes[index].cursor = 'pointer';
-            this._boxes[index].state.setAnimation(0, `${index + 1}_idle`, true);
             this._boxContainer.addChild(this._boxes[index]);
         }
 
@@ -227,7 +232,7 @@ export class Bonus extends BonusContainer {
                     alpha: 1, duration: 0.25, delay: 2, onStart: () => {
                         this._glow.position.set(BonusElementsPositions[index].x, BonusElementsPositions[index].y);
                         this._glow.visible = true;
-                        gsap.to(this._glow, {angle: "+=360", duration: 5, repeat: -1, ease: "linear"});
+                        gsap.to(this._glow, { angle: "+=360", duration: 5, repeat: -1, ease: "linear" });
 
                         reward.visible = true;
                         typeof value === 'number' && (this._infoText1.text = YOU_WON_TEXT + `${value}`);

@@ -1,13 +1,13 @@
 import { Point } from "pixi.js";
-import { 
-  SpinContainerConfig,
-  LoaderDurations,
-  AutoPlayConfig,
-  OrientationConfig,
-  ForceStopConfig,
-  WinEventConfig,
-  WinAnimationConfig,
-  IFreeSpin
+import {
+    SpinContainerConfig,
+    LoaderDurations,
+    AutoPlayConfig,
+    OrientationConfig,
+    ForceStopConfig,
+    WinEventConfig,
+    WinAnimationConfig,
+    IFreeSpin
 } from "@slotclient/types";
 
 // ==================== INTERFACES ====================
@@ -115,6 +115,16 @@ export interface WinningLinesConfig {
     [key: number]: number[];
 }
 
+export interface IWinLines {
+    [key: number]: {
+        position: {
+            x: number;
+            y: number;
+        };
+        rotation: 1 | -1;
+    };
+}
+
 export const spinContainerConfig: SpinContainerConfig = {
     reelIndex: 0, // Single container manages all reels, but still needs this for compatibility
     numberOfReels: 5, // Will handle all reels (6 columns)
@@ -128,7 +138,7 @@ export const spinContainerConfig: SpinContainerConfig = {
 
 /**
  * Interface for game configuration
- * Tüm game config'ler bu interface'i implement etmeli
+ * All games must implement this interface
  */
 export interface IGameConfig {
     // Required properties
@@ -188,11 +198,11 @@ export interface IGameConfig {
 
 /**
  * Abstract base game configuration
- * Her oyun kendi GameConfig'ini bu class'tan extend eder
+ * Every game must extend this class and implement the abstract properties
  */
 export abstract class BaseGameConfig implements IGameConfig {
     // ==================== ABSTRACT PROPERTIES ====================
-    // Oyunlar bu property'leri define etmek ZORUNDA
+    // Games must implement these properties
 
     public abstract readonly REFERENCE_SPRITE_SYMBOL: SymbolConfig;
     public abstract readonly REFERENCE_SPINE_SYMBOL: SymbolConfig;
@@ -202,8 +212,8 @@ export abstract class BaseGameConfig implements IGameConfig {
     public abstract readonly REFERENCE_RESOLUTION: ResolutionConfig;
     public abstract readonly SAFE_AREA: SafeAreaConfig;
     public abstract readonly BACKEND: BackendConfig;
-    
-    // Game Rules - Oyunlar define etmek zorunda
+
+    // Game Rules - must be implemented by each game
     public abstract readonly GRID: GridConfig;
     public abstract readonly SPIN: SpinConfig;
     public abstract readonly PAYTABLE: IPaytableEntry[];
@@ -214,7 +224,7 @@ export abstract class BaseGameConfig implements IGameConfig {
     public abstract readonly REFERENCE_NUMBER_POSITION: { x: number; y: number };
 
     // ==================== OPTIONAL PROPERTIES ====================
-    // Oyunlar override edebilir
+    // Games can override these defaults if needed
 
     public readonly LOADER_DEFAULT_TIMINGS: LoaderDurations = {
         minDisplayTime: 1000,
@@ -268,7 +278,7 @@ export abstract class BaseGameConfig implements IGameConfig {
         portrait: "portrait"
     };
 
-    // Cascade configuration - optional, oyunlar override edebilir
+    // Cascade configuration - optional, games can override
     public readonly CASCADE: CascadeConfig = {
         maxCascadeSteps: 10,
         dropAnimationSteps: 5,
@@ -446,7 +456,7 @@ export abstract class BaseGameConfig implements IGameConfig {
 
     /**
      * Create spin container config
-     * Oyunlar override edebilir
+     * Games can override this if needed
      */
     public createSpinContainerConfig(): SpinContainerConfig {
         return {
