@@ -8,6 +8,7 @@ import { Helpers } from "@slotclient/engine/utils/Helpers";
 import { Spine } from "@esotericsoftware/spine-pixi-v8";
 import { AssetsConfig } from "../configs/AssetsConfig";
 import { StyleConfig } from "../configs/StyleConfig";
+import { GameDataManager } from "@slotclient/engine";
 
 export class FeatureScreen extends FeatureScreenContainer {
     private _assetsConfig: AssetsConfig;
@@ -331,7 +332,7 @@ export class FeatureScreen extends FeatureScreenContainer {
         volatilityText.position.set(-150, 0);
         this._volatilityContainer.addChild(volatilityText);
 
-        const inactiveArrows = 2;
+        const inactiveArrows = 5 - GameDataManager.getInstance().getInitialData()?.volatility!;
         for (let index = 0; index < 5; index++) {
             const element = Sprite.from('splash_volatility_frame');
             element.label = 'VolatilityIndicator' + index;

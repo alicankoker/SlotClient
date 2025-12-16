@@ -121,8 +121,10 @@ export interface IData {
   betLevels: number[];
   gameId: string;
   history: IResponseData;
+  isFixed: boolean;
   lines: number;
   user: IUserData;
+  volatility: number;
 }
 
 export interface IUserData {
