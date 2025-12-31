@@ -28,6 +28,7 @@ export interface SpinContainerConfig {
 }
 
 export abstract class SpinContainer extends Container {
+  [x: string]: any;
   protected app: Application;
   protected gameConfig: IGameConfig;
   protected config: SpinContainerConfig;
@@ -87,24 +88,25 @@ export abstract class SpinContainer extends Container {
     const min = 0;
     const max = 10;
 
-    const symbolsBefore: number[][] = symbolIds.map((column: number[]) => {
+    /*const symbolsBefore: number[][] = symbolIds.map((column: number[]) => {
       if (column.length === 0) return column;
 
       const newColumn = [...column];
-      const randomFirst = Math.floor(Math.random() * (max - min + 1)) + min;
+      //this needs to be distincted by the game type
+      /*const randomFirst = Math.floor(Math.random() * (max - min + 1)) + min;
       const randomLast = Math.floor(Math.random() * (max - min + 1)) + min;
 
       newColumn.unshift(randomFirst);
       newColumn.push(randomLast);
 
       return newColumn;
-    });
+    });*/
 
     this.symbols = [];
     for (let col = 0; col < this.columns; col++) {
       this.symbols[col] = [];
       for (let row = 0; row < this.config.symbolsVisible + this.rowsBelowMask + this.rowsAboveMask; row++) {
-        const symbol = this.createGridSymbol(symbolsBefore[col][row], col, row);
+        const symbol = this.createGridSymbol(symbolIds[col][row], col, row);
         this.symbols[col][row] = symbol;
         this.symbols[col][row]!.visible = false;
       }

@@ -1,0 +1,9 @@
+{
+  "name": "icons",
+  "format": "json-hash",
+  "extrude": 1,
+  "padding": 1,
+  "allowRotation": false,
+  "maxWidth": 6144,
+  "maxHeight": 6144
+}

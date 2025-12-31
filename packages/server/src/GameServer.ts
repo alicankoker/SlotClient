@@ -7,6 +7,7 @@ import {
   InitialGridData,
   IPayload,
   IResponseData,
+  IResponseDataNew,
   MatchData,
   SpinRequestData,
   SpinResponseData,
@@ -20,6 +21,7 @@ import { Reelsets, FSReelsets } from "./Games/ClassicSpinGame/Reelsets";
 import { SocketConnection } from "@slotclient/communication/Connection/SocketConnection";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { ConfigProvider, IGameConfig, IPaytableEntry } from "@slotclient/config";
+import { WinEventType } from "@slotclient/engine/types/ICommunication";
 
 export class GameServer {
   private static instance: GameServer;
@@ -31,7 +33,7 @@ export class GameServer {
   private readonly winningLines: number[][];
   private readonly paytable: IPaytableEntry[];
 
-  private socket: SocketConnection;
+  //private socket: SocketConnection;
   private initData: InitialGridData = { symbols: [] };
   private firstSpin: boolean = true;
   private previousGrid: GridData = { symbols: [] };
@@ -54,7 +56,7 @@ export class GameServer {
   };
 
   private constructor() {
-    this.socket = SocketConnection.getInstance();
+    //this.socket = SocketConnection.getInstance();
     this.gameConfig = ConfigProvider.getInstance().getGameConfig();
     this.winningLines = Object.values(this.gameConfig.WINNING_LINES) as number[][];
     this.paytable = this.gameConfig.PAYTABLE;
@@ -68,7 +70,6 @@ export class GameServer {
   }
 
   public generateInitialGridData(): GridData {
-    this.initData = this.generateNewGridData();
     return this.initData;
   }
 
@@ -99,9 +100,101 @@ export class GameServer {
     }
   }
 
-  public async processRequest(action: IPayload["action"]): Promise<any> {
+  /*public async processRequest(action: IPayload["action"]): Promise<any> {
     const payload: IPayload = { action: action, data: { lines: GameDataManager.getInstance().getCurrentLine(), betIndex: GameDataManager.getInstance().getBetValueIndex() } }
     const response: IResponseData = await this.socket.request(payload);
+
+    GameDataManager.getInstance().setResponseData(response);
+
+    return response;
+  }*/
+
+  public async processRequest(action: IPayload["action"]): Promise<any> {
+    const payload: IPayload = { action: action, data: { lines: GameDataManager.getInstance().getCurrentLine(), betIndex: GameDataManager.getInstance().getBetValueIndex() } }
+    //const sResponse: IResponseData = await this.socket.request(payload);
+    const response: IResponseDataNew = {
+      balance: {
+          before: 0,
+          after: 0,
+      },
+      freeSpin: {
+          featureWin: 0,
+          totalRounds: 0,
+          playedRounds: 0,
+          extraRounds: 0,
+      },
+      bonus: {
+          history: [],
+          positions: [],
+      },
+      clientAction: action,
+      nextAction: action,
+      steps: [
+          {
+              roundId: 0,
+              incomingSymbols: [[0, 0, 6, 2, 1], [5, 4, 4, 0, 0], [0, 0, 5, 2, 3], [4, 7, 6, 6, 1], [0, 4, 8, 8, 2], [1, 5, 3, 7, 0]],
+              explosions: [[0, 0], [0, 2], [1, 4], [1, 4], [2, 0], [2, 1], [4, 0], [5, 4]],
+              reelsBefore: [[0, 0, 6, 2, 1], [5, 4, 4, 0, 0], [0, 0, 5, 2, 3], [4, 7, 6, 6, 1], [0, 4, 8, 8, 2], [1, 5, 3, 7, 0]],
+              reelsAfter: [[null, null, 6, 2, 1], [null, null, 5, 4, 4], [null, null, 5, 2, 3], [4, 7, 6, 6, 1], [null, 4, 8, 8, 2], [null, 1, 5, 3, 7]],
+              cascades: [[[1, 0], [1, 2]], [[1, 1], [1, 3]], [[1, 2], [1, 4]], [[5, 0], [5, 1]], [[5, 1], [5, 2]], [[5, 2], [5, 3]], [[5, 3], [5, 4]]],
+              wins: [
+                  {
+                      winAmount: 10,
+                      positions: [[0, 0], [0, 2], [1, 4], [1, 4], [2, 0], [2, 1], [4, 0], [5, 4]],
+                      symbolId: 0,
+                  },
+              ],
+          },
+          {
+              roundId: 1,
+              incomingSymbols: [[4, 6], [0, 5], [4, 4], [], [4], [0]],
+              explosions: [[0, 0], [1, 3], [1, 4], [2, 0], [2, 1], [3, 1], [4, 1], [4, 2]],
+              reelsBefore: [[4, 6, 6, 2, 1], [0, 5, 5, 4, 4], [4, 4, 5, 2, 3], [4, 7, 6, 6, 1], [4, 4, 8, 8, 2], [0, 1, 5, 3, 7]],
+              reelsAfter: [[null, 6, 6, 2, 1], [null, null, 0, 5, 5], [null, null, 5, 2, 3], [null, 7, 6, 6, 1], [null, null, 8, 8, 2], [0, 1, 5, 3, 7]],
+              cascades: [[[1, 0], [1, 2]], [[1, 1], [1, 3]], [[1, 2], [1, 4]]],
+              wins: [
+                  {
+                      winAmount: 30,
+                      positions: [[0, 0], [1, 3], [1, 4], [2, 0], [2, 1], [3, 1], [4, 1], [4, 2]],
+                      symbolId: 4,
+                  },
+              ],  
+          },
+          {
+              roundId: 2,
+              incomingSymbols: [[2], [6, 6], [1, 5], [4], [6, 6], []],
+              explosions: [[0, 1], [0, 2], [1, 0], [1, 1], [3, 2], [3, 3], [4, 0], [4, 1]],
+              reelsBefore: [[2, 6, 6, 2, 1], [6, 6, 0, 5, 5], [1, 5, 5, 2, 3], [4, 7, 6, 6, 1], [6, 6, 8, 8, 2], [0, 1, 5, 3, 7]],
+              reelsAfter: [[null, null, 2, 2, 1], [null, null, 0, 5, 5], [1, 5, 5, 2, 3], [null, null, 4, 7, 1], [null, null, 8, 8, 2], [0, 1, 5, 3, 7]],
+              cascades: [[[1, 0], [1, 2]], [[1, 1], [1, 3]], [[1, 2], [1, 4]]],
+              wins: [
+                  {
+                      winAmount: 20,
+                      positions: [[0, 0], [0, 1], [3, 0], [3, 2], [3, 1], [3, 3]],
+                      symbolId: 6,
+                  },
+              ],  
+          },
+          {
+              roundId: 3,
+              incomingSymbols: [[7, 0], [4, 4], [], [4], [2, 1], []],
+              explosions: [],
+              reelsBefore: [[7, 0, 2, 2, 1], [4, 4, 0, 5, 5], [1, 5, 5, 2, 3], [6, 6, 4, 7, 1], [2, 1, 8, 8, 2], [0, 1, 5, 3, 7]],
+              reelsAfter: [[7, 0, 2, 2, 1], [4, 4, 0, 5, 5], [1, 5, 5, 2, 3], [6, 6, 4, 7, 1], [2, 1, 8, 8, 2], [0, 1, 5, 3, 7]],
+              cascades: [],
+              wins: [
+                  {
+                      winAmount: 0,
+                      positions: [],
+                      symbolId: null,
+                  },
+              ],  
+          },
+      ],
+      totalWin: 0,
+      winEventType: 'normal',
+      _id: "",
+  };
 
     GameDataManager.getInstance().setResponseData(response);
 
@@ -187,7 +280,7 @@ export class GameServer {
     };
     this.previousGrid = this.firstSpin
       ? this.initData
-      : this.latestSpinData.gridAfter;
+      : this.latestSpinData.gridBefore;
     this.firstSpin = false;
     this.latestSpinData = {
       gridBefore: this.firstSpin ? this.initData : this.previousGrid,

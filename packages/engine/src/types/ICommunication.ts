@@ -43,13 +43,13 @@ export interface MatchData {
 // }
 
 export interface CascadeStepData {
-  step: number; // Cascade step number (0 = initial, 1+ = subsequent cascades)
-  matches: MatchData[]; // Matches found in this step
-  indicesToRemove: number[]; // Array indices of symbols to remove
-  symbolsToDrop: DropData[]; // How existing symbols should drop
-  newSymbols: SymbolData[]; // New symbols to add at specific indices
-  newSymbolIndices: number[]; // Indices where new symbols should be placed
-  gridAfter: GridData; // Grid state after this cascade step is applied
+  roundId: number,
+  incomingSymbols: number[][],
+  explosions: number[][],
+  reelsBefore: number[][],
+  reelsAfter: number[][],
+  cascades: number[][],
+  wins: WinData[],
 }
 
 export interface DropData {
@@ -157,6 +157,46 @@ export interface IResponseData {
     temp: any;
   }[];
   _id: string;
+}
+
+export interface IResponseDataNew {
+  balance: {
+    before: number;
+    after: number;
+  };
+  freeSpin?: {
+    featureWin: number;
+    totalRounds: number;
+    playedRounds: number;
+    extraRounds: number;
+  };
+  bonus?: {
+    history: IBonusData[];
+    positions: number[][];
+  };
+  clientAction: string;
+  nextAction: string;
+  steps: IStepData[] | any[];
+  totalWin: number;
+  winEventType: WinEventType;
+  _id: string;
+}
+
+export interface IStepData {
+  stepId: number;
+  incomingSymbols: number[][];
+  reelsBefore: number[][];
+  explosions: number[][];
+  cascades: number[][];
+  reelsAfter: number[][];
+  wins: IWinData[];
+}
+
+export interface IWinData {
+  line?: number;
+  payout: number;
+  positions: number[] | number[][];
+  temp: any;
 }
 
 export interface IBonusData {

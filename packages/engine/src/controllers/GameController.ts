@@ -119,27 +119,6 @@ export class GameController {
             this.onSpinResultCallback(result);
         }
 
-        // Process each cascade step immediately (no animation delays)
-        /*for (let i = 0; i < result.cascadeSteps.length; i++) {
-            const step = result.cascadeSteps[i];
-            
-            debug.log(`GameController: Processing cascade step ${step.step}`);
-            debug.log(`GameController: Grid after step ${step.step}:`, step.gridAfter);
-            
-            // Update current step
-            this.updateGameState({
-                currentStep: step.step
-            });
-
-            // Notify about cascade step
-            if (this.onCascadeStepCallback) {
-                this.onCascadeStepCallback(step);
-            }
-
-            // Small delay between steps for visual clarity (optional)
-            await new Promise(resolve => setTimeout(resolve, 100)); // Very short delay
-        }*/
-
         // Add winnings to balance
         this.updateGameState({
             balance: this.gameState.balance + result.totalWin,

@@ -349,7 +349,7 @@ export class ClassicSpinContainer extends SpinContainer {
     }
 
     checkReelForAnticipation(reelId: number): boolean {
-        const reel = GameDataManager.getInstance().getResponseData().reels[reelId];
+        const reel = (GameDataManager.getInstance().getResponseData() as IResponseData).reels[reelId];
 
         if (reel === undefined) return false;
 
@@ -395,6 +395,7 @@ export class ClassicSpinContainer extends SpinContainer {
             this.reelsSpinStates.forEach(state => state.speed = SpinConfig.REEL_SLOW_DOWN_SPEED_LIMIT);
         }
     }
+    
     // Position calculation utilities
     public calculateSymbolX(column: number = 0): number {
         const symbolWidth = this.gameConfig.REFERENCE_SPRITE_SYMBOL.width;

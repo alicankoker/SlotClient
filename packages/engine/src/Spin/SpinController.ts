@@ -12,6 +12,7 @@ import {
   DropData,
   GridData,
   IResponseData,
+  IResponseDataNew,
   MatchData,
   SymbolData,
 } from "../types/ICommunication";
@@ -59,11 +60,12 @@ export abstract class SpinController {
   }
 
   // Main spin orchestration methods
-  public async executeSpin(): Promise<IResponseData> {
+  public async executeSpin(): Promise<void> {
     if (this.currentState !== "idle") {
       const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
       debug.warn(error);
       this.handleError(error);
+      return;
     }
 
     this._abortController = new AbortController();
@@ -72,7 +74,7 @@ export abstract class SpinController {
     this._isForceStopped = false;
 
     try {
-      this.setState(ISpinState.SPINNING);
+      //this.setState(ISpinState.SPINNING);
 
       if (this.onSpinStartCallback) {
         this.onSpinStartCallback();
@@ -83,22 +85,8 @@ export abstract class SpinController {
 
       if (!response) {
         this.handleError("Unknown server error");
-        return response || false;
+        return;
       }
-
-      // this.currentSpinId = response.result.spinId;
-      // this.currentCascadeSteps = response.result.steps;
-      // this.finalGridData = response.result.steps[response.result.steps.length - 1].gridAfter; // Store final grid
-
-      // Step 1: Transfer symbols from StaticContainer to SpinContainer
-      // await this.transferSymbolsToSpinContainer(
-      //   response.result.steps[0].gridBefore
-      // );
-
-      // this._soundManager.play("spin", true, 0.75); // Play spin sound effect
-
-      // Step 2: Start spinning animation
-      // this.startSpinAnimation(response.result);
 
       if (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL) {
         await Utils.delay(SpinConfig.SPIN_DURATION, signal);
@@ -133,8 +121,6 @@ export abstract class SpinController {
 
       await this.reelsController.setMode(ISpinState.IDLE);
       this.setState(ISpinState.IDLE);
-
-      return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
       const errorMessage =
@@ -397,7 +383,7 @@ export abstract class SpinController {
   }
 
   protected async processCascadeStep(step: CascadeStepData): Promise<void> {
-    debug.log(`SpinController: Processing cascade step ${step.step}`);
+    debug.log(`SpinController: Processing cascade step ${step.roundId}`);
 
     // Get the spin container (assuming it's a CascadeSpinContainer)
     const spinContainer = this.reelsController

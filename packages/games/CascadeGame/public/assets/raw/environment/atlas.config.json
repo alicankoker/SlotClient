@@ -1,0 +1,7 @@
+{
+  "name": "environment",
+  "format": "json-hash",
+  "extrude": 1,
+  "padding": 1,
+  "allowRotation": false
+}

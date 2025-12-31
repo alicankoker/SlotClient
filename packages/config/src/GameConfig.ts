@@ -127,11 +127,11 @@ export interface IWinLines {
 
 export const spinContainerConfig: SpinContainerConfig = {
     reelIndex: 0, // Single container manages all reels, but still needs this for compatibility
-    numberOfReels: 5, // Will handle all reels (6 columns)
+    numberOfReels: 6, // Will handle all reels (6 columns)
     symbolHeight: 150,
-    symbolsVisible: 3,
-    rowsAboveMask: 1,
-    rowsBelowMask: 1,
+    symbolsVisible: 5,
+    rowsAboveMask: 0,
+    rowsBelowMask: 0,
     spinSpeed: 10,
     spinDuration: 2000
 };

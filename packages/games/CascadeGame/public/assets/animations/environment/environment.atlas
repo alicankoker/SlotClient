@@ -1,0 +1,190 @@
+environment.webp
+size:2496,2496
+filter:Linear,Linear
+Comp 1/0001
+bounds:2386,1139,200,100
+rotate:90
+Comp 1/0002
+bounds:2386,937,200,100
+rotate:90
+Comp 1/0003
+bounds:2307,658,200,100
+rotate:90
+Comp 1/0004
+bounds:2275,456,200,100
+rotate:90
+Comp 1/0005
+bounds:2275,254,200,100
+rotate:90
+Comp 1/0006
+bounds:723,51,200,100
+Comp 1/0007
+bounds:925,51,200,100
+Comp 1/0008
+bounds:2377,456,200,100
+rotate:90
+Comp 1/0009
+bounds:2377,254,200,100
+rotate:90
+Comp 1/0010
+bounds:2291,52,200,100
+rotate:90
+Comp 1/0011
+bounds:2393,52,200,100
+rotate:90
+Falling_Dust/00001
+bounds:926,1136,159,55
+Falling_Dust/00002
+bounds:483,40,159,55
+Falling_Dust/00003
+bounds:1127,96,159,55
+Falling_Dust/00004
+bounds:1087,1136,159,55
+Falling_Dust/00005
+bounds:1127,39,159,55
+Falling_Dust/00006
+bounds:2409,776,159,55
+rotate:90
+Glow
+bounds:2005,1270,69,69
+offsets:25,25,119,119
+Spark/0001
+bounds:1811,1204,192,135
+Spark/0007
+bounds:723,315,590,814
+Spark/0008
+bounds:1811,1533,675,960
+Spark/0009
+bounds:2,97,719,1032
+Spark/0010
+bounds:1315,21,800,1170
+Spark/0011
+bounds:926,1193,883,1300
+Spark/0012
+bounds:2,1131,922,1362
+chain/Base_Chain
+bounds:2,18,77,479
+rotate:90
+chain/Base_Chain_Blur
+bounds:2117,178,77,479
+chain/Freespin_Chain
+bounds:2307,860,77,479
+chain/Freespin_Chain_Blur
+bounds:2196,178,77,479
+chainglow
+bounds:723,153,160,580
+rotate:90
+lanthern/Base_Lanthern_L
+bounds:2117,659,188,680
+lanthern/FS_Lanthern_L
+bounds:1811,1341,190,682
+rotate:90
+shine
+bounds:2117,51,172,125
+
+environment_2.webp
+size:1256,1256
+filter:Linear,Linear
+Comp 1/0012
+bounds:470,55,200,100
+Comp 1/0013
+bounds:672,55,200,100
+Comp 1/0014
+bounds:1153,731,200,100
+rotate:90
+Comp 1/0015
+bounds:1153,529,200,100
+rotate:90
+Comp 1/0016
+bounds:511,617,200,100
+Comp 1/0017
+bounds:511,1153,200,100
+Comp 1/0018
+bounds:511,1051,200,100
+Comp 1/0019
+bounds:511,949,200,100
+Comp 1/0020
+bounds:511,847,200,100
+Comp 1/0021
+bounds:511,745,200,100
+Comp 1/0022
+bounds:874,617,200,100
+Comp 1/0023
+bounds:874,515,200,100
+Comp 1/0024
+bounds:874,413,200,100
+Comp 1/0025
+bounds:874,311,200,100
+Falling_Dust/00007
+bounds:1188,1094,159,55
+rotate:90
+Falling_Dust/00008
+bounds:1188,933,159,55
+rotate:90
+Falling_Dust/00009
+bounds:713,1198,159,55
+Falling_Dust/00010
+bounds:713,1141,159,55
+Falling_Dust/00011
+bounds:713,1084,159,55
+Falling_Dust/00012
+bounds:713,1027,159,55
+Falling_Dust/00013
+bounds:713,970,159,55
+Falling_Dust/00014
+bounds:713,913,159,55
+Falling_Dust/00015
+bounds:713,856,159,55
+Falling_Dust/00016
+bounds:713,799,159,55
+Falling_Dust/00017
+bounds:713,742,159,55
+Falling_Dust/00018
+bounds:713,685,159,55
+Falling_Dust/00019
+bounds:713,628,159,55
+Falling_Dust/00020
+bounds:1076,558,159,55
+rotate:90
+Falling_Dust/00021
+bounds:1076,472,159,55
+Falling_Dust/00022
+bounds:1076,415,159,55
+Falling_Dust/00023
+bounds:1076,358,159,55
+Falling_Dust/00024
+bounds:1076,301,159,55
+Falling_Dust/00025
+bounds:874,254,159,55
+Falling_Dust/00026
+bounds:862,197,159,55
+Falling_Dust/00027
+bounds:874,36,159,55
+rotate:90
+Falling_Dust/00028
+bounds:931,36,159,55
+rotate:90
+Falling_Dust/00029
+bounds:988,36,159,55
+rotate:90
+Falling_Dust/00030
+bounds:1023,197,159,55
+Falling_Dust/00031
+bounds:1184,140,159,55
+rotate:90
+Falling_Dust/00032
+bounds:1045,36,159,55
+rotate:90
+Falling_Dust/00033
+bounds:1102,36,159,55
+rotate:90
+Spark/0002
+bounds:874,719,277,233
+Spark/0003
+bounds:874,954,312,299
+Spark/0004
+bounds:470,157,390,432
+Spark/0005
+bounds:2,3,466,586
+Spark/0006
+bounds:2,591,507,662

@@ -1,4 +1,4 @@
-import { GridData, CascadeStepData, SpinResultData, SpinResponseData, IResponseData, IData } from '../types/ICommunication';
+import { GridData, CascadeStepData, SpinResultData, SpinResponseData, IResponseData, IData, IResponseDataNew } from '../types/ICommunication';
 import { debug } from '../utils/debug';
 
 export interface GameState {
@@ -27,6 +27,7 @@ export class GameDataManager {
     private _isFreeSpinning: boolean = false;
     private _isAutoPlaying: boolean = false;
     private _isSkippedWinAnimation: boolean = false;
+    private _currentStepId: number = 0;
 
     private constructor() {
         this.gameState = {
@@ -60,7 +61,7 @@ export class GameDataManager {
         const min = 0;
         const max = 10;
 
-        const symbolsBefore: number[][] = initialGrid.map((column: number[]) => {
+        /*const symbolsBefore: number[][] = initialGrid.map((column: number[]) => {
             if (column.length === 0) return column;
 
             const newColumn = [...column];
@@ -71,9 +72,9 @@ export class GameDataManager {
             newColumn.push(randomLast);
 
             return newColumn;
-        });
+        });*/
 
-        this.gameState.symbolsBeforeSpin = symbolsBefore;
+        this.gameState.symbolsBeforeSpin = initialGrid;
     }
 
     public getInitialSymbols(): number[][] | undefined {
@@ -88,7 +89,7 @@ export class GameDataManager {
                 const min = 0;
                 const max = 10;
 
-                const symbolsBefore: number[][] = this.gameState.currentResponseData.reels.map((column: number[]) => {
+                /*const symbolsBefore: number[][] = this.gameState.currentResponseData.reels.map((column: number[]) => {
                     if (column.length === 0) return column;
 
                     const newColumn = [...column];
@@ -99,9 +100,9 @@ export class GameDataManager {
                     newColumn.push(randomLast);
 
                     return newColumn;
-                });
+                });*/
 
-                this.gameState.symbolsBeforeSpin = symbolsBefore;
+                this.gameState.symbolsBeforeSpin = this.gameState.currentResponseData.reels;
             }
 
             this.gameState.lastResponseData = response as IResponseData;
@@ -109,7 +110,7 @@ export class GameDataManager {
         }
     }
 
-    public getResponseData(): IResponseData {
+    public getResponseData(): IResponseData | IResponseDataNew {
         return this.gameState.lastResponseData as IResponseData;
     }
 
@@ -173,24 +174,7 @@ export class GameDataManager {
         debug.log('GameDataManager: Current grid updated');
     }
 
-    // public setSymbolsBeforeSpin(grid: GridData): void {
-    //     this.gameState.symbolsBeforeSpin = grid;
-    //     debug.log('GameDataManager: Symbols before spin set');
-    // }
-
-    // // Method to capture current static container symbols before starting a new spin
-    // public captureCurrentStaticSymbols(): void {
-    //     const totalSteps = this.gameState.currentSpinData?.result?.steps.length || 0;
-    //     // This should be called before starting a new spin to capture what's currently on StaticContainer
-    //     if (this.gameState.currentSpinData?.result?.steps[totalSteps ? totalSteps - 1 : 0]) {
-    //         // Use the final grid from the previous spin
-    //         this.gameState.symbolsBeforeSpin = this.gameState.currentSpinData.result.steps[totalSteps ? totalSteps - 1 : 0].gridAfter;
-    //         debug.log('GameDataManager: Captured previous spin final symbols as symbolsBeforeSpin');
-    //     } else {
-    //         // First spin - no previous data, this will be set by the game initialization
-    //         debug.log('GameDataManager: First spin - no previous symbols to capture');
-    //     }
-    // }
+   
 
     // Method to set initial symbols for first spin (from game initialization)
 
@@ -277,6 +261,18 @@ export class GameDataManager {
 
     public setIsWinAnimationSkipped(value: boolean): void {
         this._isSkippedWinAnimation = value;
+    }
+
+    public getCurrentStepId(): number {
+        return this._currentStepId;
+    }
+
+    public setCurrentStepId(stepId: number): void {
+        this._currentStepId = stepId;
+    }
+
+    public incrementCurrentStepId(): void {
+        this._currentStepId++;
     }
 
     // Update multiple properties at once

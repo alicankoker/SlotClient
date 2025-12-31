@@ -20,7 +20,7 @@ export class ClassicSpinController extends SpinController {
   }
 
   // Main spin orchestration methods
-  public async executeSpin(): Promise<IResponseData> {
+  public async executeSpin(): Promise<void> {
     if (this.currentState !== "idle") {
       const error = `SpinController: Cannot start spin - current state is ${this.currentState}`;
       debug.warn(error);
@@ -53,7 +53,7 @@ export class ClassicSpinController extends SpinController {
       });
 
       // Simulate server request (replace with actual server call)
-      const response: IResponseData = GameDataManager.getInstance().getResponseData();
+      const response: IResponseData = GameDataManager.getInstance().getResponseData() as IResponseData;
 
       if (!response) {
         this.handleError(response || "Unknown server error");
@@ -82,7 +82,6 @@ export class ClassicSpinController extends SpinController {
 
       (this.container as ClassicSpinContainer).startStopSequence();
       (this._spinMode === this.gameConfig.SPIN_MODES.NORMAL || FreeSpinController.instance().isRunning) && await Utils.delay(SpinConfig.REEL_STOPPING_DURATION);
-      return response;
     } catch (error) {
       debug.error("SpinController: Spin execution error", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
