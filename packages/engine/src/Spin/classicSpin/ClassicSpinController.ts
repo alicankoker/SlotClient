@@ -44,7 +44,7 @@ export class ClassicSpinController extends SpinController {
 
       if (FreeSpinController.instance().isRunning === false) {
         eventBus.emit("setWinBox");
-        AutoPlayController.instance().isRunning === false && eventBus.emit("setMessageBox", { variant: "default", message: "GOOD LUCK!" });
+        AutoPlayController.instance().isRunning === false && eventBus.emit("setMessageBox", { variant: "default", payload: "GOOD LUCK!" });
       }
 
       eventBus.emit('setComponentState', {

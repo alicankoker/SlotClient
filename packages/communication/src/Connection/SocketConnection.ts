@@ -47,15 +47,7 @@ export class SocketConnection {
                 });
 
                 this._socket.on("error", (status) => {
-                    // invalid session - session expired
-                    eventBus.emit("showErrorPopup", { code: status.code });
-                    signals.emit("socketError", status.message);
-                    console.warn("Socket error:", status.code);
-                    reject(new Error(`Socket error: ${status.message}`));
-                });
-
-                this._socket.on("duplicate_session", (status) => {
-                    // duplicate session
+                    // invalid session - session expired - duplicate session
                     eventBus.emit("showErrorPopup", { code: status.code });
                     signals.emit("socketError", status.message);
                     console.warn("Socket error:", status.code);
@@ -83,8 +75,11 @@ export class SocketConnection {
     public request(payload: IPayload): Promise<any> {
         return new Promise((resolve, reject) => {
             this._socket.emit("event", payload, (response: any) => {
-                if (response.error) {
-                    reject(response.error);
+                if (response.ok == false) {
+                    eventBus.emit("showErrorPopup", { code: response.error.code });
+                    signals.emit("socketError", response.error.message || "Unknown error");
+                    console.warn("Connection error:", response.error.message || "Unknown error");
+                    reject(response.error.code);
                 } else {
                     resolve(response.data);
                 }

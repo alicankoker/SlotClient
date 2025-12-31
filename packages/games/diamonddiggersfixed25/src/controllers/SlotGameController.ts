@@ -340,7 +340,7 @@ export class SlotGameController implements ISlotGameController {
         this.staticContainer.isFreeSpinMode = true;
 
         await this.playScatterHighlightAnimation();
-        
+
         this.reelsContainer.isFreeSpinMode = true;
 
         await this.animationContainer.startTransitionAnimation(() => {
@@ -353,7 +353,7 @@ export class SlotGameController implements ISlotGameController {
                 stateOrUpdates: { disabled: true }
             });
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
-            eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
+            eventBus.emit("setMessageBox", { variant: "freeSpin", payload: remainRounds.toString() });
         });
 
         this.animationContainer.getPopupCountText().setText(`${remainRounds}`);
@@ -448,7 +448,7 @@ export class SlotGameController implements ISlotGameController {
 
         if (spinResultData?.ws.length! <= 0) {
             if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
-                eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+                eventBus.emit("setMessageBox", { variant: "default", payload: "PLACE YOUR BET" });
             }
 
             this.resetWinAnimations();
@@ -457,12 +457,17 @@ export class SlotGameController implements ISlotGameController {
 
         if (spinResultData) {
             for (const winData of spinResultData.ws) {
+                const multiplier: number = Array.isArray(winData.positions[0])
+                    ? (winData.positions as number[][]).flat().filter(v => v !== -1).length
+                    : (winData.positions as number[]).filter(v => v !== -1).length;
+
                 const winConfig: WinConfig = {
                     symbolIds: winData.positions,
                     line: winData.line,
                     amount: winData.payout,
-                    multiplier: Math.max(1, Math.floor(Math.random() * 5))
-                }
+                    symbol: winData.symbol,
+                    multiplier
+                };
 
                 winConfigs.push(winConfig);
             }
@@ -501,9 +506,7 @@ export class SlotGameController implements ISlotGameController {
      */
     public resetWinAnimations(): void {
         if (!this.reelsContainer) {
-            debug.warn(
-                "ReelsController: reelsContainer not set, skipping resetWinAnimations"
-            );
+            debug.warn("ReelsController: reelsContainer not set, skipping resetWinAnimations");
             return;
         }
 
@@ -514,6 +517,8 @@ export class SlotGameController implements ISlotGameController {
         const staticContainer = this.reelsContainer.getStaticContainer();
 
         staticContainer?.resetWinAnimations();
+
+        this.winLines.hideAllLines();
     }
 
     public getFreeSpinController(): FreeSpinController {

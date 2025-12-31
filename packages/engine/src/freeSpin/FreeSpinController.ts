@@ -70,7 +70,7 @@ export class FreeSpinController {
 
         await Helpers.delay(1000);
 
-        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
+        eventBus.emit("setMessageBox", { variant: "freeSpin", payload: (this.remainingSpins - 1).toString() });
 
         await this.slotGameController.executeGameSpin('freeSpin');
 
@@ -117,7 +117,7 @@ export class FreeSpinController {
             signals.once(SIGNAL_EVENTS.FREE_SPIN_RETRIGGERED, () => resolve());
         });
 
-        eventBus.emit("setMessageBox", { variant: "freeSpin", message: (this.remainingSpins - 1).toString() });
+        eventBus.emit("setMessageBox", { variant: "freeSpin", payload: (this.remainingSpins - 1).toString() });
     }
 
     /**

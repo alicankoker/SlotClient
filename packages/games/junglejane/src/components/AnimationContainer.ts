@@ -9,7 +9,7 @@ import { AssetsConfig } from "../configs/AssetsConfig";
 import { MeshAttachment, RegionAttachment, Spine } from "@esotericsoftware/spine-pixi-v8";
 import { GameDataManager } from "@slotclient/engine/data/GameDataManager";
 import { ResponsiveConfig } from "@slotclient/engine/utils/ResponsiveManager";
-import { eventBus } from "@slotclient/types";
+import { eventBus, WinConfig } from "@slotclient/types";
 import { WinEventType } from "@slotclient/types/IWinEvents";
 import { SpriteText } from "@slotclient/engine/utils/SpriteText";
 import { AutoPlayController } from "@slotclient/engine/AutoPlay/AutoPlayController";
@@ -266,7 +266,7 @@ export class AnimationContainer extends Container {
 
         signals.on(SIGNAL_EVENTS.WIN_ANIMATION_PLAY, (winData) => {
             if (winData !== undefined) {
-                this.playWinTextAnimation(winData.amount);
+                this.playWinTextAnimation(winData);
                 this._winLines.showLine(winData.line);
             }
         });
@@ -364,7 +364,7 @@ export class AnimationContainer extends Container {
         return new Promise((resolve) => {
             this.totalWinResolver = resolve;
 
-            if (!this._gameConfig.WIN_ANIMATION.winTextVisibility) {
+            if (this._gameConfig.WIN_ANIMATION.winTextVisibility === false) {
                 if (isShow) {
                     eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(this._totalWinAmount) as string });
                 }
@@ -380,7 +380,7 @@ export class AnimationContainer extends Container {
             if (isShow) {
                 eventBus.emit("setWinBox", { variant: "default", amount: "0" });
 
-                AutoPlayController.instance().isRunning === false && eventBus.emit("setMessageBox", { variant: "default", message: "" });
+                AutoPlayController.instance().isRunning === false && eventBus.emit("setMessageBox", { variant: "default", payload: "" });
             }
 
             const particle = Sprite.from('win_strap_particle');
@@ -490,7 +490,7 @@ export class AnimationContainer extends Container {
         }
     }
 
-    public playWinTextAnimation(winAmount: number): void {
+    public playWinTextAnimation(winData: WinConfig): void {
         if (this._gameConfig.WIN_ANIMATION.winTextVisibility) {
             const particle = Sprite.from('win_strap_particle');
             particle.anchor.set(0.5, 0.5);
@@ -500,7 +500,9 @@ export class AnimationContainer extends Container {
             // Play single win text animation
             gsap.fromTo(this._winContainer.scale, { x: 0, y: 0 }, {
                 x: 1, y: 1, duration: 0.25, ease: 'back.out(1.7)', onStart: () => {
-                    this._winText.setText(`$${Helpers.convertToDecimal(winAmount)}`, -10);
+                    eventBus.emit("setMessageBox", { variant: "payout", payload: { multiplier: `${winData.multiplier}`, symbolIndex: winData.symbol, lineValue: `${winData.line}` } });
+
+                    this._winText.setText(`$${Helpers.convertToDecimal(winData.amount)}`, -10);
                     this._winContainer.visible = true;
                 }
             });
