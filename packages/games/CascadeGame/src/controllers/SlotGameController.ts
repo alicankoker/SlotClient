@@ -361,7 +361,7 @@ export class SlotGameController implements ISlotGameController {
                 stateOrUpdates: { disabled: true }
             });
             eventBus.emit("setWinBox", { variant: "default", amount: Helpers.convertToDecimal(initialWin) as string });
-            eventBus.emit("setMessageBox", { variant: "freeSpin", message: remainRounds.toString() });
+            eventBus.emit("setMessageBox", { variant: "freeSpin", payload: remainRounds.toString() });
         });
 
         this.animationContainer.getPopupCountText().setText(`${remainRounds}`);
@@ -456,7 +456,7 @@ export class SlotGameController implements ISlotGameController {
 
         if (spinResultData?.ws.length! <= 0) {
             if (FreeSpinController.instance().isRunning === false && AutoPlayController.instance().isRunning === false) {
-                eventBus.emit("setMessageBox", { variant: "default", message: "PLACE YOUR BET" });
+                eventBus.emit("setMessageBox", { variant: "default", payload: "PLACE YOUR BET" });
             }
 
             this.resetWinAnimations();
@@ -469,7 +469,8 @@ export class SlotGameController implements ISlotGameController {
                     symbolIds: winData.positions,
                     line: winData.line,
                     amount: winData.payout,
-                    multiplier: Math.max(1, Math.floor(Math.random() * 5))
+                    multiplier: Math.max(1, Math.floor(Math.random() * 5)),
+                    symbol: winData.symbol
                 }
 
                 winConfigs.push(winConfig);
